@@ -1,0 +1,26 @@
+{
+  "type": "aerobatic-elytra:split_recipe",
+    "_comment0": "Shapeless recipe for splitting an Aerobatic Elytra",
+    "_comment1": "  At least one ingredient must be an Aerobatic Elytra",
+    "_comment2": "  No output can be specified",
+    "_comment3": "  When applied, a wing will be the output, an the other will",
+    "_comment4": "  replace the elytra",
+  "group": "Aerobatic Elytra",
+
+  "ingredients": [
+    {
+      "_comment0": "Exactly one Aerobatic Elytra must appear as an ingredient",
+      "_comment1": "  Setting leave or damage here is ignored",
+      "item": "aerobatic-elytra:aerobatic_elytra"
+    }, {
+      "_comment0": "If leave is true for an item, it will be left in the table",
+      "_comment1": "If damage is true for an item, that amount of damage will",
+      "_comment2": "be applied to the item when left in the table",
+      "_comment3": "In order to specify lists of ingredients, you may specify",
+      "_comment4": "the ingredient in an 'ingredient' tag as a list/object",
+      "item": "minecraft:shears",
+      "leave": true,
+      "damage": 1
+    }
+  ]
+}

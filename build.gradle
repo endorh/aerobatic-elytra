@@ -1,0 +1,448 @@
+// Build script dependencies
+buildscript {
+	repositories {
+		if (!project.hasProperty("forgeGradleBinFolder")) {
+			maven {
+				url = 'https://files.minecraftforge.net/maven'
+			}
+		}
+		mavenCentral()
+	}
+	dependencies {
+		if (!project.hasProperty("forgeGradleBinFolder")) {
+			classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '4.+', changing: true
+		} else {
+			implementation files(project.getProperty("forgeGradleBinFolder").toString())
+		}
+	}
+}
+
+// Plugins
+plugins {
+	// id 'java-library'
+	id 'java'
+	id 'maven-publish'
+}
+apply plugin: 'net.minecraftforge.gradle'
+import net.minecraftforge.gradle.common.task.SignJar
+
+//apply plugin: 'maven-publish'
+
+// Mod info -----------------------------------------------------------------------
+
+def mod_id = "aerobatic-elytra"
+group = "dnj.aerobatic_elytra"
+def group_slashed = project.group.replaceAll("\\.", "/"),
+	classname = "AerobaticElytra"
+
+// Attributes
+def display_name = "Aerobatic Elytra",
+	vendor = "DnJ",
+	credits = "",
+	authors = "Endor8",
+	issue_tracker = "",
+	page = "",
+	update_json = "",
+	logo_file = "${mod_id}.png",
+	description = '''
+Adds an special elytra able to roll, fly and leave a trail, like an aerobatic plane.
+All recipes and elytra upgrades can be modified by datapacks with great flexibility.
+Other mods may register their own flight modes for the elytra.
+'''
+
+// License
+def license = "LGPL"
+
+// Versions
+version = "0.2.0"
+
+// Dependencies
+def mc_version = "1.16.5",
+	forge = "36.1.0",
+	forge_version = "${mc_version}-${forge}",
+	mixin_version = "0.8.2",
+	minimal_mixin_version = "0.7.10",
+	flight_core_version = "1.0.0",
+	cloth_config_api_version = "4.11.19",
+	simple_config_version = "0.1.+",
+	endor8_util_version = "0.1.+"
+
+// Integration
+def jei_version = "7.6.1.75",
+	curios_version = "1.16.5-4.0.5.0",
+	caelus_version = "1.16.5-2.1.3.0"
+//noinspection GroovyUnusedAssignment
+def curious_elytra_version = "317716:3231248",
+	customizable_elytra_version = "440047:3248968",
+	colytra_version = "280200:3113926",
+	bookshelf_version = "228525:3241077",
+	additional_banners_version = "230137:3170181",
+	tabula_version = "229092:3274999",
+	ichun_utils_version = "229060:3274982",
+	aerobatic_elytra_jetpack_version = "0.1.+"
+
+// Jar attributes
+archivesBaseName = "${mod_id}-${mc_version}"
+
+def jar_attributes = [
+	"Specification-Title"     : "${mod_id}",
+	"Specification-Vendor"    : "${vendor}",
+	"Specification-Version"   : "1",
+	"Implementation-Title"    : project.name,
+	"Implementation-Version"  : "${version}",
+	"Implementation-Vendor"   : "${vendor}",
+	"Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+	//"FMLCorePluginContainsFMLMod": "true",
+	"Maven-Artifact"          : "${group}:${mod_id}:${version}"
+]
+
+def mod_properties = [
+	modid: mod_id,
+	display: display_name,
+	version: project.version,
+	mcversion: mc_version,
+	mixinver: mixin_version,
+	minmixin: minimal_mixin_version,
+	vendor: vendor,
+	authors: authors,
+	credits: credits,
+	license: license,
+	page: page,
+	issue_tracker: issue_tracker,
+	update_json: update_json,
+	logo_file: logo_file,
+	description: description,
+	group: group,
+	class_name: classname,
+	group_slashed: group_slashed
+]
+
+// Java options -------------------------------------------------------------------
+
+// Java version
+sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
+compileJava.options.encoding = compileTestJava.options.encoding = javadoc.options.encoding = 'UTF-8'
+
+println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
+
+java {
+	withSourcesJar()
+	withJavadocJar()
+}
+
+// Minecraft options --------------------------------------------------------------
+
+minecraft {
+	mappings channel: 'snapshot', version: '20201028-1.16.3'
+	//mappings channel: 'official', version: '1.16.5'
+	// makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
+	//accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+
+	runs {
+		client {
+			//noinspection GroovyAssignabilityCheck
+			workingDirectory project.file('run')
+			//arg "-mixin.config=" + "mixins." + "${mod_id}".toString() + ".json"
+
+			// Allowed flags: SCAN, REGISTRIES, REGISTRYDUMP
+			property 'forge.logging.markers', 'REGISTRIES'
+			property 'forge.logging.console.level', 'debug'
+
+			mods {
+				aerobatic_elytra {
+					//noinspection GroovyAssignabilityCheck
+					source sourceSets.main
+				}
+			}
+		}
+
+		server {
+			//noinspection GroovyAssignabilityCheck
+			workingDirectory project.file('run')
+			//arg "-mixin.config=" + "mixins." + "${mod_id}".toString() + ".json"
+
+			// Allowed flags: SCAN, REGISTRIES, REGISTRYDUMP
+			property 'forge.logging.markers', 'REGISTRIES'
+			property 'forge.logging.console.level', 'debug'
+
+			mods {
+				aerobatic_elytra {
+					//noinspection GroovyAssignabilityCheck
+					source sourceSets.main
+				}
+			}
+		}
+	}
+}
+
+// Project dependencies -----------------------------------------------------------
+
+repositories {
+	flatDir {
+		name = 'Local libs' // flightcore, colytra integration
+		dirs 'libs'
+	}
+	maven {
+		name = "Progwml6 maven" // JEI
+		url = "https://dvs1.progwml6.com/files/maven/"
+	}
+	maven {
+		name = "ModMaven" // JEI fallback
+		url = "https://modmaven.k-4u.nl"
+	}
+	maven {
+		name = "TheIllusiveC4" // Curios API
+		url = "https://maven.theillusivec4.top/"
+	}
+	maven {
+		name = "Curse Maven" // Curse Maven
+		url = "https://www.cursemaven.com"
+		content {
+			includeGroup "curse.maven"
+		}
+	}
+	maven {
+		name = "Cloth Config API"
+		url = "https://maven.shedaniel.me/"
+	}
+	maven {
+		name "LocalMods"
+		url "${project.projectDir.parentFile.toURI()}maven"
+	}
+}
+
+configurations {
+	embed // dependency mods included in the jar
+	embed.transitive false
+	compileOnly.extendsFrom(embed)
+}
+
+dependencies {
+	// IDE
+	implementation 'org.jetbrains:annotations:20.1.0'
+    implementation 'org.junit.jupiter:junit-jupiter:5.4.2'
+
+	// Minecraft
+    minecraft "net.minecraftforge:forge:${forge_version}"
+
+	// Mod dependencies
+	// Flight Core
+	// TODO: Replace with curse maven or GitHub maven once published
+	embed fg.deobf("dnj.flight_core:flight-core:${flight_core_version}")
+	runtimeOnly fg.deobf("dnj.flight_core:flight-core:${flight_core_version}")
+
+	// Simple Config
+	embed fg.deobf("dnj.simple_config:simple-config:${simple_config_version}")
+	runtimeOnly fg.deobf("dnj.simple_config:simple-config:${simple_config_version}")
+
+	// Endor8 Util
+	embed fg.deobf("dnj.endor8util:endor8util:${endor8_util_version}")
+	runtimeOnly fg.deobf("dnj.endor8util:endor8util:${endor8_util_version}")
+
+	// Cloth Config API
+	// TODO: Should be api, and use the java-library plugin
+	implementation fg.deobf("me.shedaniel.cloth:cloth-config-forge:${cloth_config_api_version}")
+	runtimeOnly fg.deobf("me.shedaniel.cloth:cloth-config-forge:${cloth_config_api_version}")
+
+	// Mod integrations
+	// JEI
+	compileOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}:api")
+	runtimeOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}")
+
+	// Curios API
+	compileOnly fg.deobf("top.theillusivec4.curios:curios-forge:${curios_version}:api")
+	runtimeOnly fg.deobf("top.theillusivec4.curios:curios-forge:${curios_version}")
+
+	// Caelus API
+	compileOnly fg.deobf("top.theillusivec4.caelus:caelus-forge:${caelus_version}:api")
+	runtimeOnly fg.deobf("top.theillusivec4.caelus:caelus-forge:${caelus_version}")
+
+	// Only for debug
+	// Aerobatic Elytra Jetpack
+	// TODO: Replace by curse maven, once uploaded
+	runtimeOnly fg.deobf("dnj.aerobatic_elytra_jetpack:aerobatic-elytra-jetpack:${aerobatic_elytra_jetpack_version}")
+
+	// Curious Elytra
+	runtimeOnly fg.deobf("curse.maven:curiouselytra-${curious_elytra_version}")
+
+	// Colytra
+	runtimeOnly fg.deobf("curse.maven:colytra-${colytra_version}")
+
+	// Customizable Elytra
+	runtimeOnly fg.deobf("curse.maven:customizableelytra-${customizable_elytra_version}")
+
+	// Additional Banners
+	runtimeOnly "curse.maven:bookshelf-${bookshelf_version}:deobf"
+	runtimeOnly "curse.maven:additionalbanners-${additional_banners_version}:deobf"
+
+	// Tabula
+	//runtimeOnly fg.deobf("curse.maven:tabula-${tabula_version}")
+	//runtimeOnly fg.deobf("curse.maven:ichunutils-${ichun_utils_version}")
+}
+
+// Tasks --------------------------------------------------------------------------
+
+test {
+	useJUnitPlatform()
+}
+
+classes.dependsOn extractNatives // Make sure the natives are extracted on compile
+
+/*
+// From https://github.com/PaleoCrafter/Dependency-Extraction-Example/pull/1/files
+task generateMetaFiles {
+	doLast {
+		file("${buildDir}/dependencyMeta/").deleteDir() // Clean previous dependencies
+		configurations.embed.resolvedConfiguration.resolvedArtifacts.each {
+			def metaFile = file("${buildDir}/dependencyMeta/${it.file.name}.meta")
+			metaFile.parentFile.mkdirs()
+			def artifactRef = it.moduleVersion.toString()
+			if (it.classifier != null)
+				artifactRef += ":${it.classifier}"
+			def version = it.moduleVersion.id.version
+			def output = 'Maven-Artifact: ' + artifactRef
+			output += '\nMD5: ' + java.security.MessageDigest.getInstance('MD5').digest(it.file.bytes).encodeHex().toString()
+			if (it.moduleVersion.id.version.endsWith('-SNAPSHOT')) // Grab the latest
+				output += '\nTimestamp: ' + Collections.list(new java.util.zip.ZipFile(it.file).entries()).stream()
+					.mapToLong{ze -> ze.time}.reduce{a, b -> a > b ? a : b}.orElse(0)
+
+			metaFile.text = output
+		}
+	}
+}
+*/
+
+// Jar attributes
+jar {
+	into('/META-INF/dependencies') {
+		from configurations.embed
+		from "${buildDir}/dependencyMeta/"
+	}
+	manifest {
+		attributes(jar_attributes)
+		attributes 'ContainedMods': configurations.embed.collect { it.name }.join(' ')
+	}
+
+	//dependsOn generateMetaFiles
+	// Preferred method to reobfuscate the jar file
+	finalizedBy 'reobfJar'
+}
+
+task deobfJar(type: Jar, dependsOn: classes) {
+	archiveClassifier.set("deobf")
+	from sourceSets.main.output
+	manifest {
+		attributes(jar_attributes)
+		attributes 'Maven-Artifact': "${group}:${mod_id}:${project.version}:deobf"
+	}
+}
+
+artifacts {
+	archives deobfJar
+}
+
+// Process resources
+processResources {
+	inputs.properties mod_properties
+
+	from(sourceSets.main.resources.srcDirs) {
+		filesMatching(["**/*.toml", "**/*.mcmeta"]) {
+			expand mod_properties
+		}
+		filesMatching("**/*.json") {
+			if (!getPath().contains("/lang/"))
+				expand mod_properties
+		}
+	}
+}
+
+// Make the clean task remove the run and logs folder
+clean {
+	delete "run"
+	delete "logs"
+}
+
+task saveMods (type: Copy) {
+	from 'run\\mods'
+	into 'saves\\mods'
+}
+
+clean.dependsOn saveMods
+
+task setupMinecraft (type: Copy) {
+	from 'saves'
+	into 'run'
+}
+
+clean.finalizedBy setupMinecraft
+
+task cleanBuildAssets (type: Delete) {
+	println "> Task :cleanBuildAssets"
+	delete "build\\resources\\main\\assets"
+}
+
+build.dependsOn cleanBuildAssets
+
+// Clean all files
+task cleanAll (type: Delete) {
+	delete ".factorypath"
+	delete "Patches"
+}
+cleanAll.finalizedBy clean
+
+// Publishing
+publishing {
+	publications {
+		mod(MavenPublication) {
+			artifact jar
+			artifact sourcesJar
+			artifact javadocJar
+			artifact deobfJar
+
+			pom {
+				name = display_name
+				properties = [
+					description: description
+				]
+				url = page
+			}
+		}
+	}
+	repositories {
+		maven {
+			name "LocalMods"
+			url "${project.projectDir.parentFile.toURI()}maven"
+		}
+	}
+	println "${project.projectDir.parentFile.toURI()}maven"
+}
+
+// Jar signing
+task signJar(type: SignJar, dependsOn: jar) {
+	onlyIf {
+		project.hasProperty 'keyStore'
+	}
+	keyStore = project.findProperty('keyStore')
+	alias = project.findProperty('keyStoreAlias')
+	storePass = project.findProperty('keyStorePass')
+	keyPass = project.findProperty('keyStoreKeyPass')
+	inputFile = jar.archiveFile
+	outputFile = jar.archiveFile
+}
+build.dependsOn signJar
+
+task loadKeyInfo {
+	onlyIf { return file("keyinfo.properties").exists() }
+
+	doFirst {
+		def props = new Properties()
+		props.load(new FileReader(file("keyinfo.properties")))
+
+		props.each { key, val ->
+			project.ext.set(key, val)
+		}
+
+		if (!project.hasProperty('keyStore')) throw new GradleException("Key information file 'keyinfo.properties' does not contain a keyStore variable, unable to continue.")
+	}
+}
+signJar.dependsOn loadKeyInfo

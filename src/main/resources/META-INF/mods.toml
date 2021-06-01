@@ -1,0 +1,54 @@
+modLoader="javafml"
+loaderVersion="[35,)"
+license="${license}"
+#issueTrackerURL="${issue_tracker}"
+[[mods]]
+	modId="aerobatic-elytra"
+	version="${version}"
+	displayName="${display}"
+	#updateJSONURL="${update_json}"
+	#displayURL="${page}"
+	logoFile="${logo_file}"
+	credits="${credits}"
+	authors="${authors}"
+	description='''${description}'''
+[[dependencies.aerobatic-elytra]]
+    modId="flight-core"
+    mandatory=true
+    versionRange="[1.0,2)"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.aerobatic-elytra]]
+    modId="forge"
+    mandatory=true
+    versionRange="[35,)"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.aerobatic-elytra]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.16.4,1.17)"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.aerobatic-elytra]]
+    modId="caelus"
+    mandatory=false
+    ordering="AFTER"
+    side="BOTH"
+[[dependencies.aerobatic-elytra]]
+    modId="curiouselytra"
+    mandatory=false
+    ordering="AFTER"
+    side="BOTH"
+[[dependencies.aerobatic-elytra]]
+    modId="simple-config"
+    versionRange="[0.1,1.0)"
+    mandatory=true
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.aerobatic-elytra]]
+    modId="endor8util"
+    versionRange="[0.1,1.0)"
+    mandatory=true
+    ordering="NONE"
+    side="BOTH"

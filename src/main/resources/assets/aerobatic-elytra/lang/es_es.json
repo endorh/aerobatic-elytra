@@ -1,0 +1,51 @@
+{
+  "item.aerobatic-elytra.aerobatic_elytra": "Élytros Acrobático",
+  "item.aerobatic-elytra.aerobatic_elytra_wing": "Ala de Élytros Acrobático",
+
+  "block.aerobatic-elytra.broken_leaves": "Hojas Rotas",
+
+  "stat.aerobatic-elytra.aerobatic_flight_one_cm": "Distancia en Élytros Acrobático",
+
+  "key.aerobatic-elytra.category": "Élytros Acrobático",
+  "key.aerobatic-elytra.flight_mode.desc": "Alternar modo de vuelo",
+
+  "aerobatic-elytra.item.fuel": "Combustible: %s / %s",
+  "aerobatic-elytra.item.trail": "Estela",
+
+  "aerobatic-elytra.side.color.left": "Color izquierdo: %s",
+  "aerobatic-elytra.side.color.right": "Color derecho: %s",
+
+  "aerobatic-elytra.side.left": "Izquierda",
+  "aerobatic-elytra.side.right": "Derecha",
+  "aerobatic-elytra.side.center_left": "Izquierda Centro",
+  "aerobatic-elytra.side.center_right": "Derecha Centro",
+
+  "aerobatic-elytra.gui.shift_to_expand": "<Mayus>",
+  "aerobatic-elytra.gui.control_to_expand": "<Ctrl>",
+  "aerobatic-elytra.gui.alt_to_expand": "<Alt>",
+
+  "aerobatic-elytra.abilities": "Capacidades",
+  "aerobatic-elytra.abilities.fuel": "Combustible",
+  "aerobatic-elytra.abilities.max_fuel": "Combustible Max.",
+  "aerobatic-elytra.abilities.speed": "Velocidad",
+  "aerobatic-elytra.abilities.lift": "Flote",
+  "aerobatic-elytra.abilities.aquatic": "Vuelo Submarino",
+  "aerobatic-elytra.abilities.trail": "Longitud de Estela",
+
+  "aerobatic-elytra.network.kick": "Fue echado por enviar demasiados paquetes inválidos de vuelo acrobático",
+
+  "aerobatic-elytra.recipe.category.upgrade": "Mejoras",
+  "aerobatic-elytra.recipe.category.join": "Unir alas",
+  "aerobatic-elytra.jei.info.aerobatic_elytra": "Pulsa ⟨%s⟩ para cambiar de modo de vuelo",
+  "aerobatic-elytra.jei.help.category.upgrade": "Sujeta el élytros en la mano secundaria y usa ingredientes mientras te agachas",
+
+  "aerobatic-elytra.recipe.upgrade.enable": "Activa %s",
+  "aerobatic-elytra.recipe.upgrade.disable": "Desactiva %s",
+
+  "commands.aerobatic-elytra.datapack.install.unknown": "Datapack no encontrado entre los incluidos: %s",
+  "commands.aerobatic-elytra.datapack.install.overwrite": "Un datapack con el mismo nombre ya está instalado",
+  "commands.aerobatic-elytra.datapack.install.success": "Datapack instalado con éxito, puedes activarlo usando el siguiente comando:\n%s",
+
+  "advancements.aerobatic-elytra.aerobatic_elytra.title": "Élytros Acrobático",
+  "advancements.aerobatic-elytra.aerobatic_elytra.description": "Encuentra o crea un élytros acrobático"
+}

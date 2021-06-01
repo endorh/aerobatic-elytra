@@ -1,0 +1,19 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "aerobatic-elytra:item/aerobatic_elytra_wing_layer_1",
+    "layer1": "aerobatic-elytra:item/aerobatic_elytra_wing_layer_2",
+    "layer2": "aerobatic-elytra:item/aerobatic_elytra_wing_layer_3",
+    "layer3": "aerobatic-elytra:item/aerobatic_elytra_wing_layer_4",
+    "layer4": "aerobatic-elytra:item/aerobatic_elytra_wing_rockets"
+  },
+  "overrides": [
+    {
+      "__comment": "broken >= 1",
+      "predicate": {
+        "broken": 1.0
+      },
+      "model": "aerobatic-elytra:item/aerobatic_elytra_wing_broken"
+    }
+  ]
+}

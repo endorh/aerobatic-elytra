@@ -1,0 +1,101 @@
+package dnj.aerobatic_elytra.integration.jei;
+
+import dnj.aerobatic_elytra.AerobaticElytra;
+import dnj.aerobatic_elytra.client.input.KeyHandler;
+import dnj.aerobatic_elytra.common.capability.IElytraSpec;
+import dnj.aerobatic_elytra.common.item.ModItems;
+import dnj.aerobatic_elytra.common.recipe.ItemSelector;
+import dnj.aerobatic_elytra.common.recipe.JoinRecipe;
+import dnj.aerobatic_elytra.common.recipe.UpgradeRecipe;
+import dnj.aerobatic_elytra.integration.jei.category.JoinRecipeCategory;
+import dnj.aerobatic_elytra.integration.jei.category.UpgradeRecipeCategory;
+import mezz.jei.api.IModPlugin;
+import mezz.jei.api.JeiPlugin;
+import mezz.jei.api.constants.VanillaTypes;
+import mezz.jei.api.helpers.IGuiHelper;
+import mezz.jei.api.helpers.IJeiHelpers;
+import mezz.jei.api.recipe.category.IRecipeCategory;
+import mezz.jei.api.registration.*;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.client.world.ClientWorld;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.IRecipe;
+import net.minecraft.item.crafting.RecipeManager;
+import net.minecraft.util.ResourceLocation;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static dnj.aerobatic_elytra.common.capability.ElytraSpecCapability.getElytraSpecOrDefault;
+
+@SuppressWarnings("unused")
+@JeiPlugin
+public class AerobaticElytraJeiPlugin implements IModPlugin {
+	public static final ResourceLocation pluginUid = new ResourceLocation(
+	  AerobaticElytra.MOD_ID, "upgrade_jei_plugin");
+	public IRecipeCategory<UpgradeRecipe> upgradeRecipeCategory;
+	public IRecipeCategory<JoinRecipe> joinRecipeIRecipeCategory;
+	
+	@NotNull @Override public ResourceLocation getPluginUid() {
+		return pluginUid;
+	}
+	
+	@Override public void registerCategories(IRecipeCategoryRegistration reg) {
+		IJeiHelpers jeiHelpers = reg.getJeiHelpers();
+		IGuiHelper guiHelper = jeiHelpers.getGuiHelper();
+		reg.addRecipeCategories(this.upgradeRecipeCategory = new UpgradeRecipeCategory(guiHelper));
+		reg.addRecipeCategories(this.joinRecipeIRecipeCategory = new JoinRecipeCategory(guiHelper));
+	}
+	
+	@Override
+	public void registerItemSubtypes(@NotNull ISubtypeRegistration reg) {
+		//noinspection ConstantConditions
+		reg.registerSubtypeInterpreter(ModItems.AEROBATIC_ELYTRA, stack -> {
+			IElytraSpec spec = getElytraSpecOrDefault(stack);
+			return spec.getAbilities().entrySet().stream().map(
+			  entry -> entry.getKey().toString() + ":"
+			           + entry.getValue()
+			).collect(Collectors.joining());
+		});
+	}
+	
+	@Override public void registerRecipes(@NotNull IRecipeRegistration reg) {
+		String key = KeyHandler.FLIGHT_MODE_KEYBINDING.getKey().getTranslationKey();
+		String keyName = I18n.format(key);
+		if (key.equals(keyName))
+			keyName = keyName.replaceFirst("key\\.keyboard\\.", "");
+		reg.addIngredientInfo(
+		  new ItemStack(ModItems.AEROBATIC_ELYTRA), VanillaTypes.ITEM,
+		  I18n.format("aerobatic-elytra.jei.info.aerobatic_elytra", keyName));
+		final ClientWorld world = Minecraft.getInstance().world;
+		assert world != null;
+		RecipeManager recipeManager = world.getRecipeManager();
+		final Collection<IRecipe<?>> recipeList = recipeManager.getRecipes();
+		//noinspection unchecked
+		List<UpgradeRecipe> upgradeRecipes =
+		  (List<UpgradeRecipe>) (List<?>) recipeList.stream().filter(
+		    recipe -> recipe instanceof UpgradeRecipe
+		  ).collect(Collectors.toList());
+		// Sort recipes
+		upgradeRecipes.sort(Comparator.comparing(
+		  recipe -> recipe.getSelectors().stream().map(
+		    ItemSelector::toString
+		  ).collect(Collectors.joining(";"))
+		));
+		reg.addRecipes(upgradeRecipes, UpgradeRecipeCategory.UID);
+		//noinspection unchecked
+		List<JoinRecipe> joinRecipes =
+		  (List<JoinRecipe>) (List<?>) recipeList.stream().filter(
+		    recipe -> recipe instanceof JoinRecipe
+		  ).collect(Collectors.toList());
+		reg.addRecipes(joinRecipes, JoinRecipeCategory.UID);
+	}
+	
+	@Override public void registerRecipeCatalysts(IRecipeCatalystRegistration reg) {
+		reg.addRecipeCatalyst(new ItemStack(ModItems.AEROBATIC_ELYTRA), UpgradeRecipeCategory.UID);
+	}
+}

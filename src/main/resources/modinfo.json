@@ -1,0 +1,5 @@
+{
+  "modid": "${modid}",
+  "display": "${display}",
+  "version": "${version}"
+}
