@@ -137,12 +137,16 @@ public class BrokenLeavesBlock extends LeavesBlock {
 		}
 	}
 	
+	@Override public boolean ticksRandomly(@NotNull BlockState state) {
+		return true;
+	}
+	
 	@Override public void randomTick(
 	  @NotNull BlockState state, @NotNull ServerWorld world,
 	  @NotNull BlockPos pos, @NotNull Random random
 	) {
 		super.randomTick(state, world, pos, random);
-		if (world.rand.nextFloat() > 0.2F) {
+		if (world.rand.nextFloat() > 0.4F) {
 			tryRestoreBrokenLeaves(world, pos);
 		}
 	}
