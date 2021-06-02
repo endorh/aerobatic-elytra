@@ -14,6 +14,7 @@ import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 
+import static dnj.aerobatic_elytra.AerobaticElytra.prefix;
 import static dnj.aerobatic_elytra.common.item.IAbility.DisplayType.*;
 import static dnj.endor8util.util.TextUtil.stc;
 import static dnj.endor8util.util.TextUtil.ttc;
@@ -48,6 +49,10 @@ public interface IAbility extends IForgeRegistryEntry<IAbility> {
 	 */
 	float getDefault();
 	
+	@Override default Class<IAbility> getRegistryType() {
+		return IAbility.class;
+	}
+	
 	/**
 	 * Color used in syntax highlighting
 	 * If null, a random one is chosen by hashing the name
@@ -72,7 +77,7 @@ public interface IAbility extends IForgeRegistryEntry<IAbility> {
 		private final DisplayType displayType;
 		
 		Ability(TextFormatting color, float defaultValue, DisplayType type) {
-			this.registryName = new ResourceLocation(AerobaticElytra.MOD_ID, name().toLowerCase());
+			this.registryName = prefix(name().toLowerCase());
 			this.jsonName = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, name());
 			this.translationKey = AerobaticElytra.MOD_ID + ".abilities." + name().toLowerCase();
 			this.color = color;
@@ -90,7 +95,6 @@ public interface IAbility extends IForgeRegistryEntry<IAbility> {
 		@Override public float getDefault() { return defaultValue; }
 		
 		@Override public ResourceLocation getRegistryName() { return registryName; }
-		@Override public Class<IAbility> getRegistryType() { return IAbility.class; }
 		@Override public IAbility setRegistryName(ResourceLocation name) {
 			throw new IllegalStateException("Cannot set registry name of enum registry entry");
 		}

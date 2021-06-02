@@ -393,6 +393,7 @@ cleanAll.finalizedBy clean
 // Publishing
 publishing {
 	publications {
+		//noinspection GroovyAssignabilityCheck
 		mod(MavenPublication) {
 			artifact jar
 			artifact sourcesJar
