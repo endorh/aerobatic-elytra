@@ -2,8 +2,9 @@ package dnj.aerobatic_elytra.common.config;
 
 /**
  * A collection of values used in different parts of the code
- * which don't quite fit in the config, such as texture offsets
- * or settings too specific to be explained properly
+ * which don't quite fit in the config, such as texture offsets,
+ * settings too specific to be explained properly, or simply
+ * settings I haven't yet added to the config
  */
 public class Const {
 	// Texture offsets
@@ -30,6 +31,10 @@ public class Const {
 	
 	// Slime bounce animation
 	public static final long SLIME_BOUNCE_CAMERA_ANIMATION_LENGTH_MS = 320L;
+	
+	// Slime bounce rolling tilt
+	public static final float SLIME_BOUNCE_MAX_ROLLING_TILT_DEG = 60F;
+	public static final float SLIME_BOUNCE_ROLLING_TILT_SENS = 12F;
 	
 	// Underwater control interpolation
 	public static final float UNDERWATER_CONTROLS_SPEED_THRESHOLD = 0.8F;

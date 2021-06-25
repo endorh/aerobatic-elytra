@@ -4,6 +4,7 @@ import dnj.aerobatic_elytra.common.AerobaticElytraLogic;
 import dnj.aerobatic_elytra.common.block.BrokenLeavesBlock;
 import dnj.aerobatic_elytra.common.capability.IAerobaticData;
 import dnj.aerobatic_elytra.common.config.Config;
+import dnj.aerobatic_elytra.common.config.Const;
 import dnj.aerobatic_elytra.common.flight.AerobaticFlight.VectorBase;
 import dnj.endor8util.math.Vec3f;
 import net.minecraft.block.Block;
@@ -19,6 +20,8 @@ import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +38,8 @@ import static net.minecraft.util.math.MathHelper.*;
  * Aerobatic collisions logic
  */
 public class AerobaticCollision {
+	private static final Logger LOGGER = LogManager.getLogger();
+	
 	/**
 	 * Handle aerobatic collisions, both vertically and horizontally
 	 * @param player The player colliding
@@ -133,15 +138,21 @@ public class AerobaticCollision {
 	public static void bounce(
 	  PlayerEntity player, VectorBase base, Vec3f motionVec, Axis axis
 	) {
+		// The bounce axis is slightly tilted based on the player's roll tilt,
+		// depending on how parallel is the bounce against the plane
 		final Vec3f ax = forAxis(axis);
-		// Totally arbitrary
 		final Vec3f look = base.look.copy();
 		look.sub(ax, ax.dot(look));
 		if (!look.isZero()) {
-			final float par = 1F - Math.abs(base.look.dot(ax));
-			final float rollTilt = getAerobaticDataOrDefault(player).getTiltRoll() / 6F;
+			final float bounceTilt = clamp(
+			  (1F - Math.abs(base.look.dot(ax)))
+			  * getAerobaticDataOrDefault(player).getTiltRoll()
+			  * Const.SLIME_BOUNCE_ROLLING_TILT_SENS,
+			  -Const.SLIME_BOUNCE_MAX_ROLLING_TILT_DEG, Const.SLIME_BOUNCE_MAX_ROLLING_TILT_DEG
+			);
 			look.unitary();
-			ax.rotateAlongOrtVec(look, par * rollTilt);
+			LOGGER.debug(String.format("Tilt roll: %.2f", bounceTilt));
+			ax.rotateAlongOrtVecDegrees(look, bounceTilt);
 		}
 		base.mirror(ax);
 		motionVec.reflect(ax);
