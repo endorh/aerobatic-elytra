@@ -2,7 +2,6 @@ package dnj.aerobatic_elytra.integration.jei;
 
 import dnj.aerobatic_elytra.AerobaticElytra;
 import dnj.aerobatic_elytra.client.input.KeyHandler;
-import dnj.aerobatic_elytra.common.capability.IElytraSpec;
 import dnj.aerobatic_elytra.common.item.ModItems;
 import dnj.aerobatic_elytra.common.recipe.ItemSelector;
 import dnj.aerobatic_elytra.common.recipe.JoinRecipe;
@@ -15,7 +14,10 @@ import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.helpers.IJeiHelpers;
 import mezz.jei.api.recipe.category.IRecipeCategory;
-import mezz.jei.api.registration.*;
+import mezz.jei.api.registration.IRecipeCatalystRegistration;
+import mezz.jei.api.registration.IRecipeCategoryRegistration;
+import mezz.jei.api.registration.IRecipeRegistration;
+import mezz.jei.api.registration.ISubtypeRegistration;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.world.ClientWorld;
@@ -29,6 +31,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static dnj.aerobatic_elytra.common.capability.ElytraSpecCapability.getElytraSpecOrDefault;
 
@@ -53,14 +56,11 @@ public class AerobaticElytraJeiPlugin implements IModPlugin {
 	
 	@Override
 	public void registerItemSubtypes(@NotNull ISubtypeRegistration reg) {
-		//noinspection ConstantConditions
-		reg.registerSubtypeInterpreter(ModItems.AEROBATIC_ELYTRA, stack -> {
-			IElytraSpec spec = getElytraSpecOrDefault(stack);
-			return spec.getAbilities().entrySet().stream().map(
-			  entry -> entry.getKey().toString() + ":"
-			           + entry.getValue()
-			).collect(Collectors.joining());
-		});
+		reg.registerSubtypeInterpreter(
+		  ModItems.AEROBATIC_ELYTRA,
+		  stack -> getElytraSpecOrDefault(stack).getAbilities().entrySet().stream().map(
+			 entry -> entry.getKey().toString() + ":" + entry.getValue()
+		  ).collect(Collectors.joining()));
 	}
 	
 	@Override public void registerRecipes(@NotNull IRecipeRegistration reg) {
@@ -77,15 +77,13 @@ public class AerobaticElytraJeiPlugin implements IModPlugin {
 		final Collection<IRecipe<?>> recipeList = recipeManager.getRecipes();
 		//noinspection unchecked
 		List<UpgradeRecipe> upgradeRecipes =
-		  (List<UpgradeRecipe>) (List<?>) recipeList.stream().filter(
-		    recipe -> recipe instanceof UpgradeRecipe
+		  ((Stream<UpgradeRecipe>) (Stream<?>) recipeList.stream().filter(
+			 r -> (r instanceof UpgradeRecipe)
+		  )).filter(UpgradeRecipe::isValid).sorted(
+			 Comparator.comparing(
+				r -> r.getSelectors().stream()
+				  .map(ItemSelector::toString).collect(Collectors.joining(";")))
 		  ).collect(Collectors.toList());
-		// Sort recipes
-		upgradeRecipes.sort(Comparator.comparing(
-		  recipe -> recipe.getSelectors().stream().map(
-		    ItemSelector::toString
-		  ).collect(Collectors.joining(";"))
-		));
 		reg.addRecipes(upgradeRecipes, UpgradeRecipeCategory.UID);
 		//noinspection unchecked
 		List<JoinRecipe> joinRecipes =

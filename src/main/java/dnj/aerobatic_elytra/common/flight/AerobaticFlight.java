@@ -8,6 +8,10 @@ import dnj.aerobatic_elytra.common.capability.IAerobaticData;
 import dnj.aerobatic_elytra.common.capability.IElytraSpec;
 import dnj.aerobatic_elytra.common.config.Config;
 import dnj.aerobatic_elytra.common.config.Const;
+import dnj.aerobatic_elytra.common.event.AerobaticElytraFinishFlightEvent;
+import dnj.aerobatic_elytra.common.event.AerobaticElytraStartFlightEvent;
+import dnj.aerobatic_elytra.common.event.AerobaticElytraTickEvent;
+import dnj.aerobatic_elytra.common.event.AerobaticElytraTickEvent.Pre;
 import dnj.aerobatic_elytra.common.item.AerobaticElytraWingItem;
 import dnj.aerobatic_elytra.network.AerobaticPackets.DAccelerationPacket;
 import dnj.aerobatic_elytra.network.AerobaticPackets.DRotationPacket;
@@ -18,11 +22,13 @@ import dnj.endor8util.math.Vec3f;
 import net.minecraft.entity.MoverType;
 import net.minecraft.entity.passive.IFlyingAnimal;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraftforge.common.MinecraftForge;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -31,12 +37,17 @@ import java.util.Optional;
 import static dnj.aerobatic_elytra.common.capability.AerobaticDataCapability.getAerobaticData;
 import static dnj.aerobatic_elytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
 import static dnj.aerobatic_elytra.common.item.IAbility.Ability.*;
-import static dnj.endor8util.math.Vec3f.*;
-import static java.lang.Math.max;
-import static java.lang.Math.min;
+import static dnj.endor8util.math.Interpolator.clampedLerp;
+import static dnj.endor8util.math.Vec3f.PI;
+import static dnj.endor8util.math.Vec3f.PI_HALF;
+import static dnj.endor8util.util.TextUtil.stc;
+import static dnj.endor8util.util.TextUtil.ttc;
 import static java.lang.Math.abs;
+import static java.lang.Math.*;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
+import static net.minecraft.util.math.MathHelper.floor;
+import static net.minecraft.util.math.MathHelper.signum;
 import static net.minecraft.util.math.MathHelper.*;
 
 /**
@@ -68,6 +79,12 @@ public class AerobaticFlight {
 		}
 		IAerobaticData data = getAerobaticDataOrDefault(player);
 		IElytraSpec spec = AerobaticElytraLogic.getElytraSpecOrDefault(player);
+		final boolean isRemote = AerobaticElytraLogic.isRemoteClientPlayerEntity(player);
+		
+		// Post Pre event
+		final Pre pre = isRemote? new Pre.Remote(player, spec, data) : new Pre(player, spec, data);
+		if (MinecraftForge.EVENT_BUS.post(pre))
+			return pre.preventDefault;
 		
 		// Get gravity and apply SLOW_FALLING potion effect as needed
 		double grav = TravelHandler.travelGravity(player);
@@ -144,20 +161,33 @@ public class AerobaticFlight {
 		VectorBase base = data.getRotationBase();
 		if (data.updateFlying(true)) {
 			base.init(data);
+			MinecraftForge.EVENT_BUS.post(isRemote
+			  ? new AerobaticElytraStartFlightEvent.Remote(player, spec, data)
+			  : new AerobaticElytraStartFlightEvent(player, spec, data)
+			);
+		}
+		
+		// Underwater rotation friction
+		float tiltPitch = data.getTiltPitch();
+		float tiltRoll = data.getTiltRoll();
+		float tiltYaw = data.getTiltYaw();
+		if (player.isInWater()) {
+			final float underwaterTiltFriction = clampedLerp(
+			  Const.UNDERWATER_CONTROLS_TILT_FRICTION_MAX, Const.UNDERWATER_CONTROLS_TILT_FRICTION_MIN,
+			  motionVec.norm() / Const.UNDERWATER_CONTROLS_SPEED_THRESHOLD);
+			tiltPitch *= underwaterTiltFriction;
+			tiltRoll *= underwaterTiltFriction;
+			tiltYaw *= underwaterTiltFriction;
+			data.setTiltPitch(tiltPitch);
+			data.setTiltRoll(tiltRoll);
+			data.setTiltYaw(tiltYaw);
 		}
 		
 		// Angular friction
-		final float tiltPitch = data.getTiltPitch();
-		final float tiltRoll = data.getTiltRoll();
-		final float tiltYaw = data.getTiltYaw();
-		final float tiltPitchRange = Config.tilt_range_pitch;
-		final float tiltRollRange = Config.tilt_range_roll;
-		final float tiltYawRange = Config.tilt_range_yaw;
 		float angFriction =
 		  1F - (1F - Config.friction_angular)
 		       * (tiltPitch * tiltPitch + tiltRoll * tiltRoll + 0.5F * tiltYaw * tiltYaw)
-		       / (tiltPitchRange * tiltPitchRange + tiltRollRange * tiltRollRange
-		          + 0.5F * tiltYawRange * tiltYawRange);
+		       / Config.tilt_range_pondered;
 		
 		float propStrength = data.getPropulsionStrength() * spec.getAbility(SPEED);
 		if (data.isBoosted())
@@ -210,23 +240,27 @@ public class AerobaticFlight {
 			motionVec.add(stasisVec);
 		}
 		
-		float speed_cap = Config.speed_cap_per_tick;
-		if (speed_cap > 0
-		    && (motionVec.x > speed_cap || motionVec.y > speed_cap || motionVec.z > speed_cap)) {
-			String warn = format(
-			  "Flying too fast!: (%.1f, %.1f, %.1f)",
-			  motionVec.x, motionVec.y, motionVec.z);
-			player.sendStatusMessage(new StringTextComponent(warn), false);
-			LOGGER.warn(warn);
-			motionVec.x = min(motionVec.x, speed_cap);
-			motionVec.y = min(motionVec.y, speed_cap);
-			motionVec.z = min(motionVec.z, speed_cap);
+		if (player instanceof ServerPlayerEntity) {
+			float speed_cap = Config.speed_cap_per_tick;
+			if (speed_cap > 0
+			    && (motionVec.x > speed_cap || motionVec.y > speed_cap || motionVec.z > speed_cap)) {
+				ITextComponent chatWarning =
+				  ttc("config.aerobatic-elytra.warning.speed_cap_broken",
+				      stc(format("%.1f", max(max(motionVec.x, motionVec.y), motionVec.z))));
+				String warning = format(
+				  "Player %s is flying too fast!: %.1f. Aerobatic Elytra config might be broken",
+				  player.getScoreboardName(), max(max(motionVec.x, motionVec.y), motionVec.z));
+				player.sendStatusMessage(chatWarning, false);
+				LOGGER.warn(warning);
+				motionVec.x = min(motionVec.x, speed_cap);
+				motionVec.y = min(motionVec.y, speed_cap);
+				motionVec.z = min(motionVec.z, speed_cap);
+			}
 		}
 		
 		// Apply motion
 		player.setMotion(motionVec.toVector3d());
-		if (!AerobaticElytraLogic.isRemoteClientPlayerEntity(player)
-		    && !AerobaticElytraWingItem.hasDebugWing(player)) {
+		if (!isRemote && !AerobaticElytraWingItem.hasDebugWing(player)) {
 			player.move(MoverType.SELF, player.getMotion());
 		}
 		
@@ -251,13 +285,13 @@ public class AerobaticFlight {
 		player.addStat(FlightStats.AEROBATIC_FLIGHT_ONE_CM,
 		               (int)Math.round(player.getMotion().length() * 100F));
 		
-		if (AerobaticElytraLogic.isRemoteClientPlayerEntity(player)) {
+		if (isRemote) {
 			if (data.updatePlayingSound(true))
 				new AerobaticElytraSound(player).play();
 		}
 		
 		if (AerobaticElytraLogic.isAbstractClientPlayerEntity(player)) {
-			if (data.ticksFlying() > Const.TAKEOFF_ANIMATION_LENGTH
+			if (data.ticksFlying() > Const.TAKEOFF_ANIMATION_LENGTH_TICKS
 			    && !player.collidedVertically && !player.collidedHorizontally
 			    // Cowardly refuse to smooth trail on bounces
 			    && System.currentTimeMillis() - data.getLastBounceTime() > 250L) {
@@ -280,6 +314,13 @@ public class AerobaticFlight {
 			             + ", S: " + String.format("%2.3f", player.getMotion().length()));
 		}*/
 		data.updatePrevTickAngles();
+		
+		// Post Post event
+		MinecraftForge.EVENT_BUS.post(isRemote
+		  ? new AerobaticElytraTickEvent.Post.Remote(player, spec, data)
+		  : new AerobaticElytraTickEvent.Post(player, spec, data)
+		);
+		
 		// Cancel default travel logic
 		return true;
 	}
@@ -293,9 +334,8 @@ public class AerobaticFlight {
 			  player, player.getPosition(), ModSounds.AEROBATIC_ELYTRA_SLOWDOWN,
 			  SoundCategory.PLAYERS, 1F, 1F);
 		}
-		if (data.updateFlying(false)) {
-			data.land();
-		}
+		if (data.updateFlying(false))
+			doLand(player, data);
 		cooldown(player, data);
 	}
 	
@@ -312,10 +352,18 @@ public class AerobaticFlight {
 			  player, player.getPosition(), ModSounds.AEROBATIC_ELYTRA_SLOWDOWN,
 			  SoundCategory.PLAYERS, 1F, 1F);
 		}
-		if (data.getRotationBase().valid) {
-			data.land();
-		}
+		if (data.getRotationBase().valid)
+			doLand(player, data);
 		cooldown(player, data);
+	}
+	
+	public static void doLand(PlayerEntity player, IAerobaticData data) {
+		data.land();
+		MinecraftForge.EVENT_BUS.post(
+		  AerobaticElytraLogic.isRemoteClientPlayerEntity(player)
+		  ? new AerobaticElytraFinishFlightEvent.Remote(player, data)
+		  : new AerobaticElytraFinishFlightEvent(player, data)
+		);
 	}
 	
 	public static void onRemoteFlightTravel(
@@ -410,32 +458,29 @@ public class AerobaticFlight {
 	}
 	
 	/**
-	 * Rotation vector base
+	 * Rotation vector base<br>
+	 * Not thread safe
 	 */
 	public static class VectorBase {
 		private static final Vec3f tempVec = Vec3f.ZERO.get();
 		private static final VectorBase temp = new VectorBase();
 		
-		public final Vec3f look;
-		public final Vec3f roll;
-		public final Vec3f normal;
+		public final Vec3f look = Vec3f.ZERO.get();
+		public final Vec3f roll = Vec3f.ZERO.get();
+		public final Vec3f normal = Vec3f.ZERO.get();
 		
 		public boolean valid = true;
 		
-		public VectorBase() {
-			look = Vec3f.ZERO.get();
-			roll = Vec3f.ZERO.get();
-			normal = Vec3f.ZERO.get();
-		}
+		public VectorBase() {}
 		
 		public void init(IAerobaticData data) {
-			float rotYaw = data.getRotationYaw();
-			float rotPitch = data.getRotationPitch();
-			float rotRoll = data.getRotationRoll();
-			update(rotYaw, rotPitch, rotRoll);
+			update(data.getRotationYaw(), data.getRotationPitch(), data.getRotationRoll());
 			valid = true;
 		}
 		
+		/**
+		 * Set from the spherical coordinates of the look vector, in degrees
+		 */
 		public void update(float yawDeg, float pitchDeg, float rollDeg) {
 			look.set(yawDeg, pitchDeg, true);
 			roll.set(yawDeg + 90F, 0F, true);
@@ -444,6 +489,12 @@ public class AerobaticFlight {
 			normal.cross(look);
 		}
 		
+		/**
+		 * Translate to spherical coordinates
+		 * @param prevYaw Previous yaw value, since Minecraft does not
+		 *                restrict its domain
+		 * @return [yaw, pitch, roll] of the look vector, in degrees
+		 */
 		public float[] toSpherical(float prevYaw) {
 			float newPitch = look.getPitch();
 			float newYaw;
@@ -473,6 +524,19 @@ public class AerobaticFlight {
 			return new float[] {newYaw, newPitch, newRoll};
 		}
 		
+		/**
+		 * Interpolate between bases {@code pre} and {@code pos}, and then rotate as
+		 * would be necessary to carry {@code pos} to {@code target}.<br>
+		 *
+		 * The {@code pos} base can't be dropped, applying the same rotations applied to
+		 * {@code target} also to {@code pre}, because 3D rotations are not
+		 * commutative. All 3 bases are needed for the interpolation.
+		 *
+		 * @param t Interpolation progress ∈ [0, 1]
+		 * @param pre Start base
+		 * @param pos End base
+		 * @param target Rotated end base
+		 */
 		public void interpolate(
 		  float t, VectorBase pre, VectorBase pos, VectorBase target
 		) {
@@ -504,6 +568,12 @@ public class AerobaticFlight {
 			normal.unitary();
 		}
 		
+		/**
+		 * Determine the rotation angles necessary to carry {@code this}
+		 * to {@code other} in pitch, yaw, roll order.
+		 * @param other Target base
+		 * @return [pitch, yaw, roll];
+		 */
 		public float[] angles(VectorBase other) {
 			temp.set(this);
 			final float pitch = temp.look.angleProjectedDegrees(other.look, temp.roll);
@@ -516,22 +586,33 @@ public class AerobaticFlight {
 			return new float[] {pitch, yaw, roll};
 		}
 		
+		/**
+		 * Rotate in degrees in pitch, yaw, roll order and normalize
+		 * @param angles [pitch, yaw, roll]
+		 */
 		public void rotate(float[] angles) {
 			rotate(angles[0], angles[1], angles[2]);
 		}
 		
-		public void rotate(float pitch, float yaw, float rollDelta) {
-			look.rotateAlongOrtVecDegrees(roll, pitch);
-			normal.rotateAlongOrtVecDegrees(roll, pitch);
+		/**
+		 * Rotate in degrees in pitch, yaw, roll order and normalize.
+		 */
+		public void rotate(float pitch, float yaw, float roll) {
+			look.rotateAlongOrtVecDegrees(this.roll, pitch);
+			normal.rotateAlongOrtVecDegrees(this.roll, pitch);
 			look.rotateAlongOrtVecDegrees(normal, yaw);
-			roll.rotateAlongOrtVecDegrees(normal, yaw);
-			roll.rotateAlongOrtVecDegrees(look, rollDelta);
-			normal.rotateAlongOrtVecDegrees(look, rollDelta);
+			this.roll.rotateAlongOrtVecDegrees(normal, yaw);
+			this.roll.rotateAlongOrtVecDegrees(look, roll);
+			normal.rotateAlongOrtVecDegrees(look, roll);
 			look.unitary();
 			normal.unitary();
-			roll.unitary();
+			this.roll.unitary();
 		}
 		
+		/**
+		 * Mirror across the plane defined by the given axis
+		 * @param axis Normal vector to the plane of reflection
+		 */
 		public void mirror(Vec3f axis) {
 			Vec3f ax = axis.copy();
 			float angle = ax.angleUnitary(look);
@@ -554,7 +635,9 @@ public class AerobaticFlight {
 		
 		/**
 		 * Tilt a base in the same way as the player model is
-		 * tilted before rendering
+		 * tilted before rendering.<br>
+		 * That is, in degrees in yaw, -pitch, roll order<br>
+		 * No normalization is applied
 		 */
 		public void tilt(float yaw, float pitch, float rollDeg) {
 			look.rotateAlongOrtVecDegrees(normal, yaw);
@@ -589,22 +672,46 @@ public class AerobaticFlight {
 			rightCenterRocket.add(roll);
 		}
 		
+		/**
+		 * Measure approximate distances to another base in each
+		 * axis of rotation
+		 * @param base Target base
+		 * @return [yaw, pitch, roll] in degrees
+		 */
 		public float[] distance(VectorBase base) {
 			Vec3f compare = base.look.copy();
 			Vec3f axis = roll.copy();
 			axis.mul(axis.dot(compare));
 			compare.sub(axis);
-			float pitch = look.angleUnitaryDegrees(compare);
+			float pitch;
+			if (compare.isZero())
+				pitch = 0F;
+			else {
+				compare.unitary();
+				pitch = look.angleUnitaryDegrees(compare);
+			}
 			compare.set(base.look);
 			axis.set(normal);
 			axis.mul(axis.dot(compare));
 			compare.sub(axis);
-			float yaw = look.angleUnitaryDegrees(compare);
+			float yaw;
+			if (compare.isZero())
+				yaw = 0F;
+			else {
+				compare.unitary();
+				yaw = look.angleUnitaryDegrees(compare);
+			}
 			compare.set(base.roll);
 			axis.set(look);
 			axis.mul(axis.dot(compare));
 			compare.sub(axis);
-			float roll = this.roll.angleUnitaryDegrees(compare);
+			float roll;
+			if (compare.isZero())
+				roll = 0F;
+			else {
+				compare.unitary();
+				roll = this.roll.angleUnitaryDegrees(compare);
+			}
 			return new float[] {yaw, pitch, roll};
 		}
 		

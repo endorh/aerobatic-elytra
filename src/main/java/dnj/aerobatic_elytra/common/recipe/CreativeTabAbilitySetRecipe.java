@@ -71,10 +71,8 @@ public class CreativeTabAbilitySetRecipe extends SpecialRecipe {
 			final Pair<Map<IAbility, Float>, Map<String, Float>> pair = abilitiesFromJson(
 			  JSONUtils.getJsonObject(json, "abilities"));
 			IElytraSpec spec = getElytraSpecOrDefault(stack);
-			final Map<IAbility, Float> specProperties = spec.getAbilities();
 			final Map<String, Float> specUnknown = spec.getUnknownAbilities();
-			specProperties.clear();
-			specProperties.putAll(pair.getLeft());
+			spec.setAbilities(pair.getLeft());
 			specUnknown.clear();
 			specUnknown.putAll(pair.getRight());
 			return new CreativeTabAbilitySetRecipe(recipeId, group, stack);

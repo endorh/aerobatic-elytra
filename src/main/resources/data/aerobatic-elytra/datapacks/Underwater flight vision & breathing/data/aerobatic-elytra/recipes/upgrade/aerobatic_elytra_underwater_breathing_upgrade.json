@@ -1,12 +1,12 @@
 {
   "type": "aerobatic-elytra:upgrade_recipe",
-  "_comment": "Enables night vision underwater",
+  "_comment": "Enables water breathing underwater",
   "ingredients": [
-    "minecraft:golden_carrot"
+    "minecraft:pufferfish"
   ],
   "upgrades": [
     {
-      "type": "UnderwaterNightVision",
+      "type": "UnderwaterBreathing",
       "expression": "1"
     }
   ]

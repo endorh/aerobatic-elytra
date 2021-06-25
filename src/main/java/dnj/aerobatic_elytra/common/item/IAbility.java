@@ -6,13 +6,16 @@ import dnj.aerobatic_elytra.common.registry.ModRegistries;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.IFormattableTextComponent;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import static dnj.aerobatic_elytra.AerobaticElytra.prefix;
 import static dnj.aerobatic_elytra.common.item.IAbility.DisplayType.*;
@@ -20,24 +23,30 @@ import static dnj.endor8util.util.TextUtil.stc;
 import static dnj.endor8util.util.TextUtil.ttc;
 import static net.minecraft.util.text.TextFormatting.*;
 
+@EventBusSubscriber(modid = AerobaticElytra.MOD_ID)
 public interface IAbility extends IForgeRegistryEntry<IAbility> {
 	/**
 	 * Name used to parse in JSON, should be unique.<br>
 	 */
 	String jsonName();
 	
+	default String fullName() {
+		assert getRegistryName() != null;
+		return getRegistryName().getNamespace().replace('`', '_') + ':' + jsonName();
+	}
+	
 	default void write(PacketBuffer buf) {
 		buf.writeResourceLocation(Objects.requireNonNull(getRegistryName()));
 	}
 	
 	static IAbility read(PacketBuffer buf) {
-		return ModRegistries.ABILITY_REGISTRY.getValue(buf.readResourceLocation());
+		return ModRegistries.getAbility(buf.readResourceLocation());
 	}
 	
 	/**
 	 * Name to be displayed in-game
 	 */
-	TranslationTextComponent getDisplayName();
+	IFormattableTextComponent getDisplayName();
 	
 	/**
 	 * Display type, used to show the ability in tooltips
@@ -86,7 +95,7 @@ public interface IAbility extends IForgeRegistryEntry<IAbility> {
 		}
 		
 		@Override public String jsonName() { return jsonName; }
-		@Override public TranslationTextComponent getDisplayName() { return ttc(translationKey); }
+		@Override public IFormattableTextComponent getDisplayName() { return ttc(translationKey); }
 		@Override public DisplayType getDisplayType() {
 			return displayType;
 		}
@@ -104,61 +113,142 @@ public interface IAbility extends IForgeRegistryEntry<IAbility> {
 	 * Ability display types
 	 */
 	abstract class DisplayType {
-		public abstract Optional<IFormattableTextComponent> format(IAbility ability, float value);
-		public boolean isBool() { return false; }
-		public static abstract class BoolDisplayType extends DisplayType {
-			@Override public boolean isBool() { return true; }
+		public DisplayType() {
+			this(false);
+		}
+		public DisplayType(boolean bool) {
+			this.bool = bool;
 		}
 		
-		public static final DisplayType DEFAULT = new DisplayType() {
-			@Override
-			public Optional<IFormattableTextComponent> format(IAbility ability, float value) {
-				return Optional.of(ability.getDisplayName().appendString(": ")
-				  .append(stc(String.format("%3.1f", value)).mergeStyle(DARK_AQUA)));
-			}
-		};
-		public static final DisplayType NON_ZERO = new DisplayType() {
-			@Override
-			public Optional<IFormattableTextComponent> format(IAbility ability, float value) {
-				return value != 0F ? DEFAULT.format(ability, value) : Optional.empty();
-			}
-		};
-		public static final DisplayType SCALE = new DisplayType() {
-			@Override
-			public Optional<IFormattableTextComponent> format(IAbility ability, float value) {
-				return Optional.of(
-				  ability.getDisplayName().appendString(": ")
-				    .append(stc(String.format("×%3.1f", value)).mergeStyle(DARK_AQUA)));
-			}
-		};
+		public boolean bool;
+		public abstract Optional<IFormattableTextComponent> format(IAbility ability, float value);
+		public boolean isBool() { return bool; }
+		
+		/**
+		 * Display with format {@code %s: %3.1f}
+		 */
+		public static final DisplayType DEFAULT = formatValue("%3.1f");
+		/**
+		 * Display with format {@code %s: %3d}<br>
+		 */
 		@SuppressWarnings("unused")
-		public static final DisplayType SCALE_NON_ONE = new DisplayType() {
+		public static final DisplayType INTEGER = formatValue(
+		  v -> String.format("%3d", Math.round(v)));
+		
+		/**
+		 * Display the name of the ability, without the value, unconditionally.<br>
+		 * Used by other types, not really useful on its own.
+		 */
+		public static final DisplayType NAME_ONLY_ALWAYS = new DisplayType() {
 			@Override
 			public Optional<IFormattableTextComponent> format(IAbility ability, float value) {
-				return value != 1F? SCALE.format(ability, value) : Optional.empty();
+				return Optional.of(ability.getDisplayName());
 			}
 		};
-		@SuppressWarnings("StaticInitializerReferencesSubClass")
-		public static final DisplayType SCALE_BOOL = new BoolDisplayType() {
-			@Override
-			public Optional<IFormattableTextComponent> format(IAbility ability, float value) {
-				return (value == 1F || value == 0F)
-				       ? BOOL.format(ability, value) : SCALE.format(ability, value);
+		
+		/**
+		 * Do not display
+		 */
+		public static DisplayType HIDE = new DisplayType() {
+			@Override public Optional<IFormattableTextComponent> format(IAbility ability, float value) {
+				return Optional.empty();
 			}
 		};
-		@SuppressWarnings("StaticInitializerReferencesSubClass")
-		public static final DisplayType BOOL = new BoolDisplayType() {
-			@Override
-			public Optional<IFormattableTextComponent> format(IAbility ability, float value) {
-				return value != 0F ? Optional.of(ability.getDisplayName()) : Optional.empty();
-			}
-		};
+		
+		/**
+		 * Display as {@link DisplayType#DEFAULT} only if not zero
+		 * @see DisplayType#BOOL
+		 */
+		public static final DisplayType NON_ZERO = filter(v -> v != 0F, DEFAULT, HIDE);
+		/**
+		 * Display as a multiplier with format {@code %s: ×3.1f}
+		 */
+		public static final DisplayType SCALE = formatValue("×%3.1f");
+		
+		/**
+		 * Display as {@link DisplayType#SCALE} if the value is not {@code 1}<br>
+		 * Otherwise, the ability is not displayed at all
+		 */
+		@SuppressWarnings("unused")
+		public static final DisplayType SCALE_NON_ONE = filter(v -> v != 1F, SCALE, HIDE);
+		
+		/**
+		 * Display the name of the ability, if the value is non-zero
+		 */
+		public static final DisplayType BOOL = filter(v -> v != 0F, NAME_ONLY_ALWAYS, HIDE, true);
+		
+		/**
+		 * Display as {@link DisplayType#BOOL} if the value is 0 or 1<br>
+		 * Otherwise, display as {@link DisplayType#SCALE}<br>
+		 * Can be thought of as a {@link DisplayType#SCALE_NON_ONE} that
+		 * additionally is not displayed when the value is 0
+		 */
+		public static final DisplayType SCALE_BOOL =
+		  filter(v -> v == 1F || v == 0F, BOOL, SCALE, true);
+		
+		
+		/**
+		 * Create a simple DisplayType from a format string
+		 * @param format Applied to the value only
+		 */
+		public static DisplayType formatValue(String format) {
+			return formatValue(v -> String.format(format, v));
+		}
+		
+		/**
+		 * Create a simple DisplayType from a function
+		 */
+		public static DisplayType formatValue(Function<Float, String> formatter) {
+			return formatValue(v -> stc(formatter.apply(v)), DARK_AQUA);
+		}
+		
+		/**
+		 * Create a simple DisplayType which applies a function to the
+		 * value which returns the ITextComponent to use
+		 * @param format Applied to the formatted value
+		 */
+		public static DisplayType formatValue(
+		  Function<Float, ITextComponent> formatter, TextFormatting format) {
+			return new DisplayType() {
+				@Override public Optional<IFormattableTextComponent> format(IAbility ability, float value) {
+					return Optional.of(
+					  ability.getDisplayName().appendString(": ")
+						 .append(formatter.apply(value).copyRaw().mergeStyle(format)));
+				}
+			};
+		}
+		
+		/**
+		 * Create a filtering {@link DisplayType}
+		 * If the filter matches the value, {@code ifTrue} is used to display it.
+		 * Otherwise, {@code ifFalse} is used
+		 */
+		public static DisplayType filter(
+		  Predicate<Float> predicate, DisplayType ifTrue, DisplayType ifFalse
+		) { return filter(predicate, ifTrue, ifFalse, false); }
+		
+		/**
+		 * Create a filtering {@link DisplayType}
+		 * If the filter matches the value, {@code ifTrue} is used to display it.
+		 * Otherwise, {@code ifFalse} is used
+		 * @param bool Whether or not to consider the result as a Bool type
+		 */
+		public static DisplayType filter(
+		  Predicate<Float> predicate, DisplayType ifTrue, DisplayType ifFalse, boolean bool
+		) {
+			return new DisplayType(bool) {
+				@Override public Optional<IFormattableTextComponent> format(IAbility ability, float value) {
+					return predicate.test(value)? ifTrue.format(ability, value) : ifFalse.format(ability, value);
+				}
+			};
+		}
 	}
 	
-	static IAbility fromJsonName(String jsonName) {
-		return ModRegistries.abilityFromJsonName(jsonName);
+	static IAbility fromJsonName(String name) {
+		return ModRegistries.getAbilityByName(name);
 	}
+	
 	static boolean isDefined(String jsonName) {
-		return ModRegistries.hasAbility(jsonName);
+		return ModRegistries.hasAbilityName(jsonName);
 	}
 }

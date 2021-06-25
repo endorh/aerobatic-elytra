@@ -3,8 +3,10 @@ package dnj.aerobatic_elytra.common.capability;
 import dnj.aerobatic_elytra.common.capability.IElytraSpec.TrailData;
 import dnj.aerobatic_elytra.common.config.Config;
 import dnj.aerobatic_elytra.common.item.IAbility;
+import dnj.aerobatic_elytra.common.item.IEffectAbility;
 import dnj.aerobatic_elytra.common.registry.ModRegistries;
 import dnj.endor8util.capability.CapabilityProviderSerializable;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
@@ -18,8 +20,11 @@ import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+import java.lang.ref.WeakReference;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 /**
@@ -74,22 +79,65 @@ public class ElytraSpecCapability {
 	 * Default implementation of {@link IElytraSpec}
 	 */
 	public static class ElytraSpec implements IElytraSpec {
-		private final Map<IAbility, Float> properties = new HashMap<>();
-		private final TrailData trailData = new TrailData();
-		private final Map<String, Float> unknownProperties = new HashMap<>();
+		protected WeakReference<ServerPlayerEntity> player;
+		protected final Map<IAbility, Float> properties = new HashMap<>();
+		protected final Map<IEffectAbility, Boolean> effectAbilities = new HashMap<>();
+		protected final TrailData trailData = new TrailData();
+		protected final Map<String, Float> unknownProperties = new HashMap<>();
 		
-		public ElytraSpec() {}
+		public ElytraSpec() {
+			registerAerobaticElytraDatapackAbilityReloadListener(); // Must call this on every instance
+		}
+		
+		@Override public void updatePlayerEntity(ServerPlayerEntity player) {
+			this.player = new WeakReference<>(player);
+		}
+		
+		@Override public @Nullable ServerPlayerEntity getPlayerEntity() {
+			return player.get();
+		}
 		
 		@Override public float getAbility(IAbility prop) {
-			return properties.getOrDefault(prop, 0F);
+			return properties.getOrDefault(prop, prop.getDefault());
 		}
 		@Override public void setAbility(IAbility prop, float value) {
-			if (value == 0F)
-				properties.remove(prop);
-			else properties.put(prop, value);
+			properties.put(prop, value);
+			if (prop instanceof IEffectAbility && !effectAbilities.containsKey(prop))
+				effectAbilities.put((IEffectAbility) prop, false);
 		}
+		
+		@Override public Float removeAbility(IAbility ability) {
+			if (ability instanceof IEffectAbility && effectAbilities.remove(ability)) {
+				final ServerPlayerEntity player = this.player.get();
+				if (player != null)
+					((IEffectAbility) ability).undoEffect(player);
+			}
+			return properties.remove(ability);
+		}
+		
 		@Override public Map<IAbility, Float> getAbilities() {
-			return properties;
+			return Collections.unmodifiableMap(properties);
+		}
+		
+		@Override public void putAbilities(Map<IAbility, Float> abilities) {
+			properties.putAll(abilities);
+			for (IAbility ability : abilities.keySet())
+				if (ability instanceof IEffectAbility && !effectAbilities.containsKey(ability))
+					effectAbilities.put((IEffectAbility) ability, false);
+		}
+		
+		@Override public void setAbilities(Map<IAbility, Float> abilities) {
+			properties.clear();
+			effectAbilities.clear();
+			putAbilities(abilities);
+		}
+		
+		@Override public boolean hasAbility(IAbility ability) {
+			return properties.containsKey(ability);
+		}
+		
+		@Override public Map<IEffectAbility, Boolean> getEffectAbilities() {
+			return effectAbilities;
 		}
 		
 		@Override public Map<String, Float> getUnknownAbilities() {
@@ -105,8 +153,7 @@ public class ElytraSpecCapability {
 			  "FlightSpec: {%s, TrailData: %s}",
 			  properties.entrySet().stream().map(
 			    entry -> String.format("%s: %2.2f", entry.getKey(), entry.getValue())
-			  ).collect(Collectors.joining(", ")),
-			  trailData);
+			  ).collect(Collectors.joining(", ")), trailData);
 		}
 	}
 	
@@ -138,10 +185,11 @@ public class ElytraSpecCapability {
 			for (Map.Entry<String, Float> unknown : inst.getUnknownAbilities().entrySet())
 				ability.putFloat(unknown.getKey(), unknown.getValue());
 			
-			for (IAbility type : inst.getAbilities().keySet()) {
-				final float val = inst.getAbility(type);
+			for (Entry<IAbility, Float> entry : inst.getAbilities().entrySet()) {
+				final IAbility type = entry.getKey();
+				final float val = entry.getValue();
 				if (val != type.getDefault())
-					ability.putFloat(type.jsonName(), val);
+					ability.putFloat(type.fullName(), val);
 			}
 			
 			data.put(TAG_ABILITIES, ability);
@@ -159,21 +207,20 @@ public class ElytraSpecCapability {
 			CompoundNBT data = dat.getCompound(TAG_BASE);
 			CompoundNBT ability = data.getCompound(TAG_ABILITIES);
 			
-			for (IAbility type : ModRegistries.ABILITY_REGISTRY) {
-				if (ability.contains(type.jsonName())) {
-					float value = ability.getFloat(type.jsonName());
+			for (IAbility type : ModRegistries.getAbilities().values()) {
+				if (ability.contains(type.fullName())) {
+					float value = ability.getFloat(type.fullName());
 					if (Config.fix_nan_elytra_abilities && Float.isNaN(value))
 						value = type.getDefault();
 					inst.setAbility(type, value);
 				} else inst.setAbility(type, type.getDefault());
 			}
 			
-			Map<String, Float> unknownProperties = inst.getUnknownAbilities();
-			unknownProperties.clear();
+			Map<String, Float> unknown = inst.getUnknownAbilities();
+			unknown.clear();
 			for (String name : ability.keySet()) {
-				if (!IAbility.isDefined(name)) {
-					unknownProperties.put(name, ability.getFloat(name));
-				}
+				if (!IAbility.isDefined(name))
+					unknown.put(name, ability.getFloat(name));
 			}
 			
 			TrailData trail = inst.getTrailData();

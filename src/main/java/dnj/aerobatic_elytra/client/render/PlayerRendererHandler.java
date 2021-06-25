@@ -47,7 +47,7 @@ public class PlayerRendererHandler {
 			PlayerEntity player = event.player;
 			IAerobaticData data = getAerobaticDataOrDefault(player);
 			MatrixStack mStack = event.matrixStack;
-			float t = (player.getTicksElytraFlying() + event.partialTicks) / Const.TAKEOFF_ANIMATION_LENGTH;
+			float t = (player.getTicksElytraFlying() + event.partialTicks) / Const.TAKEOFF_ANIMATION_LENGTH_TICKS;
 			float yaw = (180F - player.rotationYaw);
 			float pitch = (-90F - player.rotationPitch);
 			if (t < 1F) {

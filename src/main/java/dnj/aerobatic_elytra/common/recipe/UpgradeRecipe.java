@@ -7,6 +7,7 @@ import dnj.aerobatic_elytra.common.capability.ElytraSpecCapability;
 import dnj.aerobatic_elytra.common.capability.IElytraSpec;
 import dnj.aerobatic_elytra.common.capability.IElytraSpec.Upgrade;
 import dnj.aerobatic_elytra.common.item.ModItems;
+import dnj.aerobatic_elytra.common.registry.ModRegistries;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.inventory.EquipmentSlotType;
@@ -22,12 +23,13 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.lang.ref.WeakReference;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -41,37 +43,99 @@ public class UpgradeRecipe extends SpecialRecipe {
 	private final List<ItemSelector> ingredients;
 	private final List<Upgrade> upgrades;
 	private final ElytraRequirement requirement;
+	private final boolean lenient;
+	private boolean valid;
+	
+	public static List<UpgradeRecipe> getUpgradeRecipes(World world) {
+		final RecipeManager recipeManager = world.getRecipeManager();
+		//noinspection unchecked
+		return (List<UpgradeRecipe>) (List<?>) recipeManager.getRecipes().stream().filter(
+		  recipe -> (recipe instanceof UpgradeRecipe) && ((UpgradeRecipe) recipe).valid
+		).collect(Collectors.toList());
+	}
 	
 	public static Optional<UpgradeRecipe> getUpgradeRecipe(
 	  World world, ItemStack elytra, ItemStack ingredient
 	) {
-		final RecipeManager recipeManager = world.getRecipeManager();
-		//noinspection unchecked
-		return (Optional<UpgradeRecipe>)(Optional<?>) recipeManager.getRecipes().stream().filter(
-		  recipe -> (recipe instanceof UpgradeRecipe)
-		            && ((UpgradeRecipe) recipe).matches(elytra, ingredient)
+		return getUpgradeRecipes(world).stream().filter(
+		  recipe -> recipe.matches(elytra, ingredient)
 		).findFirst();
 	}
 	
 	public static List<UpgradeRecipe> getUpgradeRecipes(
 	  World world, ItemStack elytra, ItemStack ingredient
 	) {
-		final RecipeManager recipeManager = world.getRecipeManager();
-		//noinspection unchecked
-		return (List<UpgradeRecipe>) (List<?>) recipeManager.getRecipes().stream().filter(
-		  recipe -> (recipe instanceof UpgradeRecipe)
-		            && ((UpgradeRecipe) recipe).matches(elytra, ingredient)
+		return getUpgradeRecipes(world).stream().filter(
+		  recipe -> recipe.matches(elytra, ingredient)
 		).collect(Collectors.toList());
 	}
 	
+	/**
+	 * Weak instance set, since accessing the recipe manager from a
+	 * JsonReloadListener is inconvenient
+	 */
+	private static final Map<ResourceLocation, WeakReference<UpgradeRecipe>> INSTANCES =
+	  Collections.synchronizedMap(new WeakHashMap<>());
+	private static final Logger LOGGER = LogManager.getLogger();
+	
+	public static void onAbilityReload() {
+		synchronized (INSTANCES) {
+			for (WeakReference<UpgradeRecipe> rep : INSTANCES.values()) {
+				UpgradeRecipe recipe = rep.get();
+				if (recipe != null)
+					recipe.reloadAbilities();
+			}
+			if (!ModRegistries.getDatapackAbilities().isEmpty()) {
+				boolean any = false;
+				for (ResourceLocation id : INSTANCES.keySet()) {
+					UpgradeRecipe recipe = INSTANCES.get(id).get();
+					if (recipe != null && !recipe.isValid()) {
+						any = true;
+						LOGGER.warn(
+						  "The Aerobatic Elytra upgrade recipe \"" + id + "\" " +
+						  "was ignored because it uses abilities which aren't loaded");
+					}
+				}
+				if (any) LOGGER.warn("A datapack may be missing/malformed");
+			}
+		}
+	}
+	
+	public UpgradeRecipe(
+	  ResourceLocation id, List<ItemSelector> ingredients, List<Upgrade> upgrades, ElytraRequirement requirement
+	) { this(id, ingredients, upgrades, requirement, true); }
+	
 	public UpgradeRecipe(
 	  ResourceLocation id, List<ItemSelector> ingredients, List<Upgrade> upgrades,
-	  ElytraRequirement requirement
+	  ElytraRequirement requirement, boolean lenient
 	) {
 		super(id);
 		this.ingredients = ingredients;
 		this.upgrades = upgrades;
 		this.requirement = requirement;
+		this.lenient = lenient;
+		valid = !lenient;
+		if (lenient) for (Upgrade upgrade : upgrades)
+			valid |= upgrade.isValid();
+		else for (Upgrade upgrade : upgrades)
+			valid &= upgrade.isValid();
+		// Add to the instance set
+		INSTANCES.put(id, new WeakReference<>(this));
+	}
+	
+	/**
+	 * Perform ability parsing again<br>
+	 * @return The new valid state
+	 */
+	@SuppressWarnings("UnusedReturnValue")
+	public boolean reloadAbilities() {
+		boolean res = !lenient;
+		if (lenient) for (Upgrade upgrade : upgrades)
+			res |= upgrade.reloadAbilities();
+		else for (Upgrade upgrade : upgrades)
+			res &= upgrade.reloadAbilities();
+		valid = res;
+		return valid;
 	}
 	
 	/**
@@ -80,7 +144,7 @@ public class UpgradeRecipe extends SpecialRecipe {
 	 * @param stack Upgrade ingredient stack
 	 */
 	public boolean matches(ItemStack elytra, ItemStack stack) {
-		return ItemSelector.any(ingredients, stack) && requirement.test(elytra);
+		return valid && ItemSelector.any(ingredients, stack) && requirement.test(elytra);
 	}
 	
 	/**
@@ -195,6 +259,10 @@ public class UpgradeRecipe extends SpecialRecipe {
 		return new ItemStack(ModItems.AEROBATIC_ELYTRA);
 	}
 	
+	public boolean isValid() {
+		return valid;
+	}
+	
 	public static class Serializer extends ForgeRegistryEntry<IRecipeSerializer<?>>
 	  implements IRecipeSerializer<UpgradeRecipe> {
 		
@@ -208,27 +276,26 @@ public class UpgradeRecipe extends SpecialRecipe {
 		@NotNull @Override public UpgradeRecipe read(
 		  @NotNull ResourceLocation recipeId, @NotNull JsonObject json
 		) {
-			
-			List<ItemSelector> ing = ItemSelector.deserialize(JSONUtils.getJsonArray(
-			  json, "ingredients"));
-			List<Upgrade> upgrades = IElytraSpec.Upgrade.deserialize(JSONUtils.getJsonArray(json, "upgrades"));
-			ElytraRequirement req;
-			if (JSONUtils.hasField(json, "requirement")) {
-				req = ElytraRequirement
-				  .deserialize(JSONUtils.getJsonObject(json, "requirement"));
-			} else
-				req = ElytraRequirement.NONE;
-			
-			return new UpgradeRecipe(recipeId, ing, upgrades, req);
+			final List<ItemSelector> ing = ItemSelector.deserialize(
+			  JSONUtils.getJsonArray(json, "ingredients"));
+			final List<Upgrade> upgrades = IElytraSpec.Upgrade.deserialize(
+			  JSONUtils.getJsonArray(json, "upgrades"));
+			final ElytraRequirement req =
+			  JSONUtils.hasField(json, "requirement")
+			  ? ElytraRequirement.deserialize(JSONUtils.getJsonObject(json, "requirement"))
+			  : ElytraRequirement.NONE;
+			final boolean lenient = JSONUtils.getBoolean(json, "lenient", true);
+			return new UpgradeRecipe(recipeId, ing, upgrades, req, lenient);
 		}
 		
 		@Nullable @Override public UpgradeRecipe read(
 		  @NotNull ResourceLocation id, @NotNull PacketBuffer buf
 		) {
-			List<ItemSelector> ing = readList(buf, ItemSelector::read);
-			List<Upgrade> upgrades = readList(buf, Upgrade::read);
-			ElytraRequirement requirement = ElytraRequirement.read(buf);
-			return new UpgradeRecipe(id, ing, upgrades, requirement);
+			return new UpgradeRecipe(id,
+			  readList(buf, ItemSelector::read),
+			  readList(buf, Upgrade::read),
+			  ElytraRequirement.read(buf),
+			  buf.readBoolean());
 		}
 		
 		@Override public void write(
@@ -237,10 +304,11 @@ public class UpgradeRecipe extends SpecialRecipe {
 			writeList(recipe.ingredients, buf, ItemSelector::write);
 			writeList(recipe.upgrades, buf, Upgrade::write);
 			recipe.requirement.write(buf);
+			buf.writeBoolean(recipe.lenient);
 		}
 	}
 	
-	// Placeholder, Idk
+	// Placeholder for future extension
 	public static class ElytraRequirement implements Predicate<ItemStack> {
 		public static final ElytraRequirement NONE = new ElytraRequirement();
 		

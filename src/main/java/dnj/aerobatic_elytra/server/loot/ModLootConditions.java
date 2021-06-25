@@ -15,6 +15,9 @@ import static dnj.aerobatic_elytra.AerobaticElytra.prefix;
 @EventBusSubscriber(bus = Bus.MOD, modid = AerobaticElytra.MOD_ID)
 public class ModLootConditions {
 	public static LootConditionType ORIGIN_DISTANCE;
+	public static LootConditionType AEROBATIC_FLYING;
+	public static LootConditionType ELYTRA_FLYING;
+	public static LootConditionType SUBMERGED;
 	
 	@SubscribeEvent
 	public static void onCommonSetup(FMLCommonSetupEvent event) {
@@ -24,6 +27,9 @@ public class ModLootConditions {
 	
 	public static void register() {
 		ORIGIN_DISTANCE = register("origin_distance", new OriginDistanceLootCondition.Serializer());
+		AEROBATIC_FLYING = register("aerobatic_flying", new AerobaticFlyingLootCondition.Serializer());
+		ELYTRA_FLYING = register("elytra_flying", new ElytraFlyingLootCondition.Serializer());
+		SUBMERGED = register("submerged", new SubmergedLootCondition.Serializer());
 	}
 	
 	public static LootConditionType register(

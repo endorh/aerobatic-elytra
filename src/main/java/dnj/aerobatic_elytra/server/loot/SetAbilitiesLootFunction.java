@@ -31,7 +31,7 @@ public class SetAbilitiesLootFunction extends LootFunction {
 	@Override
 	protected @NotNull ItemStack doApply(@NotNull ItemStack stack, @NotNull LootContext context) {
 		final IElytraSpec spec = ElytraSpecCapability.getElytraSpecOrDefault(stack);
-		spec.getAbilities().putAll(abilities);
+		spec.putAbilities(abilities);
 		spec.getUnknownAbilities().putAll(unknown);
 		return stack;
 	}

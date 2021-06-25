@@ -5,13 +5,14 @@ import dnj.aerobatic_elytra.common.capability.FlightDataCapability;
 import dnj.aerobatic_elytra.common.capability.IAerobaticData;
 import dnj.aerobatic_elytra.common.capability.IFlightData;
 import dnj.aerobatic_elytra.common.config.Config;
+import dnj.aerobatic_elytra.common.config.Const;
 import dnj.aerobatic_elytra.common.flight.AerobaticFlight.VectorBase;
 import dnj.aerobatic_elytra.common.flight.mode.IFlightMode;
 import dnj.aerobatic_elytra.server.KickHandler;
+import dnj.endor8util.math.Vec3f;
 import dnj.endor8util.network.DistributedPlayerPacket;
 import dnj.endor8util.network.ServerPlayerPacket;
 import dnj.endor8util.network.ValidatedDistributedPlayerPacket;
-import dnj.endor8util.math.Vec3f;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
@@ -21,6 +22,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import static dnj.aerobatic_elytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
 import static dnj.aerobatic_elytra.common.capability.FlightDataCapability.getFlightDataOrDefault;
@@ -33,6 +36,29 @@ public class AerobaticPackets {
 	private static final String invalidPacketWarnSuffix =
 	  "\nServer config might be out of sync, the server could be lagging, " +
 	  "or the player could be trying to cheat.";
+	
+	// Avoid logging the same warnings too frequently
+	private static final int TIME_BETWEEN_WARNINGS = 40;
+	private static final Map<String, Map<String, Integer>> LAST_WARNS = new HashMap<>();
+	private static boolean logWarning(PlayerEntity player, String message, Object... args) {
+		final String name = player.getScoreboardName();
+		final int time = player.ticksExisted;
+		if (!LAST_WARNS.computeIfAbsent(name, s -> new HashMap<>()).containsKey(message)
+		    || time - LAST_WARNS.get(name).get(message) >= TIME_BETWEEN_WARNINGS) {
+			Object[] formatArgs = new Object[args.length+1];
+			formatArgs[0] = player;
+			System.arraycopy(args, 0, formatArgs, 1, args.length);
+			LOGGER.warn(String.format(message, formatArgs));
+			LAST_WARNS.get(name).put(message, time);
+			return true;
+		}
+		return false;
+	}
+	@SuppressWarnings("UnusedReturnValue")
+	private static boolean handlePlayerWarning(PlayerEntity player, String message, Object... args) {
+		KickHandler.incrementInvalidPacketCount((ServerPlayerEntity) player);
+		return logWarning(player, message + invalidPacketWarnSuffix, args);
+	}
 	
 	public static void registerAll() {
 		DistributedPlayerPacket.with(NetworkHandler.CHANNEL, ID_GEN)
@@ -61,16 +87,13 @@ public class AerobaticPackets {
 		}
 		
 		@Override protected void onServer(PlayerEntity sender, Context ctx) {
-			// TODO
+			// TODO: Add system to restrict flight modes?
 			if (true) {
 				getFlightDataOrDefault(sender).setFlightMode(mode);
 			} else {
 				mode = getFlightDataOrDefault(sender).getFlightMode();
 				invalidate();
-				KickHandler.incrementInvalidPacketCount((ServerPlayerEntity) sender);
-				LOGGER.warn(
-				  "Player " + sender.getScoreboardName() + " tried to use disabled flight mode: " +
-				  mode.getRegistryName() + "\n" + invalidPacketWarnSuffix);
+				handlePlayerWarning(sender, "Player '%s' tried to use restricted flight mode: %s", mode.getRegistryName());
 			}
 		}
 		
@@ -96,7 +119,7 @@ public class AerobaticPackets {
 		
 		@Override protected void onServer(PlayerEntity sender, Context ctx) {
 			IAerobaticData data = getAerobaticDataOrDefault(sender);
-			if (!Config.disable_aerobatic_elytra_rotation_check) {
+			if (!Config.disable_aerobatic_elytra_rotation_check && !sender.isInWater()) {
 				MinecraftServer server = sender.getServer();
 				assert server != null;
 				long[] times = server.getTickTime(sender.world.getDimensionKey());
@@ -117,9 +140,7 @@ public class AerobaticPackets {
 				
 				if (isInvalid()) {
 					data.getRotationBase().rotate(tiltPitch, tiltYaw, tiltRoll);
-					KickHandler.incrementInvalidPacketCount((ServerPlayerEntity) sender);
-					LOGGER.warn("Player '" + sender.getScoreboardName() + "' rotated too fast!"
-					            + invalidPacketWarnSuffix);
+					handlePlayerWarning(sender, "Player '%s' rotated too fast!");
 				} else {
 					data.getRotationBase().set(rotation);
 				}
@@ -145,6 +166,9 @@ public class AerobaticPackets {
 	 * Sent by the player when its tilt changes
 	 */
 	public static class DTiltPacket extends ValidatedDistributedPlayerPacket {
+		// Add delay for out-of-water checks
+		private static final Map<String, Integer> STRIKES = new HashMap<>();
+		
 		float tiltPitch;
 		float tiltRoll;
 		float tiltYaw;
@@ -154,21 +178,35 @@ public class AerobaticPackets {
 			tiltRoll = data.getTiltRoll();
 			tiltYaw = data.getTiltYaw();
 		}
-		@Override public void onCommon(PlayerEntity sender, Context ctx) {
+		
+		@Override protected void onServer(PlayerEntity sender, Context ctx) {
 			IAerobaticData data = getAerobaticDataOrDefault(sender);
+			
+			boolean inWater = sender.isInWater(); //(sender.isInWater() ? STRIKES.put(name, 3) :
+			                  // STRIKES.compute(name, (n, i) -> i != null ? max(0, i - 1) : 0)) > 0;
 			data.setTiltPitch(validateClamp(
 			  tiltPitch, -Config.tilt_range_pitch, Config.tilt_range_pitch));
 			data.setTiltPitch(validateClamp(
 			  tiltRoll, -Config.tilt_range_roll, Config.tilt_range_roll));
-			data.setTiltYaw(validateClamp(
-			  tiltYaw, -Config.tilt_range_yaw, Config.tilt_range_yaw));
-			
+			final float tiltRangeYaw = inWater
+			                           ? Const.UNDERWATER_YAW_SENS_MULTIPLIER * Config.tilt_range_yaw
+			                           : Config.tilt_range_yaw;
+			data.setTiltYaw(validateClamp(tiltYaw, -tiltRangeYaw, tiltRangeYaw));
+			final String name = sender.getScoreboardName();
 			if (isInvalid()) {
-				KickHandler.incrementInvalidPacketCount((ServerPlayerEntity) sender);
-				LOGGER.warn("Player '" + sender.getScoreboardName() + "' tilted too much!"
-				            + invalidPacketWarnSuffix);
-			}
+				if (STRIKES.compute(name, (n, i) -> i != null? i + 1 : 1) < 4)
+					unInvalidate();
+				else handlePlayerWarning(sender, "Player '%s' tilted too much!");
+			} else STRIKES.computeIfPresent(name, (n, i) -> max(0, i-1));
 		}
+		
+		@Override protected void onClient(PlayerEntity sender, Context ctx) {
+			IAerobaticData data = getAerobaticDataOrDefault(sender);
+			data.setTiltPitch(tiltPitch);
+			data.setTiltPitch(tiltRoll);
+			data.setTiltYaw(tiltYaw);
+		}
+		
 		@Override protected void serialize(PacketBuffer buf) {
 			buf.writeFloat(tiltPitch);
 			buf.writeFloat(tiltRoll);

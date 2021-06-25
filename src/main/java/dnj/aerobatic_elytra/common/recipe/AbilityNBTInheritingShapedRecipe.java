@@ -55,8 +55,7 @@ public class AbilityNBTInheritingShapedRecipe extends NBTInheritingShapedRecipe 
 	public ItemStack getCraftingResult(@NotNull CraftingInventory inv) {
 		ItemStack result = super.getCraftingResult(inv);
 		final IElytraSpec spec = getElytraSpecOrDefault(result);
-		spec.getAbilities().clear();
-		spec.getAbilities().putAll(abilities);
+		spec.setAbilities(abilities);
 		spec.getUnknownAbilities().clear();
 		spec.getUnknownAbilities().putAll(unknown);
 		return result;
@@ -180,7 +179,7 @@ public class AbilityNBTInheritingShapedRecipe extends NBTInheritingShapedRecipe 
 					unknown.put(jsonName, value);
 				}
 			}
-			if (unknown.size() > 0) {
+			if (!unknown.isEmpty()) {
 				LOGGER.warn("Unknown abilities found in recipe:"
 				            + unknown.keySet().stream().map(name -> "\n\t" + name)
 				              .collect(Collectors.joining("")) +

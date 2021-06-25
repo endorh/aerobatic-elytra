@@ -2,11 +2,13 @@ package dnj.aerobatic_elytra.common.item;
 
 import com.google.gson.JsonObject;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Set;
 
 import static dnj.aerobatic_elytra.AerobaticElytra.prefix;
 
@@ -17,6 +19,8 @@ public class PotionEffectAbility implements IAbility {
 	public final TextFormatting color;
 	public final float defValue;
 	public final ResourceLocation registryName;
+	
+	public final Set<ConditionalEffect> effects = null;
 	
 	public PotionEffectAbility(
 	  String jsonName, TranslationTextComponent displayName,
@@ -34,7 +38,7 @@ public class PotionEffectAbility implements IAbility {
 		return jsonName;
 	}
 	
-	@Override public TranslationTextComponent getDisplayName() {
+	@Override public IFormattableTextComponent getDisplayName() {
 		return displayName;
 	}
 	
@@ -65,5 +69,9 @@ public class PotionEffectAbility implements IAbility {
 	
 	public static List<PotionEffectAbility> gather() {
 		return null; // TODO
+	}
+	
+	public static class ConditionalEffect {
+		//public ConditionalEffect(Set<Effect>, Set<EntityPredicate>)
 	}
 }

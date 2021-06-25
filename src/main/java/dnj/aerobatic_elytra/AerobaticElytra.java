@@ -1,6 +1,7 @@
 package dnj.aerobatic_elytra;
 
 import dnj.aerobatic_elytra.common.ModInit;
+import dnj.aerobatic_elytra.common.registry.JsonAbilityManager;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
@@ -23,6 +24,8 @@ public final class AerobaticElytra {
     public static boolean caelusLoaded = false;
     public static boolean curiosLoaded = false;
     public static boolean colytraLoaded = false;
+    
+    public static final JsonAbilityManager JSON_ABILITY_MANAGER = new JsonAbilityManager();
     
     /**
      * Run setup tasks

@@ -172,7 +172,7 @@ public class AerobaticElytraWingItem extends Item implements IDyeableArmorItem {
 	) {
 		tooltip.addAll(getTooltipInfo(stack, flag));
 		
-		if (stack.getEnchantmentTagList().size() > 0)
+		if (!stack.getEnchantmentTagList().isEmpty())
 			tooltip.add(stc("")); // Separator
 	}
 	
@@ -188,7 +188,7 @@ public class AerobaticElytraWingItem extends Item implements IDyeableArmorItem {
 		assert aerobaticElytra != null;
 		aerobaticElytra.addFuelTooltipInfo(tooltip, stack, flag, indent);
 		IElytraSpec spec = getElytraSpecOrDefault(stack);
-		spec.addTooltipInfo(tooltip, indent);
+		spec.addAbilityTooltipInfo(tooltip, indent);
 		
 		aerobaticElytra.addDyementTooltipInfo(stack, flag, indent, tooltip);
 		

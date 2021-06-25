@@ -1,14 +1,22 @@
 package dnj.aerobatic_elytra.common.registry;
 
 import dnj.aerobatic_elytra.AerobaticElytra;
+import dnj.aerobatic_elytra.common.event.AerobaticElytraAbilitiesReloadedEvent;
 import dnj.aerobatic_elytra.common.flight.mode.FlightModes;
 import dnj.aerobatic_elytra.common.flight.mode.IFlightMode;
+import dnj.aerobatic_elytra.common.item.AbilityReloadManager;
 import dnj.aerobatic_elytra.common.item.IAbility;
+import dnj.aerobatic_elytra.common.item.IDatapackAbility;
+import dnj.aerobatic_elytra.common.item.IEffectAbility;
+import dnj.aerobatic_elytra.common.recipe.UpgradeRecipe;
+import dnj.endor8util.math.MathHighlighter.UnicodeMathSyntaxHighlightParser;
 import dnj.endor8util.math.MathParser.ExpressionParser;
+import dnj.endor8util.math.MathParser.FixedNamespaceSet;
 import dnj.endor8util.math.MathParser.UnicodeMathDoubleExpressionParser;
-import dnj.endor8util.util.TextUtil.UnicodeMathSyntaxHighlightParser;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
@@ -17,19 +25,69 @@ import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.IForgeRegistryInternal;
 import net.minecraftforge.registries.RegistryBuilder;
 import net.minecraftforge.registries.RegistryManager;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+import javax.annotation.Nullable;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Map.Entry;
 
 import static dnj.aerobatic_elytra.AerobaticElytra.prefix;
 
 @EventBusSubscriber(bus = Bus.MOD, modid = AerobaticElytra.MOD_ID)
 public class ModRegistries {
+	private static final Logger LOGGER = LogManager.getLogger();
+	
 	public static IForgeRegistry<IFlightMode> FLIGHT_MODE_REGISTRY;
 	public static List<IFlightMode> FLIGHT_MODE_LIST;
 	
-	public static IForgeRegistry<IAbility> ABILITY_REGISTRY;
-	private static Map<String, IAbility> JSON_TO_ABILITY;
+	/**
+	 * Do not use directly, instead, call {@link ModRegistries#getAbilities()}
+	 * to also get datapack IAbility s
+	 */
+	private static IForgeRegistry<IAbility> ABILITY_REGISTRY;
+	
+	// Datapack abilities are stored in a map, since registries can't be modified at json reload time
+	private static final Map<ResourceLocation, IAbility> ABILITIES = new HashMap<>();
+	private static final Map<ResourceLocation, IDatapackAbility> DATAPACK_ABILITIES = new HashMap<>();
+	private static final Map<ResourceLocation, IEffectAbility> EFFECT_ABILITIES = new HashMap<>();
+	private static final Map<String, IAbility> JSON_TO_ABILITY = new HashMap<>();
+	private static final Set<IDatapackAbility> OUTDATED_ABILITIES = Collections.newSetFromMap(Collections.synchronizedMap(new WeakHashMap<>()));
+	
+	public static @Nullable IAbility getAbility(ResourceLocation id) {
+		return ABILITIES.get(id);
+	}
+	
+	public static Map<ResourceLocation, IAbility> getAbilities() {
+		return Collections.unmodifiableMap(ABILITIES);
+	}
+	
+	@SuppressWarnings("unused")
+	public static Map<ResourceLocation, IEffectAbility> getEffectAbilities() {
+		return Collections.unmodifiableMap(EFFECT_ABILITIES);
+	}
+	
+	public static @Nullable IAbility getAbilityByName(String name) {
+		return JSON_TO_ABILITY.get(name);
+	}
+	
+	public static boolean hasAbilityName(String jsonName) {
+		return JSON_TO_ABILITY.containsKey(jsonName);
+	}
+	
+	@SuppressWarnings("unused")
+	public static Map<String, IAbility> getAbilitiesByName() {
+		return Collections.unmodifiableMap(JSON_TO_ABILITY);
+	}
+	
+	public static Set<IDatapackAbility> getOutdatedAbilities() {
+		return Collections.unmodifiableSet(OUTDATED_ABILITIES);
+	}
+	
+	public static Map<ResourceLocation, IDatapackAbility> getDatapackAbilities() {
+		return Collections.unmodifiableMap(DATAPACK_ABILITIES);
+	}
 	
 	public static ExpressionParser<Double> ABILITY_EXPRESSION_PARSER;
 	public static UnicodeMathSyntaxHighlightParser ABILITY_EXPRESSION_HIGHLIGHTER;
@@ -62,31 +120,57 @@ public class ModRegistries {
 	
 	public static void onAbilityRegistryBake(
 	  IForgeRegistryInternal<IAbility> owner, RegistryManager stage
-	) {
-		final Set<String> abilities = owner.getValues().stream().map(IAbility::jsonName)
-		  .collect(Collectors.toSet());
-		ABILITY_EXPRESSION_PARSER = new UnicodeMathDoubleExpressionParser(abilities);
-		JSON_TO_ABILITY = new HashMap<>();
+	) { bakeAbilities(); }
+	
+	public static void reloadDatapackAbilities(Collection<? extends IDatapackAbility> abilities) {
+		OUTDATED_ABILITIES.addAll(DATAPACK_ABILITIES.values());
+		DATAPACK_ABILITIES.clear();
+		for (IDatapackAbility ability : abilities)
+			DATAPACK_ABILITIES.put(ability.getRegistryName(), ability);
+		bakeAbilities();
+	}
+	
+	private static void bakeAbilities() {
+		ABILITIES.clear();
+		JSON_TO_ABILITY.clear();
+		EFFECT_ABILITIES.clear();
+		
+		for (IAbility ability : ABILITY_REGISTRY)
+			ABILITIES.put(ability.getRegistryName(), ability);
+		for (Entry<ResourceLocation, IDatapackAbility> entry : DATAPACK_ABILITIES.entrySet()) {
+			if (ABILITIES.containsKey(entry.getKey())) {
+				LOGGER.warn("Datapack Aerobatic Elytra Ability conflicts with one already defined by " +
+				            "a mod: \"" + entry.getKey() + "\". The datapack one will be ignored");
+			} else ABILITIES.put(entry.getKey(), entry.getValue());
+		}
+		// final Map<String, Map<String, IAbility>> namespaceSet = new HashMap<>();
 		final Map<String, TextFormatting> abilityColors = new HashMap<>();
 		final Map<String, IFormattableTextComponent> abilityTranslations = new HashMap<>();
-		for (IAbility ability : owner.getValues()) {
-			final String name = ability.jsonName();
-			abilityColors.put(name, ability.getColor());
-			abilityTranslations.put(name, ability.getDisplayName());
-			JSON_TO_ABILITY.put(name, ability);
+		for (ResourceLocation id : ABILITIES.keySet()) {
+			final String namespace = id.getNamespace();
+			final IAbility ability = ABILITIES.get(id);
+			final String fullName = namespace + ':' + ability.jsonName();
+			JSON_TO_ABILITY.put(fullName, ability);
+			abilityColors.put(fullName, ability.getColor());
+			abilityTranslations.put(fullName, ability.getDisplayName());
+			if (ability instanceof IEffectAbility)
+				EFFECT_ABILITIES.put(id, (IEffectAbility) ability);
 		}
-		ABILITY_EXPRESSION_HIGHLIGHTER = new UnicodeMathSyntaxHighlightParser(
-		  abilityColors
-		);
-		ABILITY_EXPRESSION_HIGHLIGHTER.translations.putAll(abilityTranslations);
-	}
-	
-	public static IAbility abilityFromJsonName(String jsonName) {
-		return JSON_TO_ABILITY.get(jsonName);
-	}
-	
-	public static boolean hasAbility(String jsonName) {
-		return JSON_TO_ABILITY.containsKey(jsonName);
+		final FixedNamespaceSet<Double> namespaceSet = FixedNamespaceSet.of(JSON_TO_ABILITY.keySet());
+		ABILITY_EXPRESSION_PARSER = new UnicodeMathDoubleExpressionParser(namespaceSet);
+		ABILITY_EXPRESSION_HIGHLIGHTER = new UnicodeMathSyntaxHighlightParser(abilityColors, abilityTranslations);
+		
+		// Add shortcuts
+		for (Entry<String, Pair<String, String>> entry : namespaceSet.getShortcuts().entrySet()) {
+			final Pair<String, String> pair = entry.getValue();
+			final String name = pair.getKey().replace('`', '_') + ':' + pair.getValue();
+			JSON_TO_ABILITY.put(entry.getKey(), JSON_TO_ABILITY.get(name));
+		}
+		
+		// Reparse upgrade recipes
+		UpgradeRecipe.onAbilityReload();
+		AbilityReloadManager.onAbilityReload();
+		MinecraftForge.EVENT_BUS.post(new AerobaticElytraAbilitiesReloadedEvent());
 	}
 	
 	@SubscribeEvent
@@ -97,7 +181,7 @@ public class ModRegistries {
 	}
 	
 	@SubscribeEvent
-	public static void onRegisterUpgradeTypes(RegistryEvent.Register<IAbility> event) {
+	public static void onRegisterAbilities(RegistryEvent.Register<IAbility> event) {
 		final IForgeRegistry<IAbility> reg = event.getRegistry();
 		for (IAbility type : IAbility.Ability.values())
 			reg.register(type);

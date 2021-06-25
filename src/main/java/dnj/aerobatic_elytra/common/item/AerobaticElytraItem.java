@@ -185,7 +185,7 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 	  @NotNull List<ITextComponent> tooltip, @NotNull ITooltipFlag flag) {
 		tooltip.addAll(getTooltipInfo(stack, flag));
 		
-		if (stack.getEnchantmentTagList().size() > 0)
+		if (!stack.getEnchantmentTagList().isEmpty())
 			tooltip.add(stc("")); // Separator
 	}
 	
@@ -199,7 +199,7 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 		addFuelTooltipInfo(tooltip, stack, flag, indent);
 		
 		IElytraSpec spec = getElytraSpecOrDefault(stack);
-		spec.addTooltipInfo(tooltip, indent);
+		spec.addAbilityTooltipInfo(tooltip, indent);
 		
 		addDyementTooltipInfo(stack, flag, indent, tooltip);
 		

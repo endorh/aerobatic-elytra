@@ -6,7 +6,9 @@ import dnj.aerobatic_elytra.client.input.KeyHandler;
 import dnj.aerobatic_elytra.client.item.AerobaticElytraItemColor;
 import dnj.aerobatic_elytra.client.item.AerobaticElytraWingItemColor;
 import dnj.aerobatic_elytra.client.item.ModItemProperties;
+import dnj.aerobatic_elytra.common.event.RegisterAerobaticElytraAbilityEvent;
 import dnj.aerobatic_elytra.common.item.AerobaticElytraItem;
+import dnj.aerobatic_elytra.common.item.IAbility;
 import dnj.aerobatic_elytra.common.item.ModItems;
 import dnj.aerobatic_elytra.common.recipe.ModRecipes;
 import dnj.aerobatic_elytra.common.config.Config;
@@ -15,6 +17,7 @@ import dnj.aerobatic_elytra.integration.colytra.ColytraIntegration;
 import dnj.aerobatic_elytra.integration.curios.CuriosIntegration;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
@@ -38,12 +41,18 @@ public class ModInit {
 		DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> ClientConfig::register);
 		registerIntegrations();
 		AerobaticElytra.logRegistered("Config");
+		
+		MinecraftForge.EVENT_BUS.addListener(ModInit::onRegisterReloadListeners);
 	}
 	
 	@SubscribeEvent
 	public static void onClientSetup(FMLClientSetupEvent event) {
 		registerClient();
 		setupClient();
+	}
+	
+	public static void onRegisterReloadListeners(AddReloadListenerEvent event) {
+		event.addListener(AerobaticElytra.JSON_ABILITY_MANAGER);
 	}
 	
 	public static void registerClient() {
@@ -68,5 +77,14 @@ public class ModInit {
 	    }
 	    if (AerobaticElytra.caelusLoaded && AerobaticElytra.curiosLoaded)
 	        eventBus.register(CuriosIntegration.class);
+	}
+	
+	@EventBusSubscriber(modid = AerobaticElytra.MOD_ID)
+	public static class EventSubscribers {
+		@SubscribeEvent
+		public static void onRegisterAbilities(RegisterAerobaticElytraAbilityEvent event) {
+			for (IAbility type : IAbility.Ability.values())
+				event.register(type);
+		}
 	}
 }

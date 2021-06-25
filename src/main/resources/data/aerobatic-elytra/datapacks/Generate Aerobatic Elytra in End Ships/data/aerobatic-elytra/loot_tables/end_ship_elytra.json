@@ -39,16 +39,17 @@
               "Fuel": 10,
               "Speed": 0.9,
               "Aquatic": 0.9,
-              "Jetpack": 0.8,
-              "Hover": 0.8,
 
               "_comment0": "Any abilities not specified will use their default value",
               "_comment1": "Abilities not known at loot time are still added to",
               "_comment2": "  the elytra as shadow abilities, which helps keep",
-              "_comment3": "  consistency in worlds where mods are added/removed,",
+              "_comment3": "  consistency in worlds where mods/datapacks are added and removed,",
               "_comment4": "For example, the Jetpack ability added here is added",
               "_comment5": "  to elytras, but ignored at runtime unless the",
-              "_comment6": "  Aerobatic Elytra Jetpack mod is loaded"
+              "_comment6": "  Aerobatic Elytra Jetpack mod is loaded",
+
+              "Jetpack": 0.8,
+              "Hover": 0.8
             }
           ],
           "weight": 1

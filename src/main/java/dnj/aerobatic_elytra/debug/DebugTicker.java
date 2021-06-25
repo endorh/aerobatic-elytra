@@ -19,7 +19,7 @@ public class DebugTicker {
 		if (!Debug.isEnabled())
 			return;
 		final List<? extends PlayerEntity> players = event.world.getPlayers();
-		if (players.size() > 0) {
+		if (!players.isEmpty()) {
 			ServerPlayerEntity player = (ServerPlayerEntity) players.get(0);
 			if (event.phase == Phase.START) {
 				onPreTick(player);

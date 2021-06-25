@@ -32,7 +32,7 @@ public class LootHandler {
 		    .withParameter(LootParameters.field_237457_g_, event.getItemFrame().getPositionVec())
 		    .build(LootParameterSets.CHEST));
 		
-		if (list.size() > 0) {
+		if (!list.isEmpty()) {
 			event.setElytraStack(list.get(0));
 			event.setResult(Result.DENY);
 		}

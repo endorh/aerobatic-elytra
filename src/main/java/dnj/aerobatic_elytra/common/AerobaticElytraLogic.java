@@ -45,6 +45,7 @@ public class AerobaticElytraLogic {
 		       && !player.isInLava() && !player.isInWater();
 	}
 	
+	// TODO: Compute once per tick
 	public static boolean shouldAerobaticFly(PlayerEntity player) {
 		if (!player.isElytraFlying() || player.abilities.isFlying
 		    || !getFlightDataOrDefault(player).getFlightMode().is(FlightModeTags.AEROBATIC))
@@ -110,14 +111,13 @@ public class AerobaticElytraLogic {
 	}
 	
 	/**
-	 * Get the elytra itemStack
+	 * Get the elytra itemStack, or empty if the entity doesn't have one equipped
 	 */
 	public static ItemStack getAerobaticElytra(LivingEntity entity) {
 		ItemStack chest = entity.getItemStackFromSlot(EquipmentSlotType.CHEST);
 		ItemStack elytra = ItemStack.EMPTY;
-		if (chest.getItem() instanceof AerobaticElytraItem) {
+		if (chest.getItem() instanceof AerobaticElytraItem)
 			return chest;
-		}
 		if (chest.getItem() instanceof ArmorItem && AerobaticElytra.caelusLoaded) {
 			elytra = ColytraIntegration.getColytraSubItem(chest);
 			if (elytra != ItemStack.EMPTY)

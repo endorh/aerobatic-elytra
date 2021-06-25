@@ -52,7 +52,7 @@ public class ItemSelector implements Predicate<ItemStack> {
 	private static final Pattern item_selector_pattern = Pattern.compile(
 	  "(?<tags>(?:\\{.+?})+)?(?<name>(?:\\w+:)?\\w+)?(?<nbt>(?:\\[.+?])+)?");
 	private static final Pattern tag_selector_pattern = Pattern.compile(
-	  "\\{(?<name>(?:\\w+:)[\\w/]+)}");
+	  "\\{(?<name>\\w+:[\\w/]+)}");
 	
 	/**
 	 * Parse an item selector
@@ -156,7 +156,7 @@ public class ItemSelector implements Predicate<ItemStack> {
 	 */
 	public Ingredient similarIngredient() {
 		List<Ingredient.IItemList> lists = new ArrayList<>();
-		if (iTags.size() > 0) {
+		if (!iTags.isEmpty()) {
 			return Ingredient.fromTag(iTags.get(0));
 		} else {
 			return Ingredient.fromItems(item);

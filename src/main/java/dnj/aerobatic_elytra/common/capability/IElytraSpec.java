@@ -5,11 +5,17 @@ import dnj.aerobatic_elytra.client.trail.AerobaticTrail.RocketSide;
 import dnj.aerobatic_elytra.common.item.ElytraDyementReader.WingSide;
 import dnj.aerobatic_elytra.common.item.IAbility;
 import dnj.aerobatic_elytra.common.item.IAbility.Ability;
+import dnj.aerobatic_elytra.common.item.IDatapackAbilityReloadListener;
+import dnj.aerobatic_elytra.common.item.IDatapackAbility;
+import dnj.aerobatic_elytra.common.item.IEffectAbility;
 import dnj.aerobatic_elytra.common.registry.ModRegistries;
-import dnj.endor8util.math.MathParser.FixedKeySetFallbackMap;
+import dnj.endor8util.math.MathParser.ExpressionParser.ParseException;
+import dnj.endor8util.math.MathParser.ExpressionParser.ParseException.NameParseException;
+import dnj.endor8util.math.MathParser.FixedNamespaceSet;
 import dnj.endor8util.math.MathParser.ParsedExpression;
 import dnj.endor8util.network.PacketBufferUtil;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.DyeColor;
 import net.minecraft.item.FireworkRocketItem;
 import net.minecraft.nbt.CompoundNBT;
@@ -27,7 +33,13 @@ import static dnj.endor8util.util.TextUtil.ttc;
 import static java.lang.String.format;
 import static net.minecraft.util.math.MathHelper.clamp;
 
-public interface IElytraSpec {
+/**
+ * Holds Aerobatic Elytra specifications<br>
+ *
+ * Implementations must call {@link IDatapackAbilityReloadListener#registerAerobaticElytraDatapackAbilityReloadListener()}
+ * on every new instance to be able to receive ability reload callbacks
+ */
+public interface IElytraSpec extends IDatapackAbilityReloadListener {
 	/**
 	 * Shorthand for {@code getAbilities().get(prop)}
 	 * @param prop Ability to get
@@ -38,13 +50,21 @@ public interface IElytraSpec {
 	}
 	
 	/**
-	 * Shorthand for {@code getAbilities().put(prop, value)}
+	 * Set an ability value
 	 * @param prop Ability to set
 	 * @param value Ability value
 	 */
-	default void setAbility(IAbility prop, float value) {
-		getAbilities().put(prop, value);
-	}
+	void setAbility(IAbility prop, float value);
+	
+	/**
+	 * Remove an ability<br>
+	 * This is different from setting it to the default value<br>
+	 * Implementations must check if the ability is an effect ability
+	 * and undo its effect if it's being applied
+	 * @param ability Ability to remove
+	 * @return The removed ability value, or null if the ability wasn't present
+	 */
+	Float removeAbility(IAbility ability);
 	
 	/**
 	 * Shorthand for {@code getAbilities().put(prop, prop.getDefault())}
@@ -55,42 +75,97 @@ public interface IElytraSpec {
 	}
 	
 	/**
-	 * Obtain the internal map used to store the abilities.<br>
-	 * Modifying an ability on the returned map is allowed.
+	 * Set the provided abilities<br>
+	 * This does not clear abilities not present in the provided
+	 * map. For that behaviour use {@link IElytraSpec#setAbilities(Map)}
+	 * @param abilities Ability values
+	 */
+	void putAbilities(Map<IAbility, Float> abilities);
+	
+	/**
+	 * Set all the abilities<br>
+	 * This clears the previous abilities, use {@link IElytraSpec#putAbilities(Map)}
+	 * to just update values.
+	 * @param abilities Ability values
+	 */
+	void setAbilities(Map<IAbility, Float> abilities);
+	
+	/**
+	 * Check if an ability is present in the elytra
+	 * @param ability Ability to check
+	 */
+	default boolean hasAbility(IAbility ability) {
+		return getAbilities().containsKey(ability);
+	}
+	
+	/**
+	 * Obtain a read-only map with all the abilities of the elytra<br>
+	 * Modifying this map is not allowed
 	 * @see IElytraSpec#getAbility
 	 * @see IElytraSpec#setAbility
+	 * @see IElytraSpec#setAbilities
+	 * @see IElytraSpec#putAbilities
 	 */
 	Map<IAbility, Float> getAbilities();
 	
 	/**
-	 * Obtain the internal map used to store unknown abilities.<br>
-	 * This abilities are ignored during gameplay, but kept in the
-	 * NBT, allowing abilities from unloaded mods to be preserved.
+	 * Obtain the map with all the unknown abilities<br>
+	 * This abilities are ignored at runtime, but kept in the
+	 * NBT, allowing abilities from unloaded mods/datapacks to be
+	 * preserved.<br>
+	 * Modifying this map is allowed
 	 */
 	Map<String, Float> getUnknownAbilities();
+	
+	/**
+	 * Return a map of the effect abilities of this elytra<br>
+	 * Modifying the key set of this map is forbidden and will result
+	 * in undefined behaviour. Its contents will be updated automatically
+	 * if the spec's abilities change<br>
+	 * The true values of this map represent effects that are currently
+	 * being applied
+	 */
+	Map<IEffectAbility, Boolean> getEffectAbilities();
+	
+	void updatePlayerEntity(ServerPlayerEntity player);
+	@Nullable ServerPlayerEntity getPlayerEntity();
 	
 	/**
 	 * Copy from other spec
 	 * @param spec Source
 	 */
 	default void copy(IElytraSpec spec) {
-		final Map<IAbility, Float> properties = getAbilities();
-		properties.clear();
-		properties.putAll(spec.getAbilities());
+		setAbilities(spec.getAbilities());
 		final Map<String, Float> unknown = getUnknownAbilities();
 		unknown.clear();
 		unknown.putAll(spec.getUnknownAbilities());
 		getTrailData().read(spec.getTrailData().write());
 	}
 	
+	/**
+	 * Refresh the map of abilities after a datapack reload
+	 */
+	@Override default void onAerobaticElytraDatapackAbilityReload() {
+		final Map<String, Float> unknown = getUnknownAbilities();
+		for (IDatapackAbility ability : ModRegistries.getOutdatedAbilities()) {
+			if (hasAbility(ability))
+				unknown.put(ability.fullName(), removeAbility(ability));
+		}
+		for (IDatapackAbility ability : ModRegistries.getDatapackAbilities().values()) {
+			final String name = ability.fullName();
+			if (unknown.containsKey(name))
+				setAbility(ability, unknown.remove(name));
+		}
+	}
+	
 	@Nonnull TrailData getTrailData();
 	
 	@SuppressWarnings("unused")
-	default void addTooltipInfo(final List<ITextComponent> tooltip) {
-		addTooltipInfo(tooltip, "");
+	default void addAbilityTooltipInfo(final List<ITextComponent> tooltip) {
+		addAbilityTooltipInfo(tooltip, "");
 	}
 	
-	default void addTooltipInfo(final List<ITextComponent> tooltip, final String indent) {
+	default void addAbilityTooltipInfo(final List<ITextComponent> tooltip, final String indent) {
 		final List<IAbility> abs = new ArrayList<>(getAbilities().keySet());
 		abs.remove(Ability.FUEL);
 		abs.remove(Ability.MAX_FUEL);
@@ -102,7 +177,9 @@ public interface IElytraSpec {
 					.append(ttc("gui.none").mergeStyle(TextFormatting.DARK_GRAY))
 			  ).mergeStyle(TextFormatting.GRAY));
 		} else if (Screen.hasAltDown()) {
-			abs.sort(Comparator.comparing(ab -> ab.getDisplayName().getString()));
+			abs.sort(Comparator.<IAbility, Integer>comparing(
+			  ab -> ab.getDisplayType().isBool() ? 1 : 0
+			).thenComparing(ab -> ab.getDisplayName().getString()));
 			tooltip.add(
 			  stc(indent).append(
 			    ttc("aerobatic-elytra.abilities")
@@ -421,44 +498,66 @@ public interface IElytraSpec {
 	
 	/**
 	 * Class representing an Acrobatic Elytra upgrade<br>
-	 * Recharging fuel is considered an upgrade
+	 * Recharging fuel is considered an upgrade<br>
+	 * <br>
+	 * Since some {@link IAbility}s are loaded after recipes
+	 * (the ones provided by datapacks), Upgrades that rely
+	 * on them may be temporarily invalid.
 	 */
 	class Upgrade {
-		private final IAbility type;
-		private final ParsedExpression<Double> expression;
-		private final IFormattableTextComponent prettyExpression;
-		private final boolean booleanValue;
-		private final float min;
-		private final float max;
+		protected final String abilityName;
+		protected IAbility type;
+		protected final String rawExpression;
+		protected ParsedExpression<Double> expression;
+		protected IFormattableTextComponent prettyExpression;
+		protected boolean booleanValue;
+		protected final float min;
+		protected final float max;
+		protected boolean valid;
 		
 		/**
 		 * Create an upgrade
-		 * @param type Upgrade type
+		 * @param abilityName Upgrade type
 		 * @param expression Upgrade expression
 		 */
-		public Upgrade(IAbility type, String expression, float min, float max) {
-			this.type = type;
-			this.expression = ModRegistries.ABILITY_EXPRESSION_PARSER.parse(expression);
+		public Upgrade(String abilityName, String expression, float min, float max) {
+			this.abilityName = abilityName;
+			rawExpression = expression;
 			this.min = min;
 			this.max = max;
-			IFormattableTextComponent prettyExpression = ModRegistries.ABILITY_EXPRESSION_HIGHLIGHTER
-			  .parse(expression).eval();
-			if (type.getDisplayType().isBool()) {
-				final String expr = prettyExpression.getString().trim();
-				boolean val = false;
-				try {
-					double parsed = Double.parseDouble(expr);
-					if (parsed == 1.0D && min <= 1F && max >= 1F) {
-						prettyExpression = null;
-						val = true;
-					} else if (parsed == 0.0D && min <= 0F && max >= 0F) {
-						prettyExpression = null;
-						val = false;
-					} else val = false;
-				} catch (NumberFormatException ignored) {}
-				booleanValue = val;
-			} else booleanValue = false;
-			this.prettyExpression = prettyExpression;
+			reloadAbilities();
+		}
+		
+		/**
+		 * Perform the ability parsing again<br>
+		 * @return The new valid state
+		 */
+		public boolean reloadAbilities() {
+			type = ModRegistries.getAbilityByName(abilityName);
+			try {
+				expression = ModRegistries.ABILITY_EXPRESSION_PARSER.parse(rawExpression);
+			} catch (NameParseException ignored) { expression = null; }
+			valid = expression != null && type != null;
+			if (valid) {
+				IFormattableTextComponent pretty = ModRegistries.ABILITY_EXPRESSION_HIGHLIGHTER.parse(rawExpression).eval();
+				if (type.getDisplayType().isBool()) {
+					final String expr = pretty.getString().trim();
+					boolean val = false;
+					try {
+						double parsed = Double.parseDouble(expr);
+						if (parsed == 1.0D && min <= 1F && max >= 1F) {
+							pretty = null;
+							val = true;
+						} else if (parsed == 0.0D && min <= 0F && max >= 0F) {
+							pretty = null;
+							val = false;
+						} else val = false;
+					} catch (NumberFormatException ignored) {}
+					booleanValue = val;
+				} else booleanValue = false;
+				prettyExpression = pretty;
+			}
+			return valid;
 		}
 		
 		public static List<Upgrade> deserialize(JsonArray arr) {
@@ -474,12 +573,11 @@ public interface IElytraSpec {
 		}
 		
 		public static Upgrade deserialize(JsonObject obj) {
-			IAbility type = IAbility.fromJsonName(
-			  JSONUtils.getString(obj, "type"));
-			JsonElement expr = obj.get("expression");
+			final String abilityName = JSONUtils.getString(obj, "type");
+			final JsonElement expr = obj.get("expression");
 			if (!expr.isJsonPrimitive())
 				throw new JsonSyntaxException("Expected 'expression' to be a primitive JSON value");
-			JsonPrimitive primitive = expr.getAsJsonPrimitive();
+			final JsonPrimitive primitive = expr.getAsJsonPrimitive();
 			String expression;
 			if (primitive.isNumber())
 				expression = String.valueOf(primitive.getAsDouble());
@@ -488,40 +586,36 @@ public interface IElytraSpec {
 			else if (primitive.isString())
 				expression = JSONUtils.getString(obj, "expression");
 			else throw new JsonSyntaxException("'expression' must be either a number, boolean or a string");
-			float min = JSONUtils.getFloat(obj, "min", Float.NEGATIVE_INFINITY);
-			float max = JSONUtils.getFloat(obj, "max", Float.POSITIVE_INFINITY);
+			final float min = JSONUtils.getFloat(obj, "min", Float.NEGATIVE_INFINITY);
+			final float max = JSONUtils.getFloat(obj, "max", Float.POSITIVE_INFINITY);
 			if (min > max)
 				throw new JsonSyntaxException("'min' cannot be greater than 'max'");
-			return new Upgrade(type, expression, min, max);
+			return new Upgrade(abilityName, expression, min, max);
 		}
 		
 		public static Upgrade read(PacketBuffer buf) {
-			IAbility type = ModRegistries.ABILITY_REGISTRY.getValue(
-			  buf.readResourceLocation());
-			if (type == null)
-				throw new IllegalArgumentException("Received packet with unknown ability type");
-			String expression = PacketBufferUtil.readString(buf);
-			float min = buf.readFloat();
-			float max = buf.readFloat();
-			return new Upgrade(type, expression, min, max);
+			final String abilityName = PacketBufferUtil.readString(buf);
+			final String expression = PacketBufferUtil.readString(buf);
+			final float min = buf.readFloat();
+			final float max = buf.readFloat();
+			return new Upgrade(abilityName, expression, min, max);
 		}
 		
 		public void write(PacketBuffer buf) {
-			//noinspection ConstantConditions
-			buf.writeResourceLocation(type.getRegistryName());
+			buf.writeString(abilityName);
 			buf.writeString(expression.getExpression());
 			buf.writeFloat(min);
 			buf.writeFloat(max);
 		}
 		
 		public boolean apply(IElytraSpec spec) {
-			final FixedKeySetFallbackMap<String, Double> namespace = expression.getNamespace();
-			for (IAbility t : ModRegistries.ABILITY_REGISTRY)
-				namespace.set(t.jsonName(), (double) spec.getAbility(t));
+			final FixedNamespaceSet<Double> namespaceSet = expression.getNamespaceSet();
+			for (IAbility t : ModRegistries.getAbilities().values())
+				namespaceSet.set(t.jsonName(), (double) spec.getAbility(t));
 			
 			float result = (float) clamp(expression.eval(), min, max);
 			if (spec.getAbility(type) != result) {
-				spec.setAbility(type, (float) clamp(expression.eval(), min, max));
+				spec.setAbility(type, result);
 				return true;
 			}
 			return false;
@@ -533,9 +627,17 @@ public interface IElytraSpec {
 		public IFormattableTextComponent getPrettyExpression() { return prettyExpression; }
 		public float getMin() { return min; }
 		public float getMax() { return max; }
+		@SuppressWarnings("unused")
+		public boolean isValid() {
+			return valid;
+		}
 		
 		public List<ITextComponent> getDisplay() {
 			List<ITextComponent> tt = new ArrayList<>();
+			if (type == null) {
+				tt.add(stc("<Error>").mergeStyle(TextFormatting.RED));
+				return tt;
+			}
 			String name = type.jsonName();
 			TextFormatting color = ModRegistries.ABILITY_EXPRESSION_HIGHLIGHTER.getNameColor(name);
 			if (prettyExpression != null) {

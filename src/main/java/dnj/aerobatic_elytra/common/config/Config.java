@@ -25,7 +25,7 @@ public class Config {
 	public static void register() {
 		final double INF = Double.POSITIVE_INFINITY;
 		final long MAX = Long.MAX_VALUE;
-		final String datapack_command = "/aerobatic_elytra datapack install";
+		final String datapack_command = "/aerobatic-elytra datapack install";
 		SERVER = new Builder(AerobaticElytra.MOD_ID, Type.SERVER)
 		  .n(group("item")
 		       .add("durability", 432 * 2L, 0L, (long) 1E10)
@@ -133,6 +133,9 @@ public class Config {
 		tilt_range_pitch = tilt.getFloat("range_pitch");
 		tilt_range_roll = tilt.getFloat("range_roll");
 		tilt_range_yaw = tilt.getFloat("range_yaw");
+		tilt_range_pondered = tilt_range_pitch * tilt_range_pitch
+		                      + tilt_range_roll * tilt_range_roll
+		                      + 0.5F * tilt_range_yaw * tilt_range_yaw;
 		
 		propulsion_min = propulsion.getFloat("min") / 20F;
 		propulsion_max = propulsion.getFloat("max") / 20F;
@@ -203,6 +206,7 @@ public class Config {
 	public static float tilt_range_pitch;
 	public static float tilt_range_roll;
 	public static float tilt_range_yaw;
+	public static float tilt_range_pondered;
 	
 	public static float propulsion_min;
 	public static float propulsion_max;

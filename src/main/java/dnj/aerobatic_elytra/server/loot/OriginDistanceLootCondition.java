@@ -10,8 +10,8 @@ import net.minecraft.util.math.vector.Vector3d;
 import org.jetbrains.annotations.NotNull;
 
 public class OriginDistanceLootCondition implements ILootCondition {
-	private final double minDistance;
-	private final double maxDistance;
+	protected final double minDistance;
+	protected final double maxDistance;
 	
 	public OriginDistanceLootCondition(double minDistance, double maxDistance) {
 		this.minDistance = minDistance;

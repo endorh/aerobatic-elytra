@@ -1,0 +1,45 @@
+{
+  "type": "aerobatic-elytra:effect",
+
+  "_comment0": "Should not contain spaces. Used by recipes in formulas",
+  "_comment1": "To provide a translatable name, which may contain spaces, use a lang key",
+  "id": "UnderwaterBreathing",
+
+  "_comment2": "Used in recipe formula displays, defaults to GRAY",
+  "_comment3": "Allowed values are BLACK, DARK_BLUE, DARK_GREEN, DARK_AQUA, DARK_RED, DARK_PURPLE",
+  "_comment4": "  GOLD, GRAY, DARK_GRAY, BLUE, GREEN, AQUA, RED, LIGHT_PURPLE, YELLOW, WHITE",
+  "color": "AQUA",
+
+  "_comment5": "The default value of this ability",
+  "_comment6": "Setting this to 1 will make all elytras have this effect by default,",
+  "_comment7": "  including those crafted before applying this datapack, unless",
+  "_comment8": "  removed by other means (recipes)",
+  "default": 1,
+
+  "_comment9": "Many effects, with different amplifiers may be given",
+  "effects": {
+    "minecraft:water_breathing": {
+      "_comment0": "Only an 'amplifier' property is supported, which starts",
+      "_comment1": "  at 1, instead of 0, unlike in the /effect command",
+      "amplifier": 3,
+      "_comment2": "The duration value can't be configured, since the",
+      "_comment3": "  effect is granted as long as the conditions match"
+    }
+  },
+
+  "_comment10": "Conditions that must all match to grant the effects of this ability",
+  "_comment11": "Adding *many* *complex* conditions *could* put a strain on multiplayer servers,",
+  "_comment12": "  as they must be checked periodically for all players wearing the elytras",
+  "_comment13": "Check out https://misode.github.io/predicate/ to generate complex predicates",
+  "_comment14": "There's no vanilla condition for being submerged in a fluid, so the mod",
+  "_comment15": "  provides 'aerobatic-elytra:submerged'. The mod also provides",
+  "_comment16": "  'aerobatic-elytra:aerobatic_flying' to test if the player is flying acrobatically",
+  "_comment17": "  and 'aerobatic-elytra:elytra_flying' to test if it's flying with elytra in general",
+  "conditions": [
+    { "condition": "aerobatic-elytra:aerobatic_flying" },
+    {
+      "condition": "aerobatic-elytra:submerged",
+      "fluid": "water"
+    }
+  ]
+}

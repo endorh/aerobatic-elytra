@@ -147,9 +147,9 @@ public class AerobaticOverlays {
 		
 		IAerobaticData data = AerobaticDataCapability.getAerobaticDataOrDefault(player);
 		
-		float scaledPitch = data.getTiltPitch() / Config.tilt_range_pitch * Const.CROSSHAIR_PITCH_RANGE;
-		float scaledRoll = data.getTiltRoll() / Config.tilt_range_roll * Const.CROSSHAIR_ROLL_RANGE;
-		float scaledYaw = -data.getTiltYaw() / Config.tilt_range_yaw * Const.CROSSHAIR_YAW_RANGE;
+		float scaledPitch = data.getTiltPitch() / Config.tilt_range_pitch * Const.CROSSHAIR_PITCH_RANGE_PX;
+		float scaledRoll = data.getTiltRoll() / Config.tilt_range_roll * Const.CROSSHAIR_ROLL_RANGE_DEG;
+		float scaledYaw = -data.getTiltYaw() / Config.tilt_range_yaw * Const.CROSSHAIR_YAW_RANGE_PX;
 		
 		GL11.glPushMatrix(); {
 			// Base

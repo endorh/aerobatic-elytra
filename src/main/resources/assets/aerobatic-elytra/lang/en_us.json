@@ -44,18 +44,33 @@
 
   "commands.aerobatic-elytra.datapack.install.unknown": "Unknown built-in datapack: %s",
   "commands.aerobatic-elytra.datapack.install.overwrite": "A datapack with the same name is already installed",
-  "commands.aerobatic-elytra.datapack.install.success": "Successfully installed datapack, you may enable it now using the following command:\n%s",
-  "commands.aerobatic-elytra.data.get.success": "Successfully retrieved ability:",
-  "commands.aerobatic-elytra.data.get.all.success": "Successfully retrieved %s abilities:",
-  "commands.aerobatic-elytra.data.get.ability": "  %s: %s",
-  "commands.aerobatic-elytra.data.set.success": "Successfully set ability:",
-  "commands.aerobatic-elytra.data.set.ability": "  %s = %s",
-  "commands.aerobatic-elytra.data.reset.success": "Reset ability:",
-  "commands.aerobatic-elytra.data.reset.all.success": "Reset %s abilities:",
-  "commands.aerobatic-elytra.data.reset.ability": "  %s = %s",
+  "commands.aerobatic-elytra.datapack.install.success": "Successfully installed datapack, you may enable it now using the following command:\n  %s",
+  "commands.aerobatic-elytra.ability.get.success": "Retrieved ability from \"%s\":",
+  "commands.aerobatic-elytra.ability.get.all.success": "Retrieved %s abilities from \"%s\":",
+  "commands.aerobatic-elytra.ability.get.ability": "  %s: %s",
+  "commands.aerobatic-elytra.ability.get.default": "Ability \"%s\" was not found on \"%s\".\n  Its default value is %s",
+  "commands.aerobatic-elytra.ability.get.failure.unknown": "Could not find unknown ability \"%s\" in \"%s\"",
+  "commands.aerobatic-elytra.ability.get.all.unknown": "Retrieved %s unknown abilities from \"%s\":",
+  "commands.aerobatic-elytra.ability.get.all.unknown.empty": "No unknown abilities found in \"%s\"",
+  "commands.aerobatic-elytra.ability.get.success.unknown": "Retrieved unknown ability from \"%s\":",
+  "commands.aerobatic-elytra.ability.get.ability.unknown": "  %s: %s",
+  "commands.aerobatic-elytra.ability.set.success": "Successfully updated ability for %s entities:",
+  "commands.aerobatic-elytra.ability.set.ability": "  %s = %s",
+  "commands.aerobatic-elytra.ability.set.success.unknown": "Successfully updated unknown ability for %s entities:",
+  "commands.aerobatic-elytra.ability.set.ability.unknown": "  %s = %s",
+  "commands.aerobatic-elytra.ability.reset.success": "Successfully reset ability in %s entities:",
+  "commands.aerobatic-elytra.ability.reset.all.success": "Successfully reset %s abilities in %s entities:",
+  "commands.aerobatic-elytra.ability.reset.ability": "  %s = %s",
+  "commands.aerobatic-elytra.ability.remove.all.success": "Successfully removed all abilities from %s entities",
+  "commands.aerobatic-elytra.ability.remove.all.unknown.success": "Successfully removed all unknown abilities from %s entities",
+  "commands.aerobatic-elytra.ability.remove.success": "Successfully removed ability \"%s\" from %s/%s entities",
+  "commands.aerobatic-elytra.ability.remove.success.unknown": "Successfully removed unknown ability \"%s\" from %s/%s entities",
 
   "commands.aerobatic-elytra.error.no_elytra": "None of the targets has an Aerobatic Elytra equipped",
-  "commands.aerobatic-elytra.error.unknown_ability": "Unknown ability: \"%s\"",
+  "commands.aerobatic-elytra.error.unknown_ability": "Unknown ability",
+  "commands.aerobatic-elytra.error.missing_qualifier": "Missing qualifier in qualified name: ",
+  "commands.aerobatic-elytra.error.unexpected_qualifier": "Unexpected qualifier in unqualified name: ",
+  "commands.aerobatic-elytra.error.unexpected_separator": "Unexpected separator in qualified name: ",
 
   "advancements.aerobatic-elytra.aerobatic_elytra.title": "Aerobatic Elytra",
   "advancements.aerobatic-elytra.aerobatic_elytra.description": "Find or craft Aerobatic Elytra",
@@ -233,5 +248,7 @@
 
   "config.aerobatic-elytra.enum.fuel_display.rockets": "On the rockets",
   "config.aerobatic-elytra.enum.fuel_display.durability_bar": "On the Durability bar",
-  "config.aerobatic-elytra.enum.fuel_display.durability_bar_if_lower": "Durability bar if lower"
+  "config.aerobatic-elytra.enum.fuel_display.durability_bar_if_lower": "Durability bar if lower",
+
+  "config.aerobatic-elytra.warning.speed_cap_broken": "Flying too fast!: %s m/s. Aerobatic Elytra config might be broken"
 }
