@@ -35,11 +35,14 @@ import java.util.stream.Stream;
 
 import static dnj.aerobatic_elytra.common.capability.ElytraSpecCapability.getElytraSpecOrDefault;
 
+/**
+ * Expose the mod recipe categories to the JEI mod
+ */
 @SuppressWarnings("unused")
 @JeiPlugin
 public class AerobaticElytraJeiPlugin implements IModPlugin {
 	public static final ResourceLocation pluginUid = new ResourceLocation(
-	  AerobaticElytra.MOD_ID, "upgrade_jei_plugin");
+	  AerobaticElytra.MOD_ID, "jei_plugin");
 	public IRecipeCategory<UpgradeRecipe> upgradeRecipeCategory;
 	public IRecipeCategory<JoinRecipe> joinRecipeIRecipeCategory;
 	
@@ -56,6 +59,7 @@ public class AerobaticElytraJeiPlugin implements IModPlugin {
 	
 	@Override
 	public void registerItemSubtypes(@NotNull ISubtypeRegistration reg) {
+		// Differentiate aerobatic elytras by their abilities
 		reg.registerSubtypeInterpreter(
 		  ModItems.AEROBATIC_ELYTRA,
 		  stack -> getElytraSpecOrDefault(stack).getAbilities().entrySet().stream().map(
@@ -64,6 +68,7 @@ public class AerobaticElytraJeiPlugin implements IModPlugin {
 	}
 	
 	@Override public void registerRecipes(@NotNull IRecipeRegistration reg) {
+		// Add info to item
 		String key = KeyHandler.FLIGHT_MODE_KEYBINDING.getKey().getTranslationKey();
 		String keyName = I18n.format(key);
 		if (key.equals(keyName))
@@ -71,10 +76,14 @@ public class AerobaticElytraJeiPlugin implements IModPlugin {
 		reg.addIngredientInfo(
 		  new ItemStack(ModItems.AEROBATIC_ELYTRA), VanillaTypes.ITEM,
 		  I18n.format("aerobatic-elytra.jei.info.aerobatic_elytra", keyName));
+		
+		// Get recipe list
 		final ClientWorld world = Minecraft.getInstance().world;
 		assert world != null;
 		RecipeManager recipeManager = world.getRecipeManager();
 		final Collection<IRecipe<?>> recipeList = recipeManager.getRecipes();
+		
+		// Register upgrade recipes
 		//noinspection unchecked
 		List<UpgradeRecipe> upgradeRecipes =
 		  ((Stream<UpgradeRecipe>) (Stream<?>) recipeList.stream().filter(
@@ -85,6 +94,8 @@ public class AerobaticElytraJeiPlugin implements IModPlugin {
 				  .map(ItemSelector::toString).collect(Collectors.joining(";")))
 		  ).collect(Collectors.toList());
 		reg.addRecipes(upgradeRecipes, UpgradeRecipeCategory.UID);
+		
+		// Register join recipes
 		//noinspection unchecked
 		List<JoinRecipe> joinRecipes =
 		  (List<JoinRecipe>) (List<?>) recipeList.stream().filter(
@@ -94,6 +105,7 @@ public class AerobaticElytraJeiPlugin implements IModPlugin {
 	}
 	
 	@Override public void registerRecipeCatalysts(IRecipeCatalystRegistration reg) {
+		// Register the Aerobatic Elytra item as catalyst for upgrade recipes
 		reg.addRecipeCatalyst(new ItemStack(ModItems.AEROBATIC_ELYTRA), UpgradeRecipeCategory.UID);
 	}
 }

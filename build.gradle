@@ -345,7 +345,10 @@ artifacts {
 processResources {
 	inputs.properties mod_properties
 
+	// Exclude development files
+	exclude("**/.dev/**")
 	from(sourceSets.main.resources.srcDirs) {
+		//noinspection GroovyAssignabilityCheck
 		filesMatching(["**/*.toml", "**/*.mcmeta"]) {
 			expand mod_properties
 		}

@@ -189,7 +189,7 @@ public class AerobaticPackets {
 			data.setTiltPitch(validateClamp(
 			  tiltRoll, -Config.tilt_range_roll, Config.tilt_range_roll));
 			final float tiltRangeYaw = inWater
-			                           ? Const.UNDERWATER_YAW_SENS_MULTIPLIER * Config.tilt_range_yaw
+			                           ? Const.UNDERWATER_YAW_RANGE_MULTIPLIER * Config.tilt_range_yaw
 			                           : Config.tilt_range_yaw;
 			data.setTiltYaw(validateClamp(tiltYaw, -tiltRangeYaw, tiltRangeYaw));
 			final String name = sender.getScoreboardName();

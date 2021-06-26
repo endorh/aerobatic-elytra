@@ -42,5 +42,5 @@ public class Const {
 	public static final float UNDERWATER_CONTROLS_TILT_FRICTION_MAX = 0.85F;
 	public static final float UNDERWATER_CONTROLS_DIRECT_SENSIBILITY_MIN = 0F;
 	public static final float UNDERWATER_CONTROLS_DIRECT_SENSIBILITY_MAX = 8F;
-	public static final float UNDERWATER_YAW_SENS_MULTIPLIER = 1.6F;
+	public static final float UNDERWATER_YAW_RANGE_MULTIPLIER = 1.6F;
 }

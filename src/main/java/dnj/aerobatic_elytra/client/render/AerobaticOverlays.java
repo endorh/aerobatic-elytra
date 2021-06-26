@@ -30,6 +30,7 @@ import static dnj.aerobatic_elytra.common.flight.AerobaticFlight.isAerobaticFlyi
 import static java.lang.Math.*;
 import static java.lang.System.currentTimeMillis;
 import static net.minecraft.client.gui.AbstractGui.blit;
+import static net.minecraft.util.math.MathHelper.clamp;
 import static net.minecraft.util.math.MathHelper.lerp;
 
 @EventBusSubscriber(value = Dist.CLIENT, modid = AerobaticElytra.MOD_ID)
@@ -150,7 +151,9 @@ public class AerobaticOverlays {
 		
 		float scaledPitch = data.getTiltPitch() / Config.tilt_range_pitch * Const.CROSSHAIR_PITCH_RANGE_PX;
 		float scaledRoll = data.getTiltRoll() / Config.tilt_range_roll * Const.CROSSHAIR_ROLL_RANGE_DEG;
-		float scaledYaw = -data.getTiltYaw() / Config.tilt_range_yaw * Const.CROSSHAIR_YAW_RANGE_PX;
+		// Underwater yaw tilt can exceed the range
+		float scaledYaw = -clamp(data.getTiltYaw(), -Config.tilt_range_yaw, Config.tilt_range_yaw)
+		                  / Config.tilt_range_yaw * Const.CROSSHAIR_YAW_RANGE_PX;
 		
 		GL11.glPushMatrix(); {
 			// Base

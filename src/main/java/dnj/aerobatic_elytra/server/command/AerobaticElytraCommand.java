@@ -46,7 +46,7 @@ import static com.mojang.brigadier.arguments.BoolArgumentType.getBool;
 import static com.mojang.brigadier.arguments.FloatArgumentType.floatArg;
 import static com.mojang.brigadier.arguments.FloatArgumentType.getFloat;
 import static com.mojang.brigadier.arguments.StringArgumentType.*;
-import static dnj.aerobatic_elytra.server.command.QualifiedNameArgumentType.optionallyQualified;
+import static dnj.endor8util.command.QualifiedNameArgumentType.optionallyQualified;
 import static dnj.endor8util.util.TextUtil.stc;
 import static dnj.endor8util.util.TextUtil.ttc;
 import static net.minecraft.command.Commands.argument;

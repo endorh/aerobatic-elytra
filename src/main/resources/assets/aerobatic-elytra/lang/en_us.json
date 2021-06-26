@@ -5,6 +5,8 @@
   "block.aerobatic-elytra.broken_leaves": "Broken Leaves",
 
   "stat.aerobatic-elytra.aerobatic_flight_one_cm": "Distance by Aerobatic Flight",
+  "stat.aerobatic-elytra.aerobatic_boosts": "Aerobatic boosts",
+  "stat.aerobatic-elytra.aerobatic_slime_bounces": "Aerobatic slime bounces",
 
   "key.aerobatic-elytra.category": "Aerobatic Elytra",
   "key.aerobatic-elytra.flight_mode.desc": "Switch Flight mode",
@@ -68,9 +70,6 @@
 
   "commands.aerobatic-elytra.error.no_elytra": "None of the targets has an Aerobatic Elytra equipped",
   "commands.aerobatic-elytra.error.unknown_ability": "Unknown ability",
-  "commands.aerobatic-elytra.error.missing_qualifier": "Missing qualifier in qualified name: ",
-  "commands.aerobatic-elytra.error.unexpected_qualifier": "Unexpected qualifier in unqualified name: ",
-  "commands.aerobatic-elytra.error.unexpected_separator": "Unexpected separator in qualified name: ",
 
   "advancements.aerobatic-elytra.aerobatic_elytra.title": "Aerobatic Elytra",
   "advancements.aerobatic-elytra.aerobatic_elytra.description": "Find or craft Aerobatic Elytra",

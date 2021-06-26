@@ -16,10 +16,18 @@ import java.util.List;
 
 import static dnj.aerobatic_elytra.integration.colytra.ColytraIntegration.getColytraSubItem;
 
+/**
+ * Client compatibility handler for Colytra mod<br>
+ * The methods are only subscribed to the event bus if Colytra is loaded
+ */
 public class ClientColytraIntegration {
 	
+	/**
+	 * Replace Colytra's elytra durability tooltip with
+	 * our own advanced tooltip
+	 */
 	@SubscribeEvent(priority = EventPriority.LOW)
-	public static void itemTooltip(ItemTooltipEvent event) {
+	public static void onItemTooltip(ItemTooltipEvent event) {
 		ItemStack stack = event.getItemStack();
 		if (!(stack.getItem() instanceof ArmorItem))
 			return;
@@ -32,6 +40,7 @@ public class ClientColytraIntegration {
 		// Undo colytra tooltip
 		int index = 0;
 		boolean found = false;
+		// Try to find the colytra tooltip in the list
 		if (elytra.hasDisplayName()) {
 			ITextComponent display = elytra.getDisplayName();
 			final String name = display.getString();
@@ -54,6 +63,7 @@ public class ClientColytraIntegration {
 				index++;
 			}
 		}
+		// Replace the found tooltip in place
 		if (found) {
 			tooltip.remove(index);
 			if (elytra.hasDisplayName())
@@ -64,10 +74,14 @@ public class ClientColytraIntegration {
 		}
 	}
 	
+	/**
+	 * Hide the default elytra render layer in colytra armors when
+	 * their subitem is an Aerobatic Elytra
+	 */
 	@SubscribeEvent(priority = EventPriority.LOW)
-	public static void renderElytra(RenderElytraEvent event) {
-		ItemStack chest = event.getPlayer().getItemStackFromSlot(EquipmentSlotType.CHEST);
-		ItemStack elytra = getColytraSubItem(chest);
+	public static void onRenderElytraEvent(RenderElytraEvent event) {
+		ItemStack elytra = getColytraSubItem(
+		  event.getPlayer().getItemStackFromSlot(EquipmentSlotType.CHEST));
 		if ((elytra.getItem() instanceof AerobaticElytraItem))
 			event.setRender(false);
 	}

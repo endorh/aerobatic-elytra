@@ -18,10 +18,8 @@ import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
-import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.util.ReflectionUtil;
 
 import java.lang.reflect.Field;
 import java.util.function.BiConsumer;
@@ -37,10 +35,13 @@ public class TravelHandler {
 	 * {@code private static final AttributeModifier LivingEntity#SLOW_FALLING}
 	 * <br>Accessed by reflection
 	 */
-	public static final AttributeModifier SLOW_FALLING;
+	public static final AttributeModifier SLOW_FALLING =
+	  ObfuscationReflectionUtil.getStaticFieldValueOrLog(
+	    LivingEntity.class, "SLOW_FALLING", "SLOW_FALLING",
+	    LOGGER::error, "Slow falling effect may not interact properly with aerobatic elytras");
 	
 	/**
-	 * {@code private static final int ServerPlayNetHandler#floatingTickCount}<br>
+	 * {@code private int ServerPlayNetHandler#floatingTickCount}<br>
 	 * Accessed by reflection
 	 */
 	public static final Field ServerPlayNetHandler$floatingTickCount =
@@ -48,24 +49,7 @@ public class TravelHandler {
 		 ServerPlayNetHandler.class, "field_147365_f", "floatingTickCount",
 		 LOGGER::error, "Some flight modes may kick the players for flying");
 	private static final String RESET_FALLING_TICK_COUNT_REFLECTION_ERROR_MSG =
-	  "A flight mode tried to prevent a player from being kicked for flying, but reflection had failed.";
-	
-	// Perform reflection
-	static {
-		// Obtain the SLOW_FALLING modifier by reflection
-		AttributeModifier slowFalling = null;
-		try {
-			Field slow_falling = ObfuscationReflectionHelper.findField(
-			    LivingEntity.class, "SLOW_FALLING");
-			slowFalling = (AttributeModifier) ReflectionUtil.getStaticFieldValue(slow_falling);
-			LOGGER.debug("Got SLOW_FALLING attribute modifier: " + slowFalling);
-		} catch (NullPointerException | ClassCastException
-			| ObfuscationReflectionHelper.UnableToFindFieldException e) {
-			LOGGER.warn("Could not access SLOW_FALLING attribute modifier");
-		} finally {
-			SLOW_FALLING = slowFalling;
-		}
-	}
+	  "A flight mode tried to prevent a player from being kicked for flying, but reflection failed.";
 	
 	/**
 	 * Event filter for the player travel tick<br>

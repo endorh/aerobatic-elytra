@@ -2,11 +2,9 @@ package dnj.aerobatic_elytra.client.input;
 
 import dnj.aerobatic_elytra.AerobaticElytra;
 import dnj.aerobatic_elytra.client.config.ClientConfig;
-import dnj.aerobatic_elytra.common.AerobaticElytraLogic;
 import dnj.aerobatic_elytra.common.capability.IAerobaticData;
 import dnj.aerobatic_elytra.common.config.Config;
 import dnj.aerobatic_elytra.common.config.Const;
-import dnj.aerobatic_elytra.common.flight.AerobaticFlight;
 import dnj.aerobatic_elytra.common.flight.AerobaticFlight.VectorBase;
 import dnj.flight_core.events.PlayerEntityRotateEvent;
 import net.minecraft.client.GameSettings;
@@ -163,7 +161,7 @@ public class RotationHandler {
 		float yawDelta = -0.5F * signum(tiltYaw) + 1.5F * signum(player.moveStrafing);
 		if (player.moveStrafing == 0)
 			yawDelta = signum(yawDelta) * clamp(2 * abs(yawDelta), 0F, abs(tiltYaw));
-		final float underwaterYawSens = Const.UNDERWATER_YAW_SENS_MULTIPLIER;
+		final float underwaterYawSens = Const.UNDERWATER_YAW_RANGE_MULTIPLIER;
 		tiltYaw = clamp(tiltYaw + yawDelta * YAW_SENS_PRESCALE * ClientConfig.yaw_sens * underwaterYawSens,
 		  -Config.tilt_range_yaw * underwaterYawSens, Config.tilt_range_yaw * underwaterYawSens);
 		

@@ -15,6 +15,9 @@ import top.theillusivec4.curios.api.CuriosApi;
 import java.util.Optional;
 
 public class CuriosIntegration {
+	/**
+	 * Get the first aerobatic elytra found in curio slots or empty
+	 */
 	public static ItemStack getCurioAerobaticElytra(LivingEntity entity) {
 		Optional<ImmutableTriple<String, Integer, ItemStack>> curio =
 		  findCurioAerobaticElytra(entity);
@@ -24,14 +27,21 @@ public class CuriosIntegration {
 		return ItemStack.EMPTY;
 	}
 	
+	/**
+	 * Find the first curio slot containing an aerobatic elytra
+	 */
 	public static Optional<ImmutableTriple<String, Integer, ItemStack>> findCurioAerobaticElytra(
 	  LivingEntity entity
 	) {
 		return CuriosApi.getCuriosHelper().findEquippedCurio(ModItems.AEROBATIC_ELYTRA, entity);
 	}
 	
+	/**
+	 * Hide elytra render layer if an aerobatic elytra is being worn,
+	 * unless an elytra is also being worn
+	 */
 	@SubscribeEvent(priority = EventPriority.LOW)
-	public static void renderElytra(RenderElytraEvent event) {
+	public static void onRenderElytraEvent(RenderElytraEvent event) {
 		final PlayerEntity player = event.getPlayer();
 		Optional<ImmutableTriple<String, Integer, ItemStack>> opt =
 		  findCurioAerobaticElytra(player);

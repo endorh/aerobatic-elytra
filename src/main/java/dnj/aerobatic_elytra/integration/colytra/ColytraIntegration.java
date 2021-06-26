@@ -1,6 +1,5 @@
 package dnj.aerobatic_elytra.integration.colytra;
 
-import dnj.aerobatic_elytra.common.AerobaticElytraLogic;
 import dnj.aerobatic_elytra.common.item.AerobaticElytraItem;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
@@ -19,13 +18,21 @@ import top.theillusivec4.caelus.api.CaelusApi;
 
 import java.util.UUID;
 
-// TODO: Extract a ClientColytraIntegration
+/**
+ * Compatibility handler for Colytra mod<br>
+ * The methods are only subscribed to the event bus if Colytra is loaded
+ */
 public class ColytraIntegration {
-	
+	/**
+	 * Caelus flight modifier for aerobatic elytras in Colytra armors
+	 */
 	public static final AttributeModifier COLYTRA_CAELUS_FLIGHT_MODIFIER = new AttributeModifier(
 	  UUID.fromString("668bdbee-32b6-4c4b-bf6a-5a30f4d02e37"), "Flight modifier", 1.0d,
 	  AttributeModifier.Operation.ADDITION);
 	
+	/**
+	 * Get the Colytra subitem from an armor, only if it's an aerobatic elytra
+	 */
 	public static ItemStack getColytraSubItem(ItemStack chest) {
 		CompoundNBT colytraTag = chest.getChildTag("colytra:ElytraUpgrade");
 		if (colytraTag != null) {
@@ -36,10 +43,17 @@ public class ColytraIntegration {
 		return ItemStack.EMPTY;
 	}
 	
+	/**
+	 * Get the Colytra subitem from an armor, only if it's an aerobatic elytra
+	 */
 	public static ItemStack getColytraSubItem(LivingEntity entity) {
 		return getColytraSubItem(entity.getItemStackFromSlot(EquipmentSlotType.CHEST));
 	}
 	
+	/**
+	 * Apply our own Caelus flight modifier when the aerobatic elytra
+	 * subitem can provide flight
+	 */
 	@SubscribeEvent(priority = EventPriority.LOW)
 	public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
 		if (event.side != LogicalSide.SERVER || event.phase != Phase.END)

@@ -66,8 +66,7 @@ public class UpgradeRecipeCategory implements IRecipeCategory<UpgradeRecipe> {
 		  recipe.getRecipeOutput())));
 	}
 	
-	@Override
-	public void setRecipe(
+	@Override public void setRecipe(
 	  @NotNull IRecipeLayout layout, @NotNull UpgradeRecipe recipe, @NotNull IIngredients ingredients
 	) {
 		List<List<ItemStack>> inputs = ingredients.getInputs(VanillaTypes.ITEM);
@@ -84,7 +83,6 @@ public class UpgradeRecipeCategory implements IRecipeCategory<UpgradeRecipe> {
 		stacks.init(2, true, 117, 0);
 		stacks.set(2, getItemMatchingFocus(focus, Mode.INPUT, inputs.get(0), outputs.get(0)));
 	}
-	
 	
 	private List<ItemStack> getItemMatchingFocus(IFocus<?> focus, IFocus.Mode mode, List<ItemStack> focused, List<ItemStack> other) {
 		if (focus != null && focus.getMode() == mode) {

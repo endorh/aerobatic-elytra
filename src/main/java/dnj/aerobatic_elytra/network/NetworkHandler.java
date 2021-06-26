@@ -12,10 +12,14 @@ import java.util.function.Supplier;
 
 import static dnj.aerobatic_elytra.AerobaticElytra.prefix;
 
+/**
+ * Contains the main network channel of the mod and handles
+ * packet registration
+ */
 @EventBusSubscriber(bus = Bus.MOD, modid = AerobaticElytra.MOD_ID)
 public class NetworkHandler {
-	private static final String PROTOCOL_VERSION = "1";
-	public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
+	protected static final String PROTOCOL_VERSION = "1";
+	protected static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
 	  prefix("main"),
 	  () -> PROTOCOL_VERSION,
 	  PROTOCOL_VERSION::equals,

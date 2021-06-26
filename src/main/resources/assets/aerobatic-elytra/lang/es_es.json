@@ -5,6 +5,8 @@
   "block.aerobatic-elytra.broken_leaves": "Hojas Rotas",
 
   "stat.aerobatic-elytra.aerobatic_flight_one_cm": "Distancia en Élytros Acrobático",
+  "stat.aerobatic-elytra.aerobatic_boosts": "Acelerones acrobáticos",
+  "stat.aerobatic-elytra.aerobatic_slime_bounces": "Rebotes acrobáticos en limo",
 
   "key.aerobatic-elytra.category": "Élytros Acrobático",
   "key.aerobatic-elytra.flight_mode.desc": "Alternar modo de vuelo",
@@ -68,9 +70,6 @@
 
   "commands.aerobatic-elytra.error.no_elytra": "Ninguno de los objetivos seleccionados tiene un élytros acrobático equipado",
   "commands.aerobatic-elytra.error.unknown_ability": "Habilidad desconocida",
-  "commands.aerobatic-elytra.error.missing_qualifier": "Se esperaba un nombre cualificado: ",
-  "commands.aerobatic-elytra.error.unexpected_qualifier": "No se esperaba un nombre cualificado: ",
-  "commands.aerobatic-elytra.error.unexpected_separator": "Separador inesperado en el nombre cualificado: ",
 
   "advancements.aerobatic-elytra.aerobatic_elytra.title": "Élytros Acrobático",
   "advancements.aerobatic-elytra.aerobatic_elytra.description": "Encuentra o crea un élytros acrobático"
