@@ -1,6 +1,5 @@
 package dnj.aerobatic_elytra.common.flight;
 
-import dnj.aerobatic_elytra.common.AerobaticElytraLogic;
 import dnj.aerobatic_elytra.common.block.BrokenLeavesBlock;
 import dnj.aerobatic_elytra.common.capability.IAerobaticData;
 import dnj.aerobatic_elytra.common.config.Config;
@@ -94,7 +93,10 @@ public class AerobaticCollision {
 		    && motionVec.norm() > Config.slime_bounce_min_speed) {
 			VectorBase base = data.getRotationBase();
 			boolean bounced = false;
-			if (AerobaticElytraLogic.isAbstractClientPlayerEntity(player))
+			/*if (!player.world.isRemote)
+				return false;
+			return player instanceof AbstractClientPlayerEntity;*/
+			if (player.world.isRemote)
 				data.getCameraBase().set(base);
 			if (bounceDir(player, EAST) ^ bounceDir(player, WEST)) {
 				bounce(player, base, motionVec, X);
@@ -110,7 +112,10 @@ public class AerobaticCollision {
 				bounced = true;
 			}
 			player.setMotion(motionVec.toVector3d());
-			if (bounced && AerobaticElytraLogic.isAbstractClientPlayerEntity(player)) {
+			/*if (!player.world.isRemote)
+				return false;
+			return player instanceof AbstractClientPlayerEntity;*/
+			if (bounced && player.world.isRemote) {
 				data.setLastBounceTime(System.currentTimeMillis());
 				data.getPreBounceBase().set(data.getCameraBase());
 				data.getPosBounceBase().set(base);

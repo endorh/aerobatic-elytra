@@ -8,6 +8,7 @@ import dnj.aerobatic_elytra.client.config.ClientConfig;
 import dnj.aerobatic_elytra.common.AerobaticElytraLogic;
 import dnj.aerobatic_elytra.common.capability.AerobaticDataCapability;
 import dnj.aerobatic_elytra.common.capability.IAerobaticData;
+import dnj.aerobatic_elytra.common.flight.AerobaticFlight;
 import dnj.aerobatic_elytra.common.flight.mode.IFlightMode;
 import dnj.aerobatic_elytra.common.config.Config;
 import dnj.aerobatic_elytra.common.config.Const;
@@ -25,6 +26,7 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import org.lwjgl.opengl.GL11;
 
 import static dnj.aerobatic_elytra.client.ModResources.FLIGHT_GUI_ICONS_LOCATION;
+import static dnj.aerobatic_elytra.common.flight.AerobaticFlight.isAerobaticFlying;
 import static java.lang.Math.*;
 import static java.lang.System.currentTimeMillis;
 import static net.minecraft.client.gui.AbstractGui.blit;
@@ -32,7 +34,6 @@ import static net.minecraft.util.math.MathHelper.lerp;
 
 @EventBusSubscriber(value = Dist.CLIENT, modid = AerobaticElytra.MOD_ID)
 public class AerobaticOverlays {
-	
 	private static double popupEnd = 0D;
 	private static double remainingPopupTime = 0D;
 	private static IFlightMode mode = null;
@@ -95,7 +96,7 @@ public class AerobaticOverlays {
 			Minecraft mc = Minecraft.getInstance();
 			PlayerEntity pl = mc.player;
 			assert pl != null;
-			if (AerobaticElytraLogic.shouldAerobaticFly(pl)) {
+			if (isAerobaticFlying(pl)) {
 				GameSettings st = mc.gameSettings;
 				assert mc.playerController != null;
 				// Mimic logic from IngameGui#func_238456_d_
@@ -118,7 +119,7 @@ public class AerobaticOverlays {
 			Minecraft mc = Minecraft.getInstance();
 			PlayerEntity player = mc.player;
 			assert player != null;
-			if (AerobaticElytraLogic.shouldAerobaticFly(player)) {
+			if (isAerobaticFlying(player)) {
 				event.setCanceled(renderFlightBar(
 				  player, event.getMatrixStack(),
 				  mc.getTextureManager(), event.getWindow(), event.getPartialTicks()));

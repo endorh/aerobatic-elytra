@@ -3,7 +3,6 @@ package dnj.aerobatic_elytra.client.render;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import dnj.aerobatic_elytra.AerobaticElytra;
 import dnj.aerobatic_elytra.client.config.ClientConfig;
-import dnj.aerobatic_elytra.common.AerobaticElytraLogic;
 import dnj.aerobatic_elytra.common.capability.IAerobaticData;
 import dnj.aerobatic_elytra.common.config.Config;
 import net.minecraft.client.GameSettings;
@@ -25,6 +24,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import static dnj.aerobatic_elytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
+import static dnj.aerobatic_elytra.common.flight.AerobaticFlight.isAerobaticFlying;
 import static net.minecraft.util.math.MathHelper.abs;
 import static net.minecraft.util.math.MathHelper.lerp;
 
@@ -43,7 +43,7 @@ public class CameraHandler {
 			ClientPlayerEntity player = (ClientPlayerEntity)entity;
 			IAerobaticData data = getAerobaticDataOrDefault(player);
 			
-			if (AerobaticElytraLogic.shouldAerobaticFly(player)) {
+			if (data.isFlying()) {
 				GameSettings gameSettings = Minecraft.getInstance().gameSettings;
 				int i = gameSettings.getPointOfView() == PointOfView.THIRD_PERSON_FRONT? -1 : 1;
 				
@@ -68,7 +68,7 @@ public class CameraHandler {
 		if (mc.player == null)
 			return;
 		PlayerEntity player = mc.player;
-		if (AerobaticElytraLogic.shouldAerobaticFly(player)) {
+		if (isAerobaticFlying(player)) {
 			cameraOffset = true;
 			if (event.getHand() == Hand.MAIN_HAND) {
 				IAerobaticData data = getAerobaticDataOrDefault(player);
@@ -101,8 +101,8 @@ public class CameraHandler {
 		Entity entity = info.getRenderViewEntity();
 		if (entity instanceof PlayerEntity) {
 			PlayerEntity player = (PlayerEntity)entity;
-			if (AerobaticElytraLogic.shouldAerobaticFly(player)) {
-				IAerobaticData data = getAerobaticDataOrDefault(player);
+			IAerobaticData data = getAerobaticDataOrDefault(player);
+			if (data.isFlying()) {
 				final double fov = event.getFOV();
 				final double f = Math.min(1D, data.ticksFlying() / 4D);
 				final double p = abs(data.getPropulsionStrength()) / Config.propulsion_range * 10;

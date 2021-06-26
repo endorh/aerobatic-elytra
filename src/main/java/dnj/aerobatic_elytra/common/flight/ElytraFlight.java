@@ -1,15 +1,21 @@
 package dnj.aerobatic_elytra.common.flight;
 
 import dnj.aerobatic_elytra.common.AerobaticElytraLogic;
+import dnj.aerobatic_elytra.common.capability.ElytraSpecCapability;
+import dnj.aerobatic_elytra.common.capability.IElytraSpec;
+import dnj.aerobatic_elytra.common.flight.mode.FlightModeTags;
 import dnj.endor8util.math.Vec3f;
 import net.minecraft.entity.MoverType;
 import net.minecraft.entity.passive.IFlyingAnimal;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
 
+import static dnj.aerobatic_elytra.common.capability.FlightDataCapability.getFlightDataOrDefault;
+import static dnj.aerobatic_elytra.common.item.IAbility.Ability.FUEL;
 import static java.lang.Math.min;
 import static net.minecraft.util.math.MathHelper.cos;
 
@@ -23,7 +29,17 @@ public class ElytraFlight {
 	public static boolean onElytraTravel(
 	  PlayerEntity player, @SuppressWarnings("unused") Vector3d travelVector
 	) {
-		if (!AerobaticElytraLogic.shouldElytraFly(player))
+		// Stop conditions
+		if (!player.isElytraFlying() || player.abilities.isFlying
+		    || !getFlightDataOrDefault(player).getFlightMode().is(FlightModeTags.ELYTRA))
+			return false;
+		final ItemStack elytra = AerobaticElytraLogic.getAerobaticElytra(player);
+		if (elytra.isEmpty())
+			return false;
+		final IElytraSpec spec = ElytraSpecCapability.getElytraSpecOrDefault(elytra);
+		if (((elytra.getDamage() >= elytra.getMaxDamage() - 1 || !(spec.getAbility(FUEL) > 0))
+		     && !player.isCreative())
+		    || player.isInLava() || player.isInWater())
 			return false;
 		
 		// Previous pos

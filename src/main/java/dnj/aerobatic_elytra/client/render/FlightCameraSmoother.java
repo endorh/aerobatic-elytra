@@ -16,6 +16,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import static dnj.aerobatic_elytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
+import static dnj.aerobatic_elytra.common.flight.AerobaticFlight.isAerobaticFlying;
 import static java.lang.System.currentTimeMillis;
 
 @EventBusSubscriber(value = Dist.CLIENT, modid = AerobaticElytra.MOD_ID)
@@ -30,16 +31,13 @@ public class FlightCameraSmoother {
 		if (event.phase == Phase.START) {
 			Minecraft mc = Minecraft.getInstance();
 			PlayerEntity player = mc.player;
-			if (player != null) {
-				if (AerobaticElytraLogic.shouldAerobaticFly(player)) {
-					if (mc.isGamePaused()) {
-						IAerobaticData data = getAerobaticDataOrDefault(player);
-						data.setLastRotationTime(currentTimeMillis() / 1000D);
-						LOGGER.debug("Paused");
-					} else {
-						AerobaticFlight.applyRotationAcceleration(player);
-					}
-				}
+			if (player == null) return;
+			IAerobaticData data = getAerobaticDataOrDefault(player);
+			if (data.isFlying()) {
+				if (mc.isGamePaused()) {
+					data.setLastRotationTime(currentTimeMillis() / 1000D);
+					LOGGER.debug("Paused");
+				} else AerobaticFlight.applyRotationAcceleration(player);
 			}
 		}
 	}

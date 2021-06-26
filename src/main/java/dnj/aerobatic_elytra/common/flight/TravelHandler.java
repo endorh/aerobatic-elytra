@@ -43,7 +43,12 @@ public class TravelHandler {
 	 * {@code private static final int ServerPlayNetHandler#floatingTickCount}<br>
 	 * Accessed by reflection
 	 */
-	public static final Field ServerPlayNetHandler$floatingTickCount;
+	public static final Field ServerPlayNetHandler$floatingTickCount =
+	  ObfuscationReflectionUtil.getFieldOrLog(
+		 ServerPlayNetHandler.class, "field_147365_f", "floatingTickCount",
+		 LOGGER::error, "Some flight modes may kick the players for flying");
+	private static final String RESET_FALLING_TICK_COUNT_REFLECTION_ERROR_MSG =
+	  "A flight mode tried to prevent a player from being kicked for flying, but reflection had failed.";
 	
 	// Perform reflection
 	static {
@@ -54,16 +59,12 @@ public class TravelHandler {
 			    LivingEntity.class, "SLOW_FALLING");
 			slowFalling = (AttributeModifier) ReflectionUtil.getStaticFieldValue(slow_falling);
 			LOGGER.debug("Got SLOW_FALLING attribute modifier: " + slowFalling);
-		} catch (NullPointerException //| NoSuchFieldException
+		} catch (NullPointerException | ClassCastException
 			| ObfuscationReflectionHelper.UnableToFindFieldException e) {
 			LOGGER.warn("Could not access SLOW_FALLING attribute modifier");
 		} finally {
 			SLOW_FALLING = slowFalling;
 		}
-		
-		ServerPlayNetHandler$floatingTickCount = ObfuscationReflectionUtil.getFieldOrLog(
-		  ServerPlayNetHandler.class, "field_147365_f", "floatingTickCount",
-		  LOGGER::error, "Some flight modes may kick the players for flying");
 	}
 	
 	/**
@@ -138,26 +139,23 @@ public class TravelHandler {
 	
 	/**
 	 * Resets the player's tick count through reflection upon its
-	 * {@link ServerPlayNetHandler}<br>.
+	 * {@link ServerPlayNetHandler}.<br>
 	 * Useful for flight modes which keep the player from falling
 	 * without using elytra flight or creative flight.
 	 * @param player Server player instance
 	 * @return False if there was a reflection exception.
 	 */
+	@SuppressWarnings("unused")
 	public static boolean resetFloatingTickCount(ServerPlayerEntity player) {
 		if (ServerPlayNetHandler$floatingTickCount == null) {
-			LogUtil.errorOnce(
-			  LOGGER, "A flight mode tried to prevent a player from being kicked " +
-			          "for flying, but reflection had failed.");
+			LogUtil.errorOnce(LOGGER, RESET_FALLING_TICK_COUNT_REFLECTION_ERROR_MSG);
 			return false;
 		}
 		try {
 			ServerPlayNetHandler$floatingTickCount.setInt(player.connection, 0);
 			return true;
 		} catch (IllegalAccessException e) {
-			if (LogUtil.errorOnce(
-			  LOGGER, "A flight mode tried to prevent a player from being kicked " +
-			          "for flying, but reflective access has failed"))
+			if (LogUtil.errorOnce(LOGGER, RESET_FALLING_TICK_COUNT_REFLECTION_ERROR_MSG))
 				e.printStackTrace();
 			return false;
 		}

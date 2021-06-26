@@ -1,9 +1,11 @@
 package dnj.aerobatic_elytra.common.flight;
 
+import dnj.aerobatic_elytra.AerobaticElytra;
 import dnj.aerobatic_elytra.client.sound.AerobaticElytraSound;
 import dnj.aerobatic_elytra.client.sound.ModSounds;
 import dnj.aerobatic_elytra.client.trail.AerobaticTrail;
 import dnj.aerobatic_elytra.common.AerobaticElytraLogic;
+import dnj.aerobatic_elytra.common.capability.ElytraSpecCapability;
 import dnj.aerobatic_elytra.common.capability.IAerobaticData;
 import dnj.aerobatic_elytra.common.capability.IElytraSpec;
 import dnj.aerobatic_elytra.common.config.Config;
@@ -12,6 +14,7 @@ import dnj.aerobatic_elytra.common.event.AerobaticElytraFinishFlightEvent;
 import dnj.aerobatic_elytra.common.event.AerobaticElytraStartFlightEvent;
 import dnj.aerobatic_elytra.common.event.AerobaticElytraTickEvent;
 import dnj.aerobatic_elytra.common.event.AerobaticElytraTickEvent.Pre;
+import dnj.aerobatic_elytra.common.flight.mode.FlightModeTags;
 import dnj.aerobatic_elytra.common.item.AerobaticElytraWingItem;
 import dnj.aerobatic_elytra.network.AerobaticPackets.DAccelerationPacket;
 import dnj.aerobatic_elytra.network.AerobaticPackets.DRotationPacket;
@@ -23,19 +26,23 @@ import net.minecraft.entity.MoverType;
 import net.minecraft.entity.passive.IFlyingAnimal;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Optional;
 
+import static dnj.aerobatic_elytra.common.AerobaticElytraLogic.getAerobaticElytra;
 import static dnj.aerobatic_elytra.common.capability.AerobaticDataCapability.getAerobaticData;
 import static dnj.aerobatic_elytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
+import static dnj.aerobatic_elytra.common.capability.FlightDataCapability.getFlightDataOrDefault;
 import static dnj.aerobatic_elytra.common.item.IAbility.Ability.*;
 import static dnj.endor8util.math.Interpolator.clampedLerp;
 import static dnj.endor8util.math.Vec3f.PI;
@@ -53,6 +60,7 @@ import static net.minecraft.util.math.MathHelper.*;
 /**
  * Handle aerobatic physics
  */
+@EventBusSubscriber(modid = AerobaticElytra.MOD_ID)
 public class AerobaticFlight {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -73,7 +81,7 @@ public class AerobaticFlight {
 	public static boolean onAerobaticTravel(
 	  PlayerEntity player, Vector3d travelVector
 	) {
-		if (!AerobaticElytraLogic.shouldAerobaticFly(player)) {
+		if (!shouldAerobaticFly(player)) {
 			onNonFlightTravel(player, travelVector);
 			return false;
 		}
@@ -120,7 +128,10 @@ public class AerobaticFlight {
 		    && data.isSprinting() && data.getBoostHeat() <= 0.2F) {
 			data.setBoosted(true);
 			player.addStat(FlightStats.AEROBATIC_BOOSTS, 1);
-			if (AerobaticElytraLogic.isAbstractClientPlayerEntity(player)) {
+			/*if (!player.world.isRemote)
+				return false;
+			return player instanceof AbstractClientPlayerEntity;*/
+			if (player.world.isRemote) {
 				AerobaticTrail.addBoostParticles(player);
 			}
 			if (player.world.isRemote)
@@ -268,7 +279,7 @@ public class AerobaticFlight {
 			AerobaticCollision.onAerobaticCollision(player, hSpeedPrev, motionVec);
 		}
 		
-		if (AerobaticElytraLogic.isTheClientPlayer(player)) {
+		if (AerobaticElytraLogic.isClientPlayerEntity(player)) {
 			new DTiltPacket(data).send();
 			new DRotationPacket(data).send();
 			new DAccelerationPacket(data).send();
@@ -290,7 +301,10 @@ public class AerobaticFlight {
 				new AerobaticElytraSound(player).play();
 		}
 		
-		if (AerobaticElytraLogic.isAbstractClientPlayerEntity(player)) {
+		/*if (!player.world.isRemote)
+			return false;
+		return player instanceof AbstractClientPlayerEntity;*/
+		if (player.world.isRemote) {
 			if (data.ticksFlying() > Const.TAKEOFF_ANIMATION_LENGTH_TICKS
 			    && !player.collidedVertically && !player.collidedHorizontally
 			    // Cowardly refuse to smooth trail on bounces
@@ -386,6 +400,26 @@ public class AerobaticFlight {
 		if (boostHeat > 0F) {
 			data.setBoostHeat(max(0F, boostHeat - 0.2F));
 		}
+	}
+	
+	/**
+	 * Shorthand for {@code getAerobaticDataOrDefault(player).isFlying()}
+	 */
+	public static boolean isAerobaticFlying(PlayerEntity player) {
+		return getAerobaticDataOrDefault(player).isFlying();
+	}
+	
+	private static boolean shouldAerobaticFly(PlayerEntity player) {
+		if (!player.isElytraFlying() || player.abilities.isFlying
+		    || !getFlightDataOrDefault(player).getFlightMode().is(FlightModeTags.AEROBATIC))
+			return false;
+		final ItemStack elytra = getAerobaticElytra(player);
+		if (elytra.isEmpty())
+			return false;
+		final IElytraSpec spec = ElytraSpecCapability.getElytraSpecOrDefault(elytra);
+		return (elytra.getDamage() < elytra.getMaxDamage() - 1 && spec.getAbility(FUEL) > 0
+		        || player.isCreative())
+		       && !player.isInLava() && (!player.isInWater() || spec.getAbility(AQUATIC) != 0);
 	}
 	
 	/**

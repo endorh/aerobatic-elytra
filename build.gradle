@@ -54,7 +54,7 @@ Other mods may register their own flight modes for the elytra.
 def license = "LGPL"
 
 // Versions
-version = "0.2.1"
+version = "0.2.2"
 
 // Dependencies
 def mc_version = "1.16.5",

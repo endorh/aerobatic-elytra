@@ -1,6 +1,7 @@
 package dnj.aerobatic_elytra.client.item;
 
 import dnj.aerobatic_elytra.client.config.ClientConfig;
+import dnj.aerobatic_elytra.common.AerobaticElytraLogic;
 import dnj.aerobatic_elytra.common.item.ElytraDyementReader;
 import dnj.aerobatic_elytra.common.capability.IElytraSpec;
 import dnj.aerobatic_elytra.common.item.AerobaticElytraItem;

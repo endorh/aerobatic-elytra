@@ -1,9 +1,7 @@
 package dnj.aerobatic_elytra.common.recipe;
 
 import com.google.gson.*;
-import dnj.aerobatic_elytra.common.capability.ElytraSpecCapability;
 import dnj.aerobatic_elytra.common.item.AerobaticElytraItem;
-import dnj.aerobatic_elytra.common.item.ElytraDyementReader;
 import dnj.aerobatic_elytra.common.item.ElytraDyementReader.WingSide;
 import dnj.aerobatic_elytra.common.item.ModItems;
 import dnj.endor8util.network.PacketBufferUtil;
@@ -13,7 +11,6 @@ import net.minecraft.item.crafting.IRecipeSerializer;
 import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.item.crafting.ShapelessRecipe;
 import net.minecraft.item.crafting.SpecialRecipeSerializer;
-import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.JSONUtils;
 import net.minecraft.util.NonNullList;
@@ -29,7 +26,6 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static dnj.aerobatic_elytra.AerobaticElytra.prefix;
-import static dnj.endor8util.util.ForgeUtil.getSerializedCaps;
 
 /**
  * Splits an Aerobatic Elytra in two wings, preserving their
@@ -40,7 +36,6 @@ public class SplitRecipe extends ShapelessRecipe {
 	public static int MAX_HEIGHT = 3;
 	
 	public static final Serializer SERIALIZER = new Serializer();
-	private static final ElytraDyementReader dyement = new ElytraDyementReader();
 	
 	public final NonNullList<Pair<Ingredient, LeaveData>> ingredients;
 	
@@ -176,16 +171,8 @@ public class SplitRecipe extends ShapelessRecipe {
 	}
 	
 	public ItemStack getWing(ItemStack elytra, WingSide side) {
-		ItemStack wing = new ItemStack(ModItems.AEROBATIC_ELYTRA_WING, 1, getSerializedCaps(elytra));
-		dyement.read(elytra);
-		dyement.getWing(side).write(wing, null);
-		wing.setDamage(elytra.getDamage());
-		CompoundNBT tag = elytra.getTag();
-		if (tag != null && tag.contains("HideFlags", 99)) {
-			wing.getOrCreateTag().putInt("HideFlags", tag.getInt("HideFlags"));
-		}
-		ElytraSpecCapability.getElytraSpecOrDefault(wing).getTrailData().keep(side);
-		return wing;
+		assert elytra.getItem() instanceof AerobaticElytraItem;
+		return ((AerobaticElytraItem) elytra.getItem()).getWing(elytra, side);
 	}
 	
 	@Override

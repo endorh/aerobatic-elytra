@@ -3,6 +3,9 @@ package dnj.aerobatic_elytra.common.item;
 import com.mojang.datafixers.util.Pair;
 import dnj.aerobatic_elytra.AerobaticElytra;
 import dnj.aerobatic_elytra.client.config.ClientConfig;
+import dnj.aerobatic_elytra.common.capability.IFlightData;
+import dnj.aerobatic_elytra.common.flight.AerobaticFlight;
+import dnj.aerobatic_elytra.common.flight.mode.FlightModeTags;
 import dnj.aerobatic_elytra.common.item.ElytraDyementReader.WingDyement;
 import dnj.aerobatic_elytra.common.item.ElytraDyementReader.WingSide;
 import dnj.aerobatic_elytra.common.AerobaticElytraLogic;
@@ -50,13 +53,17 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static dnj.aerobatic_elytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
 import static dnj.aerobatic_elytra.common.capability.ElytraSpecCapability.getElytraSpec;
 import static dnj.aerobatic_elytra.common.capability.ElytraSpecCapability.getElytraSpecOrDefault;
+import static dnj.aerobatic_elytra.common.capability.FlightDataCapability.getFlightData;
+import static dnj.aerobatic_elytra.common.flight.AerobaticFlight.isAerobaticFlying;
 import static dnj.aerobatic_elytra.common.item.IAbility.Ability.FUEL;
 import static dnj.aerobatic_elytra.common.item.IAbility.Ability.MAX_FUEL;
+import static dnj.endor8util.util.ForgeUtil.getSerializedCaps;
 import static dnj.endor8util.util.TextUtil.stc;
 import static dnj.endor8util.util.TextUtil.ttc;
 import static java.lang.Math.abs;
@@ -71,9 +78,9 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 	public static final String NAME = "aerobatic_elytra";
 	@SuppressWarnings({"FieldMayBeFinal", "FieldCanBeLocal"})
 	public static int DEFAULT_COLOR = 0xBAC1DB;
-	private static final Logger LOGGER = LogManager.getLogger();
-	private static final HashMap<BannerPattern, ResourceLocation> bannerTextures = new HashMap<>();
-	private final ElytraDyementReader dyement = new ElytraDyementReader();
+	//private static final Logger LOGGER = LogManager.getLogger();
+	protected static final HashMap<BannerPattern, ResourceLocation> bannerTextures = new HashMap<>();
+	protected final ElytraDyementReader dyement = new ElytraDyementReader();
 	
 	public static void onClientSetup() {
 		for (BannerPattern pattern : BannerPattern.values()) {
@@ -331,25 +338,37 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 	
 	@Override
 	public boolean canElytraFly(@NotNull ItemStack stack, @NotNull LivingEntity entity) {
-		return AerobaticElytraLogic.canFallFly(stack, entity);
+		if (entity instanceof PlayerEntity) {
+			PlayerEntity player = (PlayerEntity)entity;
+			Optional<IFlightData> dat = getFlightData(player);
+			if (!dat.isPresent())
+				return false;
+			IFlightData fd = dat.get();
+			if (!fd.getFlightMode().is(FlightModeTags.ELYTRA))
+				return false;
+			if (player.isCreative())
+				return true;
+		}
+		return stack.getDamage() < stack.getMaxDamage() - 1;
+		//return AerobaticElytraLogic.canFallFly(stack, entity);
 	}
 	
-	// TODO: Move to ModLogic?
 	@Override
 	public boolean elytraFlightTick(@NotNull ItemStack stack, LivingEntity entity, int flightTicks) {
-		if (!entity.world.isRemote && (flightTicks + 1) % 20 == 0 && Config.damageable) {
+		if (!entity.world.isRemote && (flightTicks + 1) % 20 == 0 && Config.damageable)
 			stack.damageItem(1, entity, e -> e.sendBreakAnimation(EquipmentSlotType.CHEST));
-		}
-		if (entity instanceof PlayerEntity && AerobaticElytraLogic.shouldAerobaticFly((PlayerEntity) entity)) {
-			IAerobaticData data = getAerobaticDataOrDefault((PlayerEntity)entity);
-			float rel_prop = abs(data.getPropulsionStrength()) /
-			                 max(abs(Config.propulsion_max),
-			                     abs(Config.propulsion_min));
-			float fuel_usage = rel_prop * Config.fuel_usage_linear +
-			                   rel_prop * rel_prop * Config.fuel_usage_quad +
-			                   MathHelper.sqrt(rel_prop) * Config.fuel_usage_sqrt;
-			IElytraSpec spec = getElytraSpecOrDefault(stack);
-			spec.setAbility(FUEL, max(0F, spec.getAbility(FUEL) - fuel_usage));
+		if (entity instanceof PlayerEntity) {
+			IAerobaticData data = getAerobaticDataOrDefault((PlayerEntity) entity);
+			if (data.isFlying()) {
+				float rel_prop = abs(data.getPropulsionStrength()) /
+				                 max(abs(Config.propulsion_max),
+				                     abs(Config.propulsion_min));
+				float fuel_usage = rel_prop * Config.fuel_usage_linear +
+				                   rel_prop * rel_prop * Config.fuel_usage_quad +
+				                   MathHelper.sqrt(rel_prop) * Config.fuel_usage_sqrt;
+				IElytraSpec spec = getElytraSpecOrDefault(stack);
+				spec.setAbility(FUEL, max(0F, spec.getAbility(FUEL) - fuel_usage));
+			}
 		}
 		return true;
 	}
@@ -515,5 +534,22 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 						 .mergeStyle(TextFormatting.DARK_GRAY))
 			  ).mergeStyle(TextFormatting.GRAY));
 		}
+	}
+	
+	// Split wings
+	public AerobaticElytraWingItem getWingItem(ItemStack elytra, WingSide side) {
+		return ModItems.AEROBATIC_ELYTRA_WING;
+	}
+	
+	public ItemStack getWing(ItemStack elytra, WingSide side) {
+		ItemStack wing = new ItemStack(getWingItem(elytra, side), 1, getSerializedCaps(elytra));
+		dyement.read(elytra);
+		dyement.getWing(side).write(wing, null);
+		wing.setDamage(elytra.getDamage());
+		CompoundNBT tag = elytra.getTag();
+		if (tag != null && tag.contains("HideFlags", 99))
+			wing.getOrCreateTag().putInt("HideFlags", tag.getInt("HideFlags"));
+		getElytraSpecOrDefault(wing).getTrailData().keep(side);
+		return wing;
 	}
 }

@@ -2,14 +2,10 @@ package dnj.aerobatic_elytra.common;
 
 import dnj.aerobatic_elytra.AerobaticElytra;
 import dnj.aerobatic_elytra.common.capability.ElytraSpecCapability;
-import dnj.aerobatic_elytra.common.capability.IFlightData;
 import dnj.aerobatic_elytra.common.capability.IElytraSpec;
-import dnj.aerobatic_elytra.common.flight.mode.FlightModeTags;
 import dnj.aerobatic_elytra.common.item.AerobaticElytraItem;
 import dnj.aerobatic_elytra.integration.colytra.ColytraIntegration;
 import dnj.aerobatic_elytra.integration.curios.CuriosIntegration;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.AbstractClientPlayerEntity;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.entity.player.RemoteClientPlayerEntity;
 import net.minecraft.entity.LivingEntity;
@@ -19,51 +15,23 @@ import net.minecraft.item.ArmorItem;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.util.LazyOptional;
 
-import java.util.Optional;
-
-import static dnj.aerobatic_elytra.common.capability.FlightDataCapability.getFlightData;
-import static dnj.aerobatic_elytra.common.capability.FlightDataCapability.getFlightDataOrDefault;
-import static dnj.aerobatic_elytra.common.item.IAbility.Ability.AQUATIC;
-import static dnj.aerobatic_elytra.common.item.IAbility.Ability.FUEL;
-
-/**
- * Contains the logic granting Aerobatic Flight to players
- */
 public class AerobaticElytraLogic {
 	
-	// TODO: Cache this in a capability or hashmap and compute only once per tick
-	public static boolean shouldElytraFly(PlayerEntity player) {
-		if (!player.isElytraFlying() || player.abilities.isFlying
-		    || !getFlightDataOrDefault(player).getFlightMode().is(FlightModeTags.ELYTRA))
-			return false;
-		ItemStack elytra = getAerobaticElytra(player);
-		if (elytra.isEmpty())
-			return false;
-		IElytraSpec spec = ElytraSpecCapability.getElytraSpecOrDefault(elytra);
-		return (elytra.getDamage() < elytra.getMaxDamage() - 1 && spec.getAbility(FUEL) > 0
-		        || player.isCreative())
-		       && !player.isInLava() && !player.isInWater();
-	}
-	
-	// TODO: Compute once per tick
-	public static boolean shouldAerobaticFly(PlayerEntity player) {
-		if (!player.isElytraFlying() || player.abilities.isFlying
-		    || !getFlightDataOrDefault(player).getFlightMode().is(FlightModeTags.AEROBATIC))
-			return false;
-		final ItemStack elytra = getAerobaticElytra(player);
-		if (elytra.isEmpty())
-			return false;
-		final IElytraSpec spec = ElytraSpecCapability.getElytraSpecOrDefault(elytra);
-		return (elytra.getDamage() < elytra.getMaxDamage() - 1 && spec.getAbility(FUEL) > 0
-		        || player.isCreative())
-		       && !player.isInLava() && (!player.isInWater() || spec.getAbility(AQUATIC) != 0);
-	}
-	
+	/**
+	 * Shorthand for {@code !getAerobaticElytra(player).isEmpty()}
+	 */
 	public static boolean hasAerobaticElytra(PlayerEntity player) {
-		ItemStack elytra = getAerobaticElytra(player);
-		return !elytra.isEmpty() && ElytraSpecCapability.getElytraSpec(elytra).isPresent();
+		return !getAerobaticElytra(player).isEmpty();
 	}
 	
+	/**
+	 * Check if an item is an Aerobatic Elytra or derived item<br>
+	 * Note that this method may succeed for items that don't
+	 * subclass {@link AerobaticElytraItem}, such as colytra
+	 * aerobatic elytras<br>
+	 * Items for which true is returned should have an
+	 * {@link IElytraSpec}
+	 */
 	public static boolean isAerobaticElytra(ItemStack stack) {
 		return !stack.isEmpty()
 		       && (stack.getItem() instanceof AerobaticElytraItem
@@ -76,38 +44,10 @@ public class AerobaticElytraLogic {
 		return (player instanceof RemoteClientPlayerEntity);
 	}
 	
-	// Change
-	public static boolean isTheClientPlayer(PlayerEntity player) {
+	public static boolean isClientPlayerEntity(PlayerEntity player) {
 		if (!player.world.isRemote)
 			return false;
 		return (player instanceof ClientPlayerEntity);
-	}
-	
-	public static boolean isAbstractClientPlayerEntity(PlayerEntity player) {
-		return player.world.isRemote;
-		/*if (!player.world.isRemote)
-			return false;
-		return player instanceof AbstractClientPlayerEntity;*/
-	}
-	
-	/**
-	 * Determines if the entity can use fall flying
-	 * @param stack Chest equipment stack
-	 * @param entity Entity attempting to fall fly
-	 */
-	public static boolean canFallFly(ItemStack stack, LivingEntity entity) {
-		if (entity instanceof PlayerEntity) {
-			PlayerEntity player = (PlayerEntity)entity;
-			Optional<IFlightData> dat = getFlightData(player);
-			if (!dat.isPresent())
-				return false;
-			IFlightData fd = dat.get();
-			if (!fd.getFlightMode().is(FlightModeTags.ELYTRA))
-				return false;
-			if (player.isCreative())
-				return true;
-		}
-		return stack.getDamage() < stack.getMaxDamage() - 1;
 	}
 	
 	/**
@@ -128,10 +68,17 @@ public class AerobaticElytraLogic {
 		return elytra;
 	}
 	
+	/**
+	 * Shorthand for {@code getElytraSpec(getAerobaticElytra(entity))}
+	 */
+	@SuppressWarnings("unused")
 	public static LazyOptional<IElytraSpec> getElytraSpec(LivingEntity entity) {
 		return ElytraSpecCapability.getElytraSpec(getAerobaticElytra(entity));
 	}
 	
+	/**
+	 * Shorthand for {@code getElytraSpecOrDefault(getAerobaticElytra(entity))}
+	 */
 	public static IElytraSpec getElytraSpecOrDefault(LivingEntity entity) {
 		return ElytraSpecCapability.getElytraSpecOrDefault(getAerobaticElytra(entity));
 	}

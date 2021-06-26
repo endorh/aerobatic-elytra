@@ -5,6 +5,7 @@ import dnj.aerobatic_elytra.AerobaticElytra;
 import dnj.aerobatic_elytra.common.AerobaticElytraLogic;
 import dnj.aerobatic_elytra.common.capability.IAerobaticData;
 import dnj.aerobatic_elytra.common.config.Const;
+import dnj.aerobatic_elytra.common.flight.AerobaticFlight;
 import dnj.endor8util.math.Interpolator;
 import dnj.flight_core.events.ApplyRotationsRenderPlayerEvent;
 import net.minecraft.entity.player.PlayerEntity;
@@ -17,6 +18,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 
 import static dnj.aerobatic_elytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
+import static dnj.aerobatic_elytra.common.flight.AerobaticFlight.isAerobaticFlying;
 import static net.minecraft.util.math.MathHelper.lerp;
 
 @EventBusSubscriber(value = Dist.CLIENT, modid = AerobaticElytra.MOD_ID)
@@ -27,7 +29,7 @@ public class PlayerRendererHandler {
 	@SubscribeEvent
 	public static void onRenderPlayerEvent(RenderPlayerEvent.Pre event) {
 		PlayerEntity player = event.getPlayer();
-		if (AerobaticElytraLogic.shouldAerobaticFly(player)) {
+		if (isAerobaticFlying(player)) {
 			player.renderYawOffset = player.rotationYaw;
 			player.prevRenderYawOffset = player.rotationYaw;
 			player.rotationYawHead = player.rotationYaw;
@@ -42,10 +44,10 @@ public class PlayerRendererHandler {
 	public static void onApplyRotationsRenderPlayerEvent(
 	  ApplyRotationsRenderPlayerEvent event
 	) {
-		if (AerobaticElytraLogic.shouldAerobaticFly(event.player)) {
+		PlayerEntity player = event.player;
+		IAerobaticData data = getAerobaticDataOrDefault(player);
+		if (data.isFlying()) {
 			event.setCanceled(true);
-			PlayerEntity player = event.player;
-			IAerobaticData data = getAerobaticDataOrDefault(player);
 			MatrixStack mStack = event.matrixStack;
 			float t = (player.getTicksElytraFlying() + event.partialTicks) / Const.TAKEOFF_ANIMATION_LENGTH_TICKS;
 			float yaw = (180F - player.rotationYaw);

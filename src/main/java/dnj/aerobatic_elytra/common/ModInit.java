@@ -6,15 +6,15 @@ import dnj.aerobatic_elytra.client.input.KeyHandler;
 import dnj.aerobatic_elytra.client.item.AerobaticElytraItemColor;
 import dnj.aerobatic_elytra.client.item.AerobaticElytraWingItemColor;
 import dnj.aerobatic_elytra.client.item.ModItemProperties;
-import dnj.aerobatic_elytra.common.event.RegisterAerobaticElytraAbilityEvent;
 import dnj.aerobatic_elytra.common.item.AerobaticElytraItem;
-import dnj.aerobatic_elytra.common.item.IAbility;
 import dnj.aerobatic_elytra.common.item.ModItems;
 import dnj.aerobatic_elytra.common.recipe.ModRecipes;
 import dnj.aerobatic_elytra.common.config.Config;
 import dnj.aerobatic_elytra.integration.colytra.ClientColytraIntegration;
 import dnj.aerobatic_elytra.integration.colytra.ColytraIntegration;
 import dnj.aerobatic_elytra.integration.curios.CuriosIntegration;
+import dnj.aerobatic_elytra.server.command.QualifiedNameArgumentType;
+import net.minecraft.command.arguments.ArgumentTypes;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddReloadListenerEvent;
@@ -41,6 +41,7 @@ public class ModInit {
 		DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> ClientConfig::register);
 		registerIntegrations();
 		AerobaticElytra.logRegistered("Config");
+		registerArgumentTypes();
 		
 		MinecraftForge.EVENT_BUS.addListener(ModInit::onRegisterReloadListeners);
 	}
@@ -79,12 +80,9 @@ public class ModInit {
 	        eventBus.register(CuriosIntegration.class);
 	}
 	
-	@EventBusSubscriber(modid = AerobaticElytra.MOD_ID)
-	public static class EventSubscribers {
-		@SubscribeEvent
-		public static void onRegisterAbilities(RegisterAerobaticElytraAbilityEvent event) {
-			for (IAbility type : IAbility.Ability.values())
-				event.register(type);
-		}
+	public static void registerArgumentTypes() {
+		ArgumentTypes.register(
+		  "aerobatic-elytra:qualified_name", QualifiedNameArgumentType.class,
+		  new QualifiedNameArgumentType.Serializer());
 	}
 }

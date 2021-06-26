@@ -1,7 +1,6 @@
 package dnj.aerobatic_elytra.common.recipe;
 
 import dnj.aerobatic_elytra.AerobaticElytra;
-import dnj.aerobatic_elytra.common.AerobaticElytraLogic;
 import dnj.aerobatic_elytra.common.item.AerobaticElytraItem;
 import dnj.aerobatic_elytra.network.UpgradeRecipePacket;
 import net.minecraft.entity.player.PlayerEntity;
@@ -46,7 +45,10 @@ public class UpgradeHandler {
 			  player.world, elytra, stack);
 			if (upgrades.size() == 0)
 				return false;
-			if (AerobaticElytraLogic.isAbstractClientPlayerEntity(player))
+			/*if (!player.world.isRemote)
+				return false;
+			return player instanceof AbstractClientPlayerEntity;*/
+			if (player.world.isRemote)
 				new UpgradeRecipePacket(player, upgrades).send();
 			return true;
 		}

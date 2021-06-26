@@ -3,6 +3,7 @@ package dnj.aerobatic_elytra.server;
 import dnj.aerobatic_elytra.AerobaticElytra;
 import dnj.aerobatic_elytra.common.AerobaticElytraLogic;
 import dnj.aerobatic_elytra.common.config.Config;
+import dnj.aerobatic_elytra.common.flight.AerobaticFlight;
 import dnj.flight_core.events.DisableElytraCheckEvent;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -14,6 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static dnj.aerobatic_elytra.common.flight.AerobaticFlight.isAerobaticFlying;
 import static dnj.endor8util.util.TextUtil.ttc;
 
 /**
@@ -45,7 +47,7 @@ public class KickHandler {
 		// Disabled by other mod
 		if (event.getDisable())
 			return;
-		if (AerobaticElytraLogic.shouldAerobaticFly(event.player)) {
+		if (isAerobaticFlying(event.player)) {
 			if (Config.disable_aerobatic_elytra_movement_check
 			    || event.excess <= event.stackedPackets * Config.aerobatic_elytra_movement_check) {
 				event.setDisable(true);

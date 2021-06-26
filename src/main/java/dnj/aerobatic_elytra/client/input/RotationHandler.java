@@ -6,6 +6,7 @@ import dnj.aerobatic_elytra.common.AerobaticElytraLogic;
 import dnj.aerobatic_elytra.common.capability.IAerobaticData;
 import dnj.aerobatic_elytra.common.config.Config;
 import dnj.aerobatic_elytra.common.config.Const;
+import dnj.aerobatic_elytra.common.flight.AerobaticFlight;
 import dnj.aerobatic_elytra.common.flight.AerobaticFlight.VectorBase;
 import dnj.flight_core.events.PlayerEntityRotateEvent;
 import net.minecraft.client.GameSettings;
@@ -19,6 +20,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import static dnj.aerobatic_elytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
+import static dnj.aerobatic_elytra.common.flight.AerobaticFlight.isAerobaticFlying;
 import static java.lang.Math.abs;
 import static java.lang.String.format;
 import static dnj.endor8util.math.Interpolator.clampedLerp;
@@ -43,7 +45,7 @@ public class RotationHandler {
 	@SubscribeEvent
 	public static void onPlayerEntityRotateEvent(PlayerEntityRotateEvent event) {
 		PlayerEntity player = event.player;
-		if (AerobaticElytraLogic.shouldAerobaticFly(player)) {
+		if (isAerobaticFlying(player)) {
 			flying = true;
 			event.setCanceled(true); // Prevent default rotation
 			if (player.isInWater())

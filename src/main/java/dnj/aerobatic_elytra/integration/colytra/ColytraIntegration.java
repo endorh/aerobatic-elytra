@@ -30,9 +30,8 @@ public class ColytraIntegration {
 		CompoundNBT colytraTag = chest.getChildTag("colytra:ElytraUpgrade");
 		if (colytraTag != null) {
 			ItemStack elytra = ItemStack.read(colytraTag);
-			if (elytra.getItem() instanceof AerobaticElytraItem) {
+			if (elytra.getItem() instanceof AerobaticElytraItem)
 				return elytra;
-			}
 		}
 		return ItemStack.EMPTY;
 	}
@@ -53,13 +52,14 @@ public class ColytraIntegration {
 		ItemStack elytra = getColytraSubItem(chest);
 		if (elytra.isEmpty())
 			return;
+		assert elytra.getItem() instanceof AerobaticElytraItem;
 		
 		ModifiableAttributeInstance flightAttribute = player
 		  .getAttribute(CaelusApi.ELYTRA_FLIGHT.get());
 		
 		assert flightAttribute != null;
 		flightAttribute.removeModifier(COLYTRA_CAELUS_FLIGHT_MODIFIER);
-		if (AerobaticElytraLogic.canFallFly(elytra, player))
+		if (elytra.getItem().canElytraFly(elytra, player))
 			flightAttribute.applyNonPersistentModifier(COLYTRA_CAELUS_FLIGHT_MODIFIER);
 	}
 }

@@ -4,6 +4,7 @@ import dnj.aerobatic_elytra.common.AerobaticElytraLogic;
 import dnj.aerobatic_elytra.common.block.BrokenLeavesBlock;
 import dnj.aerobatic_elytra.common.block.ModBlocks;
 import dnj.aerobatic_elytra.common.capability.IAerobaticData;
+import dnj.aerobatic_elytra.common.flight.AerobaticFlight;
 import dnj.aerobatic_elytra.common.flight.AerobaticFlight.VectorBase;
 import dnj.aerobatic_elytra.common.item.ElytraDyementReader.WingSide;
 import dnj.aerobatic_elytra.common.capability.ElytraSpecCapability;
@@ -35,6 +36,7 @@ import java.util.List;
 import static dnj.aerobatic_elytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
 import static dnj.aerobatic_elytra.common.capability.ElytraSpecCapability.getElytraSpec;
 import static dnj.aerobatic_elytra.common.capability.ElytraSpecCapability.getElytraSpecOrDefault;
+import static dnj.aerobatic_elytra.common.flight.AerobaticFlight.isAerobaticFlying;
 import static dnj.endor8util.util.TextUtil.stc;
 
 public class AerobaticElytraWingItem extends Item implements IDyeableArmorItem {
@@ -98,8 +100,8 @@ public class AerobaticElytraWingItem extends Item implements IDyeableArmorItem {
 	public @NotNull ActionResult<ItemStack> onItemRightClick(
 	  @NotNull World world, @NotNull PlayerEntity player, @NotNull Hand hand
 	) {
-		if (AerobaticElytraLogic.shouldAerobaticFly(player) && hasDebugWing(player)) {
-			IAerobaticData data = getAerobaticDataOrDefault(player);
+		IAerobaticData data = getAerobaticDataOrDefault(player);
+		if (data.isFlying() && hasDebugWing(player)) {
 			if (player.isSneaking()) {
 				data.setTiltPitch(0F);
 				data.setTiltRoll(0F);
