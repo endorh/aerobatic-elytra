@@ -3,6 +3,7 @@ package dnj.aerobatic_elytra.common.item;
 import com.google.gson.*;
 import dnj.endor8util.util.LogUtil;
 import dnj.endor8util.util.ObfuscationReflectionUtil;
+import dnj.endor8util.util.ObfuscationReflectionUtil.SoftField;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.loot.LootContext;
@@ -20,7 +21,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -43,10 +43,16 @@ public interface IEffectAbility extends IDatapackAbility {
 	class EffectAbility implements IEffectAbility {
 		private static final String REFLECTION_ERROR_MESSAGE = "Aerobatic Elytra Effect Abilities (if provided by datapacks) may not apply correctly";
 		private static final Logger LOGGER = LogManager.getLogger();
-		private static final Field EffectInstance$duration = ObfuscationReflectionUtil.getFieldOrLog(
-		  EffectInstance.class, "field_76460_b", "duration", LOGGER::error, REFLECTION_ERROR_MESSAGE);
-		private static final Field EffectInstance$hiddenEffects = ObfuscationReflectionUtil.getFieldOrLog(
-		  EffectInstance.class, "field_230115_j_", "hiddenEffects", LOGGER::error, REFLECTION_ERROR_MESSAGE);
+		
+		private static final SoftField<EffectInstance, Integer> EffectInstance$duration =
+		  ObfuscationReflectionUtil.getSoftField(
+		    EffectInstance.class, "field_76460_b", "duration",
+		    LOGGER::error, REFLECTION_ERROR_MESSAGE);
+		
+		private static final SoftField<EffectInstance, EffectInstance> EffectInstance$hiddenEffects =
+		  ObfuscationReflectionUtil.getSoftField(
+		    EffectInstance.class, "field_230115_j_", "hiddenEffects",
+		    LOGGER::error, REFLECTION_ERROR_MESSAGE);
 		
 		public final String jsonName;
 		public final TextFormatting color;
@@ -73,41 +79,6 @@ public interface IEffectAbility extends IDatapackAbility {
 			this.translationKey = "aerobatic-elytra.effect-abilities." + fullName().replace(':', '.');
 		}
 		
-		private static void EffectInstance$setDuration(EffectInstance target, @SuppressWarnings("SameParameterValue") int value) {
-			if (EffectInstance$duration == null) {
-				LogUtil.errorOnce(LOGGER, "Failed attempt to change effect duration\n" + REFLECTION_ERROR_MESSAGE);
-			} else try {
-				EffectInstance$duration.set(target, value);
-			} catch (IllegalAccessException | ClassCastException e) {
-				if (LogUtil.errorOnce(LOGGER, "Failed attempt to change effect duration\n" + REFLECTION_ERROR_MESSAGE))
-					e.printStackTrace();
-			}
-		}
-		
-		private static @Nullable EffectInstance EffectInstance$getHiddenEffects(EffectInstance target) {
-			if (EffectInstance$hiddenEffects == null) {
-				LogUtil.errorOnce(LOGGER, "Failed attempt to get hidden effects\n" + REFLECTION_ERROR_MESSAGE);
-				return null;
-			} else try {
-				return (EffectInstance) EffectInstance$hiddenEffects.get(target);
-			} catch (IllegalAccessException | ClassCastException e) {
-				if (LogUtil.errorOnce(LOGGER, "Failed attempt to get hidden effects\n" + REFLECTION_ERROR_MESSAGE))
-					e.printStackTrace();
-				return null;
-			}
-		}
-		
-		private static void EffectInstance$setHiddenEffects(EffectInstance target, EffectInstance value) {
-			if (EffectInstance$hiddenEffects == null) {
-				LogUtil.errorOnce(LOGGER, "Failed attempt to set hidden effects\n" + REFLECTION_ERROR_MESSAGE);
-			} else try {
-				EffectInstance$hiddenEffects.set(target, value);
-			} catch (IllegalAccessException | ClassCastException e) {
-				if (LogUtil.errorOnce(LOGGER, "Failed attempt to set hidden effects\n" + REFLECTION_ERROR_MESSAGE))
-					e.printStackTrace();
-			}
-		}
-		
 		@Override public boolean testConditions(LootContext context) {
 			return condition.test(context);
 		}
@@ -123,13 +94,13 @@ public interface IEffectAbility extends IDatapackAbility {
 				if (active != null) {
 					if (level <= active.getAmplifier()) {
 						if (active.getDuration() > Integer.MAX_VALUE / 2) // Assume it's our effect
-							EffectInstance$setDuration(active, Integer.MAX_VALUE);
+							EffectInstance$duration.set(active, Integer.MAX_VALUE);
 						return;
 					}
 					final EffectInstance instance = new EffectInstance(effect, 0, level, true, false, false);
 					instance.setPotionDurationMax(true);
 					player.addPotionEffect(instance); // This updates `active` with `instance`s values and queues a copy of `active` in its hiddenEffects values, thus, the next line
-					EffectInstance$setDuration(active, Integer.MAX_VALUE);
+					EffectInstance$duration.set(active, Integer.MAX_VALUE);
 				} else {
 					final EffectInstance instance = new EffectInstance(effect, Integer.MAX_VALUE, level, true, false, false);
 					instance.setPotionDurationMax(true);
@@ -145,20 +116,20 @@ public interface IEffectAbility extends IDatapackAbility {
 				if (instance.getAmplifier() == effects.get(effect)
 				    && instance.getDuration() > Integer.MAX_VALUE / 2
 				    && instance.isAmbient() && !instance.doesShowParticles()) { // && instance.getIsPotionDurationMax()) {
-					EffectInstance$setDuration(instance, 1);
+					EffectInstance$duration.set(instance, 1);
 					continue;
 				}
 				EffectInstance prev;
-				for (int i = 0xFF; i >= 0; i--) { // I can't sleep well leaving this uncapped
+				for (int i = 0xFF; i >= 0; i--) { // I can't sleep leaving this uncapped
 					prev = instance;
-					instance = EffectInstance$getHiddenEffects(prev);
+					instance = EffectInstance$hiddenEffects.get(prev);
 					if (instance == null)
 						continue effects;
 					if (instance.getAmplifier() == effects.get(effect)
 					    && instance.getDuration() > Integer.MAX_VALUE / 2
 					    && instance.isAmbient() && !instance.doesShowParticles()) { // && instance.getIsPotionDurationMax()) {
 						// Remove instance from the linked array
-						EffectInstance$setHiddenEffects(prev, EffectInstance$getHiddenEffects(instance));
+						EffectInstance$hiddenEffects.set(prev, EffectInstance$hiddenEffects.get(instance));
 						continue effects;
 					}
 				}

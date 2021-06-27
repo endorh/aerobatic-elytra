@@ -1,12 +1,13 @@
 package dnj.aerobatic_elytra.client.sound;
 
 import dnj.aerobatic_elytra.AerobaticElytra;
-import dnj.aerobatic_elytra.common.AerobaticElytraLogic;
 import dnj.aerobatic_elytra.common.capability.IAerobaticData;
 import dnj.aerobatic_elytra.common.config.Config;
 import dnj.aerobatic_elytra.common.flight.mode.FlightModeTags;
 import dnj.endor8util.util.LogUtil;
 import dnj.endor8util.util.ObfuscationReflectionUtil;
+import dnj.endor8util.util.ObfuscationReflectionUtil.SoftField;
+import dnj.endor8util.util.ObfuscationReflectionUtil.SoftMethod;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.ElytraSound;
 import net.minecraft.client.audio.ISound;
@@ -24,11 +25,9 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
+import static dnj.aerobatic_elytra.common.AerobaticElytraLogic.hasAerobaticElytra;
 import static dnj.aerobatic_elytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
+import static dnj.endor8util.util.LogUtil.oneTimeLogger;
 import static java.lang.Math.*;
 import static net.minecraft.util.math.MathHelper.clamp;
 import static net.minecraft.util.math.MathHelper.clampedLerp;
@@ -46,22 +45,17 @@ public class AerobaticElytraSound extends FadingTickableSound {
 	
 	private static final SoundCategory CATEGORY = SoundCategory.PLAYERS;
 	
-	private static final Field elytraSound$player;
-	private static final Method tickableSound$finishPlaying;
-	
 	private static final String REFLECTION_ERROR_MESSAGE =
 	  "Aerobatic Elytra sound may not play properly";
+	private static final SoftField<ElytraSound, PlayerEntity> elytraSound$player =
+	  ObfuscationReflectionUtil.getSoftField(
+		 ElytraSound.class, "field_189405_m", "player",
+		 oneTimeLogger(LOGGER::error), REFLECTION_ERROR_MESSAGE);
 	
-	static {
-		elytraSound$player = ObfuscationReflectionUtil.getFieldOrLog(
-		  ElytraSound.class, "field_189405_m", "player",
-		  LOGGER::error, REFLECTION_ERROR_MESSAGE
-		);
-		tickableSound$finishPlaying = ObfuscationReflectionUtil.getMethodOrLog(
-		  TickableSound.class, "func_239509_o_", "finishPlaying",
-		  LOGGER::error, REFLECTION_ERROR_MESSAGE
-		);
-	}
+	private static final SoftMethod<TickableSound, Void> tickableSound$finishPlaying =
+	  ObfuscationReflectionUtil.getSoftMethod(
+	    TickableSound.class, "func_239509_o_", "finishPlaying",
+	    oneTimeLogger(LOGGER::error), REFLECTION_ERROR_MESSAGE);
 	
 	protected float brakeVolume = 0F;
 	protected float brakePitch = 0F;
@@ -125,18 +119,11 @@ public class AerobaticElytraSound extends FadingTickableSound {
 	@Override protected void onStart() {
 		ElytraSound elytraSound = aerobaticData.getElytraSound();
 		if (elytraSound != null && !elytraSound.isDonePlaying()) {
-			try {
-				tickableSound$finishPlaying.invoke(elytraSound);
+			if (tickableSound$finishPlaying.testInvoke(elytraSound)) {
 				aerobaticData.setElytraSound(null);
 				brakeSound.play();
 				whistleSound.play();
-			} catch (IllegalAccessException | InvocationTargetException e) {
-				LogUtil.errorOnce(
-				  LOGGER,
-				  "Could not access method ElytraSound#func_239509_o_ " +
-				  "(MCP ElytraSound#finishPlaying): " + REFLECTION_ERROR_MESSAGE);
-				finishPlaying();
-			}
+			} else finishPlaying();
 		}
 	}
 	
@@ -150,7 +137,7 @@ public class AerobaticElytraSound extends FadingTickableSound {
 	}
 	
 	@Override public void tick(float fade_factor) {
-		if (AerobaticElytraLogic.hasAerobaticElytra(player)
+		if (hasAerobaticElytra(player)
 		    && flightData.getFlightMode().is(FlightModeTags.AEROBATIC)) {
 			if (player.isInWater()) {
 				aerobaticUnderwaterTick(fade_factor);
@@ -227,32 +214,22 @@ public class AerobaticElytraSound extends FadingTickableSound {
 	@SubscribeEvent
 	public static void onSoundEvent(PlaySoundEvent event) {
 		if (SoundEvents.ITEM_ELYTRA_FLYING.getName().toString().equals("minecraft:" + event.getName())) {
-//			LOGGER.debug("Replacing");
-			if (elytraSound$player == null)
-				return;
 			ISound sound = event.getSound();
 			if (!(sound instanceof ElytraSound)) {
-				LogUtil.errorOnce(LOGGER, "Non-ElytraSound elytra sound detected, aerobatic elytra " +
-				                          "sound will not play properly");
+				LogUtil.errorOnce(
+				  LOGGER, "Non-ElytraSound elytra sound detected, aerobatic elytra " +
+				          "sound may not play properly");
 				return;
 			}
-			ElytraSound elytraSound = (ElytraSound)sound;
-			try {
-				PlayerEntity player = (PlayerEntity) elytraSound$player.get(elytraSound);
-				if (AerobaticElytraLogic.hasAerobaticElytra(player)) {
+			final ElytraSound elytraSound = (ElytraSound)sound;
+			final PlayerEntity player = elytraSound$player.get(elytraSound);
+			if (player != null) {
+				getAerobaticDataOrDefault(player).setElytraSound(elytraSound);
+				if (hasAerobaticElytra(player)) {
 					event.setResultSound(null);
-					getAerobaticDataOrDefault(player).setElytraSound(elytraSound);
 					new AerobaticElytraSound(player).play();
-				} else {
-					IAerobaticData data = getAerobaticDataOrDefault(player);
-					data.setElytraSound(elytraSound);
 				}
-			} catch (IllegalAccessException e) {
-				LogUtil.errorOnce(LOGGER, "Unable to access field ElytraSound#field_189405_m " +
-				                          "(MCP ElytraSound#player), aerobatic elytra sound will not " +
-				                          "play properly");
 			}
 		}
 	}
-	
 }

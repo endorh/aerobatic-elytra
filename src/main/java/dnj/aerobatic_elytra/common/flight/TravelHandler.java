@@ -3,8 +3,8 @@ package dnj.aerobatic_elytra.common.flight;
 import dnj.aerobatic_elytra.AerobaticElytra;
 import dnj.aerobatic_elytra.common.flight.mode.IFlightMode;
 import dnj.aerobatic_elytra.common.registry.ModRegistries;
-import dnj.endor8util.util.LogUtil;
 import dnj.endor8util.util.ObfuscationReflectionUtil;
+import dnj.endor8util.util.ObfuscationReflectionUtil.SoftField;
 import dnj.flight_core.events.PlayerEntityTravelEvent;
 import dnj.flight_core.events.PlayerEntityTravelEvent.RemotePlayerEntityTravelEvent;
 import net.minecraft.entity.LivingEntity;
@@ -21,11 +21,11 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.lang.reflect.Field;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import static dnj.aerobatic_elytra.common.capability.FlightDataCapability.getFlightData;
+import static dnj.endor8util.util.LogUtil.oneTimeLogger;
 
 @EventBusSubscriber(modid = AerobaticElytra.MOD_ID)
 public class TravelHandler {
@@ -44,12 +44,12 @@ public class TravelHandler {
 	 * {@code private int ServerPlayNetHandler#floatingTickCount}<br>
 	 * Accessed by reflection
 	 */
-	public static final Field ServerPlayNetHandler$floatingTickCount =
-	  ObfuscationReflectionUtil.getFieldOrLog(
-		 ServerPlayNetHandler.class, "field_147365_f", "floatingTickCount",
-		 LOGGER::error, "Some flight modes may kick the players for flying");
-	private static final String RESET_FALLING_TICK_COUNT_REFLECTION_ERROR_MSG =
-	  "A flight mode tried to prevent a player from being kicked for flying, but reflection failed.";
+	public static final SoftField<ServerPlayNetHandler, Integer> ServerPlayNetHandler$floatingTickCount =
+	  ObfuscationReflectionUtil.getSoftField(
+	    ServerPlayNetHandler.class, "field_147365_f", "floatingTickCount",
+	    oneTimeLogger(LOGGER::error),
+	    "Some flight modes may kick players for flying",
+	    "A flight mode tried to prevent a player from being kicked for flying, but reflection failed.");
 	
 	/**
 	 * Event filter for the player travel tick<br>
@@ -131,17 +131,6 @@ public class TravelHandler {
 	 */
 	@SuppressWarnings("unused")
 	public static boolean resetFloatingTickCount(ServerPlayerEntity player) {
-		if (ServerPlayNetHandler$floatingTickCount == null) {
-			LogUtil.errorOnce(LOGGER, RESET_FALLING_TICK_COUNT_REFLECTION_ERROR_MSG);
-			return false;
-		}
-		try {
-			ServerPlayNetHandler$floatingTickCount.setInt(player.connection, 0);
-			return true;
-		} catch (IllegalAccessException e) {
-			if (LogUtil.errorOnce(LOGGER, RESET_FALLING_TICK_COUNT_REFLECTION_ERROR_MSG))
-				e.printStackTrace();
-			return false;
-		}
+		return ServerPlayNetHandler$floatingTickCount.set(player.connection, 0);
 	}
 }
