@@ -1,0 +1,416 @@
+package endorh.aerobatic_elytra.client.render.model;
+
+import com.google.common.collect.ImmutableList;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.IVertexBuilder;
+import endorh.aerobatic_elytra.client.render.layer.AerobaticRenderData;
+import endorh.aerobatic_elytra.common.capability.IFlightData;
+import endorh.aerobatic_elytra.common.item.ElytraDyementReader.WingSide;
+import endorh.util.math.Interpolator;
+import net.minecraft.client.entity.player.AbstractClientPlayerEntity;
+import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.renderer.ItemRenderer;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.model.ElytraModel;
+import net.minecraft.client.renderer.model.ModelRenderer;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+
+import static endorh.aerobatic_elytra.client.render.model.AerobaticElytraModelPose.ModelRotation.DEG_175;
+import static endorh.aerobatic_elytra.client.render.model.AerobaticElytraModelPose.ModelRotation.DEG_90;
+import static endorh.aerobatic_elytra.common.capability.FlightDataCapability.getFlightDataOrDefault;
+import static net.minecraft.util.math.MathHelper.abs;
+import static net.minecraft.util.math.MathHelper.lerp;
+
+/**
+ * AcrobaticElytraModel - Endor8
+ * <br>
+ * Designed with Tabula 8.0.0
+ * <br>
+ * Larger Elytra model, with rotating ailerons and wing tips, and
+ * a rocket under each wing
+ */
+@OnlyIn(Dist.CLIENT)
+public class AerobaticElytraModel<T extends LivingEntity> extends ElytraModel<T> {
+    public final ModelRenderer leftWing;
+    public final ModelRenderer rightWing;
+    public final ModelRenderer leftTip;
+    public final ModelRenderer leftPitch;
+    public final ModelRenderer leftRoll;
+    public final ModelRenderer rightTip;
+    public final ModelRenderer rightPitch;
+    public final ModelRenderer rightRoll;
+    
+    public RocketsModel<T> rocketsModel;
+    
+    private List<ModelRenderer> reportedBodyParts;
+    
+    private final List<ModelRenderer> leftWingList;
+    private final List<ModelRenderer> rightWingList;
+    private final List<ModelRenderer> bothWingsList;
+    
+    private static final float DEG_180 = (float)Math.PI;
+    public static final float DEFAULT_ANIMATION_LENGTH = 10F;
+    
+    /**
+     * Build model
+     */
+    public AerobaticElytraModel() {
+        textureWidth = 64;
+        textureHeight = 32;
+        
+        leftWing = new ModelRenderer(this, 22, 0);
+        leftWing.setRotationPoint(0F, 0F, 0F);
+        leftWing.addBox(-10F, 0F, 0F, 10F, 20F, 2F, 1F, 1F, 1F);
+        
+        leftTip = new ModelRenderer(this, 0, 0);
+        leftTip.setRotationPoint(-11F, 21F, 3F);
+        leftTip.setTextureOffset(24, 22).addBox(1F, 1F, -1.5F, 10F, 8F, 1F, 1F, 1F, 0.5F);
+        setRotateAngle(leftTip, -DEG_180, 0F, 0F);
+        leftRoll = new ModelRenderer(this, 0, 0);
+        leftRoll.setRotationPoint(0F, 0F, 0F);
+        leftRoll.setTextureOffset(46, 22).addBox(-3.5F, 1F, -1.5F, 3F, 8F, 1F, 0.5F, 1F, 0.5F);
+        setRotateAngle(leftRoll, 0F, -DEG_180, 0F);
+        leftPitch = new ModelRenderer(this, 0, 0);
+        leftPitch.setRotationPoint(-11F, 21F, 3F);
+        leftPitch.setTextureOffset(46, 6).addBox(-3.5F, -15.75F, -1.5F, 3F, 15F, 1F, 0.5F, 0.75F, 0.5F);
+        setRotateAngle(leftPitch, 0F, -DEG_180, 0F);
+        
+        
+        rightWing = new ModelRenderer(this, 22, 0);
+        rightWing.mirror = true;
+        rightWing.setRotationPoint(0F, 0F, 0F);
+        rightWing.addBox(0F, 0F, 0F, 10F, 20F, 2F, 1F, 1F, 1F);
+        
+        rightTip = new ModelRenderer(this, 0, 0);
+        rightTip.mirror = true;
+        rightTip.setRotationPoint(11F, 21F, 3F);
+        rightTip.setTextureOffset(24, 22).addBox(-11F, 1F, -1.5F, 10F, 8F, 1F, 1F, 1F, 0.5F);
+        setRotateAngle(rightTip, -DEG_180, 0F, 0F);
+        rightRoll = new ModelRenderer(this, 0, 0);
+        rightRoll.mirror = true;
+        rightRoll.setRotationPoint(0F, 0F, 0F);
+        rightRoll.setTextureOffset(46, 22).addBox(0.5F, 1F, -1.5F, 3F, 8F, 1F, 0.5F, 1F, 0.5F);
+        setRotateAngle(rightRoll, 0F, DEG_180, 0F);
+        rightPitch = new ModelRenderer(this, 0, 0);
+        rightPitch.mirror = true;
+        rightPitch.setRotationPoint(11F, 21F, 3F);
+        rightPitch.setTextureOffset(46, 6).addBox(0.5F, -15.75F, -1.5F, 3F, 15F, 1F, 0.5F, 0.75F, 0.5F);
+        setRotateAngle(rightPitch, 0F, DEG_180, 0F);
+    
+        leftWing.addChild(this.leftTip);
+        leftTip.addChild(this.leftRoll);
+        leftWing.addChild(this.leftPitch);
+        rightWing.addChild(this.rightTip);
+        rightTip.addChild(this.rightRoll);
+        rightWing.addChild(this.rightPitch);
+        
+        leftTip.showModel = false;
+        leftPitch.showModel = false;
+        leftRoll.showModel = false;
+        rightTip.showModel = false;
+        rightPitch.showModel = false;
+        rightRoll.showModel = false;
+        
+        rocketsModel = new RocketsModel<>();
+    
+        leftWingList = ImmutableList.of(leftWing);
+        rightWingList = ImmutableList.of(rightWing);
+        reportedBodyParts = bothWingsList = ImmutableList.of(leftWing, rightWing);
+    }
+    
+    public void renderGlint(
+      MatrixStack mStack, IRenderTypeBuffer buffer, int packedLight,
+      int packedOverlay, ResourceLocation glintTexture,
+      float red, float green, float blue, float alpha
+    ) {
+        reportedBodyParts = bothWingsList;
+        IVertexBuilder glintBuilder = ItemRenderer.getEntityGlintVertexBuilder(
+          buffer, RenderType.getEntityNoOutline(glintTexture), false, true);
+        super.render(mStack, glintBuilder, packedLight, packedOverlay, red, green, blue, alpha);
+    }
+    
+    public void renderWing(
+      WingSide side, MatrixStack mStack, IVertexBuilder buffer, int packedLight,
+      int packedOverlay, float red, float green, float blue, float alpha
+    ) {
+        switch (side) {
+            case LEFT: reportedBodyParts = leftWingList; break;
+            case RIGHT: reportedBodyParts = rightWingList; break;
+            default: return;
+        }
+        super.render(mStack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
+    }
+    
+    @NotNull @Override
+    protected Iterable<ModelRenderer> getHeadParts() {
+        return ImmutableList.of();
+    }
+    
+    @NotNull @Override
+    protected Iterable<ModelRenderer> getBodyParts() {
+        return reportedBodyParts;
+    }
+    
+    @Override
+    public void setRotationAngles(
+      @NotNull T entity, float limbSwing, float limbSwingAmount,
+      float ageInTicks, float netHeadYaw, float headPitch
+    ) {
+        if (entity instanceof AbstractClientPlayerEntity) {
+            AbstractClientPlayerEntity player = (AbstractClientPlayerEntity) entity;
+            IFlightData fd = getFlightDataOrDefault(player);
+            IElytraPose newPose = fd.getFlightMode().getElytraPose(player);
+            AerobaticRenderData smoother = AerobaticRenderData.getAerobaticRenderData(player);
+            if (newPose == null) {
+                newPose = player.isElytraFlying()
+                          ? IElytraPose.FLYING_POSE
+                          : player.isCrouching()
+                            ? IElytraPose.CROUCHING_POSE
+                            : IElytraPose.STANDING_POSE;
+            }
+            final IElytraPose prevPose = smoother.pose;
+            if (ageInTicks - smoother.animationStart < 0F)
+                smoother.animationStart = 0F;
+            float t = (ageInTicks - smoother.animationStart) / smoother.animationLength;
+            if (smoother.updatePose(newPose)) {
+                final AerobaticElytraModelPose prev = prevPose.getNonNullPose(
+                  entity, limbSwing, limbSwingAmount, netHeadYaw, headPitch, ageInTicks);
+                if (t < 1)
+                    interpolate(Interpolator.quadOut(t), smoother.capturedPose, prev);
+                else update(prev);
+                captureSnapshot(smoother.capturedPose);
+                newPose.modifyPrevious(smoother.capturedPose);
+                smoother.animationStart = ageInTicks;
+                float temp = newPose.getFadeInTime();
+                if (Float.isNaN(temp)) {
+                    temp = prevPose.getFadeOutTime();
+                    if (Float.isNaN(temp))
+                        temp = DEFAULT_ANIMATION_LENGTH;
+                }
+                smoother.animationLength = temp;
+                t = 0F;
+            }
+            final AerobaticElytraModelPose targetPose = smoother.pose.getNonNullPose(
+              entity, limbSwing, limbSwingAmount, netHeadYaw, headPitch, ageInTicks);
+            if (t < 1)
+                interpolate(Interpolator.quadOut(t), smoother.capturedPose, targetPose);
+            else update(targetPose);
+            updateVisibility();
+        } else {
+            final AerobaticElytraModelPose pose = IElytraPose.STANDING_POSE.getNonNullPose(
+              entity, limbSwing, limbSwingAmount, netHeadYaw, headPitch, ageInTicks);
+            update(pose);
+            // TODO: Read Armor Stand pose from NBT ?
+            //       Normal elytra doesn't either, which is quite sad
+        }
+    }
+    
+    /**
+     * This is a helper function from Tabula to set the rotation of model parts
+     */
+    public static void setRotateAngle(ModelRenderer modelRenderer, float x, float y, float z) {
+        modelRenderer.rotateAngleX = x;
+        modelRenderer.rotateAngleY = y;
+        modelRenderer.rotateAngleZ = z;
+    }
+    
+    /**
+     * AcrobaticElytraModel.RocketsModel - Endor8
+     * <br>
+     * Designed with Tabula 8.0.0
+     * <br>
+     * Child model for {@link AerobaticElytraModel}
+     * which adds a pair on rockets on each wing.<br>
+     * It's not intended to be used on its own.
+     * {@code setRotationAngles} will not do anything.<br>
+     * Its angles are updated by the parent {@code AcrobaticElytraModel}
+     */
+    @OnlyIn(Dist.CLIENT)
+    public static class RocketsModel<T extends LivingEntity> extends ElytraModel<T> {
+        public ModelRenderer leftWing;
+        public ModelRenderer leftRocket;
+        public ModelRenderer rightWing;
+        public ModelRenderer rightRocket;
+    
+        private static final float DEG_5 = (float) (Math.PI / 36D);
+        private static final float DEG_15 = (float) (Math.PI / 12D);
+    
+        /**
+         * Build model
+         */
+        protected RocketsModel() {
+            textureWidth = 64;
+            textureHeight = 32;
+        
+            leftWing = new ModelRenderer(this, 0, 0);
+            leftWing.setRotationPoint(0F, 0F, 0F);
+        
+            leftRocket = new ModelRenderer(this, 0, 0);
+            leftRocket.setRotationPoint(-2.4F, 8.7F, 1.7F);
+            leftRocket.setTextureOffset(0, 0)
+              .addBox(-1.5F, -7.7F, -0.5F, 3F, 10F, 3F, -0.5F, -1.2F, -0.5F);
+            leftRocket.setTextureOffset(0, 13)
+              .addBox(-2.5F, -6F, -1.5F, 5F, 2F, 5F, -1F, -0.2F, -1F);
+            leftRocket.setTextureOffset(0, 13)
+              .addBox(-0.5F, -7.3F, 0.5F, 1F, 1F, 1F, -0.1F, -0.1F, -0.1F);
+            leftRocket.setTextureOffset(0, 15)
+              .addBox(-0.5F, 1F, 0.5F, 1F, 1F, 1F, -0.1F, -0.1F, -0.1F);
+            setRotateAngle(leftRocket, DEG_5, 0F, DEG_15);
+        
+            rightWing = new ModelRenderer(this, 0, 0);
+            rightWing.mirror = true;
+            rightWing.setRotationPoint(0F, 0F, 0F);
+        
+            rightRocket = new ModelRenderer(this, 0, 0);
+            rightRocket.setRotationPoint(2.4F, 8.7F, 1.7F);
+            rightRocket.setTextureOffset(0, 0)
+              .addBox(-1.5F, -7.7F, -0.5F, 3F, 10F, 3F, -0.5F, -1.2F, -0.5F);
+            rightRocket.setTextureOffset(0, 13)
+              .addBox(-2.5F, -6F, -1.5F, 5F, 2F, 5F, -1F, -0.2F, -1F);
+            rightRocket.setTextureOffset(0, 13)
+              .addBox(-0.5F, -7.3F, 0.5F, 1F, 1F, 1F, -0.1F, -0.1F, -0.1F);
+            rightRocket.setTextureOffset(0, 15)
+              .addBox(-0.5F, 1F, 0.5F, 1F, 1F, 1F, -0.1F, -0.1F, -0.1F);
+            setRotateAngle(rightRocket, DEG_5, 0F, -DEG_15);
+        
+            leftWing.addChild(this.leftRocket);
+            rightWing.addChild(this.rightRocket);
+        }
+    
+        @NotNull @Override protected Iterable<ModelRenderer> getHeadParts() {
+            return ImmutableList.of();
+        }
+    
+        @NotNull @Override protected Iterable<ModelRenderer> getBodyParts() {
+            return ImmutableList.of(this.leftWing, this.rightWing);
+        }
+    
+        public void copyAttributes(AerobaticElytraModel<T> elytraModel) {
+            elytraModel.copyModelAttributesTo(this);
+            leftWing.copyModelAngles(elytraModel.leftWing);
+            rightWing.copyModelAngles(elytraModel.rightWing);
+        }
+    
+        /**
+         * This is a helper function from Tabula to set the rotation of model parts
+         */
+        public static void setRotateAngle(ModelRenderer modelRenderer, float x, float y, float z) {
+            modelRenderer.rotateAngleX = x;
+            modelRenderer.rotateAngleY = y;
+            modelRenderer.rotateAngleZ = z;
+        }
+    }
+    
+    // Transformations to AerobaticElytraModelTargetPose
+    @SuppressWarnings("SuspiciousNameCombination")
+    public void captureSnapshot(final AerobaticElytraModelPose p) {
+        p.leftWing.x = leftWing.rotateAngleX;
+        p.leftWing.y = leftWing.rotateAngleY;
+        p.leftWing.z = leftWing.rotateAngleZ;
+        p.leftWing.origin.x = leftWing.rotationPointX;
+        p.leftWing.origin.y = leftWing.rotationPointY;
+        p.leftWing.origin.z = leftWing.rotationPointZ;
+        p.leftTip = leftTip.rotateAngleX;
+        p.leftRoll = leftRoll.rotateAngleY;
+        p.leftPitch = leftPitch.rotateAngleY;
+        p.leftRocket.x = rocketsModel.leftRocket.rotateAngleX;
+        p.leftRocket.y = rocketsModel.leftRocket.rotateAngleY;
+        p.leftRocket.z = rocketsModel.leftRocket.rotateAngleZ;
+        p.rightWing.x = rightWing.rotateAngleX;
+        p.rightWing.y = rightWing.rotateAngleY;
+        p.rightWing.z = rightWing.rotateAngleZ;
+        p.rightWing.origin.x = rightWing.rotationPointX;
+        p.rightWing.origin.y = rightWing.rotationPointY;
+        p.rightWing.origin.z = rightWing.rotationPointZ;
+        p.rightTip = rightTip.rotateAngleX;
+        p.rightRoll = rightRoll.rotateAngleY;
+        p.rightPitch = rightPitch.rotateAngleY;
+        p.rightRocket.x = rocketsModel.rightRocket.rotateAngleX;
+        p.rightRocket.y = rocketsModel.rightRocket.rotateAngleY;
+        p.rightRocket.z = rocketsModel.rightRocket.rotateAngleZ;
+    }
+    
+    public void interpolate(
+      float t, AerobaticElytraModelPose pre, AerobaticElytraModelPose pos
+    ) {
+        leftWing.rotateAngleX = lerp(t, pre.leftWing.x, pos.leftWing.x);
+        leftWing.rotateAngleY = lerp(t, pre.leftWing.y, pos.leftWing.y);
+        leftWing.rotateAngleZ = lerp(t, pre.leftWing.z, pos.leftWing.z);
+        leftWing.rotationPointX = lerp(t, pre.leftWing.origin.x, pos.leftWing.origin.x);
+        leftWing.rotationPointY = lerp(t, pre.leftWing.origin.y, pos.leftWing.origin.y);
+        leftWing.rotationPointZ = lerp(t, pre.leftWing.origin.z, pos.leftWing.origin.z);
+        leftTip.rotateAngleX = lerp(t, pre.leftTip, pos.leftTip);
+        leftRoll.rotateAngleY = lerp(t, pre.leftRoll, pos.leftRoll);
+        leftPitch.rotateAngleY = lerp(t, pre.leftPitch, pos.leftPitch);
+        
+        rightWing.rotateAngleX = lerp(t, pre.rightWing.x, pos.rightWing.x);
+        rightWing.rotateAngleY = lerp(t, pre.rightWing.y, pos.rightWing.y);
+        rightWing.rotateAngleZ = lerp(t, pre.rightWing.z, pos.rightWing.z);
+        rightWing.rotationPointX = lerp(t, pre.rightWing.origin.x, pos.rightWing.origin.x);
+        rightWing.rotationPointY = lerp(t, pre.rightWing.origin.y, pos.rightWing.origin.y);
+        rightWing.rotationPointZ = lerp(t, pre.rightWing.origin.z, pos.rightWing.origin.z);
+        rightTip.rotateAngleX = lerp(t, pre.rightTip, pos.rightTip);
+        rightRoll.rotateAngleY = lerp(t, pre.rightRoll, pos.rightRoll);
+        rightPitch.rotateAngleY = lerp(t, pre.rightPitch, pos.rightPitch);
+    
+        rocketsModel.copyAttributes(this);
+        rocketsModel.leftRocket.rotateAngleX = lerp(t, pre.leftRocket.x, pos.leftRocket.x);
+        rocketsModel.leftRocket.rotateAngleY = lerp(t, pre.leftRocket.y, pos.leftRocket.y);
+        rocketsModel.leftRocket.rotateAngleZ = lerp(t, pre.leftRocket.z, pos.leftRocket.z);
+        rocketsModel.rightRocket.rotateAngleX = lerp(t, pre.rightRocket.x, pos.rightRocket.x);
+        rocketsModel.rightRocket.rotateAngleY = lerp(t, pre.rightRocket.y, pos.rightRocket.y);
+        rocketsModel.rightRocket.rotateAngleZ = lerp(t, pre.rightRocket.z, pos.rightRocket.z);
+    }
+    
+    @SuppressWarnings("SuspiciousNameCombination")
+    public void update(
+      AerobaticElytraModelPose pose
+    ) {
+        leftWing.rotateAngleX = pose.leftWing.x;
+        leftWing.rotateAngleY = pose.leftWing.y;
+        leftWing.rotateAngleZ = pose.leftWing.z;
+        leftWing.rotationPointX = pose.leftWing.origin.x;
+        leftWing.rotationPointY = pose.leftWing.origin.y;
+        leftWing.rotationPointZ = pose.leftWing.origin.z;
+        leftTip.rotateAngleX = pose.leftTip;
+        leftRoll.rotateAngleY = pose.leftRoll;
+        leftPitch.rotateAngleY = pose.leftPitch;
+        
+        rightWing.rotateAngleX = pose.rightWing.x;
+        rightWing.rotateAngleY = pose.rightWing.y;
+        rightWing.rotateAngleZ = pose.rightWing.z;
+        rightWing.rotationPointX = pose.rightWing.origin.x;
+        rightWing.rotationPointY = pose.rightWing.origin.y;
+        rightWing.rotationPointZ = pose.rightWing.origin.z;
+        rightTip.rotateAngleX = pose.rightTip;
+        rightRoll.rotateAngleY = pose.rightRoll;
+        rightPitch.rotateAngleY = pose.rightPitch;
+    
+        rocketsModel.copyAttributes(this);
+        rocketsModel.leftRocket.rotateAngleX = pose.leftRocket.x;
+        rocketsModel.leftRocket.rotateAngleY = pose.leftRocket.y;
+        rocketsModel.leftRocket.rotateAngleZ = pose.leftRocket.z;
+        rocketsModel.rightRocket.rotateAngleX = pose.rightRocket.x;
+        rocketsModel.rightRocket.rotateAngleY = pose.rightRocket.y;
+        rocketsModel.rightRocket.rotateAngleZ = pose.rightRocket.z;
+    }
+    
+    public void updateVisibility() {
+        leftPitch.showModel = abs(leftPitch.rotateAngleY) <= DEG_175;
+        rightPitch.showModel = abs(rightPitch.rotateAngleY) <= DEG_175;
+        leftRoll.showModel =
+          (abs(leftTip.rotateAngleX) <= DEG_90 || abs(leftRoll.rotateAngleY) <= DEG_90)
+          && abs(leftRoll.rotateAngleY) <= DEG_175;
+        rightRoll.showModel =
+          (abs(rightTip.rotateAngleX) <= DEG_90 || abs(rightRoll.rotateAngleY) <= DEG_90)
+          && abs(rightRoll.rotateAngleY) <= DEG_175;
+        leftTip.showModel = abs(leftTip.rotateAngleX) <= DEG_175;
+        rightTip.showModel = abs(rightTip.rotateAngleX) <= DEG_175;
+    }
+}

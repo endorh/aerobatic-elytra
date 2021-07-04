@@ -1,0 +1,6 @@
+{
+  "pack": {
+    "description": "Replaces the elytra found at end ships by an Aerobatic Elytra if far enough from the End center",
+    "pack_format": 6
+  }
+}

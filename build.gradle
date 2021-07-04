@@ -19,7 +19,6 @@ buildscript {
 
 // Plugins
 plugins {
-	// id 'java-library'
 	id 'java'
 	id 'maven-publish'
 }
@@ -31,15 +30,15 @@ import net.minecraftforge.gradle.common.task.SignJar
 // Mod info -----------------------------------------------------------------------
 
 def mod_id = "aerobatic-elytra"
-group = "dnj.aerobatic_elytra"
+group = "endorh.aerobatic_elytra"
 def group_slashed = project.group.replaceAll("\\.", "/"),
 	classname = "AerobaticElytra"
 
 // Attributes
 def display_name = "Aerobatic Elytra",
-	vendor = "DnJ",
+	vendor = "Endor H",
 	credits = "",
-	authors = "Endor8",
+	authors = "Endor H",
 	issue_tracker = "",
 	page = "",
 	update_json = "",
@@ -54,7 +53,7 @@ Other mods may register their own flight modes for the elytra.
 def license = "LGPL"
 
 // Versions
-version = "0.2.2"
+version = "0.2.4"
 
 // Dependencies
 def mc_version = "1.16.5",
@@ -62,10 +61,9 @@ def mc_version = "1.16.5",
 	forge_version = "${mc_version}-${forge}",
 	mixin_version = "0.8.2",
 	minimal_mixin_version = "0.7.10",
-	flight_core_version = "1.0.0",
-	cloth_config_api_version = "4.11.19",
-	simple_config_version = "0.1.+",
-	endor8_util_version = "0.1.+"
+	flight_core_version = "0.1.+",
+	simple_config_version = "0.2.+",
+	endorh_util_version = "0.2.+"
 
 // Integration
 def jei_version = "7.6.1.75",
@@ -79,7 +77,7 @@ def curious_elytra_version = "317716:3231248",
 	additional_banners_version = "230137:3170181",
 	tabula_version = "229092:3274999",
 	ichun_utils_version = "229060:3274982",
-	aerobatic_elytra_jetpack_version = "0.1.+"
+	aerobatic_elytra_jetpack_version = "0.2.+"
 
 // Jar attributes
 archivesBaseName = "${mod_id}-${mc_version}"
@@ -127,7 +125,7 @@ println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getPro
 
 java {
 	withSourcesJar()
-	withJavadocJar()
+	// withJavadocJar()
 }
 
 // Minecraft options --------------------------------------------------------------
@@ -228,21 +226,16 @@ dependencies {
 	// Mod dependencies
 	// Flight Core
 	// TODO: Replace with curse maven or GitHub maven once published
-	embed fg.deobf("dnj.flight_core:flight-core:${flight_core_version}")
-	runtimeOnly fg.deobf("dnj.flight_core:flight-core:${flight_core_version}")
+	embed fg.deobf("endorh.flight_core:flight-core:${flight_core_version}")
+	runtimeOnly fg.deobf("endorh.flight_core:flight-core:${flight_core_version}")
 
 	// Simple Config
-	embed fg.deobf("dnj.simple_config:simple-config:${simple_config_version}")
-	runtimeOnly fg.deobf("dnj.simple_config:simple-config:${simple_config_version}")
+	embed fg.deobf("endorh.simple_config:simple-config:${simple_config_version}")
+	runtimeOnly fg.deobf("endorh.simple_config:simple-config:${simple_config_version}")
 
 	// Endor8 Util
-	embed fg.deobf("dnj.endor8util:endor8util:${endor8_util_version}")
-	runtimeOnly fg.deobf("dnj.endor8util:endor8util:${endor8_util_version}")
-
-	// Cloth Config API
-	// TODO: Should be api, and use the java-library plugin
-	implementation fg.deobf("me.shedaniel.cloth:cloth-config-forge:${cloth_config_api_version}")
-	runtimeOnly fg.deobf("me.shedaniel.cloth:cloth-config-forge:${cloth_config_api_version}")
+	embed fg.deobf("endorh.util:endor-util:${endorh_util_version}")
+	runtimeOnly fg.deobf("endorh.util:endor-util:${endorh_util_version}")
 
 	// Mod integrations
 	// JEI
@@ -260,7 +253,7 @@ dependencies {
 	// Only for debug
 	// Aerobatic Elytra Jetpack
 	// TODO: Replace by curse maven, once uploaded
-	runtimeOnly fg.deobf("dnj.aerobatic_elytra_jetpack:aerobatic-elytra-jetpack:${aerobatic_elytra_jetpack_version}")
+	runtimeOnly fg.deobf("endorh.aerobatic_elytra.jetpack:aerobatic-elytra-jetpack:${aerobatic_elytra_jetpack_version}")
 
 	// Curious Elytra
 	runtimeOnly fg.deobf("curse.maven:curiouselytra-${curious_elytra_version}")
@@ -400,7 +393,7 @@ publishing {
 		mod(MavenPublication) {
 			artifact jar
 			artifact sourcesJar
-			artifact javadocJar
+			// artifact javadocJar
 			artifact deobfJar
 
 			pom {
