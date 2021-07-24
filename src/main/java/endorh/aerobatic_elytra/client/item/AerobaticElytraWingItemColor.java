@@ -1,9 +1,9 @@
 package endorh.aerobatic_elytra.client.item;
 
 import com.mojang.datafixers.util.Pair;
-import endorh.aerobatic_elytra.common.item.ElytraDyementReader;
-import endorh.aerobatic_elytra.common.item.ElytraDyementReader.WingDyement;
-import endorh.aerobatic_elytra.common.item.ElytraDyementReader.WingSide;
+import endorh.aerobatic_elytra.common.item.ElytraDyement;
+import endorh.aerobatic_elytra.common.item.ElytraDyement.WingDyement;
+import endorh.aerobatic_elytra.common.item.ElytraDyement.WingSide;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.color.IItemColor;
 import net.minecraft.item.DyeColor;
@@ -24,7 +24,7 @@ public class AerobaticElytraWingItemColor implements IItemColor {
 		  new AerobaticElytraWingItemColor(), item);
 	}
 	
-	private static final ElytraDyementReader dyement = new ElytraDyementReader();
+	private static final ElytraDyement dyement = new ElytraDyement();
 	
 	
 	

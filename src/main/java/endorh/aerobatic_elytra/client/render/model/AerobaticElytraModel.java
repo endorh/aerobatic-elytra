@@ -5,7 +5,7 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import endorh.aerobatic_elytra.client.render.layer.AerobaticRenderData;
 import endorh.aerobatic_elytra.common.capability.IFlightData;
-import endorh.aerobatic_elytra.common.item.ElytraDyementReader.WingSide;
+import endorh.aerobatic_elytra.common.item.ElytraDyement.WingSide;
 import endorh.util.math.Interpolator;
 import net.minecraft.client.entity.player.AbstractClientPlayerEntity;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
@@ -14,26 +14,29 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.model.ElytraModel;
 import net.minecraft.client.renderer.model.ModelRenderer;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.item.ArmorStandEntity;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.Rotations;
+import net.minecraft.util.math.vector.Vector3f;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import static endorh.aerobatic_elytra.client.render.model.AerobaticElytraModelPose.ModelRotation.DEG_175;
-import static endorh.aerobatic_elytra.client.render.model.AerobaticElytraModelPose.ModelRotation.DEG_90;
+import static endorh.aerobatic_elytra.client.render.model.AerobaticElytraModelPose.ModelRotation.*;
 import static endorh.aerobatic_elytra.common.capability.FlightDataCapability.getFlightDataOrDefault;
 import static net.minecraft.util.math.MathHelper.abs;
 import static net.minecraft.util.math.MathHelper.lerp;
 
 /**
- * AcrobaticElytraModel - Endor8
- * <br>
- * Designed with Tabula 8.0.0
- * <br>
+ * AcrobaticElytraModel - EndorH<br>
+ * Designed with the help of Tabula 8.0.0<br>
  * Larger Elytra model, with rotating ailerons and wing tips, and
- * a rocket under each wing
+ * a rocket under each wing<br>
+ * Uses a child {@link RocketsModel} to render rockets under the wings<br>
+ * Intended to be combined with {@link AerobaticElytraChestModel}, which also
+ * adds rockets to the player's back
  */
 @OnlyIn(Dist.CLIENT)
 public class AerobaticElytraModel<T extends LivingEntity> extends ElytraModel<T> {
@@ -45,62 +48,68 @@ public class AerobaticElytraModel<T extends LivingEntity> extends ElytraModel<T>
     public final ModelRenderer rightTip;
     public final ModelRenderer rightPitch;
     public final ModelRenderer rightRoll;
+    protected final ModelRenderer referenceBodyModel;
     
     public RocketsModel<T> rocketsModel;
     
-    private List<ModelRenderer> reportedBodyParts;
+    // The rendering is done in different phases
+    //   In order to not rewrite pointlessly super.render()
+    //   we simply call it several times reporting different
+    //   body parts each time
+    // This model has no head parts
+    protected List<ModelRenderer> reportedBodyParts;
     
-    private final List<ModelRenderer> leftWingList;
-    private final List<ModelRenderer> rightWingList;
-    private final List<ModelRenderer> bothWingsList;
+    protected final List<ModelRenderer> leftWingList;
+    protected final List<ModelRenderer> rightWingList;
+    protected final List<ModelRenderer> bothWingsList;
     
-    private static final float DEG_180 = (float)Math.PI;
+    protected static final float DEG_180 = (float)Math.PI;
     public static final float DEFAULT_ANIMATION_LENGTH = 10F;
     
     /**
      * Build model
      */
     public AerobaticElytraModel() {
-        textureWidth = 64;
-        textureHeight = 32;
+        textureWidth = 128;
+        textureHeight = 64;
         
-        leftWing = new ModelRenderer(this, 22, 0);
+        leftWing = new ModelRenderer(this, 44, 0);
         leftWing.setRotationPoint(0F, 0F, 0F);
-        leftWing.addBox(-10F, 0F, 0F, 10F, 20F, 2F, 1F, 1F, 1F);
+        leftWing.addBox(-15F, -10F, -1F, 20F, 40F, 4F, -4F, -9F, 0F);
         
         leftTip = new ModelRenderer(this, 0, 0);
         leftTip.setRotationPoint(-11F, 21F, 3F);
-        leftTip.setTextureOffset(24, 22).addBox(1F, 1F, -1.5F, 10F, 8F, 1F, 1F, 1F, 0.5F);
+        leftTip.setTextureOffset(48, 44).addBox(-4F, -3F, -2F, 20F, 16F, 2F, -4F, -3F, 0F);
         setRotateAngle(leftTip, -DEG_180, 0F, 0F);
         leftRoll = new ModelRenderer(this, 0, 0);
         leftRoll.setRotationPoint(0F, 0F, 0F);
-        leftRoll.setTextureOffset(46, 22).addBox(-3.5F, 1F, -1.5F, 3F, 8F, 1F, 0.5F, 1F, 0.5F);
+        leftRoll.setTextureOffset(92, 44).addBox(-5F, -3F, -2F, 6F, 16F, 2F, -1F, -3F, 0F);
         setRotateAngle(leftRoll, 0F, -DEG_180, 0F);
         leftPitch = new ModelRenderer(this, 0, 0);
         leftPitch.setRotationPoint(-11F, 21F, 3F);
-        leftPitch.setTextureOffset(46, 6).addBox(-3.5F, -15.75F, -1.5F, 3F, 15F, 1F, 0.5F, 0.75F, 0.5F);
+        leftPitch.setTextureOffset(92, 12).addBox(-5F, -23.25F, -2F, 6F, 30F, 2F, -1F, -6.75F, 0F);
         setRotateAngle(leftPitch, 0F, -DEG_180, 0F);
         
         
-        rightWing = new ModelRenderer(this, 22, 0);
+        rightWing = new ModelRenderer(this, 44, 0);
         rightWing.mirror = true;
         rightWing.setRotationPoint(0F, 0F, 0F);
-        rightWing.addBox(0F, 0F, 0F, 10F, 20F, 2F, 1F, 1F, 1F);
+        rightWing.addBox(-5F, -10F, -1F, 20F, 40F, 4F, -4F, -9F, 0F);
         
         rightTip = new ModelRenderer(this, 0, 0);
         rightTip.mirror = true;
         rightTip.setRotationPoint(11F, 21F, 3F);
-        rightTip.setTextureOffset(24, 22).addBox(-11F, 1F, -1.5F, 10F, 8F, 1F, 1F, 1F, 0.5F);
+        rightTip.setTextureOffset(48, 44).addBox(-16F, -3F, -2F, 20F, 16F, 2F, -4F, -3F, 0F);
         setRotateAngle(rightTip, -DEG_180, 0F, 0F);
         rightRoll = new ModelRenderer(this, 0, 0);
         rightRoll.mirror = true;
         rightRoll.setRotationPoint(0F, 0F, 0F);
-        rightRoll.setTextureOffset(46, 22).addBox(0.5F, 1F, -1.5F, 3F, 8F, 1F, 0.5F, 1F, 0.5F);
+        rightRoll.setTextureOffset(92, 44).addBox(-1F, -3F, -2F, 6F, 16F, 2F, -1F, -3F, 0F);
         setRotateAngle(rightRoll, 0F, DEG_180, 0F);
         rightPitch = new ModelRenderer(this, 0, 0);
         rightPitch.mirror = true;
         rightPitch.setRotationPoint(11F, 21F, 3F);
-        rightPitch.setTextureOffset(46, 6).addBox(0.5F, -15.75F, -1.5F, 3F, 15F, 1F, 0.5F, 0.75F, 0.5F);
+        rightPitch.setTextureOffset(92, 12).addBox(-1F, -23.25F, -2F, 6F, 30F, 2F, -1F, -6.75F, 0F);
         setRotateAngle(rightPitch, 0F, DEG_180, 0F);
     
         leftWing.addChild(this.leftTip);
@@ -117,11 +126,13 @@ public class AerobaticElytraModel<T extends LivingEntity> extends ElytraModel<T>
         rightPitch.showModel = false;
         rightRoll.showModel = false;
         
-        rocketsModel = new RocketsModel<>();
+        rocketsModel = new RocketsModel<>(this);
     
         leftWingList = ImmutableList.of(leftWing);
         rightWingList = ImmutableList.of(rightWing);
         reportedBodyParts = bothWingsList = ImmutableList.of(leftWing, rightWing);
+        
+        referenceBodyModel = new ModelRenderer(this, 0, 0);
     }
     
     public void renderGlint(
@@ -132,7 +143,7 @@ public class AerobaticElytraModel<T extends LivingEntity> extends ElytraModel<T>
         reportedBodyParts = bothWingsList;
         IVertexBuilder glintBuilder = ItemRenderer.getEntityGlintVertexBuilder(
           buffer, RenderType.getEntityNoOutline(glintTexture), false, true);
-        super.render(mStack, glintBuilder, packedLight, packedOverlay, red, green, blue, alpha);
+        doRender(mStack, glintBuilder, packedLight, packedOverlay, red, green, blue, alpha);
     }
     
     public void renderWing(
@@ -144,7 +155,28 @@ public class AerobaticElytraModel<T extends LivingEntity> extends ElytraModel<T>
             case RIGHT: reportedBodyParts = rightWingList; break;
             default: return;
         }
-        super.render(mStack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
+        doRender(mStack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
+    }
+    
+    protected void doRender(
+      MatrixStack mStack, IVertexBuilder buffer, int packedLight, int packedOverlay,
+      float red, float green, float blue, float alpha
+    ) {
+        mStack.push(); {
+            prepareRender(mStack);
+            // Extra translation added by the ElytraLayer, instead applied here
+            mStack.translate(0.0D, 0.0D, 0.125D);
+            super.render(mStack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
+        } mStack.pop();
+    }
+    
+    protected void prepareRender(MatrixStack mStack) {
+        if (referenceBodyModel.rotateAngleZ != 0.0F)
+            mStack.rotate(Vector3f.ZP.rotation(referenceBodyModel.rotateAngleZ));
+        if (referenceBodyModel.rotateAngleY != 0.0F)
+            mStack.rotate(Vector3f.YP.rotation(referenceBodyModel.rotateAngleY));
+        if (referenceBodyModel.rotateAngleX != 0.0F)
+            mStack.rotate(Vector3f.XP.rotation(referenceBodyModel.rotateAngleX));
     }
     
     @NotNull @Override
@@ -202,12 +234,31 @@ public class AerobaticElytraModel<T extends LivingEntity> extends ElytraModel<T>
                 interpolate(Interpolator.quadOut(t), smoother.capturedPose, targetPose);
             else update(targetPose);
             updateVisibility();
+            
+            setRotateAngle(referenceBodyModel, 0F, 0F, 0F);
         } else {
-            final AerobaticElytraModelPose pose = IElytraPose.STANDING_POSE.getNonNullPose(
-              entity, limbSwing, limbSwingAmount, netHeadYaw, headPitch, ageInTicks);
-            update(pose);
-            // TODO: Read Armor Stand pose from NBT ?
-            //       Normal elytra doesn't either, which is quite sad
+            AerobaticElytraModelPose pose;
+            if (entity instanceof ArmorStandEntity) {
+                final Rotations leftLegRotation = ((ArmorStandEntity) entity).getLeftLegRotation();
+                final Rotations rightLegRotation = ((ArmorStandEntity) entity).getRightLegRotation();
+                IElytraPose p = leftLegRotation.getX() >= 30F
+                                ? IElytraPose.FLYING_POSE
+                                : rightLegRotation.getX() >= 30F
+                                  ? IElytraPose.CROUCHING_POSE
+                                  : IElytraPose.STANDING_POSE;
+                pose = p.getNonNullPose(
+                  entity, limbSwing, limbSwingAmount, netHeadYaw, headPitch, ageInTicks);
+                Rotations bodyRotation = ((ArmorStandEntity) entity).getBodyRotation();
+                setRotateAngle(
+                  referenceBodyModel, bodyRotation.getX() * TO_RAD,
+                  bodyRotation.getY() * TO_RAD, bodyRotation.getZ() * TO_RAD);
+                update(pose);
+                updateVisibility();
+            } else {
+                pose = IElytraPose.STANDING_POSE.getNonNullPose(
+                  entity, limbSwing, limbSwingAmount, netHeadYaw, headPitch, ageInTicks);
+                update(pose);
+            }
         }
     }
     
@@ -221,14 +272,12 @@ public class AerobaticElytraModel<T extends LivingEntity> extends ElytraModel<T>
     }
     
     /**
-     * AcrobaticElytraModel.RocketsModel - Endor8
-     * <br>
-     * Designed with Tabula 8.0.0
-     * <br>
+     * AcrobaticElytraModel.RocketsModel - EndorH<br>
+     * Designed with the help of Tabula 8.0.0<br>
      * Child model for {@link AerobaticElytraModel}
      * which adds a pair on rockets on each wing.<br>
      * It's not intended to be used on its own.
-     * {@code setRotationAngles} will not do anything.<br>
+     * {@code setRotationAngles} won't do anything.<br>
      * Its angles are updated by the parent {@code AcrobaticElytraModel}
      */
     @OnlyIn(Dist.CLIENT)
@@ -237,6 +286,7 @@ public class AerobaticElytraModel<T extends LivingEntity> extends ElytraModel<T>
         public ModelRenderer leftRocket;
         public ModelRenderer rightWing;
         public ModelRenderer rightRocket;
+        public AerobaticElytraModel<T> parent;
     
         private static final float DEG_5 = (float) (Math.PI / 36D);
         private static final float DEG_15 = (float) (Math.PI / 12D);
@@ -244,9 +294,10 @@ public class AerobaticElytraModel<T extends LivingEntity> extends ElytraModel<T>
         /**
          * Build model
          */
-        protected RocketsModel() {
-            textureWidth = 64;
-            textureHeight = 32;
+        protected RocketsModel(AerobaticElytraModel<T> parent) {
+            this.parent = parent;
+            textureWidth = 128;
+            textureHeight = 64;
         
             leftWing = new ModelRenderer(this, 0, 0);
             leftWing.setRotationPoint(0F, 0F, 0F);
@@ -269,13 +320,13 @@ public class AerobaticElytraModel<T extends LivingEntity> extends ElytraModel<T>
         
             rightRocket = new ModelRenderer(this, 0, 0);
             rightRocket.setRotationPoint(2.4F, 8.7F, 1.7F);
-            rightRocket.setTextureOffset(0, 0)
+            rightRocket.setTextureOffset(20, 0)
               .addBox(-1.5F, -7.7F, -0.5F, 3F, 10F, 3F, -0.5F, -1.2F, -0.5F);
-            rightRocket.setTextureOffset(0, 13)
+            rightRocket.setTextureOffset(20, 13)
               .addBox(-2.5F, -6F, -1.5F, 5F, 2F, 5F, -1F, -0.2F, -1F);
-            rightRocket.setTextureOffset(0, 13)
+            rightRocket.setTextureOffset(20, 13)
               .addBox(-0.5F, -7.3F, 0.5F, 1F, 1F, 1F, -0.1F, -0.1F, -0.1F);
-            rightRocket.setTextureOffset(0, 15)
+            rightRocket.setTextureOffset(20, 15)
               .addBox(-0.5F, 1F, 0.5F, 1F, 1F, 1F, -0.1F, -0.1F, -0.1F);
             setRotateAngle(rightRocket, DEG_5, 0F, -DEG_15);
         
@@ -295,6 +346,17 @@ public class AerobaticElytraModel<T extends LivingEntity> extends ElytraModel<T>
             elytraModel.copyModelAttributesTo(this);
             leftWing.copyModelAngles(elytraModel.leftWing);
             rightWing.copyModelAngles(elytraModel.rightWing);
+        }
+    
+        @Override
+        public void render(
+          @NotNull MatrixStack mStack, @NotNull IVertexBuilder buffer, int packedLight,
+          int packedOverlay, float red, float green, float blue, float alpha
+        ) {
+            mStack.push(); {
+                parent.prepareRender(mStack);
+                super.render(mStack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
+            } mStack.pop();
         }
     
         /**

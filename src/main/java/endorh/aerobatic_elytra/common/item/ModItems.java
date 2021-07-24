@@ -18,7 +18,7 @@ public class ModItems {
 	@ObjectHolder(AerobaticElytra.MOD_ID + ":" + AerobaticElytraItem.NAME)
 	public static final AerobaticElytraItem AEROBATIC_ELYTRA = futureNotNull();
 	@ObjectHolder(AerobaticElytra.MOD_ID + ":" + AerobaticElytraWingItem.NAME)
-	public static AerobaticElytraWingItem AEROBATIC_ELYTRA_WING = futureNotNull();
+	public static final AerobaticElytraWingItem AEROBATIC_ELYTRA_WING = futureNotNull();
 	
 	@SubscribeEvent
 	public static void onItemsRegistration(RegistryEvent.Register<Item> event) {

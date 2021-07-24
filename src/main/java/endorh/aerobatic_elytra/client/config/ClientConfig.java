@@ -2,90 +2,108 @@ package endorh.aerobatic_elytra.client.config;
 
 import endorh.aerobatic_elytra.AerobaticElytra;
 import endorh.simple_config.core.SimpleConfig;
+import endorh.simple_config.core.SimpleConfigGroup;
+import endorh.simple_config.core.annotation.Bind;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.config.ModConfig.Type;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 
 import static endorh.simple_config.core.SimpleConfig.group;
 import static endorh.simple_config.core.entry.Builders.*;
+import static endorh.util.common.TextUtil.makeLink;
 
+@EventBusSubscriber(modid = AerobaticElytra.MOD_ID)
 public class ClientConfig {
 	private static final Logger LOGGER = LogManager.getLogger();
+	private static SimpleConfig CONFIG;
 	
 	public static void register() {
-		SimpleConfig.builder(AerobaticElytra.MOD_ID, Type.CLIENT, ClientConfig.class)
+		CONFIG = SimpleConfig.builder(AerobaticElytra.MOD_ID, Type.CLIENT, ClientConfig.class)
 		  .n(group("controls", true)
-		       .add("pitch_sens", number(1.0).min(0))
-		       .add("roll_sens", number(1.0).min(0))
-		       .add("yaw_sens", number(1.0).min(0))
+		       .add("pitch_sens", number(1.0F).min(0))
+		       .add("roll_sens", number(1.0F).min(0))
+		       .add("yaw_sens", number(1.0F).min(0))
 		       .add("invert_pitch", bool(false))
 		       .add("invert_front_third_person", bool(false))
 		  ).n(group("style")
 		       .add("flight_crosshair", bool(true))
 		       .add("flight_bar", enum_(FlightBarDisplay.OVER_XP))
 		       .add("mode_popup_length_seconds", number(2.0).min(0))
-		       .add("mode_popup_x_percentage", number(50, 100).slider())
-		       .add("mode_popup_y_percentage", number(70, 100).slider())
+		       .add("mode_popup_x_percentage", number(50F, 100).slider())
+		       .add("mode_popup_y_percentage", number(70F, 100).slider())
 		       .add("enchantment_glint_visibility", enum_(Visibility.ALT_UP))
 		       .add("fuel_visibility", enum_(Visibility.SHIFT_DOWN))
 		       .add("fuel_display", enum_(FuelDisplay.ROCKETS))
-		       .add("wing_glint_alpha", fractional(0.6))
-		       .add("fov_effect_strength", number(1.0).min(0))
+		       .add("disable_wing_glint", bool(false))
+		       .add("fov_effect_strength", number(1.0F).min(0))
+		       .text("dark_theme_desc",
+		             makeLink("Default Dark Theme", "https://www.curseforge.com/minecraft/texture-packs/default-dark-mode"),
+		             makeLink("Dark Mod GUIs", "https://www.curseforge.com/minecraft/texture-packs/dark-mod-guis"))
+		       .add("dark_theme_gui", bool(false))
+		       .add("auto_detect_dark_theme_gui", bool(true))
+		       .add("auto_detect_dark_theme_gui_pattern", pattern("dark.*(gui|theme)")
+		         .flags(Pattern.CASE_INSENSITIVE))
 		      //.add("default_color", new Color(0xBAC1DB), true)
-		  ).setBaker(ClientConfig::bakeSimpleClientConfig)
-		  .setGUIDecorator((config, builder) -> builder.setDefaultBackgroundTexture(
+		  ).setGUIDecorator((config, builder) -> builder.setDefaultBackgroundTexture(
 		      new ResourceLocation("textures/block/birch_planks.png")))
 		  .buildAndRegister();
 	}
 	
-	// Client config
-	public static float pitch_sens;
-	public static float roll_sens;
-	public static float yaw_sens;
-	public static boolean invert_pitch;
-	public static boolean invert_front_third_person;
-	public static boolean flight_crosshair;
-	public static double mode_popup_length_millis;
-	public static float mode_popup_x_fraction;
-	public static float mode_popup_y_fraction;
-	public static FlightBarDisplay flight_bar;
-	public static Visibility glint_visibility;
-	public static Visibility fuel_visibility;
-	public static FuelDisplay fuel_display;
+	@Bind public static class controls {
+		@Bind public static float pitch_sens;
+		@Bind public static float roll_sens;
+		@Bind public static float yaw_sens;
+		
+		@Bind public static boolean invert_pitch;
+		@Bind public static boolean invert_front_third_person;
+	}
 	
-	public static double aerobatic_flight_fov_strength;
-	public static float aerobatic_elytra_wing_glint_alpha;
+	@Bind public static class style {
+		@Bind public static boolean flight_crosshair;
+		@Bind public static FlightBarDisplay flight_bar;
+		public static long mode_popup_length_millis;
+		public static float mode_popup_x_fraction;
+		public static float mode_popup_y_fraction;
+		@Bind public static Visibility enchantment_glint_visibility;
+		@Bind public static Visibility fuel_visibility;
+		@Bind public static FuelDisplay fuel_display;
+		@Bind public static boolean disable_wing_glint;
+		@Bind public static float fov_effect_strength;
+		
+		@Bind public static boolean dark_theme_gui;
+		@Bind public static boolean auto_detect_dark_theme_gui;
+		@Bind public static Pattern auto_detect_dark_theme_gui_pattern;
+		
+		static void bake(SimpleConfigGroup group) {
+			mode_popup_length_millis = Math.round(group.getDouble("mode_popup_length_seconds") * 1000D);
+			mode_popup_x_fraction = group.getFloat("mode_popup_x_percentage") / 100F;
+			mode_popup_y_fraction = group.getFloat("mode_popup_y_percentage") / 100F;
+			
+			if (auto_detect_dark_theme_gui)
+				autoEnableDarkTheme();
+		}
+	}
 	
-	//public static Color aerobatic_elytra_default_color;
-	
-	public static void bakeSimpleClientConfig(SimpleConfig config) {
-		LOGGER.debug("Baking client config");
-		
-		pitch_sens = config.getFloat("controls.pitch_sens");
-		roll_sens = config.getFloat("controls.roll_sens");
-		yaw_sens = config.getFloat("controls.yaw_sens");
-		
-		invert_pitch = config.get("controls.invert_pitch");
-		invert_front_third_person = config.get("controls.invert_front_third_person");
-		
-		flight_crosshair = config.get("style.flight_crosshair");
-		
-		mode_popup_length_millis = config.getDouble("style.mode_popup_length_seconds") * 1000D;
-		mode_popup_x_fraction = config.getInt("style.mode_popup_x_percentage") / 100F;
-		mode_popup_y_fraction = config.getInt("style.mode_popup_y_percentage") / 100F;
-		
-		glint_visibility = config.get("style.enchantment_glint_visibility");
-		fuel_visibility = config.get("style.fuel_visibility");
-		fuel_display = config.get("style.fuel_display");
-		
-		flight_bar = config.get("style.flight_bar");
-		
-		aerobatic_flight_fov_strength = config.getFloat("style.fov_effect_strength");
-		aerobatic_elytra_wing_glint_alpha = config.getFloat("style.wing_glint_alpha");
+	public static void autoEnableDarkTheme() {
+		final boolean dark =
+		  Minecraft.getInstance().getResourcePackList().getEnabledPacks().stream().anyMatch(
+			 p -> style.auto_detect_dark_theme_gui_pattern.asPredicate().test(p.getName()));
+		if (dark && !style.dark_theme_gui) {
+			CONFIG.set("style.dark_theme_gui", true);
+			style.dark_theme_gui = true;
+			LOGGER.info("Dark theme resource pack detected, enabling Aerobatic Elytra dark theme automatically");
+		} else if (!dark && style.dark_theme_gui) {
+			CONFIG.set("style.dark_theme_gui", false);
+			style.dark_theme_gui = false;
+			LOGGER.info("No dark theme resource pack detected, disabling Aerobatic Elytra dark theme automatically");
+		}
 	}
 	
 	public enum FlightBarDisplay {

@@ -5,19 +5,24 @@ import endorh.aerobatic_elytra.client.render.model.AerobaticElytraModelPose;
 import endorh.aerobatic_elytra.client.render.model.IElytraPose;
 import net.minecraft.entity.LivingEntity;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import static endorh.aerobatic_elytra.client.render.model.AerobaticElytraModel.DEFAULT_ANIMATION_LENGTH;
 
 /**
- * Holds render data for different {@link AerobaticElytraModel}
- * instances, in order to provide smooth transitions between
- * poses.
+ * Holds render data for different uses of {@link AerobaticElytraModel}s,
+ * in order to provide smooth transitions between their poses.
  */
 public class AerobaticRenderData {
-	private static final
-	HashMap<UUID, AerobaticRenderData> INSTANCES = new HashMap<>();
+	private static final Map<UUID, AerobaticRenderData> INSTANCES =
+	  new LinkedHashMap<UUID, AerobaticRenderData>(256, 0.75F, true) {
+		@Override protected boolean removeEldestEntry(Entry eldest) {
+			return size() > 1024;
+		}
+	};
 	
 	public float animationStart = 0F;
 	public float cancelLimbSwingAmountProgress = 0F;
@@ -46,9 +51,5 @@ public class AerobaticRenderData {
 			INSTANCES.put(entity.getUniqueID(), data);
 			return data;
 		}
-	}
-	
-	public static void recycle(LivingEntity entity) {
-		INSTANCES.remove(entity.getUniqueID());
 	}
 }

@@ -34,9 +34,7 @@ public class KeyHandler {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	public static void register() {
-		// Define key bindings
 		FLIGHT_MODE_KEYBINDING = reg("key.aerobatic-elytra.flight_mode.desc", IN_GAME, 67, AEROBATIC_ELYTRA_CATEGORY);
-		AerobaticElytra.logRegistered("Key Bindings");
 	}
 	
 	@SuppressWarnings("SameParameterValue")
@@ -69,8 +67,6 @@ public class KeyHandler {
 		final IAerobaticData data = getAerobaticDataOrDefault(player);
 		final MovementInput movementInput = event.getMovementInput();
 		final IFlightMode mode = getFlightDataOrDefault(player).getFlightMode();
-		
-		// TODO: Braking animation?
 		
 		if (mode.is(FlightModeTags.AEROBATIC) && player.isElytraFlying()) {
 			if (data.updateJumping(movementInput.jump))

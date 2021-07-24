@@ -17,17 +17,15 @@
   "default": 1,
 
   "_comment9": "Many effects, with different amplifiers may be given",
-  "effects": [
-    {
-      "minecraft:night_vision": {
-        "_comment0": "Only an 'amplifier' property is supported, which starts",
-        "_comment1": "  at 1, instead of 0, unlike in the /effect command",
-        "amplifier": 1,
-        "_comment2": "The duration value can't be configured, since the",
-        "_comment3": "  effect is granted as long as the conditions match"
-      }
+  "effects": {
+    "minecraft:night_vision": {
+      "_comment0": "Only an 'amplifier' property is supported, which starts",
+      "_comment1": "  at 1, instead of 0, unlike in the /effect command",
+      "amplifier": 1,
+      "_comment2": "The duration value can't be configured, since the",
+      "_comment3": "  effect is granted as long as the conditions match"
     }
-  ],
+  },
   "_comment10": "Conditions that must all match to grant the effects of this ability",
   "_comment11": "Adding *many* *complex* conditions *could* put a strain on multiplayer servers,",
   "_comment12": "  as they must be checked periodically for all players wearing the elytras",

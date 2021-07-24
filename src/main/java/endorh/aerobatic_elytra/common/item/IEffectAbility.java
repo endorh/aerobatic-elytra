@@ -61,7 +61,7 @@ public interface IEffectAbility extends IDatapackAbility {
 		public final Map<Effect, Integer> effects;
 		public final Predicate<LootContext> condition;
 		
-		protected final String translationKey;
+		protected String translationKey;
 		protected ResourceLocation registryName = null;
 		
 		public EffectAbility(
@@ -76,7 +76,6 @@ public interface IEffectAbility extends IDatapackAbility {
 			this.effects = effects != null? effects : new HashMap<>();
 			this.condition = condition != null? condition : c -> true;
 			this.consumption = consumption;
-			this.translationKey = "aerobatic-elytra.effect-abilities." + fullName().replace(':', '.');
 		}
 		
 		@Override public boolean testConditions(LootContext context) {
@@ -147,6 +146,10 @@ public interface IEffectAbility extends IDatapackAbility {
 		
 		@OnlyIn(Dist.CLIENT) @Override
 		public IFormattableTextComponent getDisplayName() {
+			if (registryName == null)
+				throw new IllegalStateException("Cannot get display name of unregistered IEffectAbility");
+			if (translationKey == null)
+				translationKey = "aerobatic-elytra.effect-abilities." + fullName().replace(':', '.');
 			return I18n.hasKey(translationKey)? ttc(translationKey) : stc(jsonName);
 		}
 		

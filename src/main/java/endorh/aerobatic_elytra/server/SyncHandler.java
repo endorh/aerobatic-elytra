@@ -40,10 +40,9 @@ public class SyncHandler {
 		reset((ServerPlayerEntity)event.getPlayer());
 	}
 	
-	// TODO: Maybe test with Immersive Portals mod?
 	@SubscribeEvent
 	public static void onPlayerChangedDimension(PlayerChangedDimensionEvent event) {
-		reset((ServerPlayerEntity)event.getPlayer());
+		// reset((ServerPlayerEntity)event.getPlayer());
 	}
 	
 	private static void update(ServerPlayerEntity player) {

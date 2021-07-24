@@ -76,7 +76,7 @@ public class RepairRecipe extends SpecialRecipe {
 		) {
 			final Ingredient ingredient = Ingredient.deserialize(
 			  JSONUtils.getJsonObject(json, "ingredient"));
-			final int amount = JSONUtils.getInt(json, "amount");
+			final int amount = JSONUtils.getInt(json, "amount", 0); // Unused
 			return new RepairRecipe(recipeId, ingredient, amount);
 		}
 		

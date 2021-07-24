@@ -10,7 +10,6 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 
-//@EventBusSubscriber(value = Dist.DEDICATED_SERVER, modid = AerobaticElytra.MOD_ID)
 public class DebugTicker {
 	private static final Logger LOGGER = LogManager.getLogger();
 	

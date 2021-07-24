@@ -42,10 +42,7 @@ public class ModRegistries {
 	public static IForgeRegistry<IFlightMode> FLIGHT_MODE_REGISTRY;
 	public static List<IFlightMode> FLIGHT_MODE_LIST;
 	
-	/**
-	 * Do not use directly, instead, call {@link ModRegistries#getAbilities()}
-	 * to also get datapack IAbility s
-	 */
+	// Use getAbilities() insteaed
 	private static IForgeRegistry<IAbility> ABILITY_REGISTRY;
 	
 	// Datapack abilities are stored in a map, since registries can't be modified at json reload time

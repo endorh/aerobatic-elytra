@@ -38,7 +38,6 @@ public class ModRecipes {
 	@SubscribeEvent
 	public static void onRegister(RegistryEvent.Register<IRecipeSerializer<?>> event) {
 		event.getRegistry().registerAll(
-		  NBTInheritingShapedRecipe.SERIALIZER,
 		  AbilityNBTInheritingShapedRecipe.SERIALIZER,
 		  UpgradeRecipe.SERIALIZER,
 		  RepairRecipe.SERIALIZER,

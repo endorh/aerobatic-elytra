@@ -171,6 +171,12 @@ public class AerobaticCollision {
 		base.mirror(ax);
 		motionVec.reflect(ax);
 		motionVec.mul(slime_bounce.friction);
+		if (slime_bounce.angular_friction < 1F) {
+			final IAerobaticData data = getAerobaticDataOrDefault(player);
+			data.setTiltPitch(data.getTiltPitch() * slime_bounce.angular_friction);
+			data.setTiltYaw(data.getTiltYaw() * slime_bounce.angular_friction);
+			data.setTiltRoll(data.getTiltRoll() * slime_bounce.angular_friction);
+		}
 		player.world.playSound(
 		  player, player.getPosition(), SoundEvents.BLOCK_SLIME_BLOCK_HIT,
 		  SoundCategory.PLAYERS, (float)clampedLerp(0F, 1F, motionVec.norm() / 1.6F), 1F);

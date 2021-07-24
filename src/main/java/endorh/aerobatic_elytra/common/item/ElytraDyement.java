@@ -6,30 +6,57 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.tileentity.BannerPattern;
-import net.minecraft.tileentity.BannerTileEntity;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.util.text.IFormattableTextComponent;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static endorh.util.common.TextUtil.ttc;
 
 /**
- * Helper for reading dye info from NBT all at once.
+ * Helper for reading/writing dye info from/to NBT<br>
+ * The format is, in order of descending priority:
+ * <pre>{@code
+ *    Item
+ *     |- [Tag] WingInfo
+ *     |   |- [Compound] left [WingDyement]
+ *     |   |- [Compound] right [WingDyement]
+ *     |- [Tag] BlockEntityTag [WingDyement]
+ *     |- [Compound] display
+ *     |   |- [Int] color (rgb color) (= defaultColor)
+ *    where:
+ *    WingDyement (similar to banners)
+ *     |- [Int] Base (DyeColor id)
+ *     |- [List<Compound>] Patterns
+ *     |          (or alternatively, simple coloring)
+ *     |- [Int] color (rgb color)
+ *     |- [Compound] display
+ *         |- [Int] color (rgb color)
+ * }</pre>
+ * Where the {@code [Tag]} type annotations denote child tags to the item<br>
+ * If separate wing dyement is present, uniform coloring is ignored<br>
+ * For each dyement, if banner coloring is present, simple coloring is ignored<br>
+ * The pattern format is the same used by banners, that is:
+ * <pre>{@code
+ *    [List<Compound>] Patterns
+ *     |- - [Compound]
+ *     |     |- [String] Pattern (pattern hash)
+ *     |     |- [Int] Color (DyeColor id)
+ *     |- - ...
+ * }</pre>
+ * From the bottommost layer to the topmost. Only 16 layers are rendered
+ * at most.
  */
-public class ElytraDyementReader {
+public class ElytraDyement {
 	public Map<WingSide, WingDyement> sides = new HashMap<>();
 	public boolean hasWingDyement;
 	public int defaultColor;
 	
-	public ElytraDyementReader() {
+	public ElytraDyement() {
 		this(AerobaticElytraItem.DEFAULT_COLOR);
 	}
 	
-	public ElytraDyementReader(int defaultColor) {
+	public ElytraDyement(int defaultColor) {
 		this.defaultColor = defaultColor;
 		for (WingSide side : WingSide.values())
 			sides.put(side, new WingDyement());
@@ -157,7 +184,7 @@ public class ElytraDyementReader {
 				hasPattern = true;
 				basePatternColor = DyeColor.byId(data.getInt("Base"));
 				color = basePatternColor.getColorValue();
-				patternColorData = BannerTileEntity.getPatternColorData(
+				patternColorData = getPatternColorData(
 				  basePatternColor, data.getList("Patterns", 10).copy());
 			} else {
 				hasPattern = false;
@@ -179,6 +206,25 @@ public class ElytraDyementReader {
 					color = defaultColor;
 				}
 			}
+		}
+		
+		// Mimic BannerTileEntity#getPatternColorData, which is only present on the client
+		public static List<Pair<BannerPattern, DyeColor>> getPatternColorData(
+		  DyeColor color, @Nullable ListNBT nbtList
+		) {
+			List<Pair<BannerPattern, DyeColor>> list = new ArrayList<>();
+			list.add(Pair.of(BannerPattern.BASE, color));
+			if (nbtList != null) {
+				for(int i = 0; i < nbtList.size(); ++i) {
+					CompoundNBT compoundnbt = nbtList.getCompound(i);
+					BannerPattern bannerpattern = BannerPattern.byHash(compoundnbt.getString("Pattern"));
+					if (bannerpattern != null) {
+						int j = compoundnbt.getInt("Color");
+						list.add(Pair.of(bannerpattern, DyeColor.byId(j)));
+					}
+				}
+			}
+			return list;
 		}
 		
 		/**
@@ -258,7 +304,7 @@ public class ElytraDyementReader {
 			this.key = key;
 		}
 		
-		public TranslationTextComponent getTranslation() {
+		public IFormattableTextComponent getTranslation() {
 			return ttc(key);
 		}
 	}

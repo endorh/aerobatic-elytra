@@ -1,7 +1,7 @@
 package endorh.aerobatic_elytra.client.item;
 
 import endorh.aerobatic_elytra.client.config.ClientConfig;
-import endorh.aerobatic_elytra.common.item.ElytraDyementReader;
+import endorh.aerobatic_elytra.common.item.ElytraDyement;
 import endorh.aerobatic_elytra.common.capability.IElytraSpec;
 import endorh.aerobatic_elytra.common.item.AerobaticElytraItem;
 import endorh.aerobatic_elytra.common.item.ModItems;
@@ -30,7 +30,7 @@ public class ModItemProperties {
 	public static final ResourceLocation HIDE_FUEL_PROPERTY = prefix("hide_fuel");
 	public static final ResourceLocation EQUAL_WINGS_PROPERTY = prefix("equal_wings");
 	
-	private static final ElytraDyementReader dyement = new ElytraDyementReader();
+	private static final ElytraDyement dyement = new ElytraDyement();
 	
 	public static void register() {
 		reg(ModItems.AEROBATIC_ELYTRA, BROKEN_PROPERTY, ModItemProperties::getBrokenProperty);
@@ -43,7 +43,6 @@ public class ModItemProperties {
 	private static void reg(
 	  Item item, ResourceLocation property, IItemPropertyGetter getter
 	) {
-		// FIXME: This can throw a ConcurrentModificationException (?)
 		ItemModelsProperties.registerProperty(item, property, getter);
 	}
 	
@@ -77,11 +76,11 @@ public class ModItemProperties {
 		if (!((AerobaticElytraItem) stack.getItem()).shouldFuelRenderOverRockets(stack))
 			return 1F;
 		if (holder == null)
-			return ClientConfig.fuel_visibility.test() ? 0F : 1F;
+			return ClientConfig.style.fuel_visibility.test() ? 0F : 1F;
 		ItemStack chest = holder.getItemStackFromSlot(EquipmentSlotType.CHEST);
 		if (chest == stack)
 			return 0F;
-		return ClientConfig.fuel_visibility.test() ? 0F : 1F;
+		return ClientConfig.style.fuel_visibility.test() ? 0F : 1F;
 	}
 	
 	public static float getEqualWingsProperty(

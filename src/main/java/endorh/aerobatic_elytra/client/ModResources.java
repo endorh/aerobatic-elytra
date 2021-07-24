@@ -26,26 +26,5 @@ public class ModResources {
 	  prefix("textures/gui/flight_icons.png");
 	public static final ResourceLocation TEXTURE_AEROBATIC_ELYTRA =
 	  prefix("textures/entity/aerobatic_elytra.png");
-	public static final ResourceLocation TEXTURE_CHEST_ROCKETS =
-	  prefix("textures/models/armor/aerobatic_elytra_chest_rockets.png");
-	
-	@SubscribeEvent
-	public static void onAtlasStitching(TextureStitchEvent.Pre event) {
-		ResourceLocation stitching = event.getMap().getTextureLocation();
-		// TODO: Stitch to separate atlas just like shields & banners
-		if (stitching.equals(AtlasTexture.LOCATION_BLOCKS_TEXTURE)) {
-			for (BannerPattern pattern : BannerPattern.values()) {
-				ResourceLocation texture = ModItems.AEROBATIC_ELYTRA
-				  .getTextureLocation(pattern);
-				boolean succeeded = event.addSprite(texture);
-				if (!succeeded) {
-					LOGGER.error("Failed to add " + texture + " to atlas!");
-				} else {
-					LOGGER.debug("Added " + texture + " to atlas");
-				}
-			}
-			AerobaticElytra.logRegistered("Banner Textures");
-		}
-	}
 }
 

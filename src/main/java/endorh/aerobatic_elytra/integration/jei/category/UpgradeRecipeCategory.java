@@ -1,6 +1,7 @@
 package endorh.aerobatic_elytra.integration.jei.category;
 
 import com.google.common.collect.ImmutableList;
+import endorh.aerobatic_elytra.client.config.ClientConfig;
 import endorh.aerobatic_elytra.common.capability.IElytraSpec.Upgrade;
 import endorh.aerobatic_elytra.common.item.ModItems;
 import endorh.aerobatic_elytra.common.recipe.ItemSelector;
@@ -32,12 +33,14 @@ public class UpgradeRecipeCategory implements IRecipeCategory<UpgradeRecipe> {
 	public static final ResourceLocation UID = prefix("upgrade");
 	
 	private final IDrawable background;
+	private final IDrawable background_dark;
 	private final IDrawable icon;
 	private final String localizedName = I18n.format("aerobatic-elytra.recipe.category.upgrade");
 	
 	public UpgradeRecipeCategory(IGuiHelper guiHelper) {
 		ResourceLocation location = prefix("textures/gui/recipes.png");
 		background = guiHelper.createDrawable(location, 0, 0, 138, 18);
+		background_dark = guiHelper.createDrawable(location, 0, 18, 138, 18);
 		icon = guiHelper.createDrawableIngredient(new ItemStack(ModItems.AEROBATIC_ELYTRA));
 	}
 	
@@ -51,7 +54,7 @@ public class UpgradeRecipeCategory implements IRecipeCategory<UpgradeRecipe> {
 		return localizedName;
 	}
 	@Override public @NotNull IDrawable getBackground() {
-		return background;
+		return ClientConfig.style.dark_theme_gui? background_dark : background;
 	}
 	@Override public @NotNull IDrawable getIcon() {
 		return icon;

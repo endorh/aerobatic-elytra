@@ -3,16 +3,19 @@ package endorh.aerobatic_elytra.common;
 import endorh.aerobatic_elytra.AerobaticElytra;
 import endorh.aerobatic_elytra.client.config.ClientConfig;
 import endorh.aerobatic_elytra.client.input.KeyHandler;
+import endorh.aerobatic_elytra.client.item.AerobaticElytraBannerTextureManager;
 import endorh.aerobatic_elytra.client.item.AerobaticElytraItemColor;
 import endorh.aerobatic_elytra.client.item.AerobaticElytraWingItemColor;
 import endorh.aerobatic_elytra.client.item.ModItemProperties;
 import endorh.aerobatic_elytra.common.config.Config;
-import endorh.aerobatic_elytra.common.item.AerobaticElytraItem;
 import endorh.aerobatic_elytra.common.item.ModItems;
 import endorh.aerobatic_elytra.common.recipe.ModRecipes;
 import endorh.aerobatic_elytra.integration.colytra.ClientColytraIntegration;
 import endorh.aerobatic_elytra.integration.colytra.ColytraIntegration;
 import endorh.aerobatic_elytra.integration.curios.CuriosIntegration;
+import net.minecraft.client.Minecraft;
+import net.minecraft.resources.IReloadableResourceManager;
+import net.minecraft.resources.IResourceManager;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddReloadListenerEvent;
@@ -37,16 +40,22 @@ public class ModInit {
 		
 		Config.register();
 		DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> ClientConfig::register);
-		registerIntegrations();
 		AerobaticElytra.logRegistered("Config");
 		
+		
+		registerIntegrations();
 		MinecraftForge.EVENT_BUS.addListener(ModInit::onRegisterReloadListeners);
 	}
 	
 	@SubscribeEvent
 	public static void onClientSetup(FMLClientSetupEvent event) {
-		registerClient();
-		setupClient();
+		event.enqueueWork(() -> {
+			// These registering methods are not thread-safe
+			registerClient();
+			final IResourceManager resourceManager = Minecraft.getInstance().getResourceManager();
+			if (resourceManager instanceof IReloadableResourceManager)
+				AerobaticElytra.BANNER_TEXTURE_MANAGER = new AerobaticElytraBannerTextureManager((IReloadableResourceManager) resourceManager);
+		});
 	}
 	
 	public static void onRegisterReloadListeners(AddReloadListenerEvent event) {
@@ -60,10 +69,7 @@ public class ModInit {
 		ModItemProperties.register();
 		AerobaticElytra.logRegistered("Item Properties");
 		KeyHandler.register();
-	}
-	
-	public static void setupClient() {
-		AerobaticElytraItem.onClientSetup();
+		AerobaticElytra.logRegistered("Key Bindings");
 	}
 	
 	public static void registerIntegrations() {

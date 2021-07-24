@@ -133,42 +133,43 @@ public class AerobaticDataCapability {
 	 * Default implementation for {@link IAerobaticData}
 	 */
 	public static class AerobaticData implements IAerobaticData {
-		private final PlayerEntity player;
-		private float rotationRoll = 0F;
+		protected final PlayerEntity player;
+		protected float rotationRoll = 0F;
 		
-		private float prevTickRotationPitch = 0F;
-		private float prevTickRotationRoll = 0F;
-		private float prevTickRotationYaw = 0F;
+		protected float prevTickRotationPitch = 0F;
+		protected float prevTickRotationRoll = 0F;
+		protected float prevTickRotationYaw = 0F;
 		
-		private float tiltPitch = 0F;
-		private float tiltRoll = 0F;
-		private float tiltYaw = 0F;
+		protected float tiltPitch = 0F;
+		protected float tiltRoll = 0F;
+		protected float tiltYaw = 0F;
 		
-		private final VectorBase rotationBase = new VectorBase();
-		private final VectorBase cameraBase = new VectorBase();
-		private final VectorBase preBounceBase = new VectorBase();
-		private final VectorBase posBounceBase = new VectorBase();
+		protected final VectorBase rotationBase = new VectorBase();
+		protected final VectorBase cameraBase = new VectorBase();
+		protected final VectorBase preBounceBase = new VectorBase();
+		protected final VectorBase posBounceBase = new VectorBase();
 		
-		private boolean braking = false;
-		private float brakeStrength = 0F;
+		protected boolean braking = false;
+		protected float brakeStrength = 0F;
 		
-		private float propStrength = 0F;
-		private float propAcc = 0F;
-		private boolean boosted = false;
-		private float boostHeat = 0F;
+		protected float propStrength = 0F;
+		protected float propAcc = 0F;
+		protected boolean boosted = false;
+		protected float boostHeat = 0F;
 		
-		private boolean isFlying = false;
-		private double lastRotationTime = 0D;
-		private long lastBounceTime = 0L;
+		protected boolean isFlying = false;
+		protected double lastRotationTime = 0D;
+		protected long lastBounceTime = 0L;
 		
-		private boolean sneaking = false;
-		private boolean jumping = false;
-		private boolean sprinting = false;
-		private boolean playingSound = false;
+		protected boolean sneaking = false;
+		protected boolean jumping = false;
+		protected boolean sprinting = false;
+		protected boolean playingSound = false;
 		
-		private ElytraSound elytraSound = null;
-		private int lastLiftOff = 0;
-		private final Vec3d lastTrailPos = Vec3d.ZERO.get();
+		protected ElytraSound elytraSound = null;
+		protected int lastLiftOff = 0;
+		protected final Vec3d lastTrailPos = Vec3d.ZERO.get();
+		protected boolean affectedByWeather;
 		
 		public AerobaticData(PlayerEntity player) {
 			this.player = player;
@@ -271,6 +272,13 @@ public class AerobaticDataCapability {
 		
 		@Override public int ticksFlying() {
 			return isFlying? player.ticksExisted - lastLiftOff : 0;
+		}
+		
+		@Override public boolean isAffectedByWeather() {
+			return affectedByWeather;
+		}
+		@Override public void setAffectedByWeather(boolean affected) {
+			affectedByWeather = affected;
 		}
 		
 		@Override public float getPropulsionStrength() {

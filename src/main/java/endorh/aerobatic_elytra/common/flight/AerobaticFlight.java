@@ -9,9 +9,9 @@ import endorh.aerobatic_elytra.common.capability.ElytraSpecCapability;
 import endorh.aerobatic_elytra.common.capability.IAerobaticData;
 import endorh.aerobatic_elytra.common.capability.IElytraSpec;
 import endorh.aerobatic_elytra.common.config.Config;
-import endorh.aerobatic_elytra.common.config.Config.aerobatic.tilt;
 import endorh.aerobatic_elytra.common.config.Config.aerobatic.physics;
 import endorh.aerobatic_elytra.common.config.Config.aerobatic.propulsion;
+import endorh.aerobatic_elytra.common.config.Config.aerobatic.tilt;
 import endorh.aerobatic_elytra.common.config.Config.network;
 import endorh.aerobatic_elytra.common.config.Const;
 import endorh.aerobatic_elytra.common.event.AerobaticElytraFinishFlightEvent;
@@ -47,12 +47,13 @@ import static endorh.aerobatic_elytra.common.AerobaticElytraLogic.getAerobaticEl
 import static endorh.aerobatic_elytra.common.capability.AerobaticDataCapability.getAerobaticData;
 import static endorh.aerobatic_elytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
 import static endorh.aerobatic_elytra.common.capability.FlightDataCapability.getFlightDataOrDefault;
+import static endorh.aerobatic_elytra.common.item.AerobaticElytraWingItem.hasOffhandDebugWing;
 import static endorh.aerobatic_elytra.common.item.IAbility.Ability.*;
+import static endorh.util.common.TextUtil.stc;
+import static endorh.util.common.TextUtil.ttc;
 import static endorh.util.math.Interpolator.clampedLerp;
 import static endorh.util.math.Vec3f.PI;
 import static endorh.util.math.Vec3f.PI_HALF;
-import static endorh.util.common.TextUtil.stc;
-import static endorh.util.common.TextUtil.ttc;
 import static java.lang.Math.abs;
 import static java.lang.Math.*;
 import static java.lang.String.format;
@@ -117,9 +118,12 @@ public class AerobaticFlight {
 		applyRotationAcceleration(player);
 		
 		// Rain and wind
+		final boolean affectedByWeather = player.world.canBlockSeeSky(player.getPosition());
+		data.setAffectedByWeather(affectedByWeather);
 		final float biomePrecipitation = WeatherData.getBiomePrecipitationStrength(player);
 		final float rain = player.world.getRainStrength(1F) * biomePrecipitation;
 		final float storm = player.world.getThunderStrength(1F) * biomePrecipitation;
+		final boolean useWeather = Config.weather.enabled && rain > 0F && !player.isInWater() && affectedByWeather;
 		Vec3f windVec = WeatherData.getWindVector(player);
 		rainAcc.set(
 		  0F,
@@ -129,19 +133,17 @@ public class AerobaticFlight {
 		// Update boost
 		if (!data.isBoosted()
 		    && data.getPropulsionStrength() == propulsion.max_tick
-		    && data.isSprinting() && data.getBoostHeat() <= 0.2F) {
+		    && data.isSprinting() && data.getBoostHeat() <= 0.2F
+		) {
 			data.setBoosted(true);
 			player.addStat(FlightStats.AEROBATIC_BOOSTS, 1);
-			/*if (!player.world.isRemote)
-				return false;
-			return player instanceof AbstractClientPlayerEntity;*/
 			if (player.world.isRemote) {
 				AerobaticTrail.addBoostParticles(player);
-			}
-			if (player.world.isRemote)
 				AerobaticElytraSound.playBoostSound(player);
-		} else if (data.isBoosted()
-		           && (!data.isSprinting() || data.getBoostHeat() == 1F)) {
+			}
+		} else if (
+		  data.isBoosted() && (!data.isSprinting() || data.getBoostHeat() == 1F)
+		) {
 			data.setBoosted(false);
 			if (player.world.isRemote)
 				AerobaticElytraSound.playSlowDownSound(player);
@@ -207,7 +209,6 @@ public class AerobaticFlight {
 		float propStrength = data.getPropulsionStrength() * spec.getAbility(SPEED);
 		if (data.isBoosted())
 			propStrength += boostStrength;
-		//float brakeStrength = data.getBrakeStrength();
 		
 		// Gravity acceleration
 		gravAccVec.set(
@@ -229,7 +230,6 @@ public class AerobaticFlight {
 		
 		// Glide acceleration
 		final float glideAcc = -motionVec.dot(base.normal) * physics.glide_multiplier;
-		//glideAcc -= glideAcc * data.getWingTilt();
 		glideAccVec.set(base.normal);
 		glideAccVec.mul(glideAcc);
 		
@@ -241,20 +241,21 @@ public class AerobaticFlight {
 		motionVec.add(glideAccVec);
 		motionVec.add(gravAccVec);
 		motionVec.add(propAccVec);
-		if (Config.weather.enabled && !player.isInWater()) {
+		if (useWeather) {
 			motionVec.add(windVec);
 			motionVec.add(rainAcc);
 		}
 		
 		// Apply friction
 		motionVec.mul(friction);
-		if (Config.weather.enabled && !player.isInWater()) {
+		if (useWeather) {
 			// Wind drags more when braking
 			Vec3f stasisVec = windVec.copy();
 			stasisVec.mul(1F - friction);
 			motionVec.add(stasisVec);
 		}
 		
+		// Speed cap
 		if (player instanceof ServerPlayerEntity) {
 			float speed_cap = network.speed_cap_tick;
 			if (speed_cap > 0
@@ -279,16 +280,19 @@ public class AerobaticFlight {
 			player.move(MoverType.SELF, player.getMotion());
 		}
 		
+		// Collisions
 		if (player.collidedHorizontally || player.collidedVertically) {
 			AerobaticCollision.onAerobaticCollision(player, hSpeedPrev, motionVec);
 		}
 		
+		// Send update packets to the server
 		if (AerobaticElytraLogic.isClientPlayerEntity(player)) {
 			new DTiltPacket(data).send();
 			new DRotationPacket(data).send();
 			new DAccelerationPacket(data).send();
 		}
 		
+		// Landing
 		if (player.isOnGround()) {
 			data.land();
 		}
@@ -300,28 +304,30 @@ public class AerobaticFlight {
 		player.addStat(FlightStats.AEROBATIC_FLIGHT_ONE_CM,
 		               (int)Math.round(player.getMotion().length() * 100F));
 		
+		// Update sound for remote players
 		if (isRemote) {
 			if (data.updatePlayingSound(true))
 				new AerobaticElytraSound(player).play();
 		}
 		
-		/*if (!player.world.isRemote)
-			return false;
-		return player instanceof AbstractClientPlayerEntity;*/
+		// Add trail
 		if (player.world.isRemote) {
 			if (data.ticksFlying() > Const.TAKEOFF_ANIMATION_LENGTH_TICKS
 			    && !player.collidedVertically && !player.collidedHorizontally
 			    // Cowardly refuse to smooth trail on bounces
-			    && System.currentTimeMillis() - data.getLastBounceTime() > 250L) {
+			    && System.currentTimeMillis() - data.getLastBounceTime() > 250L
+			    && !hasOffhandDebugWing(player)) {
 				AerobaticTrail.addParticles(player, motionVec, prevMotionVec);
 			}
 		}
 		
+		// Update prev tick angles
 		float prev = data.getPrevTickRotationRoll();
 		while (data.getRotationRoll() - prev > 360F)
 			prev += 360F;
 		while (data.getRotationRoll() - prev < 0F)
 			prev -= 360F;
+		data.updatePrevTickAngles();
 		
 		// Debug
 		/*if (("Server thread").equals(Thread.currentThread().getName())) {
@@ -331,9 +337,8 @@ public class AerobaticFlight {
 			LOGGER.debug("L: " + data.getRotationBase().look + ", R: " + data.getRotationBase().roll
 			             + ", S: " + String.format("%2.3f", player.getMotion().length()));
 		}*/
-		data.updatePrevTickAngles();
 		
-		// Post Post event
+		// Post post event
 		MinecraftForge.EVENT_BUS.post(isRemote
 		  ? new AerobaticElytraTickEvent.Post.Remote(player, spec, data)
 		  : new AerobaticElytraTickEvent.Post(player, spec, data)
@@ -450,7 +455,7 @@ public class AerobaticFlight {
 			return;
 		
 		// Wind
-		if (Config.weather.enabled)
+		if (Config.weather.enabled && data.isAffectedByWeather())
 			angularWindVec.set(WeatherData.getAngularWindVector(player));
 		else angularWindVec.set(ZERO);
 		

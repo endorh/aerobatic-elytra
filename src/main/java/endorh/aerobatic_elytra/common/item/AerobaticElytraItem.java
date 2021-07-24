@@ -3,15 +3,15 @@ package endorh.aerobatic_elytra.common.item;
 import com.mojang.datafixers.util.Pair;
 import endorh.aerobatic_elytra.AerobaticElytra;
 import endorh.aerobatic_elytra.client.config.ClientConfig;
-import endorh.aerobatic_elytra.common.capability.IFlightData;
-import endorh.aerobatic_elytra.common.flight.mode.FlightModeTags;
-import endorh.aerobatic_elytra.common.item.ElytraDyementReader.WingDyement;
-import endorh.aerobatic_elytra.common.item.ElytraDyementReader.WingSide;
 import endorh.aerobatic_elytra.common.capability.ElytraSpecCapability;
 import endorh.aerobatic_elytra.common.capability.IAerobaticData;
 import endorh.aerobatic_elytra.common.capability.IElytraSpec;
 import endorh.aerobatic_elytra.common.capability.IElytraSpec.TrailData;
+import endorh.aerobatic_elytra.common.capability.IFlightData;
 import endorh.aerobatic_elytra.common.config.Config;
+import endorh.aerobatic_elytra.common.flight.mode.FlightModeTags;
+import endorh.aerobatic_elytra.common.item.ElytraDyement.WingDyement;
+import endorh.aerobatic_elytra.common.item.ElytraDyement.WingSide;
 import endorh.aerobatic_elytra.common.recipe.CreativeTabAbilitySetRecipe;
 import endorh.aerobatic_elytra.common.recipe.RepairRecipe;
 import endorh.util.common.ColorUtil;
@@ -30,9 +30,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.*;
-import net.minecraft.item.crafting.RecipeManager;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.BannerPattern;
 import net.minecraft.tileentity.BannerTileEntity;
 import net.minecraft.util.*;
@@ -43,17 +41,13 @@ import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.ForgeHooks;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -67,8 +61,7 @@ import static endorh.aerobatic_elytra.common.item.IAbility.Ability.MAX_FUEL;
 import static endorh.util.common.ForgeUtil.getSerializedCaps;
 import static endorh.util.common.TextUtil.stc;
 import static endorh.util.common.TextUtil.ttc;
-import static java.lang.Math.abs;
-import static java.lang.Math.max;
+import static java.lang.Math.*;
 import static net.minecraft.util.math.MathHelper.hsvToRGB;
 import static net.minecraft.util.math.MathHelper.lerp;
 
@@ -78,17 +71,8 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 	}
 	public static final String NAME = "aerobatic_elytra";
 	@SuppressWarnings({"FieldMayBeFinal", "FieldCanBeLocal"})
-	public static int DEFAULT_COLOR = 0xBAC1DB;
-	//private static final Logger LOGGER = LogManager.getLogger();
-	protected static final HashMap<BannerPattern, ResourceLocation> bannerTextures = new HashMap<>();
-	protected final ElytraDyementReader dyement = new ElytraDyementReader();
-	
-	public static void onClientSetup() {
-		for (BannerPattern pattern : BannerPattern.values()) {
-			bannerTextures.put(pattern, new ResourceLocation(
-			  AerobaticElytra.MOD_ID, "entity/aerobatic_elytra/" + pattern.getFileName()));
-		}
-	}
+	public static int DEFAULT_COLOR = 0x8F9EAE;
+	protected final ElytraDyement dyement = new ElytraDyement();
 	
 	public AerobaticElytraItem(Item.Properties builder) {
 		super(
@@ -142,20 +126,22 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 	}
 	
 	public boolean shouldFuelReplaceDurability(ItemStack stack, IElytraSpec spec) {
-		return (ClientConfig.fuel_display == ClientConfig.FuelDisplay.DURABILITY_BAR
-		        || ClientConfig.fuel_display == ClientConfig.FuelDisplay.DURABILITY_BAR_IF_LOWER
+		return (ClientConfig.style.fuel_display == ClientConfig.FuelDisplay.DURABILITY_BAR
+		        || ClientConfig.style.fuel_display == ClientConfig.FuelDisplay.DURABILITY_BAR_IF_LOWER
 		           && spec.getAbility(FUEL) / spec.getAbility(MAX_FUEL) < 1F - (float)stack.getDamage() / stack.getMaxDamage())
-		       && ClientConfig.fuel_visibility.test();
+		       && ClientConfig.style.fuel_visibility.test();
 	}
 	
+	@SuppressWarnings("unused")
 	public boolean shouldFuelRenderOverRockets(ItemStack stack) {
-		return ClientConfig.fuel_display == ClientConfig.FuelDisplay.ROCKETS;
+		return ClientConfig.style.fuel_display == ClientConfig.FuelDisplay.ROCKETS;
 	}
 	
 	public float getFuelFraction(ItemStack stack) {
 		return getFuelFraction(stack, getElytraSpecOrDefault(stack));
 	}
 	
+	@SuppressWarnings("unused")
 	public float getFuelFraction(ItemStack stack, IElytraSpec spec) {
 		return spec.getAbility(MAX_FUEL) == 0 ? 0F : spec.getAbility(FUEL) / spec.getAbility(MAX_FUEL);
 	}
@@ -246,7 +232,7 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 	
 	@Override
 	public boolean hasEffect(@NotNull ItemStack stack) {
-		return super.hasEffect(stack) && ClientConfig.glint_visibility.test();
+		return super.hasEffect(stack) && ClientConfig.style.enchantment_glint_visibility.test();
 	}
 	
 	public boolean hasModelEffect(@NotNull ItemStack stack) {
@@ -260,7 +246,7 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 		return EquipmentSlotType.CHEST;
 	}
 	
-	@Override public boolean getIsRepairable(@NotNull ItemStack toRepair, ItemStack repair) {
+	@Override public boolean getIsRepairable(@NotNull ItemStack toRepair, @NotNull ItemStack repair) {
 		return RepairRecipe.getRepairRecipes().stream().anyMatch(r -> r.ingredient.test(repair));
 	}
 	
@@ -347,15 +333,17 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 			stack.damageItem(1, entity, e -> e.sendBreakAnimation(EquipmentSlotType.CHEST));
 		if (entity instanceof PlayerEntity) {
 			IAerobaticData data = getAerobaticDataOrDefault((PlayerEntity) entity);
-			if (data.isFlying()) {
+			if (data.isFlying() && !((PlayerEntity) entity).isCreative()) {
 				float rel_prop = abs(data.getPropulsionStrength()) /
 				                 max(abs(Config.aerobatic.propulsion.max_tick),
 				                     abs(Config.aerobatic.propulsion.min_tick));
 				float fuel_usage = rel_prop * Config.fuel.usage_linear_tick +
 				                   rel_prop * rel_prop * Config.fuel.usage_quad_tick +
 				                   MathHelper.sqrt(rel_prop) * Config.fuel.usage_sqrt_tick;
+				if (data.isBoosted())
+					fuel_usage *= Config.fuel.usage_boost_multiplier;
 				IElytraSpec spec = getElytraSpecOrDefault(stack);
-				spec.setAbility(FUEL, max(0F, spec.getAbility(FUEL) - fuel_usage));
+				spec.setAbility(FUEL, max(0F, min(spec.getAbility(MAX_FUEL), spec.getAbility(FUEL) - fuel_usage)));
 			}
 		}
 		return true;
@@ -366,8 +354,8 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 	// FIXME: Solve issue of CCreativeInventoryActionPacket not encoding ItemStack capabilities
 	//        on writePacketData. Possibly requires changes to PacketBuffer#writeItemStack
 	//        and possibly PacketBuffer#readItemStack and IForgeItem.
-	//        Currently, item capabilities are reset on any Creative Inventory actions on
-	//        multiplayer worlds.
+	//        Currently, item capabilities are reset on any Creative Inventory actions
+	//        (including moving items) on multiplayer worlds.
 	
 	/**
 	 * Add serialized capability to the shared tag
@@ -423,8 +411,8 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 		}
 	}
 	
-	public ResourceLocation getTextureLocation(BannerPattern banner) {
-		return bannerTextures.get(banner);
+	public ResourceLocation getTextureLocation(BannerPattern pattern) {
+		return new ResourceLocation(AerobaticElytra.MOD_ID, "entity/aerobatic_elytra/" + pattern.getFileName());
 	}
 	
 	@OnlyIn(Dist.CLIENT)
@@ -524,6 +512,7 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 	}
 	
 	// Split wings
+	@SuppressWarnings("unused")
 	public AerobaticElytraWingItem getWingItem(ItemStack elytra, WingSide side) {
 		return ModItems.AEROBATIC_ELYTRA_WING;
 	}

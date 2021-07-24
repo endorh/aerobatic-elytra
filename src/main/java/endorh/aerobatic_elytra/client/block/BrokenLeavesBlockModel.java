@@ -37,7 +37,7 @@ public class BrokenLeavesBlockModel implements IBakedModel {
 		fallbackModel = model;
 	}
 	
-	public static ModelDataMap getEmptyIModelData() {
+	private static ModelDataMap getEmptyIModelData() {
 		ModelDataMap.Builder builder = new ModelDataMap.Builder();
 		builder.withInitial(COPIED_LEAVE_BLOCK, Optional.empty());
 		return builder.build();
@@ -83,7 +83,8 @@ public class BrokenLeavesBlockModel implements IBakedModel {
 	
 	
 	@Override public @NotNull List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, @NotNull Random rand) {
-		throw new AssertionError("IBakedModel::getQuads should never be called, only IForgeBakedModel::getQuads");
+		//noinspection deprecation
+		return fallbackModel.getQuads(state, side, rand);
 	}
 	
 	@Override public @NotNull TextureAtlasSprite getParticleTexture() {

@@ -5,12 +5,14 @@ import endorh.aerobatic_elytra.common.capability.IAerobaticData;
 import endorh.aerobatic_elytra.common.config.Config;
 import endorh.util.math.Vec3f;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.item.ArmorStandEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static endorh.aerobatic_elytra.client.render.model.AerobaticElytraModelPose.ModelRotation.*;
 import static net.minecraft.util.math.MathHelper.lerp;
+import static net.minecraft.util.math.MathHelper.wrapDegrees;
 
 /**
  * Describes a pose for the {@link AerobaticElytraModel}
@@ -160,28 +162,49 @@ public interface IElytraPose {
 		  LivingEntity entity, float limbSwing, float limbSwingAmount,
 		  float netHeadYaw, float headPitch, float ageInTicks
 		) {
-			if (!(entity instanceof PlayerEntity))
-				return pose;
-			PlayerEntity player = (PlayerEntity) entity;
-			IAerobaticData data = AerobaticDataCapability.getAerobaticDataOrDefault(player);
-			float scaledPitch = data.getTiltPitch() / Config.aerobatic.tilt.range_pitch;
-			float scaledRoll = data.getTiltRoll() / Config.aerobatic.tilt.range_roll;
+			float scaledPitch;
+			float scaledRoll;
 			
-			float tipBase = DEG_5;
-			float tipLift = -(float) player.getLookVec().y * 0.5F;
-			float tipRoll = scaledRoll * 0.3F;
+			float tipBase;
+			float tipLift;
+			float tipRoll;
 			
-			float pitchSens = 0.8F;
-			float rollSens = 0.8F;
+			float leftTipExtra = 0F;
+			float rightTipExtra = 0F;
 			
 			float yTilt = 1F;
-			Vec3f motionVec = new Vec3f(player.getMotion());
-			if (motionVec.y < 0D) {
-				yTilt = 1F - (float) Math.pow(-motionVec.y / motionVec.norm(), 1.5D);
-			}
+			if (entity instanceof PlayerEntity) {
+				PlayerEntity player = (PlayerEntity) entity;
+				IAerobaticData data = AerobaticDataCapability.getAerobaticDataOrDefault(player);
+				scaledPitch = data.getTiltPitch() / Config.aerobatic.tilt.range_pitch;
+				scaledRoll = data.getTiltRoll() / Config.aerobatic.tilt.range_roll;
+				
+				tipBase = DEG_5;
+				tipLift = -(float) player.getLookVec().y * 0.5F;
+				tipRoll = scaledRoll * 0.3F;
+				
+				Vec3f motionVec = new Vec3f(player.getMotion());
+				if (motionVec.y < 0D)
+					yTilt = 1F - (float) Math.pow(-motionVec.y / motionVec.norm(), 1.5D);
+			} else if (entity instanceof ArmorStandEntity) {
+				ArmorStandEntity stand = (ArmorStandEntity) entity;
+				scaledPitch = DEG_5;
+				scaledRoll = 0;
+				
+				tipBase = DEG_5;
+				tipLift = -DEG_10;
+				tipRoll = scaledRoll * 0.3F;
+				
+				yTilt = Math.min(1F - stand.getHeadRotation().getZ() / 180F, 1F);
+				
+				leftTipExtra = wrapDegrees(stand.getLeftArmRotation().getZ() + 10F) * TO_RAD;
+				rightTipExtra = wrapDegrees(stand.getRightArmRotation().getZ() - 10F) * TO_RAD;
+			} else return pose;
 			
 			yTilt = Math.max(yTilt, 0.3F);
 			yTilt = 1F - (1F - yTilt) * (1F - yTilt);
+			float pitchSens = 0.8F;
+			float rollSens = 0.8F;
 			float targetX = lerp(yTilt, DEG_15, DEG_20);
 			float targetZ = lerp(yTilt, -DEG_15, -DEG_90);
 			pose.leftWing.x = lerp(0.1F, pose.leftWing.x, targetX);
@@ -192,8 +215,8 @@ public interface IElytraPose {
 			pose.leftRocket.z = -pose.leftWing.z - 8F * TO_RAD;
 			pose.rightRocket.z = -pose.rightWing.z + 8F * TO_RAD;
 			
-			pose.leftTip = tipLift - tipRoll + tipBase;
-			pose.rightTip = tipLift + tipRoll + tipBase;
+			pose.leftTip = tipLift - tipRoll + tipBase - leftTipExtra;
+			pose.rightTip = tipLift + tipRoll + tipBase + rightTipExtra;
 			pose.leftPitch = scaledPitch * pitchSens;
 			pose.rightPitch = -scaledPitch * pitchSens;
 			pose.leftRoll = -scaledRoll * rollSens;

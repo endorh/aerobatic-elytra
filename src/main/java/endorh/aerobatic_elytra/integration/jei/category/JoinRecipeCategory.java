@@ -1,6 +1,7 @@
 package endorh.aerobatic_elytra.integration.jei.category;
 
 import com.google.common.collect.ImmutableList;
+import endorh.aerobatic_elytra.client.config.ClientConfig;
 import endorh.aerobatic_elytra.common.item.ModItems;
 import endorh.aerobatic_elytra.common.recipe.JoinRecipe;
 import mezz.jei.api.constants.VanillaTypes;
@@ -27,12 +28,14 @@ public class JoinRecipeCategory implements IRecipeCategory<JoinRecipe> {
 	public static final ResourceLocation UID = prefix("join");
 	
 	private final IDrawable background;
+	private final IDrawable background_dark;
 	private final IDrawable icon;
 	private final String localizedName = I18n.format("aerobatic-elytra.recipe.category.join");
 	
 	public JoinRecipeCategory(IGuiHelper guiHelper) {
 		ResourceLocation location = prefix("textures/gui/recipes.png");
-		background = guiHelper.createDrawable(location, 0, 18, 116, 54);
+		background = guiHelper.createDrawable(location, 0, 36, 116, 54);
+		background_dark = guiHelper.createDrawable(location, 0, 36 + 54, 116, 54);
 		icon = guiHelper.createDrawableIngredient(new ItemStack(ModItems.AEROBATIC_ELYTRA_WING));
 	}
 	
@@ -47,7 +50,7 @@ public class JoinRecipeCategory implements IRecipeCategory<JoinRecipe> {
 		return localizedName;
 	}
 	@Override public @NotNull IDrawable getBackground() {
-		return background;
+		return ClientConfig.style.dark_theme_gui? background_dark : background;
 	}
 	@Override public @NotNull IDrawable getIcon() {
 		return icon;

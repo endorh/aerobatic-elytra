@@ -2,14 +2,13 @@ package endorh.aerobatic_elytra.common.capability;
 
 import com.google.gson.*;
 import endorh.aerobatic_elytra.client.trail.AerobaticTrail.RocketSide;
-import endorh.aerobatic_elytra.common.item.ElytraDyementReader.WingSide;
+import endorh.aerobatic_elytra.common.item.ElytraDyement.WingSide;
 import endorh.aerobatic_elytra.common.item.IAbility;
 import endorh.aerobatic_elytra.common.item.IAbility.Ability;
 import endorh.aerobatic_elytra.common.item.IDatapackAbilityReloadListener;
 import endorh.aerobatic_elytra.common.item.IDatapackAbility;
 import endorh.aerobatic_elytra.common.item.IEffectAbility;
 import endorh.aerobatic_elytra.common.registry.ModRegistries;
-import endorh.util.math.MathParser.ExpressionParser.ParseException;
 import endorh.util.math.MathParser.ExpressionParser.ParseException.NameParseException;
 import endorh.util.math.MathParser.FixedNamespaceSet;
 import endorh.util.math.MathParser.ParsedExpression;

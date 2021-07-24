@@ -249,9 +249,8 @@ public class UpgradeRecipe extends SpecialRecipe {
 	
 	@Override public @NotNull NonNullList<Ingredient> getIngredients() {
 		final NonNullList<Ingredient> list = NonNullList.create();
-		for (ItemSelector sel : ingredients) {
+		for (ItemSelector sel : ingredients)
 			list.add(sel.similarIngredient());
-		}
 		return list;
 	}
 	

@@ -92,6 +92,7 @@ public class ItemSelector implements Predicate<ItemStack> {
 		this.itemName = itemName;
 		this.tags = tags;
 		final ResourceLocation itemLocation = new ResourceLocation(itemName);
+		//noinspection deprecation
 		item =
 		  Registry.ITEM.getOptional(itemLocation).orElseThrow(
 		    () -> new IllegalArgumentException("Unknown item: '" + itemLocation + "'"));
@@ -149,7 +150,6 @@ public class ItemSelector implements Predicate<ItemStack> {
 		return false;
 	}
 	
-	// TODO: Display NBT properly
 	/**
 	 * Used to display in JEI
 	 * @return An {@link Ingredient} close to this.

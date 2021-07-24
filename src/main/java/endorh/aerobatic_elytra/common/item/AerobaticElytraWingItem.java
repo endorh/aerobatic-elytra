@@ -4,7 +4,7 @@ import endorh.aerobatic_elytra.common.block.BrokenLeavesBlock;
 import endorh.aerobatic_elytra.common.block.ModBlocks;
 import endorh.aerobatic_elytra.common.capability.IAerobaticData;
 import endorh.aerobatic_elytra.common.flight.AerobaticFlight.VectorBase;
-import endorh.aerobatic_elytra.common.item.ElytraDyementReader.WingSide;
+import endorh.aerobatic_elytra.common.item.ElytraDyement.WingSide;
 import endorh.aerobatic_elytra.common.capability.ElytraSpecCapability;
 import endorh.aerobatic_elytra.common.capability.IElytraSpec;
 import endorh.aerobatic_elytra.common.capability.IElytraSpec.TrailData;
@@ -55,9 +55,20 @@ public class AerobaticElytraWingItem extends Item implements IDyeableArmorItem {
 		return player.isCreative();
 	}
 	
+	/**
+	 * Check if the player can use the Debug Wing and has it held in any hand
+	 */
 	public static boolean hasDebugWing(PlayerEntity player) {
 		return canUseDebugWing(player) &&
-		       isDebugWing(player.getHeldItem(Hand.MAIN_HAND));
+		       (isDebugWing(player.getHeldItem(Hand.MAIN_HAND))
+		        || isDebugWing(player.getHeldItem(Hand.OFF_HAND)));
+	}
+	
+	/**
+	 * Check if the player can use the Debug Wing and has it held in the offhand
+	 */
+	public static boolean hasOffhandDebugWing(PlayerEntity player) {
+		return canUseDebugWing(player) && isDebugWing(player.getHeldItem(Hand.OFF_HAND));
 	}
 	
 	public static boolean isDebugWing(ItemStack stack) {

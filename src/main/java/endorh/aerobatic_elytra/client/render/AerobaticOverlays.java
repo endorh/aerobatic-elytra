@@ -5,6 +5,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import endorh.aerobatic_elytra.AerobaticElytra;
 import endorh.aerobatic_elytra.client.config.ClientConfig;
+import endorh.aerobatic_elytra.client.config.ClientConfig.style;
 import endorh.aerobatic_elytra.common.AerobaticElytraLogic;
 import endorh.aerobatic_elytra.common.capability.AerobaticDataCapability;
 import endorh.aerobatic_elytra.common.capability.IAerobaticData;
@@ -22,6 +23,7 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+import org.apache.logging.log4j.LogManager;
 import org.lwjgl.opengl.GL11;
 
 import static endorh.aerobatic_elytra.client.ModResources.FLIGHT_GUI_ICONS_LOCATION;
@@ -34,8 +36,8 @@ import static net.minecraft.util.math.MathHelper.lerp;
 
 @EventBusSubscriber(value = Dist.CLIENT, modid = AerobaticElytra.MOD_ID)
 public class AerobaticOverlays {
-	private static double popupEnd = 0D;
-	private static double remainingPopupTime = 0D;
+	private static long popupEnd = 0L;
+	private static long remainingPopupTime = 0L;
 	private static IFlightMode mode = null;
 	private static boolean awaitingDebugCrosshair = false;
 	
@@ -46,8 +48,8 @@ public class AerobaticOverlays {
 	
 	public static void showModePopup(IFlightMode modeIn) {
 		mode = modeIn;
-		popupEnd = currentTimeMillis() + ClientConfig.mode_popup_length_millis;
-		remainingPopupTime = popupEnd - currentTimeMillis();
+		popupEnd = currentTimeMillis() + style.mode_popup_length_millis;
+		remainingPopupTime = style.mode_popup_length_millis;
 	}
 	
 	@SubscribeEvent
@@ -56,14 +58,14 @@ public class AerobaticOverlays {
 			Minecraft mc = Minecraft.getInstance();
 			PlayerEntity pl = mc.player;
 			assert pl != null;
-			float alpha = (float)((popupEnd - currentTimeMillis()) / ClientConfig.mode_popup_length_millis);
+			float alpha = remainingPopupTime / (float)style.mode_popup_length_millis;
 			renderPopup(mode, alpha, event.getMatrixStack(),
 			            mc.getTextureManager(), event.getWindow());
-			remainingPopupTime = popupEnd - currentTimeMillis();
+			final long t = currentTimeMillis();
+			remainingPopupTime = popupEnd - t;
 		} else if (event.getType() == ElementType.CROSSHAIRS && awaitingDebugCrosshair) {
 			awaitingDebugCrosshair = false;
-			Minecraft mc = Minecraft.getInstance();
-			PlayerEntity pl = mc.player;
+			PlayerEntity pl = Minecraft.getInstance().player;
 			assert pl != null;
 			onPostDebugCrosshair();
 		}
@@ -82,8 +84,8 @@ public class AerobaticOverlays {
 		int iW = Const.FLIGHT_MODE_POPUP_WIDTH, iH = Const.FLIGHT_MODE_POPUP_HEIGHT;
 		int u = mode.getPopupIconU(), v = mode.getPopupIconV();
 		if (u != -1 && v != -1) {
-			int x = round((winW - iW) * ClientConfig.mode_popup_x_fraction);
-			int y = round((winH - iH) * ClientConfig.mode_popup_y_fraction);
+			int x = round((winW - iW) * ClientConfig.style.mode_popup_x_fraction);
+			int y = round((winH - iH) * ClientConfig.style.mode_popup_y_fraction);
 			blit(mStack, x, y, u, v, iW, iH, tW, tH);
 		}
 		RenderSystem.color4f(1F, 1F, 1F, 1F);
@@ -92,7 +94,7 @@ public class AerobaticOverlays {
 	
 	@SubscribeEvent
 	public static void onRenderGameOverlayPre(RenderGameOverlayEvent.Pre event) {
-		if (event.getType() == ElementType.CROSSHAIRS && ClientConfig.flight_crosshair) {
+		if (event.getType() == ElementType.CROSSHAIRS && ClientConfig.style.flight_crosshair) {
 			Minecraft mc = Minecraft.getInstance();
 			PlayerEntity pl = mc.player;
 			assert pl != null;
@@ -115,7 +117,7 @@ public class AerobaticOverlays {
 				}
 			}
 		} else if (event.getType() == ElementType.EXPERIENCE
-		           && ClientConfig.flight_bar != ClientConfig.FlightBarDisplay.HIDE) {
+		           && ClientConfig.style.flight_bar != ClientConfig.FlightBarDisplay.HIDE) {
 			Minecraft mc = Minecraft.getInstance();
 			PlayerEntity player = mc.player;
 			assert player != null;
@@ -197,7 +199,8 @@ public class AerobaticOverlays {
 	  PlayerEntity player, MatrixStack mStack,
 	  TextureManager tManager, MainWindow win, float partialTicks
 	) {
-		boolean replace = ClientConfig.flight_bar == ClientConfig.FlightBarDisplay.REPLACE_XP;
+		boolean replace = ClientConfig.style.flight_bar == ClientConfig.FlightBarDisplay.REPLACE_XP
+		                  || player.isCreative();
 		
 		RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 		RenderSystem.disableBlend();
@@ -266,7 +269,7 @@ public class AerobaticOverlays {
 		
 		GL11.glPushMatrix();
 			GL11.glTranslatef(winW / 2F, winH / 2F, 0F);
-			GL11.glRotatef(-data.getRotationRoll(), 0, 0, 1);
+			GL11.glRotatef(-CameraHandler.lastRoll, 0, 0, 1);
 			GL11.glTranslatef(-(winW / 2F), -(winH / 2F), 0F);
 		// Warning! Ensure onPostDebugCrosshair gets called,
 		//          or the matrix stack will break

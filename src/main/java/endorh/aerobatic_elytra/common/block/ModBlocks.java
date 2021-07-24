@@ -51,9 +51,9 @@ public class ModBlocks {
 		for (BlockState bs : BROKEN_LEAVES.getStateContainer().getValidStates()) {
 			ModelResourceLocation variantMRL = BlockModelShapes.getModelLocation(bs);
 			IBakedModel existingModel = reg.get(variantMRL);
-			if (existingModel == null) {
-				LOGGER.warn("Did not find the expected vanilla baked model(s) for BROKEN_LEAVES in registry");
-			} else if (existingModel instanceof BrokenLeavesBlockModel) {
+			if (existingModel == null)
+				throw new IllegalStateException("Missing fallback model for Broken Leaves block");
+			if (existingModel instanceof BrokenLeavesBlockModel) {
 				LOGGER.warn("Tried to replace BrokenLeavesBlockBakedModel twice");
 			} else {
 				BrokenLeavesBlockModel customModel = new BrokenLeavesBlockModel(existingModel);

@@ -1,7 +1,7 @@
 package endorh.aerobatic_elytra.common.recipe;
 
-import endorh.aerobatic_elytra.common.item.ElytraDyementReader;
-import endorh.aerobatic_elytra.common.item.ElytraDyementReader.WingSide;
+import endorh.aerobatic_elytra.common.item.ElytraDyement;
+import endorh.aerobatic_elytra.common.item.ElytraDyement.WingSide;
 import endorh.aerobatic_elytra.common.capability.ElytraSpecCapability;
 import endorh.aerobatic_elytra.common.capability.IElytraSpec.TrailData;
 import endorh.aerobatic_elytra.common.item.AerobaticElytraItem;
@@ -25,8 +25,8 @@ import static endorh.util.common.ForgeUtil.getSerializedCaps;
  */
 public class JoinRecipe extends SpecialRecipe {
 	
-	private static final ElytraDyementReader leftDyement = new ElytraDyementReader();
-	private static final ElytraDyementReader rightDyement = new ElytraDyementReader();
+	private static final ElytraDyement leftDyement = new ElytraDyement();
+	private static final ElytraDyement rightDyement = new ElytraDyement();
 	
 	public JoinRecipe(ResourceLocation id) {
 		super(id);

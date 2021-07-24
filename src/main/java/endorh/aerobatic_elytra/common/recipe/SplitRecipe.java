@@ -2,7 +2,7 @@ package endorh.aerobatic_elytra.common.recipe;
 
 import com.google.gson.*;
 import endorh.aerobatic_elytra.common.item.AerobaticElytraItem;
-import endorh.aerobatic_elytra.common.item.ElytraDyementReader.WingSide;
+import endorh.aerobatic_elytra.common.item.ElytraDyement.WingSide;
 import endorh.aerobatic_elytra.common.item.ModItems;
 import endorh.util.network.PacketBufferUtil;
 import net.minecraft.inventory.CraftingInventory;

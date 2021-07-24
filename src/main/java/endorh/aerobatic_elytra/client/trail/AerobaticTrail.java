@@ -11,7 +11,7 @@ import endorh.aerobatic_elytra.common.capability.IElytraSpec;
 import endorh.aerobatic_elytra.common.capability.IElytraSpec.RocketExplosion;
 import endorh.aerobatic_elytra.common.capability.IElytraSpec.TrailData;
 import endorh.aerobatic_elytra.common.flight.AerobaticFlight.VectorBase;
-import endorh.aerobatic_elytra.common.item.ElytraDyementReader.WingSide;
+import endorh.aerobatic_elytra.common.item.ElytraDyement.WingSide;
 import endorh.aerobatic_elytra.common.particle.TrailParticleData;
 import endorh.util.math.Vec3d;
 import endorh.util.math.Vec3f;

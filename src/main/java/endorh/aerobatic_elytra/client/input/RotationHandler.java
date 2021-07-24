@@ -70,10 +70,10 @@ public class RotationHandler {
 		final GameSettings settings = Minecraft.getInstance().gameSettings;
 		int i_p = settings.invertMouse ? -1 : 1;
 		int i_r = 1;
-		if (ClientConfig.invert_pitch)
+		if (ClientConfig.controls.invert_pitch)
 			i_p *= -1;
 		if (settings.getPointOfView() == PointOfView.THIRD_PERSON_FRONT
-		    && ClientConfig.invert_front_third_person) {
+		    && ClientConfig.controls.invert_front_third_person) {
 			i_p *= -1;
 			i_r *= -1;
 		}
@@ -84,8 +84,8 @@ public class RotationHandler {
 		float tiltYaw = data.getTiltYaw();
 		
 		// Pre-scaled so that 1 is my preferred sensibility
-		tiltRoll += scaledX * ROLL_SENS_PRESCALE * ClientConfig.roll_sens * i_r;
-		tiltPitch += scaledY * PITCH_SENS_PRESCALE * ClientConfig.pitch_sens * i_p;
+		tiltRoll += scaledX * ROLL_SENS_PRESCALE * ClientConfig.controls.roll_sens * i_r;
+		tiltPitch += scaledY * PITCH_SENS_PRESCALE * ClientConfig.controls.pitch_sens * i_p;
 		
 		// Clamp within limit
 		tiltRoll = clamp(tiltRoll, -Config.aerobatic.tilt.range_roll, Config.aerobatic.tilt.range_roll);
@@ -95,7 +95,7 @@ public class RotationHandler {
 		float yawDelta = -0.5F * signum(tiltYaw) + 1.5F * signum(player.moveStrafing);
 		if (player.moveStrafing == 0)
 			yawDelta = signum(yawDelta) * clamp(2 * abs(yawDelta), 0F, abs(tiltYaw));
-		tiltYaw = clamp(tiltYaw + yawDelta * YAW_SENS_PRESCALE * ClientConfig.yaw_sens,
+		tiltYaw = clamp(tiltYaw + yawDelta * YAW_SENS_PRESCALE * ClientConfig.controls.yaw_sens,
 		                  -Config.aerobatic.tilt.range_yaw, Config.aerobatic.tilt.range_yaw);
 		
 		// Update tilt
@@ -115,10 +115,10 @@ public class RotationHandler {
 		final GameSettings settings = Minecraft.getInstance().gameSettings;
 		int i_p = settings.invertMouse ? -1 : 1;
 		int i_r = 1;
-		if (ClientConfig.invert_pitch)
+		if (ClientConfig.controls.invert_pitch)
 			i_p *= -1;
 		if (settings.getPointOfView() == PointOfView.THIRD_PERSON_FRONT
-		    && ClientConfig.invert_front_third_person) {
+		    && ClientConfig.controls.invert_front_third_person) {
 			i_p *= -1;
 			i_r *= -1;
 		}
@@ -135,18 +135,18 @@ public class RotationHandler {
 		
 		/*LOGGER.debug(format(
 		  "X delta: %5.2f, Y delta: %5.2f",
-		  scaledX * ROLL_SENS_PRESCALE * ClientConfig.roll_sens * i_r * underwaterSens,
-		  scaledY * PITCH_SENS_PRESCALE * ClientConfig.pitch_sens * i_p * underwaterSens));*/
+		  scaledX * ROLL_SENS_PRESCALE * ClientConfig.controls.roll_sens * i_r * underwaterSens,
+		  scaledY * PITCH_SENS_PRESCALE * ClientConfig.controls.pitch_sens * i_p * underwaterSens));*/
 		
 		// Instantaneous rotation
 		final float pitchDelta =
-		  (float) -scaledY * PITCH_SENS_PRESCALE * ClientConfig.pitch_sens * i_p * underwaterSens;
+		  (float) -scaledY * PITCH_SENS_PRESCALE * ClientConfig.controls.pitch_sens * i_p * underwaterSens;
 		final float rollDelta =
-		  (float) scaledX * ROLL_SENS_PRESCALE * ClientConfig.roll_sens * i_r * underwaterSens;
+		  (float) scaledX * ROLL_SENS_PRESCALE * ClientConfig.controls.roll_sens * i_r * underwaterSens;
 		
 		// Pre-scaled so that 1 is my preferred sensibility
-		tiltRoll += scaledX * ROLL_SENS_PRESCALE * ClientConfig.roll_sens * i_r;
-		tiltPitch += scaledY * PITCH_SENS_PRESCALE * ClientConfig.pitch_sens * i_p;
+		tiltRoll += scaledX * ROLL_SENS_PRESCALE * ClientConfig.controls.roll_sens * i_r;
+		tiltPitch += scaledY * PITCH_SENS_PRESCALE * ClientConfig.controls.pitch_sens * i_p;
 		
 		// Clamp within limit
 		tiltRoll = clamp(tiltRoll, -Config.aerobatic.tilt.range_roll, Config.aerobatic.tilt.range_roll);
@@ -162,7 +162,7 @@ public class RotationHandler {
 		if (player.moveStrafing == 0)
 			yawDelta = signum(yawDelta) * clamp(2 * abs(yawDelta), 0F, abs(tiltYaw));
 		final float underwaterYawSens = Const.UNDERWATER_YAW_RANGE_MULTIPLIER;
-		tiltYaw = clamp(tiltYaw + yawDelta * YAW_SENS_PRESCALE * ClientConfig.yaw_sens * underwaterYawSens,
+		tiltYaw = clamp(tiltYaw + yawDelta * YAW_SENS_PRESCALE * ClientConfig.controls.yaw_sens * underwaterYawSens,
 		  -Config.aerobatic.tilt.range_yaw * underwaterYawSens, Config.aerobatic.tilt.range_yaw * underwaterYawSens);
 		
 		// Update tilt

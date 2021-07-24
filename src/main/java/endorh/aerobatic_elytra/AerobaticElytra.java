@@ -1,5 +1,6 @@
 package endorh.aerobatic_elytra;
 
+import endorh.aerobatic_elytra.client.item.AerobaticElytraBannerTextureManager;
 import endorh.aerobatic_elytra.common.ModInit;
 import endorh.aerobatic_elytra.common.registry.JsonAbilityManager;
 import net.minecraft.util.ResourceLocation;
@@ -9,6 +10,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Marker;
 import org.apache.logging.log4j.MarkerManager;
+import org.jetbrains.annotations.ApiStatus.Internal;
 
 /**
  * Mod loading
@@ -17,21 +19,22 @@ import org.apache.logging.log4j.MarkerManager;
 public final class AerobaticElytra {
     public static final String MOD_ID = "aerobatic-elytra";
     
-    protected static final Logger LOGGER = LogManager.getLogger();
-    protected static final Marker MAIN = MarkerManager.getMarker("MAIN");
-    protected static final Marker REGISTER = MarkerManager.getMarker("REGISTER");
+    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Marker MAIN = MarkerManager.getMarker("MAIN");
+    private static final Marker REGISTER = MarkerManager.getMarker("REGISTER");
     
     public static boolean caelusLoaded = false;
     public static boolean curiosLoaded = false;
     public static boolean colytraLoaded = false;
     
     public static final JsonAbilityManager JSON_ABILITY_MANAGER = new JsonAbilityManager();
+    public static AerobaticElytraBannerTextureManager BANNER_TEXTURE_MANAGER;
     
     /**
      * Run setup tasks
      */
     public AerobaticElytra() {
-        // Compatibility
+        // Integrations
         final ModList modList = ModList.get();
         if (modList.isLoaded("caelus")) {
             caelusLoaded = true;
@@ -49,7 +52,7 @@ public final class AerobaticElytra {
         LOGGER.debug(REGISTER, "Registered " + kind);
     }
     
-    public static ResourceLocation prefix(String key) {
+    @Internal public static ResourceLocation prefix(String key) {
         return new ResourceLocation(MOD_ID, key);
     }
 }

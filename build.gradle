@@ -21,6 +21,7 @@ buildscript {
 plugins {
 	id 'java'
 	id 'maven-publish'
+	// id "com.github.johnrengelman.shadow" version "6.1.0"
 }
 apply plugin: 'net.minecraftforge.gradle'
 import net.minecraftforge.gradle.common.task.SignJar
@@ -53,7 +54,7 @@ Other mods may register their own flight modes for the elytra.
 def license = "LGPL"
 
 // Versions
-version = "0.2.4"
+version = "0.2.13"
 
 // Dependencies
 def mc_version = "1.16.5",
@@ -77,6 +78,10 @@ def curious_elytra_version = "317716:3231248",
 	additional_banners_version = "230137:3170181",
 	tabula_version = "229092:3274999",
 	ichun_utils_version = "229060:3274982",
+    placebo_version = "283644:3331459",
+	xaeros_worldmap_version = "317780:3375878",
+	xaeros_minimap_version = "263420:3375900",
+	immersive_portals_version = "355440:3215256",
 	aerobatic_elytra_jetpack_version = "0.2.+"
 
 // Jar attributes
@@ -176,10 +181,6 @@ minecraft {
 // Project dependencies -----------------------------------------------------------
 
 repositories {
-	flatDir {
-		name = 'Local libs' // flightcore, colytra integration
-		dirs 'libs'
-	}
 	maven {
 		name = "Progwml6 maven" // JEI
 		url = "https://dvs1.progwml6.com/files/maven/"
@@ -200,10 +201,7 @@ repositories {
 		}
 	}
 	maven {
-		name = "Cloth Config API"
-		url = "https://maven.shedaniel.me/"
-	}
-	maven {
+		// Local repository shared by different mods to test changes across dependencies
 		name "LocalMods"
 		url "${project.projectDir.parentFile.toURI()}maven"
 	}
@@ -250,9 +248,8 @@ dependencies {
 	compileOnly fg.deobf("top.theillusivec4.caelus:caelus-forge:${caelus_version}:api")
 	runtimeOnly fg.deobf("top.theillusivec4.caelus:caelus-forge:${caelus_version}")
 
-	// Only for debug
+	// Used for debug
 	// Aerobatic Elytra Jetpack
-	// TODO: Replace by curse maven, once uploaded
 	runtimeOnly fg.deobf("endorh.aerobatic_elytra.jetpack:aerobatic-elytra-jetpack:${aerobatic_elytra_jetpack_version}")
 
 	// Curious Elytra
@@ -268,9 +265,23 @@ dependencies {
 	runtimeOnly "curse.maven:bookshelf-${bookshelf_version}:deobf"
 	runtimeOnly "curse.maven:additionalbanners-${additional_banners_version}:deobf"
 
-	// Tabula
-	//runtimeOnly fg.deobf("curse.maven:tabula-${tabula_version}")
-	//runtimeOnly fg.deobf("curse.maven:ichunutils-${ichun_utils_version}")
+	// Placebo (solved an odd class-loading order bug related to SimpleConfig, not needed anymore)
+	// runtimeOnly fg.deobf("curse.maven:placebo-${placebo_version}")
+
+	// Xaero's World Map
+	runtimeOnly fg.deobf("curse.maven:xaeros-worldmap-${xaeros_worldmap_version}")
+
+	// Xaero's Minimap (waypoints are rendered out of place ingame when rolling)
+	runtimeOnly fg.deobf("curse.maven:xaeros-minimap-${xaeros_minimap_version}")
+
+	// Immersive Portals (untestable in an unobfuscated environment, crashes without refmaps)
+	//   Portals with rotation override roll with a fixed animation that is sometimes in the wrong axis
+	//   Wings of players in the portal frontier bind the wrong texture when rendering
+	// runtimeOnly fg.deobf("curse.maven:immersive-portals-${immersive_portals_version}")
+
+	// Tabula (breaks the menu, so it's disabled unless needed)
+	// runtimeOnly fg.deobf("curse.maven:tabula-${tabula_version}")
+	// runtimeOnly fg.deobf("curse.maven:ichunutils-${ichun_utils_version}")
 }
 
 // Tasks --------------------------------------------------------------------------
@@ -281,43 +292,17 @@ test {
 
 classes.dependsOn extractNatives // Make sure the natives are extracted on compile
 
-/*
-// From https://github.com/PaleoCrafter/Dependency-Extraction-Example/pull/1/files
-task generateMetaFiles {
-	doLast {
-		file("${buildDir}/dependencyMeta/").deleteDir() // Clean previous dependencies
-		configurations.embed.resolvedConfiguration.resolvedArtifacts.each {
-			def metaFile = file("${buildDir}/dependencyMeta/${it.file.name}.meta")
-			metaFile.parentFile.mkdirs()
-			def artifactRef = it.moduleVersion.toString()
-			if (it.classifier != null)
-				artifactRef += ":${it.classifier}"
-			def version = it.moduleVersion.id.version
-			def output = 'Maven-Artifact: ' + artifactRef
-			output += '\nMD5: ' + java.security.MessageDigest.getInstance('MD5').digest(it.file.bytes).encodeHex().toString()
-			if (it.moduleVersion.id.version.endsWith('-SNAPSHOT')) // Grab the latest
-				output += '\nTimestamp: ' + Collections.list(new java.util.zip.ZipFile(it.file).entries()).stream()
-					.mapToLong{ze -> ze.time}.reduce{a, b -> a > b ? a : b}.orElse(0)
-
-			metaFile.text = output
-		}
-	}
-}
-*/
-
 // Jar attributes
 jar {
-	into('/META-INF/dependencies') {
-		from configurations.embed
-		from "${buildDir}/dependencyMeta/"
-	}
+	// into('/META-INF/dependencies') {
+	// 	from configurations.embed
+	// 	from "${buildDir}/dependencyMeta/"
+	// }
 	manifest {
 		attributes(jar_attributes)
-		attributes 'ContainedMods': configurations.embed.collect { it.name }.join(' ')
+		// attributes 'ContainedMods': configurations.embed.collect { it.name }.join(' ')
 	}
 
-	//dependsOn generateMetaFiles
-	// Preferred method to reobfuscate the jar file
 	finalizedBy 'reobfJar'
 }
 
@@ -328,10 +313,6 @@ task deobfJar(type: Jar, dependsOn: classes) {
 		attributes(jar_attributes)
 		attributes 'Maven-Artifact': "${group}:${mod_id}:${project.version}:deobf"
 	}
-}
-
-artifacts {
-	archives deobfJar
 }
 
 // Process resources
@@ -393,8 +374,6 @@ publishing {
 		mod(MavenPublication) {
 			artifact jar
 			artifact sourcesJar
-			// artifact javadocJar
-			artifact deobfJar
 
 			pom {
 				name = display_name

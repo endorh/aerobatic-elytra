@@ -115,7 +115,7 @@ public class CameraHandler {
 				final double f = Math.min(1D, data.ticksFlying() / 4D);
 				final double p = abs(data.getPropulsionStrength()) / Config.aerobatic.propulsion.range * 10;
 				final double b = data.isBoosted()? 15 : 0;
-				newFOV = f * (p + b) * ClientConfig.aerobatic_flight_fov_strength;
+				newFOV = f * (p + b) * ClientConfig.style.fov_effect_strength;
 			}
 			lastFOV = (lastFOV * 3 + newFOV) / 4;
 			event.setFOV(fov + lastFOV);

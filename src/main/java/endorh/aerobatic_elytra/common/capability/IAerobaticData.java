@@ -91,7 +91,16 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	 */
 	VectorBase getPosBounceBase();
 	
+	/**
+	 * Last bounce time in ms<br>
+	 * Used to interpolate the camera rotation
+	 */
 	long getLastBounceTime();
+	
+	/**
+	 * Last bounce time in ms<br>
+	 * Used to interpolate the camera rotation
+	 */
 	void setLastBounceTime(long time);
 	
 	/**
@@ -203,6 +212,13 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	 * @see PlayerEntity#getTicksElytraFlying()
 	 */
 	int ticksFlying();
+	
+	/**
+	 * {@code player.world.canBlockSeeSky(player.getPosition())}<br>
+	 * Updated every tick the player is flying to prevent useless re-computation
+	 */
+	boolean isAffectedByWeather();
+	void setAffectedByWeather(boolean affected);
 	
 	/**
 	 * Propulsion delta per tick

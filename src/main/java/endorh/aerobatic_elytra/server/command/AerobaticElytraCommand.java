@@ -1,7 +1,9 @@
 package endorh.aerobatic_elytra.server.command;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -20,6 +22,11 @@ import net.minecraft.command.arguments.EntityArgument;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.inventory.EquipmentSlotType;
+import net.minecraft.resources.IResourcePack;
+import net.minecraft.resources.ResourcePackInfo;
+import net.minecraft.resources.ResourcePackType;
+import net.minecraft.util.JSONUtils;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.*;
 import net.minecraft.util.text.event.ClickEvent;
 import net.minecraft.util.text.event.ClickEvent.Action;
@@ -28,18 +35,18 @@ import net.minecraft.world.storage.FolderName;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+import org.apache.commons.io.FileUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Files;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import static com.mojang.brigadier.arguments.BoolArgumentType.bool;
 import static com.mojang.brigadier.arguments.BoolArgumentType.getBool;
@@ -53,16 +60,15 @@ import static net.minecraft.command.Commands.argument;
 import static net.minecraft.command.Commands.literal;
 import static net.minecraft.command.arguments.EntityArgument.entities;
 import static net.minecraft.command.arguments.EntityArgument.entity;
-import static org.apache.commons.lang3.StringUtils.countMatches;
 
 @EventBusSubscriber(modid = AerobaticElytra.MOD_ID)
 public class AerobaticElytraCommand {
-	private static final String DATAPACK_LOCATION = "data/aerobatic-elytra/datapacks";
+	private static final String DATAPACK_LOCATION = "datapacks";
 	
 	public static final SuggestionProvider<CommandSource> SUGGEST_PACKS =
 	  ((context, builder) -> ISuggestionProvider.suggest(
-	    getAvailablePacks().stream().map(StringArgumentType::escapeIfRequired),
-	    builder));
+	    getAvailablePacks(context.getSource()).values().stream()
+	      .map(bd -> escapeIfRequired(bd.getTitle())), builder));
 	public static final SuggestionProvider<CommandSource> SUGGEST_ABILITIES =
 	  ((context, builder) -> ISuggestionProvider.suggest(
 	    ModRegistries.getAbilitiesByName().keySet(), builder));
@@ -72,6 +78,7 @@ public class AerobaticElytraCommand {
 	public static final SimpleCommandExceptionType UNKNOWN_ABILITY =
 	  new SimpleCommandExceptionType(ttc(
 	    "commands.aerobatic-elytra.error.unknown_ability"));
+	private static final Logger LOGGER = LogManager.getLogger();
 	
 	@SubscribeEvent
 	public static void onRegisterCommands(RegisterCommandsEvent event) {
@@ -87,7 +94,8 @@ public class AerobaticElytraCommand {
 		        literal("install").then(
 		          argument("datapack", string())
 		            .suggests(SUGGEST_PACKS)
-		            .executes(cc -> installPack(cc, getString(cc, "datapack")))))
+		            .executes(cc -> installPack(cc, getString(cc, "datapack"))))
+		      ).then(literal("list").executes(AerobaticElytraCommand::listPacks))
 		    ).then(
 		      literal("debug").then(
 		        argument("enable", bool())
@@ -391,29 +399,58 @@ public class AerobaticElytraCommand {
 		return 1;
 	}
 	
+	public static int listPacks(CommandContext<CommandSource> context) {
+		CommandSource source = context.getSource();
+		final Map<String, BundledDatapack> packs = getAvailablePacks(source);
+		if (packs.isEmpty()) {
+			source.sendErrorMessage(ttc("commands.aerobatic-elytra.datapack.list.empty"));
+		} else {
+			IFormattableTextComponent msg = ttc("commands.aerobatic-elytra.datapack.list.success");
+			for (BundledDatapack pack : packs.values())
+				msg = msg.appendString("\n  ").append(
+				  pack.getDisplayName().mergeStyle(TextFormatting.AQUA));
+			source.sendFeedback(msg, true);
+		}
+		return 0;
+	}
+	
 	public static int installPack(CommandContext<CommandSource> context, String name) {
 		CommandSource source = context.getSource();
-		if (!getAvailablePacks().contains(name))
+		final Map<String, BundledDatapack> availablePacks = getAvailablePacksByTitle(source);
+		if (!availablePacks.containsKey(name))
 			source.sendErrorMessage(ttc("commands.aerobatic-elytra.datapack.install.unknown"));
+		final BundledDatapack pack = availablePacks.get(name);
 		Path datapacksFolder = source.getServer().func_240776_a_(FolderName.DATAPACKS);
-		final ZipFile file = getJar();
-		if (file == null) {
-			source.sendErrorMessage(ttc("command.failed"));
-			return 0;
-		}
-		final Path destination = datapacksFolder.resolve(AerobaticElytra.MOD_ID + "_" + name);
+		final Path destination = datapacksFolder.resolve(AerobaticElytra.MOD_ID + " - " + name);
 		if (destination.toFile().exists()) {
 			source.sendErrorMessage(ttc("commands.aerobatic-elytra.datapack.install.overwrite"));
-			return 0;
+			return 1;
 		}
-		final String datapackFolder = new File(DATAPACK_LOCATION).toPath().resolve(name).toString();
+		final Path anchor = new File(DATAPACK_LOCATION).toPath().resolve(pack.name);
 		try {
-			extractArchive(file, datapackFolder, destination);
-		} catch (IOException e) {
+			for (Map.Entry<ResourceLocation, InputStream> entry : pack.getStreams().entrySet()) {
+				final File dest = destination.resolve(
+				  anchor.relativize(new File(entry.getKey().getPath()).toPath())).toFile();
+				assert dest.getParentFile().mkdirs();
+				assert dest.createNewFile();
+				FileUtils.copyInputStreamToFile(entry.getValue(), dest);
+			}
+		} catch (IOException | AssertionError e) {
 			e.printStackTrace();
-			source.sendErrorMessage(ttc("command.failed"));
-			return 0;
+			source.sendErrorMessage(ttc("commands.aerobatic-elytra.datapack.install.failure.copy", e.getLocalizedMessage()));
+			try { // Undo
+				FileUtils.deleteDirectory(destination.toFile());
+			} catch (IOException f) {
+				f.printStackTrace();
+				source.sendErrorMessage(ttc("commands.aerobatic-elytra.datapack.install.failure.undo", f.getLocalizedMessage()));
+			}
+			return 2;
 		}
+		
+		// Refresh the pack list so that '/datapack enable' works without calling '/datapack list' before
+		source.getServer().getResourcePacks().reloadPacksFromFinders();
+		
+		// Send feedback
 		final String command = "/datapack enable \"file/" + destination.getFileName() + "\"";
 		ITextComponent suggestedCommand = TextComponentUtils.wrapWithSquareBrackets(
 		  stc(command).modifyStyle(
@@ -422,84 +459,93 @@ public class AerobaticElytraCommand {
 		  .setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, stc(command).mergeStyle(TextFormatting.AQUA)))));
 		source.sendFeedback(
 		  ttc("commands.aerobatic-elytra.datapack.install.success", suggestedCommand), true);
-		return 1;
+		return 0;
 	}
 	
-	public static List<String> getAvailablePacks() {
-		ZipFile file = getJar();
-		if (file == null)
-			return Collections.emptyList();
-		return file.stream().filter(
-		  entry -> isDirectSubFolder(entry.getName(), DATAPACK_LOCATION)
-		).sorted(Comparator.comparing(ZipEntry::getName))
-		  .map(entry -> stripSeparator(entry.getName().substring(DATAPACK_LOCATION.length())))
-		  .collect(Collectors.toList());
+	public static Map<String, BundledDatapack> getAvailablePacksByTitle(CommandSource source) {
+		return getAvailablePacks(source).values().stream()
+		  .collect(Collectors.toMap(BundledDatapack::getTitle, bd -> bd));
 	}
 	
-	public static void extractArchive(ZipFile jar, String location, Path target) throws IOException {
-		final List<ZipEntry> datapackFiles = jar.stream().filter(
-		  entry -> isChild(entry.getName(), location)
-		).sorted(Comparator.comparing(ZipEntry::getName))
-		  .collect(Collectors.toList());
-		Path sourceRoot = path(location);
-		for (ZipEntry entry : datapackFiles) {
-			Path entryTarget = target.resolve(sourceRoot.relativize(path(entry.getName())));
-			if (entry.isDirectory()) {
-				Files.createDirectory(entryTarget);
-			} else {
-				Files.copy(jar.getInputStream(entry), entryTarget);
-			}
+	public static Map<String, BundledDatapack> getAvailablePacks(CommandSource source) {
+		final ResourcePackInfo pack = source.getServer().getResourcePacks()
+		  .getPackInfo("mod:" + AerobaticElytra.MOD_ID);
+		
+		if (pack == null) {
+			LOGGER.warn("Could not find mod datapack");
+			return Collections.emptyMap();
 		}
+		
+		final IResourcePack resourcePack = pack.getResourcePack();
+		
+		return resourcePack.getAllResourceLocations(
+		  ResourcePackType.SERVER_DATA, AerobaticElytra.MOD_ID, "datapacks", 2,
+		  s -> !stripPath(s).equals("datapacks")
+		).stream()
+		  .map(rl -> new BundledDatapack(
+		    resourcePack, new ResourceLocation(rl.getNamespace(), stripPath(rl.getPath()))))
+		  .collect(Collectors.toMap(bd -> bd.name, bd -> bd));
 	}
 	
-	private static Path path(String path) {
-		return new File(path).toPath();
+	public static String stripPath(String path) {
+		return path.replaceAll("^[\\\\/]|[\\\\/]$", "");
 	}
 	
-	private static ZipFile getJar() {
-		try {
-			final URL res = AerobaticElytraCommand.class
-			  .getClassLoader().getResource(DATAPACK_LOCATION);
-			URL jar = null;
-			if (res != null) {
-				String path = res.getPath();
-				path = path.substring(
-				  0, path.length() - stripSeparator(DATAPACK_LOCATION).length() - 2);
-				jar = new URL(path);
-			}
-			if (jar == null) {
-				return null;
-				//jar = new File("test.jar").toURI().toURL();
-			}
-			return new ZipFile(new File(jar.toURI()));
-		} catch (URISyntaxException | IOException e) {
-			e.printStackTrace();
+	public static class BundledDatapack {
+		public final String name;
+		public final ResourceLocation location;
+		public final IResourcePack pack;
+		private final IFormattableTextComponent title;
+		
+		public BundledDatapack(IResourcePack pack, ResourceLocation location) {
+			this.pack = pack;
+			this.location = location;
+			final String[] split = location.getPath().split("/");
+			name = split[split.length - 1];
+			String title = name;
+			try {
+				final JsonParser parser = new JsonParser();
+				final JsonElement json = parser.parse(new InputStreamReader(
+				  pack.getResourceStream(ResourcePackType.SERVER_DATA, getMcMetaLocation())));
+				try {
+					if (json.isJsonObject())
+						title = JSONUtils.getString(JSONUtils.getJsonObject(json.getAsJsonObject(), "pack"), "title");
+				} catch (JsonSyntaxException ignored) {}
+			} catch (IOException ignored) {}
+			this.title = new StringTextComponent(title);
 		}
-		return null;
-	}
-	
-	@SuppressWarnings("SameParameterValue")
-	private static boolean isDirectSubFolder(String path, String parent) {
-		path = stripSeparator(normalizeSeparator(path));
-		parent = stripSeparator(normalizeSeparator(parent));
-		return path.startsWith(parent) &&
-		       countMatches(path, "/") == countMatches(parent, "/") + 1;
-	}
-	
-	private static boolean isChild(String path, String parent) {
-		return stripSeparator(normalizeSeparator(path))
-		  .startsWith(stripSeparator(normalizeSeparator(parent)));
-	}
-	
-	private static String normalizeSeparator(String path) {
-		return path.replace("\\", "/");
-	}
-	
-	private static String stripSeparator(String path) {
-		if (path.startsWith("/"))
-			path = path.substring(1);
-		if (path.endsWith("/"))
-			path = path.substring(0, path.length() - 1);
-		return path;
+		
+		public String getTitle() {
+			return title.getString();
+		}
+		
+		public IFormattableTextComponent getDisplayName() {
+			return title;
+		}
+		
+		public ResourceLocation getMcMetaLocation() {
+			return new ResourceLocation(location.getNamespace(), location.getPath() + "/pack.mcmeta");
+		}
+		
+		public Collection<ResourceLocation> getAllResourceLocations() {
+			final Collection<ResourceLocation> locations = pack.getAllResourceLocations(
+			  ResourcePackType.SERVER_DATA, location.getNamespace(),
+			  location.getPath(), Integer.MAX_VALUE, s -> !s.equals(location.getPath()));
+			locations.add(getMcMetaLocation());
+			return locations;
+		}
+		
+		public Map<ResourceLocation, InputStream> getStreams() {
+			Map<ResourceLocation, InputStream> streams = new HashMap<>();
+			for (ResourceLocation rl : getAllResourceLocations()) {
+				try {
+					streams.put(rl, pack.getResourceStream(ResourcePackType.SERVER_DATA, rl));
+				} catch (IOException e) {
+					LOGGER.warn("Could not get resource stream for bundled datapack resource " + rl);
+					e.printStackTrace();
+				}
+			}
+			return streams;
+		}
 	}
 }

@@ -2,6 +2,9 @@ package endorh.aerobatic_elytra.common.flight;
 
 import endorh.aerobatic_elytra.AerobaticElytra;
 import endorh.aerobatic_elytra.common.config.Config;
+import endorh.aerobatic_elytra.common.config.Config.weather;
+import endorh.aerobatic_elytra.common.config.Config.weather.rain;
+import endorh.aerobatic_elytra.common.config.Config.weather.storm;
 import endorh.aerobatic_elytra.network.WeatherPackets.SWindNodePacket;
 import endorh.util.math.Vec3f;
 import net.minecraft.entity.player.PlayerEntity;
@@ -313,6 +316,8 @@ public class WeatherData {
 	 * affected by the region.
 	 */
 	public static class WindRegion {
+		protected static final Random RANDOM = new Random();
+		
 		public final WeatherRegion region;
 		public final Vec3f wind = Vec3f.ZERO.get();
 		public final Vec3f angularWind = Vec3f.ZERO.get();
@@ -353,29 +358,41 @@ public class WeatherData {
 		
 		private static final Vec3f windDelta = Vec3f.ZERO.get();
 		private static final Vec3f angularWindDelta = Vec3f.ZERO.get();
+		private static final Vec3f orthogonal = Vec3f.ZERO.get();
+		private static final Vec3f last = Vec3f.ZERO.get();
 		
 		protected void tick() {
+			if (!weather.enabled)
+				return;
 			float rain = region.world.getRainStrength(1F);
 			float storm = region.world.getThunderStrength(1F);
-			if (rain > 0F || !wind.isZero(1E-15)) {
+			if (rain > 0F || !wind.isZero(1E-5)) {
 				float wind_randomness =
-				  Config.weather.rain.wind_randomness_per_tick * rain * Config.weather.rain.wind_strength_per_tick
-				  + Config.weather.storm.wind_randomness_per_tick * storm * Config.weather.storm.wind_strength_per_tick;
+				  weather.rain.wind_randomness_per_tick * rain * weather.rain.wind_strength_per_tick
+				  + weather.storm.wind_randomness_per_tick * storm * weather.storm.wind_strength_per_tick;
 				if (wind_randomness > 0F) {
-					float wind = rain * Config.weather.rain.wind_strength_per_tick + storm * Config.weather.storm.wind_strength_per_tick;
-					windDelta.setRandom(wind_randomness);
-					this.wind.add(windDelta);
-					this.wind.clamp(wind);
+					float strength = rain * weather.rain.wind_strength_per_tick + storm * weather.storm.wind_strength_per_tick;
+					float delta = rain * weather.rain.wind_randomness_per_tick + storm * weather.storm.wind_randomness_per_tick;
+					
+					last.set(wind);
+					if (wind.isZero(1E-5))
+						wind.set(1F, 0F, 0F);
+					wind.unitary();
+					wind.mul(strength * (RANDOM.nextFloat() * 0.4F + 0.8F));
+					orthogonal.setOrthogonalUnitary(wind);
+					wind.rotateAlongVecDegrees(orthogonal, (RANDOM.nextFloat() - 0.5F) * 2F * delta);
+					wind.lerp(last, 0.6F);
+					
 					angularWindDelta.setRandom(
-					  Config.weather.rain.wind_randomness_per_tick * rain *
-					  Config.weather.rain.wind_angular_strength_per_tick
-					  + Config.weather.storm.wind_randomness_per_tick * storm *
-					    Config.weather.storm.wind_angular_strength_per_tick
+					  weather.rain.wind_randomness_per_tick * rain *
+					  weather.rain.wind_angular_strength_per_tick
+					  + weather.storm.wind_randomness_per_tick * storm *
+					    weather.storm.wind_angular_strength_per_tick
 					);
 					angularWind.add(angularWindDelta);
 					angularWind.clamp(
-					  rain * Config.weather.rain.wind_angular_strength_per_tick
-					  + storm * Config.weather.storm.wind_angular_strength_per_tick);
+					  rain * weather.rain.wind_angular_strength_per_tick
+					  + storm * weather.storm.wind_angular_strength_per_tick);
 				}
 				new SWindNodePacket(this).sendTracking();
 			}
