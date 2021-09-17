@@ -2,14 +2,14 @@
   "type": "aerobatic-elytra:upgrade_recipe",
   "_comment": "",
   "ingredients": [
-    "minecraft:phantom_membrane"
+    "minecraft:redstone"
   ],
   "upgrades": [
     {
-      "type": "Lift",
-      "expression": "Lift + 0.1",
+      "type": "Trail",
+      "expression": "Trail - 0.1",
       "min": 0,
-      "max": 0.6
+      "max": 4
     }
   ]
 }

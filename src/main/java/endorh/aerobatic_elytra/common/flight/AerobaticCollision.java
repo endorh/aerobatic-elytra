@@ -57,21 +57,18 @@ public class AerobaticCollision {
 		double d;
 		for (d = 0.005D; d <= 0.5D; d *= 2D) {
 			collided = getCollidedBlocksInAABB(player.world, aaBB.grow(d));
-			if (!collided.isEmpty())
-				break;
+			if (!collided.isEmpty()) break;
 		}
-		if (collided.isEmpty()) {
-			player.setOnGround(false);
-			return;
-		}
+		if (collided.isEmpty()) return; // Do not set onGround to false here
 		int destroyed = 0;
-		float speed = motionVec.norm();
+		float speed = motionVec.norm() * 20F;
 		boolean slimeBounce = false;
 		boolean shouldBreakLeaves =
 		  Config.collision.leave_breaking.enable
 		  && speed > Config.collision.leave_breaking.min_speed_tick
-		  && player.getRNG().nextFloat() <
-		     Config.collision.leave_breaking.chance + Config.collision.leave_breaking.chance_linear * speed;
+		  && player.getRNG().nextFloat()
+		     < Config.collision.leave_breaking.chance
+		       + Config.collision.leave_breaking.chance_linear * speed;
 		boolean preventLanding = false;
 		for (BlockPos pos : collided) {
 			final BlockState bs = player.world.getBlockState(pos);
@@ -109,6 +106,7 @@ public class AerobaticCollision {
 				data.getPosBounceBase().set(base);
 			}
 		}
+		
 		if (collisionStrength > 0F && damageModifier > 0F) {
 			player.playSound(
 			  collisionStrength > 4F
@@ -120,6 +118,8 @@ public class AerobaticCollision {
 			  damageModifier * collisionStrength * Config.collision.damage);
 		}
 		
+		data.setLiftCut(clamp(data.getLiftCut() + 0.2F, 0F, 1F));
+		
 		// Stop flying when on ground
 		if (player.isOnGround() && player.isServerWorld() && !preventLanding)
 			player.stopFallFlying();
@@ -129,22 +129,17 @@ public class AerobaticCollision {
 	
 	public static boolean tryBounce(PlayerEntity player, VectorBase base, Vec3f motionVec) {
 		boolean bounced = false;
-		for (Axis axis : Axis.values()) {
-			final Direction dir = getFacingFromAxisDirection(axis, AxisDirection.POSITIVE);
-			if (shouldBounceDir(player, dir, false) ^ shouldBounceDir(player, dir.getOpposite(), false)) {
-				bounce(player, base, motionVec, axis);
-				bounced = true;
-			}
-		}
-		// If none of the axis resulted in a bounce, try again with wider hitboxes, including corners
-		if (!bounced) {
+		for (int includeCorners = 0; includeCorners < 2; includeCorners++) {
 			for (Axis axis : Axis.values()) {
 				final Direction dir = getFacingFromAxisDirection(axis, AxisDirection.POSITIVE);
-				if (shouldBounceDir(player, dir, true) ^ shouldBounceDir(player, dir.getOpposite(), true)) {
+				if (shouldBounceDir(player, dir, false) ^
+				    shouldBounceDir(player, dir.getOpposite(), includeCorners != 0)) {
 					bounce(player, base, motionVec, axis);
 					bounced = true;
 				}
 			}
+			if (bounced) break;
+			// If none of the axis resulted in a bounce, try again with wider hitboxes, including corners
 		}
 		player.setMotion(motionVec.toVector3d());
 		return bounced;
@@ -193,7 +188,7 @@ public class AerobaticCollision {
 	}
 	
 	public static AxisAlignedBB sideAABB(AxisAlignedBB b, Direction dir, boolean includeCorners) {
-		double e = 0.5D;
+		double e = 0.5D; // Grow epsilon
 		double c = includeCorners? e : 0D;
 		switch (dir) {
 			case EAST: return new AxisAlignedBB(b.maxX, b.minY - c, b.minZ - c, b.maxX + e, b.maxY + c, b.maxZ + c);

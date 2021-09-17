@@ -11,10 +11,10 @@ public class Const {
 	public static final int FLIGHT_GUI_TEXTURE_WIDTH = 256;
 	public static final int FLIGHT_GUI_TEXTURE_HEIGHT = 256;
 	public static final int FLIGHT_GUI_CROSSHAIR_SIZE = 25;
-	public static final int FLIGHT_MODE_POPUP_WIDTH = 32;
-	public static final int FLIGHT_MODE_POPUP_HEIGHT = 32;
-	public static final int FLIGHT_MODE_POPUP_U_OFFSET = 100;
-	public static final int FLIGHT_MODE_POPUP_V_OFFSET = 0;
+	public static final int FLIGHT_MODE_TOAST_WIDTH = 32;
+	public static final int FLIGHT_MODE_TOAST_HEIGHT = 32;
+	public static final int FLIGHT_MODE_TOAST_U_OFFSET = 100;
+	public static final int FLIGHT_MODE_TOAST_V_OFFSET = 0;
 	
 	// Dynamic crosshair
 	public static final float CROSSHAIR_PITCH_RANGE_PX = 3F;

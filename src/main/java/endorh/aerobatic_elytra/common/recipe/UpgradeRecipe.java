@@ -8,6 +8,7 @@ import endorh.aerobatic_elytra.common.capability.IElytraSpec;
 import endorh.aerobatic_elytra.common.capability.IElytraSpec.Upgrade;
 import endorh.aerobatic_elytra.common.item.ModItems;
 import endorh.aerobatic_elytra.common.registry.ModRegistries;
+import endorh.util.recipe.RecipeManagerHelper.CachedRecipeProvider;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.inventory.EquipmentSlotType;
@@ -25,6 +26,7 @@ import net.minecraftforge.registries.ForgeRegistryEntry;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,32 +41,46 @@ import static endorh.util.network.PacketBufferUtil.writeList;
 public class UpgradeRecipe extends SpecialRecipe {
 	public static final Serializer SERIALIZER = new Serializer();
 	
-	private final List<ItemSelector> ingredients;
-	private final List<Upgrade> upgrades;
-	private final ElytraRequirement requirement;
-	private final boolean lenient;
-	private boolean valid;
+	protected static final CachedRecipeProvider<Collection<UpgradeRecipe>> recipeProvider =
+	  new CachedRecipeProvider<Collection<UpgradeRecipe>>() {
+		  @Override protected Collection<UpgradeRecipe> onReload(RecipeManager manager) {
+			  return manager.getRecipes().stream().filter(
+			    r -> r instanceof UpgradeRecipe && ((UpgradeRecipe) r).isValid()
+			  ).map(r -> (UpgradeRecipe) r).sorted(
+			    Comparator.comparing(
+			      r -> r.getSelectors().stream().map(ItemSelector::toString)
+			        .collect(Collectors.joining(";")))
+			  ).collect(Collectors.toList());
+		  }
+	  };
 	
-	public static List<UpgradeRecipe> getUpgradeRecipes(World world) {
-		final RecipeManager recipeManager = world.getRecipeManager();
-		//noinspection unchecked
-		return (List<UpgradeRecipe>) (List<?>) recipeManager.getRecipes().stream().filter(
-		  recipe -> (recipe instanceof UpgradeRecipe) && ((UpgradeRecipe) recipe).valid
-		).collect(Collectors.toList());
+	protected final List<ItemSelector> ingredients;
+	protected final List<Upgrade> upgrades;
+	protected final ElytraRequirement requirement;
+	protected final boolean lenient;
+	protected boolean valid;
+	
+	public static Collection<UpgradeRecipe> getUpgradeRecipes() {
+		return recipeProvider.get();
+		// final RecipeManager recipeManager = getCurrentServer().getRecipeManager();
+		// //noinspection unchecked
+		// return (List<UpgradeRecipe>) (List<?>) recipeManager.getRecipes().stream().filter(
+		//   recipe -> (recipe instanceof UpgradeRecipe) && ((UpgradeRecipe) recipe).valid
+		// ).collect(Collectors.toList());
 	}
 	
 	public static Optional<UpgradeRecipe> getUpgradeRecipe(
-	  World world, ItemStack elytra, ItemStack ingredient
+	  ItemStack elytra, ItemStack ingredient
 	) {
-		return getUpgradeRecipes(world).stream().filter(
+		return getUpgradeRecipes().stream().filter(
 		  recipe -> recipe.matches(elytra, ingredient)
 		).findFirst();
 	}
 	
 	public static List<UpgradeRecipe> getUpgradeRecipes(
-	  World world, ItemStack elytra, ItemStack ingredient
+	  ItemStack elytra, ItemStack ingredient
 	) {
-		return getUpgradeRecipes(world).stream().filter(
+		return getUpgradeRecipes().stream().filter(
 		  recipe -> recipe.matches(elytra, ingredient)
 		).collect(Collectors.toList());
 	}
@@ -73,11 +89,11 @@ public class UpgradeRecipe extends SpecialRecipe {
 	 * Weak instance set, since accessing the recipe manager from a
 	 * JsonReloadListener is inconvenient
 	 */
-	private static final Map<ResourceLocation, WeakReference<UpgradeRecipe>> INSTANCES =
+	protected static final Map<ResourceLocation, WeakReference<UpgradeRecipe>> INSTANCES =
 	  Collections.synchronizedMap(new WeakHashMap<>());
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	public static void onAbilityReload() {
+	@Internal public static void onAbilityReload() {
 		synchronized (INSTANCES) {
 			for (WeakReference<UpgradeRecipe> rep : INSTANCES.values()) {
 				UpgradeRecipe recipe = rep.get();
@@ -150,14 +166,14 @@ public class UpgradeRecipe extends SpecialRecipe {
 	 * Compute the result of the upgrade recipe
 	 *
 	 * @param elytra Aerobatic elytra stack
-	 * @param stack Upgrade ingredient stack
+	 * @param maxUses Max times applied
 	 * @return A pair containing the resulting {@link ItemStack} and
 	 * the number of times the recipe was applied
 	 */
-	@NotNull public Pair<ItemStack, Integer> getResult(ItemStack elytra, ItemStack stack) {
+	@NotNull public Pair<ItemStack, Integer> getResult(ItemStack elytra, int maxUses) {
 		ItemStack result = elytra.copy();
 		int uses;
-		for (uses = 0; uses < stack.getCount(); uses++) {
+		for (uses = 0; uses < maxUses; uses++) {
 			boolean used = false;
 			for (Upgrade upgrade : upgrades)
 				used |= upgrade.apply(ElytraSpecCapability.getElytraSpecOrDefault(result));
@@ -165,6 +181,16 @@ public class UpgradeRecipe extends SpecialRecipe {
 				break;
 		}
 		return Pair.of(result, uses);
+	}
+	
+	/**
+	 * Compute the result of applying the upgrade recipe once
+	 */
+	@NotNull public ItemStack getResult(ItemStack elytra) {
+		ItemStack result = elytra.copy();
+		for (Upgrade upgrade : upgrades)
+			upgrade.apply(ElytraSpecCapability.getElytraSpecOrDefault(result));
+		return result;
 	}
 	
 	/**
@@ -178,7 +204,7 @@ public class UpgradeRecipe extends SpecialRecipe {
 		ItemStack stack = player.getItemStackFromSlot(EquipmentSlotType.MAINHAND);
 		if (!matches(elytra, stack))
 			return;
-		final Pair<ItemStack, Integer> result = getResult(elytra, stack);
+		final Pair<ItemStack, Integer> result = getResult(elytra, stack.getCount());
 		player.setItemStackToSlot(EquipmentSlotType.OFFHAND, result.getLeft());
 		if (!player.isCreative()) {
 			stack.shrink(result.getRight());
@@ -191,14 +217,12 @@ public class UpgradeRecipe extends SpecialRecipe {
 	public static ItemStack apply(
 	  ItemStack elytra, ItemStack upgrade, Collection<UpgradeRecipe> recipes
 	) {
-		final ItemStack single = upgrade.copy();
-		single.setCount(1);
 		while (upgrade.getCount() > 0) {
 			boolean used = false;
 			for (UpgradeRecipe recipe : recipes) {
 				if (!recipe.matches(elytra, upgrade))
 					continue;
-				final Pair<ItemStack, Integer> result = recipe.getResult(elytra, single);
+				final Pair<ItemStack, Integer> result = recipe.getResult(elytra, 1);
 				elytra = result.getLeft();
 				if (result.getRight() > 0)
 					used = true;
@@ -316,7 +340,7 @@ public class UpgradeRecipe extends SpecialRecipe {
 		}
 	}
 	
-	// Placeholder for future extension
+	// Placeholder
 	public static class ElytraRequirement implements Predicate<ItemStack> {
 		public static final ElytraRequirement NONE = new ElytraRequirement();
 		

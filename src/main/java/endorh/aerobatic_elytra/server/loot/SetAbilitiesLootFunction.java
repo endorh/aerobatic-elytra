@@ -54,7 +54,7 @@ public class SetAbilitiesLootFunction extends LootFunction {
 		
 		public void setAbility(String name, double value) {
 			if (IAbility.isDefined(name)) {
-				IAbility ability = IAbility.fromJsonName(name);
+				IAbility ability = IAbility.fromName(name);
 				abilities.put(ability, (float) value);
 			} else unknown.put(name, (float) value);
 		}
@@ -86,7 +86,7 @@ public class SetAbilitiesLootFunction extends LootFunction {
 					throw new JsonSyntaxException("Ability values must be numbers");
 				float v = val.getAsFloat();
 				if (IAbility.isDefined(name)) {
-					abilities.put(IAbility.fromJsonName(name), v);
+					abilities.put(IAbility.fromName(name), v);
 				} else unknown.put(name, v);
 			}
 			

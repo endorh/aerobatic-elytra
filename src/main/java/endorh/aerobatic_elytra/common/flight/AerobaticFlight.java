@@ -9,10 +9,12 @@ import endorh.aerobatic_elytra.common.capability.ElytraSpecCapability;
 import endorh.aerobatic_elytra.common.capability.IAerobaticData;
 import endorh.aerobatic_elytra.common.capability.IElytraSpec;
 import endorh.aerobatic_elytra.common.config.Config;
+import endorh.aerobatic_elytra.common.config.Config.aerobatic.braking;
 import endorh.aerobatic_elytra.common.config.Config.aerobatic.physics;
 import endorh.aerobatic_elytra.common.config.Config.aerobatic.propulsion;
 import endorh.aerobatic_elytra.common.config.Config.aerobatic.tilt;
 import endorh.aerobatic_elytra.common.config.Config.network;
+import endorh.aerobatic_elytra.common.config.Config.weather;
 import endorh.aerobatic_elytra.common.config.Const;
 import endorh.aerobatic_elytra.common.event.AerobaticElytraFinishFlightEvent;
 import endorh.aerobatic_elytra.common.event.AerobaticElytraStartFlightEvent;
@@ -49,8 +51,8 @@ import static endorh.aerobatic_elytra.common.capability.AerobaticDataCapability.
 import static endorh.aerobatic_elytra.common.capability.FlightDataCapability.getFlightDataOrDefault;
 import static endorh.aerobatic_elytra.common.item.AerobaticElytraWingItem.hasOffhandDebugWing;
 import static endorh.aerobatic_elytra.common.item.IAbility.Ability.*;
-import static endorh.util.common.TextUtil.stc;
-import static endorh.util.common.TextUtil.ttc;
+import static endorh.util.text.TextUtil.stc;
+import static endorh.util.text.TextUtil.ttc;
 import static endorh.util.math.Interpolator.clampedLerp;
 import static endorh.util.math.Vec3f.PI;
 import static endorh.util.math.Vec3f.PI_HALF;
@@ -72,6 +74,7 @@ public class AerobaticFlight {
 	private static final Vec3f ZERO = Vec3f.ZERO.get();
 	
 	// Cache vector instances (since Minecraft is not multi-threaded)
+	private static final Vec3f prevMotionVec = Vec3f.ZERO.get();
 	private static final Vec3f motionVec = Vec3f.ZERO.get();
 	private static final Vec3f gravAccVec = Vec3f.ZERO.get();
 	private static final Vec3f rainAcc = Vec3f.ZERO.get();
@@ -104,8 +107,10 @@ public class AerobaticFlight {
 		if (player.isInWater())
 			grav *= 1F - spec.getAbility(AQUATIC);
 		else grav *= 1F - spec.getAbility(LIFT);
+		float liftCut = data.getLiftCut();
 		
 		motionVec.set(player.getMotion());
+		prevMotionVec.set(motionVec);
 		Vec3f prevMotionVec = motionVec.copy();
 		double hSpeedPrev = motionVec.hNorm();
 		
@@ -118,7 +123,9 @@ public class AerobaticFlight {
 		applyRotationAcceleration(player);
 		
 		// Rain and wind
-		final boolean affectedByWeather = player.world.canBlockSeeSky(player.getPosition());
+		final boolean affectedByWeather =
+		  weather.ignore_cloud_level || player.getPosition().getY() > weather.cloud_level
+		  || player.world.canBlockSeeSky(player.getPosition());
 		data.setAffectedByWeather(affectedByWeather);
 		final float biomePrecipitation = WeatherData.getBiomePrecipitationStrength(player);
 		final float rain = player.world.getRainStrength(1F) * biomePrecipitation;
@@ -154,7 +161,6 @@ public class AerobaticFlight {
 		
 		if (data.isSprinting())
 			player.setSprinting(false);
-		//LOGGER.debug(format("Boost: %6b, Heat: %2.2f, Sprint: %6b", data.isBoosted(),data.getBoostHeat(), data.isSprinting()));
 		
 		// Update acceleration
 		float propAccStrength = (propulsion.max_tick - propulsion.min_tick) / 20F; // 1 second
@@ -169,9 +175,20 @@ public class AerobaticFlight {
 		
 		// Update braking
 		float brakeAcc = 0.1F; // Half a second to brake completely
-		data.setBraking(player.isCrouching());
-		float brakeStrength = clamp(
-		  data.getBrakeStrength() + (data.isBraking() ? brakeAcc : - brakeAcc), 0F, 1F);
+		data.setBraking(player.isCrouching() && !data.isBrakeCooling());
+		if (braking.max_time_ticks > 0) {
+			data.setBrakeHeat(
+			  clamp(data.getBrakeHeat() + (data.isBraking()? 1F : -1F) / braking.max_time_ticks, 0F, 1F));
+			if (data.getBrakeHeat() >= 1F)
+				data.setBrakeCooling(true);
+			else if (data.getBrakeHeat() <= 0F)
+				data.setBrakeCooling(false);
+		} else {
+			data.setBrakeHeat(0F);
+			data.setBrakeCooling(false);
+		}
+		float brakeStrength = braking.enabled ? clamp(
+		  data.getBrakeStrength() + (data.isBraking() ? brakeAcc : - brakeAcc), 0F, 1F) : 0F;
 		data.setBrakeStrength(brakeStrength);
 		
 		// Get vector base
@@ -180,8 +197,7 @@ public class AerobaticFlight {
 			base.init(data);
 			MinecraftForge.EVENT_BUS.post(isRemote
 			  ? new AerobaticElytraStartFlightEvent.Remote(player, spec, data)
-			  : new AerobaticElytraStartFlightEvent(player, spec, data)
-			);
+			  : new AerobaticElytraStartFlightEvent(player, spec, data));
 		}
 		
 		// Underwater rotation friction
@@ -212,7 +228,7 @@ public class AerobaticFlight {
 		
 		// Gravity acceleration
 		gravAccVec.set(
-		  0, -(float) grav * physics.gravity_multiplier - brakeStrength * physics.brake_gravity_per_tick, 0);
+		  0, -(float) grav * physics.gravity_multiplier - brakeStrength * braking.gravity_per_tick, 0);
 		float stasis = player.isInWater()? 0F :
 		               Interpolator.quadInOut(1F - propStrength / propulsion.max_tick);
 		gravAccVec.y -= stasis * physics.motorless_gravity_per_tick;
@@ -221,11 +237,11 @@ public class AerobaticFlight {
 		float friction;
 		if (player.isInWater()) {
 			friction = lerp(
-			  spec.getAbility(AQUATIC), physics.friction_water_max, physics.friction_water_min);
-			friction *= lerp(brakeStrength, 1F, physics.friction_brake) * angFriction;
+			  spec.getAbility(AQUATIC), physics.friction_water_nerf, physics.friction_water);
+			friction *= lerp(brakeStrength, 1F, braking.friction) * angFriction;
 		} else {
 			friction = lerp(stasis, physics.friction_base, physics.motorless_friction);
-			friction = lerp(brakeStrength, friction, physics.friction_brake) * angFriction;
+			friction = lerp(brakeStrength, friction, braking.friction) * angFriction;
 		}
 		
 		// Glide acceleration
@@ -236,6 +252,11 @@ public class AerobaticFlight {
 		// Propulsion
 		propAccVec.set(base.look);
 		propAccVec.mul(propStrength);
+		
+		// Apply lift cut
+		gravAccVec.mul(1F + liftCut * 0.8F);
+		glideAccVec.mul(1F - liftCut);
+		motionVec.mul(1F - liftCut * 0.8F);
 		
 		// Apply acceleration
 		motionVec.add(glideAccVec);
@@ -274,16 +295,19 @@ public class AerobaticFlight {
 			}
 		}
 		
+		// Apply simulated inertia
+		if (!AerobaticElytraWingItem.hasDebugWing(player)) // Omitting this 'if' can be funny
+			motionVec.lerp(prevMotionVec, physics.inertia);
+		
 		// Apply motion
 		player.setMotion(motionVec.toVector3d());
-		if (!isRemote && !AerobaticElytraWingItem.hasDebugWing(player)) {
+		if (!isRemote && !AerobaticElytraWingItem.hasDebugWing(player))
 			player.move(MoverType.SELF, player.getMotion());
-		}
 		
 		// Collisions
-		if (player.collidedHorizontally || player.collidedVertically) {
+		if (player.collidedHorizontally || player.collidedVertically)
 			AerobaticCollision.onAerobaticCollision(player, hSpeedPrev, motionVec);
-		}
+		else data.setLiftCut(clamp(liftCut - 0.15F, 0F, 1F));
 		
 		// Send update packets to the server
 		if (AerobaticElytraLogic.isClientPlayerEntity(player)) {
@@ -293,9 +317,8 @@ public class AerobaticFlight {
 		}
 		
 		// Landing
-		if (player.isOnGround()) {
+		if (player.isOnGround())
 			data.land();
-		}
 		
 		// Update player limb swing
 		player.func_233629_a_(player, player instanceof IFlyingAnimal);
@@ -329,20 +352,10 @@ public class AerobaticFlight {
 			prev -= 360F;
 		data.updatePrevTickAngles();
 		
-		// Debug
-		/*if (("Server thread").equals(Thread.currentThread().getName())) {
-			LOGGER.info(" L: " + data.getRotationBase().look + ", R: " + data.getRotationBase().roll
-			             + ", S: " + String.format("%2.3f", player.getMotion().length()));
-		} else {
-			LOGGER.debug("L: " + data.getRotationBase().look + ", R: " + data.getRotationBase().roll
-			             + ", S: " + String.format("%2.3f", player.getMotion().length()));
-		}*/
-		
 		// Post post event
 		MinecraftForge.EVENT_BUS.post(isRemote
 		  ? new AerobaticElytraTickEvent.Post.Remote(player, spec, data)
-		  : new AerobaticElytraTickEvent.Post(player, spec, data)
-		);
+		  : new AerobaticElytraTickEvent.Post(player, spec, data));
 		
 		// Cancel default travel logic
 		return true;
@@ -595,9 +608,8 @@ public class AerobaticFlight {
 			tempVec.rotateAlongVec(axis, lookAngle);
 			tempVec.unitary();
 			float rollAngle = tempVec.angleUnitary(pos.roll, pos.look);
-			if (rollAngle > PI) {
+			if (rollAngle > PI)
 				rollAngle = rollAngle - 2 * PI;
-			}
 			look.rotateAlongOrtVec(axis, lookAngle * t);
 			normal.rotateAlongVec(axis, lookAngle * t);
 			roll.rotateAlongVec(axis, lookAngle * t);

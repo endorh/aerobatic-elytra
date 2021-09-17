@@ -1,17 +1,30 @@
 package endorh.aerobatic_elytra.common.item;
 
 import com.mojang.datafixers.util.Pair;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.CauldronBlock;
+import net.minecraft.entity.item.ItemEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.DyeColor;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemStack.TooltipDisplayFlags;
+import net.minecraft.item.ItemUseContext;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.tileentity.BannerPattern;
+import net.minecraft.tileentity.BannerTileEntity;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.IFormattableTextComponent;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.ref.WeakReference;
 import java.util.*;
 
-import static endorh.util.common.TextUtil.ttc;
+import static endorh.util.text.TextUtil.ttc;
 
 /**
  * Helper for reading/writing dye info from/to NBT<br>
@@ -48,6 +61,7 @@ import static endorh.util.common.TextUtil.ttc;
  * at most.
  */
 public class ElytraDyement {
+	protected static ElytraDyement dyement = new ElytraDyement();
 	public Map<WingSide, WingDyement> sides = new HashMap<>();
 	public boolean hasWingDyement;
 	public int defaultColor;
@@ -59,7 +73,7 @@ public class ElytraDyement {
 	public ElytraDyement(int defaultColor) {
 		this.defaultColor = defaultColor;
 		for (WingSide side : WingSide.values())
-			sides.put(side, new WingDyement());
+			sides.put(side, new WingDyement(this));
 	}
 	
 	/**
@@ -110,6 +124,10 @@ public class ElytraDyement {
 		}
 	}
 	
+	public boolean isClear() {
+		return sides.values().stream().noneMatch(d -> d.hasColor || d.hasPattern);
+	}
+	
 	/**
 	 * Utility for picking a wing without caring which
 	 */
@@ -117,7 +135,39 @@ public class ElytraDyement {
 		return sides.get(WingSide.LEFT);
 	}
 	
+	public void setColor(int color) {
+		getFirst().setColor(color);
+		this.hasWingDyement = false;
+	}
+	
+	public void setPattern(
+	  DyeColor base, List<Pair<BannerPattern, DyeColor>> bannerData
+	) { setPattern(base, bannerData, true); }
+	
+	public void setPattern(
+	  DyeColor base, List<Pair<BannerPattern, DyeColor>> bannerData, boolean addBase
+	) {
+		getFirst().setPattern(base, bannerData, addBase);
+		this.hasWingDyement = false;
+	}
+	
+	public void clear() {
+		sides.values().forEach(WingDyement::clear);
+		hasWingDyement = false;
+	}
+	
+	public void setWing(WingSide side, WingDyement dye) {
+		final ElytraDyement parent = dye.parent.get();
+		if (parent != null && parent != this)
+			parent.setWing(side, dye.copy());
+		dye.parent = new WeakReference<>(this);
+		sides.put(side, dye);
+		hasWingDyement = true;
+	}
+	
 	public WingDyement getWing(WingSide side) {
+		if (!hasWingDyement)
+			sides.get(side).copy(getFirst());
 		return sides.get(side);
 	}
 	
@@ -127,9 +177,11 @@ public class ElytraDyement {
 	 */
 	public void write(ItemStack stack) {
 		if (hasWingDyement) {
+			stack.removeChildTag("BlockEntityTag");
 			for (WingSide side : WingSide.values())
 				sides.get(side).write(stack, side);
 		} else {
+			stack.removeChildTag("WingInfo");
 			getFirst().write(stack, null);
 		}
 	}
@@ -138,13 +190,58 @@ public class ElytraDyement {
 	 * Holder for dyement info for a specific wing
 	 */
 	public static class WingDyement {
+		protected WeakReference<ElytraDyement> parent;
 		public boolean hasColor;
 		public boolean hasPattern;
 		public int color;
 		public DyeColor basePatternColor = null;
 		public List<Pair<BannerPattern, DyeColor>> patternColorData;
 		
-		public WingDyement() { }
+		public WingDyement() {
+			this.parent = new WeakReference<>(null);
+		}
+		
+		public WingDyement(ElytraDyement dyement) {
+			this.parent = new WeakReference<>(dyement);
+		}
+		
+		public void setColor(int color) {
+			hasPattern = false;
+			hasColor = true;
+			this.color = color;
+			final ElytraDyement parent = this.parent.get();
+			if (parent != null)
+				parent.hasWingDyement = true;
+		}
+		
+		public void setPattern(
+		  DyeColor base, List<Pair<BannerPattern, DyeColor>> patternData
+		) { setPattern(base, patternData, true); }
+		
+		public void setPattern(
+		  DyeColor base, List<Pair<BannerPattern, DyeColor>> patternData, boolean addBase
+		) {
+			if (addBase) {
+				patternData = new ArrayList<>(patternData);
+				patternData.add(0, Pair.of(BannerPattern.BASE, base));
+			}
+			hasPattern = true;
+			basePatternColor = base;
+			patternColorData = patternData;
+			color = base.getColorValue();
+			final ElytraDyement parent = this.parent.get();
+			if (parent != null)
+				parent.hasWingDyement = true;
+		}
+		
+		public void clear() {
+			hasColor = false;
+			hasPattern = false;
+			final ElytraDyement parent = this.parent.get();
+			color = parent != null? parent.defaultColor : AerobaticElytraItem.DEFAULT_COLOR;
+			if (parent != null)
+				parent.hasWingDyement = parent.isClear();
+		}
 		
 		/**
 		 * Read from NBT
@@ -160,12 +257,11 @@ public class ElytraDyement {
 				if (data == null) {
 					hasPattern = false;
 					patternColorData = null;
-					CompoundNBT tag = elytra.getTag();
-					if (tag == null || !tag.contains("display")) {
+					CompoundNBT display = elytra.getChildTag("display");
+					if (display == null) {
 						hasColor = false;
 						color = defaultColor;
 					} else {
-						CompoundNBT display = tag.getCompound("display");
 						if (display.contains("color")) {
 							hasColor = true;
 							color = display.getInt("color");
@@ -238,6 +334,12 @@ public class ElytraDyement {
 			patternColorData = wingDyement.patternColorData;
 		}
 		
+		public WingDyement copy() {
+			final WingDyement wing = new WingDyement();
+			wing.copy(this);
+			return wing;
+		}
+		
 		/**
 		 * Writes the current wing to an item
 		 */
@@ -251,7 +353,6 @@ public class ElytraDyement {
 				} else {
 					nbt = stack.getOrCreateChildTag("BlockEntityTag");
 				}
-				
 				nbt.putInt("Base", basePatternColor.getId());
 				ListNBT list = new ListNBT();
 				for (int i = 1; i < patternColorData.size(); i++) {
@@ -264,19 +365,33 @@ public class ElytraDyement {
 				}
 				nbt.put("Patterns", list);
 			} else if (hasColor) {
+				CompoundNBT nbt;
 				if (side != null) {
-					CompoundNBT wing = stack.getOrCreateChildTag("WingInfo");
-					wing.put(side.tag, new CompoundNBT());
-					wing = wing.getCompound(side.tag);
-					wing.putInt("color", color);
+					nbt = stack.getOrCreateChildTag("WingInfo");
+					nbt.put(side.tag, new CompoundNBT());
+					nbt = nbt.getCompound(side.tag);
+					nbt.remove("Base");
+					nbt.remove("Patterns");
 				} else {
-					CompoundNBT tag = stack.getOrCreateTag();
-					if (!tag.contains("display"))
-						tag.put("display", new CompoundNBT());
-					CompoundNBT display = tag.getCompound("display");
-					display.putInt("color", color);
+					stack.removeChildTag("BlockEntityTag");
+					nbt = stack.getOrCreateChildTag("display");
 				}
+				nbt.putInt("color", color);
+			} else {
+				stack.removeChildTag("BlockEntityTag");
+				final CompoundNBT display = stack.getChildTag("display");
+				if (display != null)
+					display.remove("color");
+				if (side != null) {
+					final CompoundNBT nbt = stack.getChildTag("WingInfo");
+					if (nbt != null) {
+						nbt.remove(side.tag);
+						if (nbt.isEmpty())
+							stack.removeChildTag("WingInfo");
+					}
+				} else stack.removeChildTag("WingInfo");
 			}
+			hideDyedFlag(stack);
 		}
 		
 		@Override public boolean equals(Object o) {
@@ -292,6 +407,62 @@ public class ElytraDyement {
 		@Override public int hashCode() {
 			return Objects.hash(hasColor, hasPattern, color, basePatternColor, patternColorData);
 		}
+	}
+	
+	public static void hideDyedFlag(ItemStack stack) {
+		CompoundNBT tag = stack.getOrCreateTag();
+		int flags = tag.getInt("HideFlags");
+		flags |= TooltipDisplayFlags.DYE.func_242397_a();
+		tag.putInt("HideFlags", flags);
+	}
+	
+	public static boolean clearDyesWithCauldron(ItemUseContext context) {
+		final World world = context.getWorld();
+		final BlockPos pos = context.getPos();
+		final BlockState state = world.getBlockState(pos);
+		final Block block = state.getBlock();
+		
+		if (block instanceof CauldronBlock) {
+			final PlayerEntity player = context.getPlayer();
+			final ItemStack stack = context.getItem();
+			
+			int i = state.get(CauldronBlock.LEVEL);
+			dyement.read(stack);
+			if (i > 0 && !dyement.isClear()) {
+				final CauldronBlock cauldron = (CauldronBlock) block;
+				final ItemStack result = stack.copy();
+				result.setCount(1);
+				dyement.clear();
+				dyement.write(result);
+				
+				if (player != null && !player.abilities.isCreativeMode) {
+					stack.shrink(1);
+					cauldron.setWaterLevel(world, pos, state, i - 1);
+				}
+				
+				if (player != null) {
+					if (stack.isEmpty()) {
+						player.setHeldItem(context.getHand(), result);
+					} else if (!player.inventory.addItemStackToInventory(result)) {
+						player.dropItem(result, false);
+					} else if (player instanceof ServerPlayerEntity) {
+						((ServerPlayerEntity) player).sendContainerToPlayer(player.container);
+					}
+				} else {
+					world.addEntity(new ItemEntity(world, pos.getX(), pos.getY(), pos.getZ(), result));
+				}
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static ItemStack clearDyes(ItemStack elytra) {
+		final ItemStack result = elytra.copy();
+		dyement.read(result);
+		dyement.clear();
+		dyement.write(result);
+		return result;
 	}
 	
 	public enum WingSide {

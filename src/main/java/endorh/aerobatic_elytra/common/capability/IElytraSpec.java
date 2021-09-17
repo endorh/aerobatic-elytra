@@ -5,14 +5,15 @@ import endorh.aerobatic_elytra.client.trail.AerobaticTrail.RocketSide;
 import endorh.aerobatic_elytra.common.item.ElytraDyement.WingSide;
 import endorh.aerobatic_elytra.common.item.IAbility;
 import endorh.aerobatic_elytra.common.item.IAbility.Ability;
-import endorh.aerobatic_elytra.common.item.IDatapackAbilityReloadListener;
 import endorh.aerobatic_elytra.common.item.IDatapackAbility;
+import endorh.aerobatic_elytra.common.item.IDatapackAbilityReloadListener;
 import endorh.aerobatic_elytra.common.item.IEffectAbility;
 import endorh.aerobatic_elytra.common.registry.ModRegistries;
 import endorh.util.math.MathParser.ExpressionParser.ParseException.NameParseException;
 import endorh.util.math.MathParser.FixedNamespaceSet;
 import endorh.util.math.MathParser.ParsedExpression;
 import endorh.util.network.PacketBufferUtil;
+import endorh.util.text.FormattableTextComponentList;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.DyeColor;
@@ -21,14 +22,20 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.JSONUtils;
-import net.minecraft.util.text.*;
+import net.minecraft.util.Util;
+import net.minecraft.util.text.IFormattableTextComponent;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.TranslationTextComponent;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
 import java.util.*;
 
-import static endorh.util.common.TextUtil.stc;
-import static endorh.util.common.TextUtil.ttc;
+import static endorh.util.text.TextUtil.stc;
+import static endorh.util.text.TextUtil.ttc;
+import static endorh.util.text.TooltipUtil.altToExpand;
+import static endorh.util.text.TooltipUtil.ctrlToExpand;
 import static java.lang.String.format;
 import static net.minecraft.util.math.MathHelper.clamp;
 
@@ -182,7 +189,7 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 			tooltip.add(
 			  stc(indent).append(
 			    ttc("aerobatic-elytra.abilities")
-			      .appendString(": ")
+			      .appendString(": ").append(altToExpand())
 			  ).mergeStyle(TextFormatting.GRAY)
 			);
 			final String innerIndent = indent + "  ";
@@ -193,45 +200,30 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 			tooltip.add(
 			  stc(indent).append(
 			    ttc("aerobatic-elytra.abilities")
-				   .appendString(": ")
-				   .append(
-					  ttc("aerobatic-elytra.gui.alt_to_expand")
-					    .mergeStyle(TextFormatting.DARK_GRAY))
+				   .appendString(": ").append(altToExpand())
 			  ).mergeStyle(TextFormatting.GRAY));
 		}
 	}
 	
 	class TrailData {
-		private static final Random random = new Random();
-		
-		public RocketExplosion[] left = null;
-		public RocketExplosion[] right = null;
-		public RocketExplosion[] centerLeft = null;
-		public RocketExplosion[] centerRight = null;
+		private static final Random RANDOM = new Random();
+		public final Map<RocketSide, RocketStar[]> sides = new HashMap<>();
 		
 		public TrailData() {}
 		
-		public RocketExplosion[] get(RocketSide side) {
-			switch (side) {
-				case LEFT: return left;
-				case RIGHT: return right;
-				case CENTER_LEFT: return centerLeft;
-				case CENTER_RIGHT: return centerRight;
-				default: throw new IllegalStateException();
-			}
+		public RocketStar[] get(RocketSide side) {
+			return sides.get(side);
 		}
 		
 		/**
 		 * Picks a random {@code RocketExplosion[]} from a random side
 		 */
-		public Optional<RocketExplosion[]> pickRandom() {
-			RocketExplosion[][] pool =
-			  Arrays.stream(new RocketExplosion[][]{
-			    left, right, centerLeft, centerRight
-			  }).filter(Objects::nonNull).toArray(RocketExplosion[][]::new);
-			if (pool.length == 0)
+		public Optional<RocketStar[]> pickRandom() {
+			final RocketStar[][] sides = this.sides.values()
+			  .stream().filter(Objects::nonNull).toArray(RocketStar[][]::new);
+			if (sides.length == 0)
 				return Optional.empty();
-			return Optional.of(pool[random.nextInt(pool.length)]);
+			return Optional.of(sides[RANDOM.nextInt(sides.length)]);
 		}
 		
 		/**
@@ -239,12 +231,9 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 		 * @param side Side to keep
 		 */
 		public void keep(WingSide side) {
-			if (side == WingSide.LEFT) {
-				right = left != null? Arrays.copyOf(left, left.length) : null;
-				centerRight = centerLeft != null? Arrays.copyOf(centerLeft, centerLeft.length) : null;
-			} else if (side == WingSide.RIGHT) {
-				left = right != null? Arrays.copyOf(right, right.length) : null;
-				centerLeft = centerRight != null? Arrays.copyOf(centerRight, centerRight.length) : null;
+			for (RocketSide s : RocketSide.forWingSide(side)) {
+				final RocketStar[] value = get(s);
+				put(s.opposite(), value == null ? null : Arrays.copyOf(value, value.length));
 			}
 		}
 		
@@ -254,13 +243,9 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 		 * @param source Source trail data
 		 */
 		public void set(WingSide side, TrailData source) {
-			if (side == WingSide.LEFT || side == null) {
-				left = source.left != null? Arrays.copyOf(source.left, source.left.length) : null;
-				centerLeft = source.centerLeft != null? Arrays.copyOf(source.centerLeft, source.centerLeft.length) : null;
-			}
-			if (side == WingSide.RIGHT || side == null) {
-				right = source.right != null? Arrays.copyOf(source.right, source.right.length) : null;
-				centerRight = source.centerRight != null? Arrays.copyOf(source.centerRight, source.centerRight.length) : null;
+			for (RocketSide s : RocketSide.forWingSide(side)) {
+				final RocketStar[] value = source.get(s);
+				put(s, value == null ? null : Arrays.copyOf(value, value.length));
 			}
 		}
 		
@@ -269,20 +254,10 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 		 * @param side Rocket slot
 		 * @param value Explosion array
 		 */
-		public void put(RocketSide side, RocketExplosion[] value) {
-			switch (side) {
-				case LEFT:
-					left = value;
-					break;
-				case RIGHT:
-					right = value;
-					break;
-				case CENTER_LEFT:
-					centerLeft = value;
-					break;
-				case CENTER_RIGHT:
-					centerRight = value;
-			}
+		public void put(RocketSide side, RocketStar[] value) {
+			if (value == null)
+				sides.remove(side);
+			else sides.put(side, value);
 		}
 		
 		public static TrailData read(PacketBuffer buf) {
@@ -298,26 +273,29 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 		public void read(CompoundNBT trailNBT) {
 			if (trailNBT == null)
 				trailNBT = new CompoundNBT();
+			sides.clear();
 			for (RocketSide rocketSide : RocketSide.values()) {
 				if (trailNBT.contains(rocketSide.tagName)) {
-					put(rocketSide, RocketExplosion.listFromNBT(trailNBT.getList(rocketSide.tagName, 10)));
+					put(rocketSide, RocketStar.listFromNBT(trailNBT.getList(rocketSide.tagName, 10)));
 				}
 			}
 		}
 		
-		@Nullable public CompoundNBT write() {
+		public CompoundNBT write() {
 			CompoundNBT trailNBT = new CompoundNBT();
-			int count = 0;
 			for (RocketSide rocketSide : RocketSide.values()) {
-				RocketExplosion[] explosions = get(rocketSide);
-				if (explosions != null) {
-					trailNBT.put(rocketSide.tagName, RocketExplosion.listAsNBT(explosions));
-					count++;
-				}
+				RocketStar[] stars = get(rocketSide);
+				if (stars != null)
+					trailNBT.put(rocketSide.tagName, RocketStar.listAsNBT(stars));
 			}
-			if (count > 0)
-				return trailNBT;
-			return null;
+			return trailNBT;
+		}
+		
+		public TrailData copy() {
+			return Util.make(new TrailData(), t -> {
+				for (WingSide side : WingSide.values())
+					t.set(side, this);
+			});
 		}
 		
 		private static final String I18N_TRAIL = "aerobatic-elytra.item.trail";
@@ -337,15 +315,15 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 			List<ITextComponent> trailInfo = new ArrayList<>();
 			String innerIndent = indent + "  ";
 			for (RocketSide side : RocketSide.forWingSide(wingSide)) {
-				RocketExplosion[] explosions = data.get(side);
-				if (explosions != null) {
+				RocketStar[] stars = data.get(side);
+				if (stars != null) {
 					trailInfo.add(
 					  stc(innerIndent)
 					    .append(side.getDisplayName())
 					    .appendString(": ")
 					    .mergeStyle(TextFormatting.GRAY));
-					trailInfo.addAll(RocketExplosion.getTooltipInfo(
-					  explosions, innerIndent + "  ", TextFormatting.GRAY)
+					trailInfo.addAll(RocketStar.getTooltipInfo(
+					  stars, innerIndent + "  ", TextFormatting.GRAY)
 					);
 				}
 			}
@@ -353,25 +331,16 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 				tooltip.add(
 				  stc(indent).append(
 				    ttc(I18N_TRAIL)
-				      .appendString(": ")
-				      .append(ttc("gui.none").mergeStyle(TextFormatting.DARK_GRAY))
-				  ).mergeStyle(TextFormatting.GRAY));
-			} else if (Screen.hasControlDown()) {
-				tooltip.add(
-				  stc(indent).append(
-				    ttc(I18N_TRAIL)
-				      .appendString(": ")
-				  ).mergeStyle(TextFormatting.GRAY));
-				tooltip.addAll(trailInfo);
+				      .appendString(": ").append(
+				        ttc("gui.none").mergeStyle(TextFormatting.DARK_GRAY)
+				      )).mergeStyle(TextFormatting.GRAY));
 			} else {
 				tooltip.add(
 				  stc(indent).append(
-				    ttc(I18N_TRAIL)
-				      .appendString(": ")
-				      .append(
-				        ttc("aerobatic-elytra.gui.control_to_expand")
-				          .mergeStyle(TextFormatting.DARK_GRAY))
+				    ttc(I18N_TRAIL).appendString(": ").append(ctrlToExpand())
 				  ).mergeStyle(TextFormatting.GRAY));
+				if (Screen.hasControlDown())
+					tooltip.addAll(trailInfo);
 			}
 		}
 	}
@@ -380,7 +349,7 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 	 * Describes a single firework rocket explosion.<br>
 	 * Every rocket has one per firework star.
 	 */
-	class RocketExplosion {
+	class RocketStar {
 		@SuppressWarnings("unused")
 		public static final byte
 		  SHAPE_SMALL_BALL = 0,
@@ -398,7 +367,15 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 		public final int[] colors;
 		public final int[] fadeColors;
 		
-		public RocketExplosion(
+		public RocketStar(
+		  List<DyeColor> colors, List<DyeColor> fadeColors, boolean flicker, boolean trail, byte shape
+		) {
+			this(flicker, trail, shape,
+			     colors.stream().mapToInt(DyeColor::getFireworkColor).toArray(),
+			     fadeColors.stream().mapToInt(DyeColor::getFireworkColor).toArray());
+		}
+		
+		public RocketStar(
 		  boolean flickerIn, boolean trailIn, byte typeIn, int[] colorsIn, int[] fadeColorsIn
 		) {
 			flicker = flickerIn;
@@ -408,12 +385,12 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 			fadeColors = fadeColorsIn;
 		}
 		
-		public static RocketExplosion[] listFromNBT(ListNBT nbt) {
+		public static RocketStar[] listFromNBT(ListNBT nbt) {
 			final int size = nbt.size();
-			RocketExplosion[] explosions = new RocketExplosion[size];
+			RocketStar[] explosions = new RocketStar[size];
 			for (int i = 0; i < size; i++) {
 				CompoundNBT item = nbt.getCompound(i);
-				explosions[i] = new RocketExplosion(
+				explosions[i] = new RocketStar(
 				  item.getBoolean("Flicker"),
 				  item.getBoolean("Trail"),
 				  item.getByte("Type"),
@@ -423,9 +400,9 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 			return explosions;
 		}
 		
-		public static ListNBT listAsNBT(RocketExplosion[] list) {
+		public static ListNBT listAsNBT(RocketStar[] list) {
 			ListNBT nbt = new ListNBT();
-			for (RocketExplosion explosion : list) {
+			for (RocketStar explosion : list) {
 				CompoundNBT item = new CompoundNBT();
 				item.putBoolean("Flicker", explosion.flicker);
 				item.putBoolean("Trail", explosion.trail);
@@ -437,45 +414,43 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 			return nbt;
 		}
 		
-		public static List<ITextComponent> getTooltipInfo(
-		  RocketExplosion[] list, String indent, TextFormatting format
+		public static FormattableTextComponentList getTooltipInfo(
+		  RocketStar[] list, String indent, TextFormatting format
 		) {
-			List<ITextComponent> tooltip = new ArrayList<>();
-			for (RocketExplosion explosion : list) {
-				FireworkRocketItem.Shape shape = FireworkRocketItem.Shape.get(explosion.type);
-				tooltip.add(
-				  stc(indent)
-				    .append(ttc("item.minecraft.firework_star.shape." + shape.getShapeName()))
-				    .mergeStyle(format)
-				);
-				if (explosion.colors.length > 0)
-					tooltip.add(joinComma(stc(indent), explosion.colors).mergeStyle(format));
-				if (explosion.fadeColors.length > 0)
+			FormattableTextComponentList tooltip = new FormattableTextComponentList();
+			final String inner = indent + "  ";
+			for (RocketStar star : list) {
+				FireworkRocketItem.Shape shape = FireworkRocketItem.Shape.get(star.type);
+				IFormattableTextComponent tc = stc(indent)
+				  .append(ttc("item.minecraft.firework_star.shape." + shape.getShapeName()))
+				  .mergeStyle(format);
+				if (star.trail) {
+					tc.appendString(": ");
+					tc.append(ttc("item.minecraft.firework_star.trail"));
+				}
+				if (star.flicker) {
+					if (star.trail)
+						tc.append(stc(", "));
+					else tc.append(stc(": "));
+					tc.append(ttc("item.minecraft.firework_star.flicker"));
+				}
+				tooltip.add(tc.mergeStyle(format));
+				if (star.colors.length > 0)
+					tooltip.add(joinDyeList(stc(inner), star.colors).mergeStyle(format));
+				if (star.fadeColors.length > 0)
 					tooltip.add(
-					  stc(indent)
-					    .append(joinComma(
+					  stc(inner)
+					    .append(joinDyeList(
 					      ttc("item.minecraft.firework_star.fade_to")
 					        .appendString(" "),
-					      explosion.fadeColors))
+					      star.fadeColors))
 					    .mergeStyle(format)
 					);
-				if (explosion.trail || explosion.flicker) {
-					final StringTextComponent tc = stc(indent);
-					if (explosion.trail)
-						tc.append(ttc("item.minecraft.firework_star.trail"));
-					if (explosion.flicker) {
-						if (explosion.trail)
-							tc.append(stc(", "));
-						tc.append(ttc("item.minecraft.firework_star.flicker"));
-					}
-					tc.mergeStyle(format);
-					tooltip.add(tc);
-				}
 			}
 			return tooltip;
 		}
 		
-		private static IFormattableTextComponent joinComma(IFormattableTextComponent tc, int[] list) {
+		private static IFormattableTextComponent joinDyeList(IFormattableTextComponent tc, int[] list) {
 			for(int i = 0; i < list.length; ++i) {
 				if (i > 0)
 					tc.appendString(", ");
@@ -548,8 +523,7 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 							val = true;
 						} else if (parsed == 0.0D && min <= 0F && max >= 0F) {
 							pretty = null;
-							val = false;
-						} else val = false;
+						}
 					} catch (NumberFormatException ignored) {}
 					booleanValue = val;
 				} else booleanValue = false;
@@ -609,7 +583,7 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 		public boolean apply(IElytraSpec spec) {
 			final FixedNamespaceSet<Double> namespaceSet = expression.getNamespaceSet();
 			for (IAbility t : ModRegistries.getAbilities().values())
-				namespaceSet.set(t.jsonName(), (double) spec.getAbility(t));
+				namespaceSet.set(t.getName(), (double) spec.getAbility(t));
 			
 			float result = (float) clamp(expression.eval(), min, max);
 			if (spec.getAbility(type) != result) {
@@ -636,7 +610,7 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 				tt.add(stc("<Error>").mergeStyle(TextFormatting.RED));
 				return tt;
 			}
-			String name = type.jsonName();
+			String name = type.getName();
 			TextFormatting color = ModRegistries.ABILITY_EXPRESSION_HIGHLIGHTER.getNameColor(name);
 			if (prettyExpression != null) {
 				tt.add(stc(name).mergeStyle(color)
@@ -666,7 +640,7 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 		}
 		
 		@Override public String toString() {
-			return "<" + type.jsonName() + " = " + expression
+			return "<" + type.getName() + " = " + expression
 			       + (min != Float.NEGATIVE_INFINITY? "; min: " + min : "")
 			       + (max != Float.POSITIVE_INFINITY? "; max: " + max : "") + ">";
 		}

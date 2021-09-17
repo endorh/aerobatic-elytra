@@ -78,6 +78,10 @@ public interface IFlightMode extends IForgeRegistryEntry<IFlightMode> {
 	int getPopupIconU();
 	int getPopupIconV();
 	
+	default boolean canChangeTo(IFlightMode other) {
+		return true;
+	}
+	
 	default IFlightMode next() {
 		return next(IFlightMode::shouldCycle, 1);
 	}

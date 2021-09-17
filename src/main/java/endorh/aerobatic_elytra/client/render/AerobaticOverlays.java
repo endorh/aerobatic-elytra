@@ -5,7 +5,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import endorh.aerobatic_elytra.AerobaticElytra;
 import endorh.aerobatic_elytra.client.config.ClientConfig;
-import endorh.aerobatic_elytra.client.config.ClientConfig.style;
+import endorh.aerobatic_elytra.client.config.ClientConfig.style.visual;
 import endorh.aerobatic_elytra.common.AerobaticElytraLogic;
 import endorh.aerobatic_elytra.common.capability.AerobaticDataCapability;
 import endorh.aerobatic_elytra.common.capability.IAerobaticData;
@@ -23,7 +23,6 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
-import org.apache.logging.log4j.LogManager;
 import org.lwjgl.opengl.GL11;
 
 import static endorh.aerobatic_elytra.client.ModResources.FLIGHT_GUI_ICONS_LOCATION;
@@ -36,33 +35,33 @@ import static net.minecraft.util.math.MathHelper.lerp;
 
 @EventBusSubscriber(value = Dist.CLIENT, modid = AerobaticElytra.MOD_ID)
 public class AerobaticOverlays {
-	private static long popupEnd = 0L;
-	private static long remainingPopupTime = 0L;
+	private static long toastEnd = 0L;
+	private static long remainingToastTime = 0L;
 	private static IFlightMode mode = null;
 	private static boolean awaitingDebugCrosshair = false;
 	
-	public static void showModePopupIfRelevant(PlayerEntity player, IFlightMode mode) {
+	public static void showModeToastIfRelevant(PlayerEntity player, IFlightMode mode) {
 		if (AerobaticElytraLogic.hasAerobaticElytra(player))
-			showModePopup(mode);
+			showModeToast(mode);
 	}
 	
-	public static void showModePopup(IFlightMode modeIn) {
+	public static void showModeToast(IFlightMode modeIn) {
 		mode = modeIn;
-		popupEnd = currentTimeMillis() + style.mode_popup_length_millis;
-		remainingPopupTime = style.mode_popup_length_millis;
+		toastEnd = currentTimeMillis() + visual.mode_toast_length_millis;
+		remainingToastTime = visual.mode_toast_length_millis;
 	}
 	
 	@SubscribeEvent
 	public static void onRenderGameOverlayPost(RenderGameOverlayEvent.Post event) {
-		if (event.getType() == ElementType.ALL && remainingPopupTime > 0) {
+		if (event.getType() == ElementType.ALL && remainingToastTime > 0) {
 			Minecraft mc = Minecraft.getInstance();
 			PlayerEntity pl = mc.player;
 			assert pl != null;
-			float alpha = remainingPopupTime / (float)style.mode_popup_length_millis;
-			renderPopup(mode, alpha, event.getMatrixStack(),
+			float alpha = remainingToastTime / (float) visual.mode_toast_length_millis;
+			renderToast(mode, alpha, event.getMatrixStack(),
 			            mc.getTextureManager(), event.getWindow());
 			final long t = currentTimeMillis();
-			remainingPopupTime = popupEnd - t;
+			remainingToastTime = toastEnd - t;
 		} else if (event.getType() == ElementType.CROSSHAIRS && awaitingDebugCrosshair) {
 			awaitingDebugCrosshair = false;
 			PlayerEntity pl = Minecraft.getInstance().player;
@@ -71,21 +70,21 @@ public class AerobaticOverlays {
 		}
 	}
 	
-	public static void renderPopup(
+	public static void renderToast(
 	  IFlightMode mode, float alpha, MatrixStack mStack,
 	  TextureManager tManager, MainWindow win
 	) {
-		tManager.bindTexture(mode.getPopupIconLocation());
+		tManager.bindTexture(mode.getToastIconLocation());
 		RenderSystem.enableBlend();
 		RenderSystem.color4f(1F, 1F, 1F, alpha);
 		int winW = win.getScaledWidth();
 		int winH = win.getScaledHeight();
 		int tW = Const.FLIGHT_GUI_TEXTURE_WIDTH, tH = Const.FLIGHT_GUI_TEXTURE_HEIGHT;
-		int iW = Const.FLIGHT_MODE_POPUP_WIDTH, iH = Const.FLIGHT_MODE_POPUP_HEIGHT;
-		int u = mode.getPopupIconU(), v = mode.getPopupIconV();
+		int iW = Const.FLIGHT_MODE_TOAST_WIDTH, iH = Const.FLIGHT_MODE_TOAST_HEIGHT;
+		int u = mode.getToastIconU(), v = mode.getToastIconV();
 		if (u != -1 && v != -1) {
-			int x = round((winW - iW) * ClientConfig.style.mode_popup_x_fraction);
-			int y = round((winH - iH) * ClientConfig.style.mode_popup_y_fraction);
+			int x = round((winW - iW) * visual.mode_toast_x_fraction);
+			int y = round((winH - iH) * visual.mode_toast_y_fraction);
 			blit(mStack, x, y, u, v, iW, iH, tW, tH);
 		}
 		RenderSystem.color4f(1F, 1F, 1F, 1F);
@@ -94,7 +93,7 @@ public class AerobaticOverlays {
 	
 	@SubscribeEvent
 	public static void onRenderGameOverlayPre(RenderGameOverlayEvent.Pre event) {
-		if (event.getType() == ElementType.CROSSHAIRS && ClientConfig.style.flight_crosshair) {
+		if (event.getType() == ElementType.CROSSHAIRS && visual.flight_crosshair) {
 			Minecraft mc = Minecraft.getInstance();
 			PlayerEntity pl = mc.player;
 			assert pl != null;
@@ -117,7 +116,7 @@ public class AerobaticOverlays {
 				}
 			}
 		} else if (event.getType() == ElementType.EXPERIENCE
-		           && ClientConfig.style.flight_bar != ClientConfig.FlightBarDisplay.HIDE) {
+		           && visual.flight_bar != ClientConfig.FlightBarDisplay.HIDE) {
 			Minecraft mc = Minecraft.getInstance();
 			PlayerEntity player = mc.player;
 			assert player != null;
@@ -199,11 +198,11 @@ public class AerobaticOverlays {
 	  PlayerEntity player, MatrixStack mStack,
 	  TextureManager tManager, MainWindow win, float partialTicks
 	) {
-		boolean replace = ClientConfig.style.flight_bar == ClientConfig.FlightBarDisplay.REPLACE_XP
+		boolean replace = visual.flight_bar == ClientConfig.FlightBarDisplay.REPLACE_XP
 		                  || player.isCreative();
 		
-		RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-		RenderSystem.disableBlend();
+		// RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+		RenderSystem.enableBlend();
 		
 		tManager.bindTexture(FLIGHT_GUI_ICONS_LOCATION);
 		
@@ -229,6 +228,8 @@ public class AerobaticOverlays {
 		           : pr / Config.aerobatic.propulsion.negative_range
 		  ) * barLength);
 		int boost = (int)(data.getBoostHeat() * barLength);
+		int brake_heat = (int)((1.0 - Math.pow(1F - data.getBrakeHeat(), 1.4)) * barLength);
+		boolean brake_cooldown = data.isBrakeCooling();
 		
 		if (partialTicks < lastPartialTicks) {
 			lastBoost = prevBoost;
@@ -242,19 +243,25 @@ public class AerobaticOverlays {
 		boost = round(lerp(partialTicks, lastBoost, boost));
 		
 		if (cap > 0) {
+			// Base
 			blit(mStack, x, y, 0, 50, (int)barLength - 1, barHeight, tW, tH);
-			if (prop > 0) {
+			// Propulsion
+			if (prop > 0)
 				blit(mStack, x, y, 0, 55, prop, barHeight, tW, tH);
-			} else if (prop < 0) {
+			else if (prop < 0)
 				blit(mStack, x, y, 0, 60, -prop, barHeight, tW, tH);
-			}
-			if (boost > 0) {
+			// Boost
+			if (boost > 0)
 				blit(mStack, x, y, 0, 65, boost, barHeight, tW, tH);
-			}
+			// Brake
+			if (brake_heat > 0)
+				blit(mStack, x, y, 0, brake_cooldown? 75 : 70, brake_heat, barHeight, tW, tH);
+			// Overlay
+			blit(mStack, x, y, 0, 80, (int)barLength - 1, barHeight, tW, tH);
 		}
 		
-		RenderSystem.enableBlend();
-		RenderSystem.color4f(1F, 1F, 1F, 1F);
+		RenderSystem.disableBlend();
+		// RenderSystem.color4f(1F, 1F, 1F, 1F);
 		return replace;
 	}
 	

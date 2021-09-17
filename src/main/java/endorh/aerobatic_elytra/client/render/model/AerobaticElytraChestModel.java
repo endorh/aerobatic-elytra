@@ -46,7 +46,7 @@ public class AerobaticElytraChestModel<T extends LivingEntity> extends BipedMode
         rightRocket.addBox(0.5F, 0.8F, 3.0F, 3.0F, 10.0F, 3.0F, -0.5F, -1.2F, -0.5F);
         rightRocket.setTextureOffset(20, 33).addBox(-0.5F, 2.6F, 2.0F, 5.0F, 2.0F, 5.0F, -1.0F, -0.2F, -1.0F);
         rightRocket.setTextureOffset(20, 33).addBox(1.5F, 1.1F, 4.0F, 1.0F, 1.0F, 1.0F, -0.1F, -0.1F, -0.1F);
-        rightRocket.setTextureOffset(28, 35).addBox(1.5F, 9.5F, 4.0F, 1.0F, 1.0F, 1.0F, -0.1F, -0.1F, -0.1F);
+        rightRocket.setTextureOffset(20, 35).addBox(1.5F, 9.5F, 4.0F, 1.0F, 1.0F, 1.0F, -0.1F, -0.1F, -0.1F);
         
         bipedBody.addChild(leftRocket);
         bipedBody.addChild(rightRocket);

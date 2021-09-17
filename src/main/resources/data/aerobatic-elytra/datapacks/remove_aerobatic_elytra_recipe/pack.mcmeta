@@ -1,0 +1,7 @@
+{
+  "pack": {
+    "title": "Remove aerobatic elytra recipe",
+    "description": "Removes the default recipe to craft an Aerobatic Elytra\nYou may also replace it by another, as 'Nerf Aerobatic Elytra With Upgrades' does.",
+    "pack_format": 6
+  }
+}

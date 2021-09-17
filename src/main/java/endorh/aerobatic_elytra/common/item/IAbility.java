@@ -19,8 +19,8 @@ import java.util.function.Predicate;
 
 import static endorh.aerobatic_elytra.AerobaticElytra.prefix;
 import static endorh.aerobatic_elytra.common.item.IAbility.DisplayType.*;
-import static endorh.util.common.TextUtil.stc;
-import static endorh.util.common.TextUtil.ttc;
+import static endorh.util.text.TextUtil.stc;
+import static endorh.util.text.TextUtil.ttc;
 import static net.minecraft.util.text.TextFormatting.*;
 
 @EventBusSubscriber(modid = AerobaticElytra.MOD_ID)
@@ -28,11 +28,11 @@ public interface IAbility extends IForgeRegistryEntry<IAbility> {
 	/**
 	 * Name used to parse in JSON, should be unique.<br>
 	 */
-	String jsonName();
+	String getName();
 	
 	default String fullName() {
 		assert getRegistryName() != null;
-		return getRegistryName().getNamespace().replace('`', '_') + ':' + jsonName();
+		return getRegistryName().getNamespace().replace('`', '_') + ':' + getName();
 	}
 	
 	default void write(PacketBuffer buf) {
@@ -94,7 +94,7 @@ public interface IAbility extends IForgeRegistryEntry<IAbility> {
 			this.displayType = type;
 		}
 		
-		@Override public String jsonName() { return jsonName; }
+		@Override public String getName() { return jsonName; }
 		@Override public IFormattableTextComponent getDisplayName() { return ttc(translationKey); }
 		@Override public DisplayType getDisplayType() {
 			return displayType;
@@ -244,7 +244,7 @@ public interface IAbility extends IForgeRegistryEntry<IAbility> {
 		}
 	}
 	
-	static IAbility fromJsonName(String name) {
+	static IAbility fromName(String name) {
 		return ModRegistries.getAbilityByName(name);
 	}
 	

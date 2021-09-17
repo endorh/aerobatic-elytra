@@ -42,7 +42,7 @@ public class UpgradeHandler {
 	public static boolean onItemUse(PlayerEntity player, ItemStack elytra, ItemStack stack) {
 		if (player.isCrouching()) {
 			List<UpgradeRecipe> upgrades = UpgradeRecipe.getUpgradeRecipes(
-			  player.world, elytra, stack);
+			  elytra, stack);
 			if (upgrades.size() == 0)
 				return false;
 			/*if (!player.world.isRemote)

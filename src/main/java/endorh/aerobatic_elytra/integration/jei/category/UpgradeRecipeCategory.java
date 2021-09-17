@@ -1,64 +1,42 @@
 package endorh.aerobatic_elytra.integration.jei.category;
 
 import com.google.common.collect.ImmutableList;
-import endorh.aerobatic_elytra.client.config.ClientConfig;
+import endorh.aerobatic_elytra.client.ModResources;
 import endorh.aerobatic_elytra.common.capability.IElytraSpec.Upgrade;
 import endorh.aerobatic_elytra.common.item.ModItems;
 import endorh.aerobatic_elytra.common.recipe.ItemSelector;
 import endorh.aerobatic_elytra.common.recipe.UpgradeRecipe;
+import endorh.aerobatic_elytra.integration.jei.AerobaticElytraJeiHelper;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
-import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.IGuiItemStackGroup;
-import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.IFocus;
 import mezz.jei.api.recipe.IFocus.Mode;
-import mezz.jei.api.recipe.category.IRecipeCategory;
-import net.minecraft.client.resources.I18n;
+import mezz.jei.api.registration.IRecipeRegistration;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.Ingredient;
+import net.minecraft.item.crafting.RecipeManager;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static endorh.aerobatic_elytra.AerobaticElytra.prefix;
-import static endorh.util.common.TextUtil.ttc;
+import static endorh.util.text.TextUtil.splitTtc;
+import static endorh.util.text.TextUtil.ttc;
 
-public class UpgradeRecipeCategory implements IRecipeCategory<UpgradeRecipe> {
+public class UpgradeRecipeCategory extends BaseCategory<UpgradeRecipe> {
 	public static final ResourceLocation UID = prefix("upgrade");
 	
-	private final IDrawable background;
-	private final IDrawable background_dark;
-	private final IDrawable icon;
-	private final String localizedName = I18n.format("aerobatic-elytra.recipe.category.upgrade");
-	
-	public UpgradeRecipeCategory(IGuiHelper guiHelper) {
-		ResourceLocation location = prefix("textures/gui/recipes.png");
-		background = guiHelper.createDrawable(location, 0, 0, 138, 18);
-		background_dark = guiHelper.createDrawable(location, 0, 18, 138, 18);
-		icon = guiHelper.createDrawableIngredient(new ItemStack(ModItems.AEROBATIC_ELYTRA));
+	public UpgradeRecipeCategory() {
+		super(UID, UpgradeRecipe.class, ModResources::upgradeRecipeBg, ModItems.AEROBATIC_ELYTRA, false);
 	}
 	
-	@Override public @NotNull ResourceLocation getUid() {
-		return UID;
-	}
-	@Override public @NotNull Class<? extends UpgradeRecipe> getRecipeClass() {
-		return UpgradeRecipe.class;
-	}
-	@Override public @NotNull String getTitle() {
-		return localizedName;
-	}
-	@Override public @NotNull IDrawable getBackground() {
-		return ClientConfig.style.dark_theme_gui? background_dark : background;
-	}
-	@Override public @NotNull IDrawable getIcon() {
-		return icon;
-	}
 	@Override public void setIngredients(
 	  @NotNull UpgradeRecipe recipe, @NotNull IIngredients ingredients
 	) {
@@ -78,33 +56,37 @@ public class UpgradeRecipeCategory implements IRecipeCategory<UpgradeRecipe> {
 		
 		final IGuiItemStackGroup stacks = layout.getItemStacks();
 		stacks.init(0, true, 20, 0);
-		stacks.set(0, getItemMatchingFocus(focus, Mode.INPUT, inputs.get(0), outputs.get(0)));
-		
 		stacks.init(1, true, 69, 0);
-		stacks.set(1, getItemMatchingFocus(focus, Mode.OUTPUT, outputs.get(0), inputs.get(0)));
+		stacks.init(2, false, 117, 0);
 		
-		stacks.init(2, true, 117, 0);
-		stacks.set(2, getItemMatchingFocus(focus, Mode.INPUT, inputs.get(0), outputs.get(0)));
+		List<ItemStack> elytras = AerobaticElytraJeiHelper.getAerobaticElytrasMatchingFocus(focus);
+		stacks.set(0, elytras);
+		stacks.set(1, setTag(recipe, getItemMatchingFocus(focus, Mode.OUTPUT, outputs.get(0), inputs.get(0))));
+		stacks.set(2, apply(recipe, elytras));
 	}
 	
-	private List<ItemStack> getItemMatchingFocus(IFocus<?> focus, IFocus.Mode mode, List<ItemStack> focused, List<ItemStack> other) {
-		if (focus != null && focus.getMode() == mode) {
-			ItemStack focusStack = (ItemStack) focus.getValue();
-			for (int i = 0; i < focused.size(); i++) {
-				if (focusStack.isItemEqual(focused.get(i))) {
-					return Collections.singletonList(other.get(i));
-				}
-			}
-		}
-		return other;
+	protected List<ItemStack> apply(UpgradeRecipe recipe, List<ItemStack> stacks) {
+		return stacks.stream().map(
+		  s -> recipe.getResult(s.copy())
+		).collect(Collectors.toList());
+	}
+	
+	protected List<ItemStack> setTag(UpgradeRecipe recipe, List<ItemStack> stacks) {
+		return stacks.stream().map(s -> {
+			s = s.copy();
+			final ItemStack st = s;
+			recipe.getSelectors().stream().filter(sel -> sel.testIgnoringNBT(st))
+			  .findFirst().flatMap(ItemSelector::matchingNBT).ifPresent(s::setTag);
+			return s;
+		}).collect(Collectors.toList());
 	}
 	
 	@Override public @NotNull List<ITextComponent> getTooltipStrings(
 	  @NotNull UpgradeRecipe recipe, double x, double y
 	) {
-		List<ITextComponent> tt = new ArrayList<>();
+		List<ITextComponent> tt = super.getTooltipStrings(recipe, x, y);
 		if (inRect(x, y, 3, 2, 14, 14)) {
-			tt.add(ttc("aerobatic-elytra.jei.help.category.upgrade"));
+			tt.addAll(splitTtc("aerobatic-elytra.jei.help.category.upgrade"));
 		} else if (inRect(x, y, 46, 1, 15, 15)) {
 			for (ItemSelector sel : recipe.getSelectors())
 				tt.add(sel.getDisplay());
@@ -115,7 +97,14 @@ public class UpgradeRecipeCategory implements IRecipeCategory<UpgradeRecipe> {
 		return tt;
 	}
 	
-	private boolean inRect(double x, double y, double l, double t, double w, double h) {
-		return x >= l && x < l + w && y >= t && y < t + h;
+	@Override public void registerRecipes(
+	  IRecipeRegistration reg, RecipeManager recipeManager, List<UpgradeRecipe> recipes
+	) {
+		final List<UpgradeRecipe> sorted = recipes.stream().filter(UpgradeRecipe::isValid).sorted(
+		  Comparator.comparing(
+			 r -> r.getSelectors().stream()
+				.map(ItemSelector::toString).collect(Collectors.joining(";")))
+		).collect(Collectors.toList());
+		// reg.addRecipes(sorted, UID);
 	}
 }

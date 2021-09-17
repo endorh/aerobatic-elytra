@@ -13,87 +13,96 @@ import java.util.Optional;
 
 import static endorh.simple_config.core.SimpleConfig.group;
 import static endorh.simple_config.core.entry.Builders.*;
-import static endorh.util.common.TextUtil.stc;
-import static endorh.util.common.TextUtil.ttc;
+import static endorh.util.text.TextUtil.stc;
+import static endorh.util.text.TextUtil.ttc;
 import static java.lang.Math.*;
 
 public class Config {
 	private static SimpleConfig SERVER = null;
 	
 	public static void register() {
-		final String datapack_command = "/aerobatic-elytra datapack install";
+		final String datapack_command = "/aerobatic-elytra datapack list";
 		SERVER = SimpleConfig.builder(AerobaticElytra.MOD_ID, Type.SERVER, Config.class)
 		  .n(group("item")
-		       .add("durability", number(432 * 2).min(0))
+		       .add("durability", number(864).min(1))
 		       .add("undamageable", bool(false))
-		       .add("fix_nan_elytra_abilities", bool(false))
-		  ).n(group("aerobatic")
-		       .n(group("tilt", true)
+		       .add("fix_nan_elytra_abilities", bool(false)))
+		  .n(group("aerobatic")
+		       .n(group("tilt")
 		            .add("range_pitch", number(7.0F, 180))
 		            .add("range_roll", number(9.0F, 180))
-		            .add("range_yaw", number(0.8F, 180))
-		       ).n(group("propulsion", true)
+		            .add("range_yaw", number(0.7F, 180)))
+		       .n(group("propulsion")
 		            .add("min", number(0.0F))
 		            .add("max", number(2.4F).error(
 		              d -> d < SERVER.getFloat("aerobatic.propulsion.min")
-		                   ? Optional.of(ttc("aerobatic-elytra.config.error.max_min"))
+		                   ? Optional.of(ttc("simple-config.config.error.min_greater_than_max"))
 		                   : Optional.empty()))
-		            .add("takeoff", number(0.0F))
-			    ).n(group("physics")
-		            .add("gravity_multiplier", number(0.7F))
-		            .add("glide_multiplier", number(0.6F))
-		            .add("friction_base", number(0.96F, 0.5F, 1))
-		            .add("friction_brake", number(0.80F, 0.5F, 1))
-		            .add("brake_gravity", number(2.0F).min(0))
-		            .add("friction_angular", number(0.92F, 0.5F, 1))
-		            .add("friction_water_min", number(0.92F, 0.5F, 1))
-		            .add("friction_water_max", number(0.82F, 0.5F, 1))
+		            .add("takeoff", number(0.0F)))
+		       .n(group("physics")
+		            .add("gravity_multiplier", number(0.8F))
+		            .add("glide_multiplier", number(1.0F))
+		            .add("friction_base", number(0.95F, 0.5F, 1))
+		            .add("friction_angular", number(0.94F, 0.5F, 1))
+		            .add("inertia", number(0.15F, 0F, 1F))
+		            .add("friction_water", number(0.85F, 0.5F, 1))
+		            .add("friction_water_nerf", number(0.78F, 0.5F, 1))
 		            .add("motorless_friction", number(0.99F, 0.5F, 1))
-		            .add("motorless_gravity", number(1.6F)))
-		  ).n(group("fuel")
-			    .add("usage_linear", number(0.06F))
+		            .add("motorless_gravity", number(1.4F)))
+		       .n(group("braking")
+			         .caption("enabled", enable(true))
+			         .add("max_time", number(2F).min(0))
+		            .add("friction", number(0.80F, 0.5F, 1))
+		            .add("added_gravity", number(2.0F).min(0)))
+		       .n(group("modes")
+		            .add("allow_midair_change", bool(true))
+		            .add("enable_normal_elytra_mode", enable(true))))
+		  .n(group("fuel")
+			    .add("usage_linear", number(0.16F))
 			    .add("usage_quad", number(0.0F))
-			    .add("usage_sqrt", number(0.04F))
-		       .add("usage_boost_multiplier", number(2F))
-		  ).n(group("weather")
-			     .add("enabled", bool(true))
-		        .n(group("rain", true)
-		             .add("rain_strength", number(0.6F))
-		             .add("wind_strength", number(0.4F))
-		             .add("wind_randomness", number(4.0F))
-		             .add("wind_angular_strength", number(10.0F))
-		        ).n(group("storm", true)
-		             .add("rain_strength", number(0.4F))
-		             .add("wind_strength", number(0.8F))
-		             .add("wind_randomness", number(4.0F))
-		             .add("wind_angular_strength", number(20.0F)))
-		  ).n(group("network")
-			     .add("disable_aerobatic_elytra_movement_check", bool(false))
-			     .add("aerobatic_elytra_movement_check", number(500.0F).min(0))
-			     .add("disable_aerobatic_elytra_rotation_check", bool(false))
-			     .add("aerobatic_elytra_rotation_check_overlook", number(1.1F).min(1))
-			     .add("speed_cap", number(200.0F).min(0))
-			     .add("invalid_packet_kick_count", number(0).min(0))
-		  ).n(group("collision")
-			     .add("damage", number(1.0F).min(0))
-			     .add("hay_bale_multiplier", number(0.2F).min(0))
-			     .n(group("leave_breaking", true)
-			          .add("enable", bool(true))
-			          .add("min_speed", number(5F).min(0))
-			          .add("chance", number(0.4F))
-			          .add("chance_linear", number(0.08F))
-			          .add("motion_multiplier", number(0.98F).min(0.1F))
-			          .add("regrow_chance", fractional(0.4F))
-			     ).n(group("slime_bounce", true)
-			          .add("enable", bool(true))
-			          .add("min_speed", number(4.2F).min(0))
-			          .add("friction", fractional(0.98F))
-			          .add("angular_friction", fractional(1.0F))))
+			    .add("usage_sqrt", number(0.10F))
+		       .add("usage_boost_multiplier", number(2F)))
+		  .n(group("weather")
+		       .caption("enabled", enable(true))
+		       .add("ignore_cloud_level", bool(false))
+		       .add("cloud_level", number(128))
+		       .n(group("rain")
+		            .add("rain_strength", number(0.6F))
+		            .add("wind_strength", number(0.4F))
+		            .add("wind_randomness", number(4.0F))
+		            .add("wind_angular_strength", number(10.0F)))
+		       .n(group("storm")
+		            .add("rain_strength", number(0.4F))
+		            .add("wind_strength", number(0.8F))
+		            .add("wind_randomness", number(4.0F))
+		            .add("wind_angular_strength", number(20.0F))))
+		  .n(group("network")
+		       .add("disable_aerobatic_elytra_movement_check", bool(false))
+		       .add("aerobatic_elytra_movement_check", number(500.0F).min(0))
+		       .add("disable_aerobatic_elytra_rotation_check", bool(false))
+		       .add("aerobatic_elytra_rotation_check_overlook", number(1.1F).min(1))
+		       .add("speed_cap", number(200.0F).min(0))
+		       .add("invalid_packet_kick_count", number(0).min(0)))
+		  .n(group("collision")
+		       .add("damage", number(1.0F).min(0))
+		       .add("hay_bale_multiplier", number(0.2F).min(0))
+		       .n(group("leave_breaking")
+		            .caption("enable", enable(true))
+		            .add("min_speed", number(5F).min(0))
+		            .add("chance", number(0.4F))
+		            .add("chance_linear", number(0.08F))
+		            .add("motion_multiplier", number(0.98F).min(0.1F))
+		            .add("regrow_chance", fraction(0.4F)))
+		       .n(group("slime_bounce")
+		            .caption("enable", enable(true))
+		            .add("min_speed", number(4.0F).min(0))
+		            .add("friction", fraction(0.98F))
+		            .add("angular_friction", fraction(1.0F))))
 		  .text(() -> ttc(
 			 "aerobatic-elytra.config.text.datapack_tip",
 			 stc(datapack_command)
-				.modifyStyle(style -> style
-				  .setFormatting(TextFormatting.GOLD)
+			   .modifyStyle(style -> style
+			     .setFormatting(TextFormatting.GOLD)
 				  .setHoverEvent(new HoverEvent(
 				    HoverEvent.Action.SHOW_TEXT, ttc("chat.copy.click")))
 				  // The SUGGEST_COMMAND action requires the chat to be open
@@ -147,18 +156,33 @@ public class Config {
 			@Bind public static float gravity_multiplier;
 			@Bind public static float glide_multiplier;
 			@Bind public static float friction_base;
-			@Bind public static float friction_brake;
-			public static float brake_gravity_per_tick;
 			@Bind public static float friction_angular;
-			@Bind public static float friction_water_min;
-			@Bind public static float friction_water_max;
+			@Bind public static float friction_water_nerf;
+			@Bind public static float friction_water;
 			@Bind public static float motorless_friction;
 			public static float motorless_gravity_per_tick;
+			@Bind public static float inertia;
 			
 			static void bake(SimpleConfigGroup g) {
-				brake_gravity_per_tick = g.getFloat("brake_gravity") / 20F;
 				motorless_gravity_per_tick = g.getFloat("motorless_gravity") / 20F;
 			}
+		}
+		
+		@Bind public static class braking {
+			@Bind public static boolean enabled;
+			@Bind public static float friction;
+			public static float gravity_per_tick;
+			public static float max_time_ticks;
+			
+			static void bake(SimpleConfigGroup g) {
+				braking.gravity_per_tick = g.getFloat("added_gravity") / 20F;
+				max_time_ticks = g.getFloat("max_time") * 20F;
+			}
+		}
+		
+		@Bind public static class modes {
+			@Bind public static boolean allow_midair_change;
+			@Bind public static boolean enable_normal_elytra_mode;
 		}
 	}
 	
@@ -181,6 +205,8 @@ public class Config {
 	
 	@Bind public static class weather {
 		@Bind public static boolean enabled;
+		@Bind public static boolean ignore_cloud_level;
+		@Bind public static int cloud_level;
 		@Bind public static class rain {
 			public static float rain_strength_per_tick;
 			public static float wind_strength_per_tick;

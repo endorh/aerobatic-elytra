@@ -174,7 +174,7 @@ public class AbilityNBTInheritingShapedRecipe extends NBTInheritingShapedRecipe 
 				
 				final String jsonName = entry.getKey();
 				if (IAbility.isDefined(jsonName)) {
-					map.put(IAbility.fromJsonName(jsonName), value);
+					map.put(IAbility.fromName(jsonName), value);
 				} else {
 					unknown.put(jsonName, value);
 				}

@@ -1,7 +1,7 @@
 {
   "type": "aerobatic-elytra:ability_nbt_inheriting_shaped_recipe",
     "_comment0": "Extended shaped recipe with upgrades",
-    "_comment1": "  Adds ability support to aerobatic-elytra:nbt_inheriting_shaped_recipe",
+    "_comment1": "  Adds ability support to endor-util:nbt_inheriting_shaped_recipe",
     "_comment2": "  Uppercase letters mark NBT sources, which NBT will be merged into the result",
     "_comment3": "  The NBT defined in the result.tag key (similar to command NBT syntax) will override sources NBT",
     "_comment4": "  Otherwise, topmost-leftmost NBT sources have merge priority when setting the same individual value.",
@@ -42,16 +42,10 @@
     "tag": {},
 
       "_comment1": "Any valid abilities may be given a value here",
-      "_comment2": "Any ability not present here defaults to 0",
+      "_comment2": "Abilities not specified default to their default value (usually 0)",
     "abilities": {
       "Fuel": 0,
-      "MaxFuel": 40,
-      "Speed": 0.8,
-      "Lift": 0.1,
-      "Aquatic": 0,
-      "Jetpack": 1,
-      "Hover": 1,
-      "Trail": 1
+      "MaxFuel": 40
     }
   }
 }

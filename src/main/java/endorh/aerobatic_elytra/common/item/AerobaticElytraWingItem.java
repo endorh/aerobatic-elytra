@@ -1,13 +1,14 @@
 package endorh.aerobatic_elytra.common.item;
 
+import endorh.aerobatic_elytra.client.config.ClientConfig.style.visibility;
 import endorh.aerobatic_elytra.common.block.BrokenLeavesBlock;
 import endorh.aerobatic_elytra.common.block.ModBlocks;
-import endorh.aerobatic_elytra.common.capability.IAerobaticData;
-import endorh.aerobatic_elytra.common.flight.AerobaticFlight.VectorBase;
-import endorh.aerobatic_elytra.common.item.ElytraDyement.WingSide;
 import endorh.aerobatic_elytra.common.capability.ElytraSpecCapability;
+import endorh.aerobatic_elytra.common.capability.IAerobaticData;
 import endorh.aerobatic_elytra.common.capability.IElytraSpec;
 import endorh.aerobatic_elytra.common.capability.IElytraSpec.TrailData;
+import endorh.aerobatic_elytra.common.flight.AerobaticFlight.VectorBase;
+import endorh.aerobatic_elytra.common.item.ElytraDyement.WingSide;
 import endorh.util.math.Vec3f;
 import net.minecraft.block.Block;
 import net.minecraft.client.util.ITooltipFlag;
@@ -22,6 +23,7 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
@@ -34,7 +36,8 @@ import java.util.List;
 import static endorh.aerobatic_elytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
 import static endorh.aerobatic_elytra.common.capability.ElytraSpecCapability.getElytraSpec;
 import static endorh.aerobatic_elytra.common.capability.ElytraSpecCapability.getElytraSpecOrDefault;
-import static endorh.util.common.TextUtil.stc;
+import static endorh.util.text.TextUtil.stc;
+import static endorh.util.text.TextUtil.ttc;
 
 public class AerobaticElytraWingItem extends Item implements IDyeableArmorItem {
 	public static final String NAME = "aerobatic_elytra_wing";
@@ -44,11 +47,14 @@ public class AerobaticElytraWingItem extends Item implements IDyeableArmorItem {
 	}
 	
 	public AerobaticElytraWingItem(Properties builder) {
-		super(
-		  builder
-		    //.group(ItemGroup.MISC)
-		);
+		super(builder.group(ItemGroup.MISC));
 		setRegistryName(NAME);
+	}
+	
+	public static ItemStack createDebugWing() {
+		final ItemStack stack = new ItemStack(ModItems.AEROBATIC_ELYTRA_WING, 1);
+		stack.setDisplayName(new StringTextComponent("Debug Wing"));
+		return stack;
 	}
 	
 	public static boolean canUseDebugWing(PlayerEntity player) {
@@ -80,18 +86,19 @@ public class AerobaticElytraWingItem extends Item implements IDyeableArmorItem {
 	 * If in creative mode and named "Debug Wing", used to test
 	 * the broken leaves block.
 	 */
-	@Override
-	public @NotNull ActionResultType onItemUse(ItemUseContext context) {
-		ItemStack stack = context.getItem();
-		PlayerEntity player = context.getPlayer();
+	@Override public @NotNull ActionResultType onItemUse(ItemUseContext context) {
+		World world = context.getWorld();
+		if (ElytraDyement.clearDyesWithCauldron(context))
+			return ActionResultType.func_233537_a_(world.isRemote());
+		final ItemStack stack = context.getItem();
+		final PlayerEntity player = context.getPlayer();
 		if (isDebugWing(stack) && player != null && canUseDebugWing(player)) {
-			BlockPos pos = context.getPos();
-			World world = context.getWorld();
+			final BlockPos pos = context.getPos();
 			final Block block = world.getBlockState(pos).getBlock();
 			if (block.isIn(BlockTags.LEAVES)) {
 				BrokenLeavesBlock.breakLeaves(world, pos);
 			} else if (block == ModBlocks.BROKEN_LEAVES && context.isInside()) {
-				BlockPos next = pos.subtract(context.getFace().getDirectionVec());
+				final BlockPos next = pos.subtract(context.getFace().getDirectionVec());
 				if (world.getBlockState(next).getBlock().isIn(BlockTags.LEAVES)) {
 					BrokenLeavesBlock.breakLeaves(world, next);
 					final BlockPos down = next.down();
@@ -99,9 +106,9 @@ public class AerobaticElytraWingItem extends Item implements IDyeableArmorItem {
 						BrokenLeavesBlock.breakLeaves(world, down);
 				}
 			}
-			return ActionResultType.CONSUME;
+			return ActionResultType.func_233537_a_(world.isRemote());
 		}
-		return ActionResultType.PASS;
+		return super.onItemUse(context);
 	}
 	
 	@Override
@@ -132,7 +139,8 @@ public class AerobaticElytraWingItem extends Item implements IDyeableArmorItem {
 	
 	@Override
 	public boolean hasEffect(@NotNull ItemStack stack) {
-		return super.hasEffect(stack) || isDebugWing(stack);
+		return super.hasEffect(stack) && visibility.enchantment_glint_visibility.test()
+		       || isDebugWing(stack);
 	}
 	
 	@Override public @NotNull ITextComponent getDisplayName(@NotNull ItemStack stack) {
@@ -170,21 +178,26 @@ public class AerobaticElytraWingItem extends Item implements IDyeableArmorItem {
 	public void removeColor(@NotNull ItemStack stack) {
 		IDyeableArmorItem.super.removeColor(stack);
 		CompoundNBT tag = stack.getChildTag("BlockEntityTag");
-		if (tag != null) {
+		if (tag != null)
 			stack.removeChildTag("BlockEntityTag");
-		}
 	}
 	
 	@Override
 	public void addInformation(
 	  @NotNull ItemStack stack, @Nullable World world, @NotNull List<ITextComponent> tooltip, @NotNull ITooltipFlag flag
 	) {
-		tooltip.addAll(getTooltipInfo(stack, flag));
-		
-		if (!stack.getEnchantmentTagList().isEmpty())
-			tooltip.add(stc("")); // Separator
+		if (!isDebugWing(stack)) {
+			tooltip.addAll(getTooltipInfo(stack, flag));
+			if (!stack.getEnchantmentTagList().isEmpty())
+				tooltip.add(stc("")); // Separator
+		} else tooltip.add(
+		  ttc("item.aerobatic-elytra.aerobatic_elytra_wing.debug_wing.tooltip")
+		    .mergeStyle(TextFormatting.GRAY));
 	}
 	
+	public AerobaticElytraItem getElytraItem() {
+		return ModItems.AEROBATIC_ELYTRA;
+	}
 	
 	public List<ITextComponent> getTooltipInfo(ItemStack stack, ITooltipFlag flag) {
 		return getTooltipInfo(stack, flag, "");
@@ -192,9 +205,7 @@ public class AerobaticElytraWingItem extends Item implements IDyeableArmorItem {
 	
 	public List<ITextComponent> getTooltipInfo(ItemStack stack, ITooltipFlag flag, String indent) {
 		List<ITextComponent> tooltip = new ArrayList<>();
-		AerobaticElytraItem aerobaticElytra = ModItems.AEROBATIC_ELYTRA;
-		//noinspection ConstantConditions
-		assert aerobaticElytra != null;
+		AerobaticElytraItem aerobaticElytra = getElytraItem();
 		aerobaticElytra.addFuelTooltipInfo(tooltip, stack, flag, indent);
 		IElytraSpec spec = getElytraSpecOrDefault(stack);
 		spec.addAbilityTooltipInfo(tooltip, indent);

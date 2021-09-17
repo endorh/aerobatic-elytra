@@ -4,7 +4,8 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import com.mojang.datafixers.util.Pair;
 import endorh.aerobatic_elytra.AerobaticElytra;
-import endorh.aerobatic_elytra.client.config.ClientConfig;
+import endorh.aerobatic_elytra.client.config.ClientConfig.style.visibility;
+import endorh.aerobatic_elytra.client.config.ClientConfig.style.visual;
 import endorh.aerobatic_elytra.client.item.AerobaticElytraBannerTextureManager;
 import endorh.aerobatic_elytra.client.render.model.AerobaticElytraChestModel;
 import endorh.aerobatic_elytra.client.render.model.AerobaticElytraModel;
@@ -35,18 +36,16 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 import static endorh.aerobatic_elytra.client.ModResources.TEXTURE_AEROBATIC_ELYTRA;
+import static java.lang.Math.min;
 
 @EventBusSubscriber(value = Dist.CLIENT, modid = AerobaticElytra.MOD_ID)
 public class AerobaticElytraLayer<T extends LivingEntity, M extends BipedModel<T>>
   extends ElytraLayer<T, M> {
-	private static final Logger LOGGER = LogManager.getLogger();
 	private final AerobaticElytraModel<T> modelElytra = new AerobaticElytraModel<>();
 	private final AerobaticElytraChestModel<T> modelBack = new AerobaticElytraChestModel<>();
 	private final ElytraDyement dyement = new ElytraDyement();
@@ -92,7 +91,7 @@ public class AerobaticElytraLayer<T extends LivingEntity, M extends BipedModel<T
 		modelElytra.setRotationAngles(
 		  entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
 		
-		final boolean effect = !ClientConfig.style.disable_wing_glint && item.hasModelEffect(elytra);
+		final boolean effect = !visibility.disable_wing_glint && item.hasModelEffect(elytra);
 		if (effect) {
 			ResourceLocation glintTexture = getElytraTexture(elytra, entity);
 			modelElytra.renderGlint(
@@ -166,11 +165,11 @@ public class AerobaticElytraLayer<T extends LivingEntity, M extends BipedModel<T
 	  float netHeadYaw, float headPitch, ItemStack elytra, WingSide side,
 	  AerobaticElytraItem item, List<Pair<BannerPattern, DyeColor>> patternColorData
 	) {
-		for (int i = 0; i < 17 && i < patternColorData.size(); ++i) {
+		final int size = min(visual.max_rendered_banner_layers + 1, patternColorData.size());
+		for (int i = 0; i < size; ++i) {
 			Pair<BannerPattern, DyeColor> pair = patternColorData.get(i);
 			float[] color = pair.getSecond().getColorComponentValues();
 			RenderMaterial material = new RenderMaterial(
-			  // AtlasTexture.LOCATION_BLOCKS_TEXTURE,
 			  AerobaticElytraBannerTextureManager.LOCATION_AEROBATIC_ELYTRA_BANNER_ATLAS,
 			  item.getTextureLocation(pair.getFirst()));
 			// Unknown patterns are omitted
@@ -182,11 +181,10 @@ public class AerobaticElytraLayer<T extends LivingEntity, M extends BipedModel<T
 	}
 	
 	public float[] componentArray(int color) {
-		float[] arr = new float[3];
-		arr[0] = (color >> 16 & 0xFF) / 255F;
-		arr[1] = (color >> 8 & 0xFF) / 255F;
-		arr[2] = (color & 0xFF) / 255F;
-		return arr;
+		return new float[]{
+		  (color >> 16 & 0xFF) / 255F,
+		  (color >> 8 & 0xFF) / 255F,
+		  (color & 0xFF) / 255F};
 	}
 	
 	@Override @NotNull

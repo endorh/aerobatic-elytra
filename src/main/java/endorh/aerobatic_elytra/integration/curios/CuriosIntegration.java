@@ -45,8 +45,7 @@ public class CuriosIntegration {
 		final PlayerEntity player = event.getPlayer();
 		Optional<ImmutableTriple<String, Integer, ItemStack>> opt =
 		  findCurioAerobaticElytra(player);
-		if (!opt.isPresent())
-			return;
+		if (!opt.isPresent()) return;
 		ImmutableTriple<String, Integer, ItemStack> curio = opt.get();
 		ItemStack elytra = curio.right;
 		

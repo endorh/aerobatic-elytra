@@ -17,6 +17,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.resources.IReloadableResourceManager;
 import net.minecraft.resources.IResourceManager;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.ParticleFactoryRegisterEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -47,15 +48,23 @@ public class ModInit {
 		MinecraftForge.EVENT_BUS.addListener(ModInit::onRegisterReloadListeners);
 	}
 	
+	/**
+	 * Reload listeners must be registered before the {@link Minecraft} constructor
+	 * calls Minecraft#resourceManager#reloadResources.<br>
+	 * The best event for this is {@link ParticleFactoryRegisterEvent},
+	 * even if unrelated to its intended usage
+	 */
+	@SubscribeEvent
+	public static void onMinecraftConstructed(ParticleFactoryRegisterEvent event) {
+		final IResourceManager resourceManager = Minecraft.getInstance().getResourceManager();
+		if (resourceManager instanceof IReloadableResourceManager)
+			AerobaticElytra.BANNER_TEXTURE_MANAGER = new AerobaticElytraBannerTextureManager((IReloadableResourceManager) resourceManager);
+	}
+	
 	@SubscribeEvent
 	public static void onClientSetup(FMLClientSetupEvent event) {
-		event.enqueueWork(() -> {
-			// These registering methods are not thread-safe
-			registerClient();
-			final IResourceManager resourceManager = Minecraft.getInstance().getResourceManager();
-			if (resourceManager instanceof IReloadableResourceManager)
-				AerobaticElytra.BANNER_TEXTURE_MANAGER = new AerobaticElytraBannerTextureManager((IReloadableResourceManager) resourceManager);
-		});
+		// These registering methods are not thread-safe
+		event.enqueueWork(ModInit::registerClient);
 	}
 	
 	public static void onRegisterReloadListeners(AddReloadListenerEvent event) {

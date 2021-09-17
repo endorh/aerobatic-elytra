@@ -33,7 +33,6 @@ import static endorh.aerobatic_elytra.AerobaticElytra.prefix;
 
 @EventBusSubscriber(modid = AerobaticElytra.MOD_ID)
 public class FlightDataCapability {
-	
 	/** The {@link Capability} instance */
 	@CapabilityInject(IFlightData.class)
 	public static Capability<IFlightData> CAPABILITY = null;
@@ -46,7 +45,6 @@ public class FlightDataCapability {
 		CapabilityManager.INSTANCE.register(
 		  IFlightData.class, storage, () -> new FlightData(null));
 	}
-	
 	
 	/**
 	 * Deserialize an {@link IFlightData} from NBT

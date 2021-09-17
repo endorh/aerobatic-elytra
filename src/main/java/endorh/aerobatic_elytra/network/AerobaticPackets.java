@@ -38,7 +38,7 @@ public class AerobaticPackets {
 	  "or the player could be trying to cheat.";
 	
 	// Avoid logging the same warnings too frequently
-	private static final int TIME_BETWEEN_WARNINGS = 40;
+	private static final int TIME_BETWEEN_WARNINGS = 40; // Ticks
 	private static final Map<String, Map<String, Integer>> LAST_WARNS = new HashMap<>();
 	private static boolean logWarning(PlayerEntity player, String message, Object... args) {
 		final String name = player.getScoreboardName();
@@ -185,7 +185,7 @@ public class AerobaticPackets {
 			                  // STRIKES.compute(name, (n, i) -> i != null ? max(0, i - 1) : 0)) > 0;
 			data.setTiltPitch(validateClamp(
 			  tiltPitch, -Config.aerobatic.tilt.range_pitch, Config.aerobatic.tilt.range_pitch));
-			data.setTiltPitch(validateClamp(
+			data.setTiltRoll(validateClamp(
 			  tiltRoll, -Config.aerobatic.tilt.range_roll, Config.aerobatic.tilt.range_roll));
 			final float tiltRangeYaw = inWater
 			                           ? Const.UNDERWATER_YAW_RANGE_MULTIPLIER * Config.aerobatic.tilt.range_yaw

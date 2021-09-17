@@ -2,7 +2,7 @@ package endorh.aerobatic_elytra.client.particle;
 
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import endorh.aerobatic_elytra.client.trail.AerobaticTrail.RocketSide;
-import endorh.aerobatic_elytra.common.capability.IElytraSpec.RocketExplosion;
+import endorh.aerobatic_elytra.common.capability.IElytraSpec.RocketStar;
 import endorh.aerobatic_elytra.common.capability.IElytraSpec.TrailData;
 import endorh.aerobatic_elytra.common.particle.TrailParticleData;
 import endorh.util.common.ColorUtil;
@@ -245,12 +245,12 @@ public class TrailParticle extends SpriteTexturedParticle {
 	public TrailParticleData childrenParticle() {
 		if (trailData == null)
 			return null;
-		Optional<RocketExplosion> explosionOpt = pickRandom(trailData.get(side));
+		Optional<RocketStar> explosionOpt = pickRandom(trailData.get(side));
 		if (!explosionOpt.isPresent()) {
 			LogUtil.warnOnce(LOGGER, "No explosions in trailed particle");
 			return null;
 		}
-		RocketExplosion explosion = explosionOpt.get();
+		RocketStar explosion = explosionOpt.get();
 		
 		Color cColor = new Color(pickRandom(explosion.colors).orElse(Color.WHITE.getRGB()));
 		Color cFadeColor = new Color(pickRandom(explosion.colors).orElse(color.getRGB()));

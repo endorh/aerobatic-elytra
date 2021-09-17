@@ -1,7 +1,7 @@
 {
   "pack": {
     "title": "Add aerobatic elytra to Curios back slot",
-    "description": "Replaces the elytra found at end ships by an Aerobatic Elytra if far enough from the End center",
+    "description": "Makes possible to equip the aerobatic elytra in the Curios back slot",
     "pack_format": 6
   }
 }

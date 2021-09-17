@@ -2,6 +2,7 @@ package endorh.aerobatic_elytra.client.item;
 
 import endorh.aerobatic_elytra.AerobaticElytra;
 import endorh.util.common.ObfuscationReflectionUtil;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.model.ModelBakery;
 import net.minecraft.client.renderer.model.RenderMaterial;
 import net.minecraft.client.renderer.texture.AtlasTexture;
@@ -12,6 +13,8 @@ import net.minecraft.resources.IReloadableResourceManager;
 import net.minecraft.resources.IResourceManager;
 import net.minecraft.tileentity.BannerPattern;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -41,6 +44,7 @@ public class AerobaticElytraBannerTextureManager extends ReloadListener<SheetDat
 		for(BannerPattern pattern : BannerPattern.values())
 			ModelBakery$LOCATIONS_BUILTIN_TEXTURES.add(
 			  new RenderMaterial(LOCATION_AEROBATIC_ELYTRA_BANNER_ATLAS, getTextureLocation(pattern)));
+		// For some reason, the
 	}
 	
 	public ResourceLocation getTextureLocation(BannerPattern pattern) {

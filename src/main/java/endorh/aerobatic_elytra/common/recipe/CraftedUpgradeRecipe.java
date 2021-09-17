@@ -53,8 +53,8 @@ public class CraftedUpgradeRecipe extends SpecialRecipe {
 		}
 		if (upgrade.isEmpty() || elytra.isEmpty())
 			return false;
-		recipes = UpgradeRecipe.getUpgradeRecipes(world);
-		return !UpgradeRecipe.getUpgradeRecipes(world, elytra, upgrade).isEmpty();
+		recipes = UpgradeRecipe.getUpgradeRecipes();
+		return !UpgradeRecipe.getUpgradeRecipes(elytra, upgrade).isEmpty();
 	}
 	
 	@Override public @NotNull ItemStack getCraftingResult(

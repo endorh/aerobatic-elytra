@@ -146,7 +146,7 @@ public class ModRegistries {
 		for (ResourceLocation id : ABILITIES.keySet()) {
 			final String namespace = id.getNamespace();
 			final IAbility ability = ABILITIES.get(id);
-			final String fullName = namespace + ':' + ability.jsonName();
+			final String fullName = namespace + ':' + ability.getName();
 			JSON_TO_ABILITY.put(fullName, ability);
 			abilityColors.put(fullName, ability.getColor());
 			abilityTranslations.put(fullName, ability.getDisplayName());

@@ -47,10 +47,10 @@
       "Fuel": 0,
       "MaxFuel": 40,
       "Speed": 0.8,
-      "Lift": 0.1,
+      "Lift": 0,
       "Aquatic": 0,
-      "Jetpack": 1,
-      "Hover": 1,
+      "Jetpack": 0,
+      "Hover": 0,
       "Trail": 1
     }
   }

@@ -3,13 +3,14 @@
   "_comment0": "Adds different versions of the item to the creative menu",
   "_comment1": "A specific tab may be specified as the 'group'",
   "_comment2": "The same item can be registered multiple times with different abilities",
+
   "item": "aerobatic-elytra:aerobatic_elytra",
   "group": "transportation",
+
   "abilities": {
     "Fuel": 256,
     "MaxFuel": 256,
     "Speed": 1,
-    "Lift": 0.8,
     "Aquatic": 1,
     "Jetpack": 1,
     "Hover": 1

@@ -30,8 +30,8 @@ import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import static endorh.util.common.TextUtil.stc;
-import static endorh.util.common.TextUtil.ttc;
+import static endorh.util.text.TextUtil.stc;
+import static endorh.util.text.TextUtil.ttc;
 
 public interface IEffectAbility extends IDatapackAbility {
 	boolean testConditions(LootContext context);
@@ -140,7 +140,7 @@ public interface IEffectAbility extends IDatapackAbility {
 			return consumption;
 		}
 		
-		@Override public String jsonName() {
+		@Override public String getName() {
 			return jsonName;
 		}
 		

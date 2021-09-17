@@ -3,7 +3,6 @@ package endorh.aerobatic_elytra.debug;
 import endorh.aerobatic_elytra.common.capability.AerobaticDataCapability;
 import endorh.aerobatic_elytra.common.capability.IAerobaticData;
 import endorh.aerobatic_elytra.common.flight.AerobaticFlight.VectorBase;
-import endorh.aerobatic_elytra.common.config.Config;
 import endorh.aerobatic_elytra.common.flight.WeatherData;
 import endorh.aerobatic_elytra.common.flight.WeatherData.WeatherRegion;
 import endorh.aerobatic_elytra.common.flight.WeatherData.WindRegion;
@@ -66,6 +65,10 @@ public class DebugOverlay {
 		if (player != null) {
 			ret.add(format("yaw:  %.2f", player.rotationYaw));
 			ret.add(format("yawh: %.2f", player.getRotationYawHead()));
+			
+			ret.add("");
+			
+			ret.add(format("Lift cut: %.2f", AerobaticDataCapability.getAerobaticDataOrDefault(player).getLiftCut()));
 		}
 		
 		ret.add("");

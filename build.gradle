@@ -54,7 +54,7 @@ Other mods may register their own flight modes for the elytra.
 def license = "LGPL"
 
 // Versions
-version = "0.2.13"
+version = "0.2.15"
 
 // Dependencies
 def mc_version = "1.16.5",
@@ -205,6 +205,10 @@ repositories {
 		name "LocalMods"
 		url "${project.projectDir.parentFile.toURI()}maven"
 	}
+	maven {
+		url 'https://repo.maven.apache.org/maven2'
+		name 'Maven Central'
+	}
 }
 
 configurations {
@@ -214,9 +218,9 @@ configurations {
 }
 
 dependencies {
-	// IDE
-	implementation 'org.jetbrains:annotations:20.1.0'
-    implementation 'org.junit.jupiter:junit-jupiter:5.4.2'
+	// IDEε
+    implementation 'org.junit.jupiter:junit-jupiter:5.7.2'
+	implementation 'org.jetbrains:annotations:22.0.0'
 
 	// Minecraft
     minecraft "net.minecraftforge:forge:${forge_version}"
@@ -370,7 +374,6 @@ cleanAll.finalizedBy clean
 // Publishing
 publishing {
 	publications {
-		//noinspection GroovyAssignabilityCheck
 		mod(MavenPublication) {
 			artifact jar
 			artifact sourcesJar

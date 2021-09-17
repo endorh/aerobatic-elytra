@@ -1,6 +1,6 @@
 package endorh.aerobatic_elytra.client.trail;
 
-import endorh.aerobatic_elytra.common.capability.IElytraSpec.RocketExplosion;
+import endorh.aerobatic_elytra.common.capability.IElytraSpec.RocketStar;
 import endorh.aerobatic_elytra.common.flight.AerobaticFlight.VectorBase;
 import endorh.util.math.Vec3d;
 import endorh.util.math.Vec3f;
@@ -12,7 +12,7 @@ import static net.minecraft.util.math.MathHelper.*;
 public abstract class BoostShape {
 	public abstract void generate(
 	  LivingEntity player, Vec3d pos, Vec3f motion, VectorBase base,
-	  RocketExplosion explosion, float radius, float trailMod
+	  RocketStar explosion, float radius, float trailMod
 	);
 	
 	public static class CircleBoostShape extends BoostShape {
@@ -30,7 +30,7 @@ public abstract class BoostShape {
 		
 		@Override public void generate(
 		  LivingEntity player, Vec3d pos, Vec3f motion, VectorBase base,
-		  RocketExplosion explosion, float radius, float trailMod
+		  RocketStar explosion, float radius, float trailMod
 		) {
 			float rad = this.radius * radius;
 			for (int i = 0; i < passes; i++) {
@@ -67,7 +67,7 @@ public abstract class BoostShape {
 		
 		@Override public void generate(
 		  LivingEntity player, Vec3d pos, Vec3f motion, VectorBase base,
-		  RocketExplosion explosion, float radius, float trailMod
+		  RocketStar explosion, float radius, float trailMod
 		) {
 			float rad = this.radius * radius;
 			float x_s, y_s, x_e, y_e, p, x, y;
@@ -113,7 +113,7 @@ public abstract class BoostShape {
 		
 		@Override public void generate(
 		  LivingEntity player, Vec3d pos, Vec3f motion, VectorBase base,
-		  RocketExplosion explosion, float radius, float trailMod
+		  RocketStar explosion, float radius, float trailMod
 		) {
 			float rad = this.radius * radius;
 			for (int i = 0; i < points; i++) {

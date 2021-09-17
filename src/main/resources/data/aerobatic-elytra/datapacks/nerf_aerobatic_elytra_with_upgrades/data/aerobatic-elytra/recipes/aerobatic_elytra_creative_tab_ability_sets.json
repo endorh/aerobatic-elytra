@@ -9,7 +9,6 @@
     "Fuel": 256,
     "MaxFuel": 256,
     "Speed": 1,
-    "Lift": 0.8,
     "Aquatic": 1,
     "Jetpack": 1,
     "Hover": 1

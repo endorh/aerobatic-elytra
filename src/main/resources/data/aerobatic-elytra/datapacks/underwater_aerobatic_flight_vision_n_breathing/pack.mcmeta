@@ -1,7 +1,7 @@
 {
   "pack": {
     "title": "Underwater aerobatic flight vision & breathing",
-    "description": "Adds a recipe to provide with night vision to players flying underwater with Aerobatic Elytra",
+    "description": "Adds two custom aerobatic elytra potion-effect-abilities that provide night vision/breathing to players flying underwater with aerobatic elytra",
     "pack_format": 6
   }
 }

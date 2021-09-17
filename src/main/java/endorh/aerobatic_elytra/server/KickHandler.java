@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static endorh.aerobatic_elytra.common.flight.AerobaticFlight.isAerobaticFlying;
-import static endorh.util.common.TextUtil.ttc;
+import static endorh.util.text.TextUtil.ttc;
 
 /**
  * Handle player kicks

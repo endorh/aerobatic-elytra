@@ -4,7 +4,7 @@ import endorh.aerobatic_elytra.client.trail.AerobaticTrail.RocketSide;
 import endorh.aerobatic_elytra.common.AerobaticElytraLogic;
 import endorh.aerobatic_elytra.common.capability.ElytraSpecCapability;
 import endorh.aerobatic_elytra.common.capability.IElytraSpec;
-import endorh.aerobatic_elytra.common.capability.IElytraSpec.RocketExplosion;
+import endorh.aerobatic_elytra.common.capability.IElytraSpec.RocketStar;
 import endorh.aerobatic_elytra.common.capability.IElytraSpec.TrailData;
 import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.item.ItemStack;
@@ -97,9 +97,6 @@ public class TrailRecipe extends SpecialRecipe {
 		
 		ItemStack[] rockets = {EMPTY, EMPTY, EMPTY, EMPTY};
 		RocketSide[] sides = RocketSide.values();
-		String[] tagNames = {
-		  RocketSide.LEFT.tagName, RocketSide.RIGHT.tagName,
-		  RocketSide.CENTER_LEFT.tagName, RocketSide.CENTER_RIGHT.tagName};
 		
 		if (j > 0) {
 			rockets[0] = inv.getStackInSlot(k - 1);
@@ -112,6 +109,30 @@ public class TrailRecipe extends SpecialRecipe {
 				rockets[3] = inv.getStackInSlot(k + w + 1);
 		}
 		
+		return apply(elytra, rockets);
+		
+		// ItemStack result = elytra.copy();
+		// IElytraSpec spec = ElytraSpecCapability.getElytraSpecOrDefault(result);
+		// final TrailData trailData = spec.getTrailData();
+		//
+		// for (int r = 0; r < 4; r++) {
+		// 	if (!rockets[r].isEmpty()) {
+		// 		CompoundNBT rocketTag = rockets[r].getTag();
+		// 		if (rocketTag == null || !rocketTag.contains("Fireworks")
+		// 		    || !rocketTag.getCompound("Fireworks").contains("Explosions")) {
+		// 			trailData.put(sides[r], null);
+		// 		} else {
+		// 			trailData.put(sides[r], RocketStar.listFromNBT(
+		// 			  rocketTag.getCompound("Fireworks").getList("Explosions", 10)));
+		// 		}
+		// 	}
+		// }
+		//
+		// return result;
+	}
+	
+	
+	public static ItemStack apply(ItemStack elytra, ItemStack[] rockets) {
 		ItemStack result = elytra.copy();
 		IElytraSpec spec = ElytraSpecCapability.getElytraSpecOrDefault(result);
 		final TrailData trailData = spec.getTrailData();
@@ -121,9 +142,9 @@ public class TrailRecipe extends SpecialRecipe {
 				CompoundNBT rocketTag = rockets[r].getTag();
 				if (rocketTag == null || !rocketTag.contains("Fireworks")
 				    || !rocketTag.getCompound("Fireworks").contains("Explosions")) {
-					trailData.put(sides[r], null);
+					trailData.put(RocketSide.values()[r], null);
 				} else {
-					trailData.put(sides[r], RocketExplosion.listFromNBT(
+					trailData.put(RocketSide.values()[r], RocketStar.listFromNBT(
 					  rocketTag.getCompound("Fireworks").getList("Explosions", 10)));
 				}
 			}

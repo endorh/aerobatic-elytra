@@ -9,7 +9,7 @@ import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipeSerializer;
 import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.item.crafting.ShapelessRecipe;
+import net.minecraft.item.crafting.SpecialRecipe;
 import net.minecraft.item.crafting.SpecialRecipeSerializer;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.JSONUtils;
@@ -31,12 +31,16 @@ import static endorh.aerobatic_elytra.AerobaticElytra.prefix;
  * Splits an Aerobatic Elytra in two wings, preserving their
  * colors/patterns/trails/abilities.
  */
-public class SplitRecipe extends ShapelessRecipe {
+public class SplitRecipe extends SpecialRecipe {
 	public static int MAX_WIDTH = 3;
 	public static int MAX_HEIGHT = 3;
 	
+	public static final String TAG_SPLIT_ELYTRA = "SplitElytra";
+	public static final String TAG_SPLIT_ELYTRA_CAPS = "SplitElytraCaps";
+	
 	public static final Serializer SERIALIZER = new Serializer();
 	
+	protected final NonNullList<Ingredient> recipeItems;
 	public final NonNullList<Pair<Ingredient, LeaveData>> ingredients;
 	
 	/**
@@ -80,40 +84,47 @@ public class SplitRecipe extends ShapelessRecipe {
 	}
 	
 	public SplitRecipe(
-	  ResourceLocation idIn, String group,
+	  ResourceLocation idIn,
 	  NonNullList<Pair<Ingredient, LeaveData>> recipeItems
 	) {
-		super(idIn, group, new ItemStack(ModItems.AEROBATIC_ELYTRA_WING),
-		      NonNullList.from(Ingredient.EMPTY,
-		      recipeItems.stream().map(Pair::getLeft).toArray(Ingredient[]::new)));
+		super(idIn);
+		this.recipeItems = addElytra(recipeItems);
 		ingredients = recipeItems;
 		ItemStack elytra = new ItemStack(ModItems.AEROBATIC_ELYTRA, 1);
-		int matches = 0;
-		for (Pair<Ingredient, LeaveData> pair : recipeItems) {
-			if (pair.getLeft().test(elytra))
-				matches++;
-		}
-		if (matches != 1) {
+		if (recipeItems.stream().anyMatch(p -> p.getLeft().test(elytra)))
 			throw new JsonSyntaxException(
-			  "An AerobaticElytraSplitRecipe must contain exactly one Aerobatic Elytra ingredient");
-		}
+			  "An AerobaticElytraSplitRecipe cannot contain any aerobatic elytra ingredient");
+	}
+	
+	private static NonNullList<Ingredient> addElytra(
+	  NonNullList<Pair<Ingredient, LeaveData>> ingredients
+	) {
+		final NonNullList<Ingredient> res = NonNullList.withSize(ingredients.size() + 1, Ingredient.EMPTY);
+		res.set(0, Ingredient.fromItems(ModItems.AEROBATIC_ELYTRA));
+		for (int i = 0, s = ingredients.size(); i < s; i++)
+			res.set(i + 1, ingredients.get(i).getLeft());
+		return res;
 	}
 	
 	@Override public boolean matches(
 	  @NotNull CraftingInventory inv, @NotNull World world
 	) {
 		ItemStack elytra = ItemStack.EMPTY;
+		final List<ItemStack> inputs = new ArrayList<>();
 		for (int i = 0; i < inv.getSizeInventory(); i++) {
 			ItemStack current = inv.getStackInSlot(i);
+			if (current.isEmpty())
+				continue;
 			if (current.getItem() instanceof AerobaticElytraItem) {
 				if (!elytra.isEmpty())
 					return false;
 				elytra = current;
 			}
+			inputs.add(current);
 		}
 		if (elytra.isEmpty())
 			return false;
-		return super.matches(inv, world);
+		return RecipeMatcher.findMatches(inputs, recipeItems) != null;
 	}
 	
 	@Override
@@ -157,7 +168,7 @@ public class SplitRecipe extends ShapelessRecipe {
 			if (stack.getItem() instanceof AerobaticElytraItem) {
 				rem.set(j, getWing(stack, WingSide.LEFT));
 			} else {
-				final LeaveData data = ingredients.get(map[i]).getRight();
+				final LeaveData data = ingredients.get(map[i - 1]).getRight();
 				if (data.leave) {
 					ItemStack left = stack.copy();
 					left.setDamage(left.getDamage() + data.damage);
@@ -166,18 +177,20 @@ public class SplitRecipe extends ShapelessRecipe {
 					rem.set(j, stack.getContainerItem());
 			}
 		}
-		
 		return rem;
 	}
 	
-	public ItemStack getWing(ItemStack elytra, WingSide side) {
+	public static ItemStack getWing(ItemStack elytra, WingSide side) {
 		assert elytra.getItem() instanceof AerobaticElytraItem;
 		return ((AerobaticElytraItem) elytra.getItem()).getWing(elytra, side);
 	}
 	
-	@Override
-	public boolean canFit(int width, int height) {
+	@Override public boolean canFit(int width, int height) {
 		return width * height >= 2;
+	}
+	
+	@Override public @NotNull NonNullList<Ingredient> getIngredients() {
+		return recipeItems;
 	}
 	
 	public static class Serializer extends SpecialRecipeSerializer<SplitRecipe> {
@@ -191,25 +204,16 @@ public class SplitRecipe extends ShapelessRecipe {
 		public @NotNull SplitRecipe read(
 		  @NotNull ResourceLocation recipeId, @NotNull JsonObject json
 		) {
-			String s = JSONUtils.getString(json, "group", "");
 			NonNullList<Pair<Ingredient, LeaveData>> list =
 			  readIngredients(JSONUtils.getJsonArray(json, "ingredients"));
-			if (list.isEmpty()) {
-				throw new JsonParseException("No ingredients for split recipe recipe");
-			} else if (list.size() > MAX_WIDTH * MAX_HEIGHT) {
-				throw new JsonParseException("Too many ingredients for split recipe, the max is " +
-				                             (SplitRecipe.MAX_WIDTH * SplitRecipe.MAX_HEIGHT));
+			if (list.size() > MAX_WIDTH * MAX_HEIGHT - 1) {
+				throw new JsonParseException("Too many ingredients for split recipe, the max is " + (SplitRecipe.MAX_WIDTH * SplitRecipe.MAX_HEIGHT - 1));
 			} else {
-				int matches = 0;
 				ItemStack elytra = new ItemStack(ModItems.AEROBATIC_ELYTRA);
-				for (Pair<Ingredient, LeaveData> pair : list) {
-					if (pair.getLeft().test(elytra))
-						matches++;
-				}
-				if (matches != 1)
+				if (list.stream().anyMatch(p -> p.getLeft().test(elytra)))
 					throw new JsonParseException(
-					  "In an AerobaticElytraSplitRecipe there must be exactly one Aerobatic Elytra ingredient");
-				return new SplitRecipe(recipeId, s, list);
+					  "Aerobatic elytra split recipes cannot contain any aerobatic elytra ingredient");
+				return new SplitRecipe(recipeId, list);
 			}
 		}
 		
@@ -261,17 +265,15 @@ public class SplitRecipe extends ShapelessRecipe {
 		
 		@Override
 		public SplitRecipe read(@NotNull ResourceLocation recipeId, @NotNull PacketBuffer buf) {
-			String group = PacketBufferUtil.readString(buf);
 			NonNullList<Pair<Ingredient, LeaveData>> ingredients =
 			  PacketBufferUtil.readNonNullList(
 			    buf, b -> Pair.of(Ingredient.read(b), LeaveData.read(b)),
 			    Pair.of(Ingredient.EMPTY, LeaveData.DO_NOT_LEAVE));
-			return new SplitRecipe(recipeId, group, ingredients);
+			return new SplitRecipe(recipeId, ingredients);
 		}
 		
 		@Override
 		public void write(@NotNull PacketBuffer buf, @NotNull SplitRecipe recipe) {
-			buf.writeString(recipe.getGroup());
 			PacketBufferUtil.writeList(
 			  recipe.ingredients, buf, (p, b) -> {
 			  	   p.getLeft().write(b);

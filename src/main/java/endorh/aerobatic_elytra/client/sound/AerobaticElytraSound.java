@@ -1,6 +1,7 @@
 package endorh.aerobatic_elytra.client.sound;
 
 import endorh.aerobatic_elytra.AerobaticElytra;
+import endorh.aerobatic_elytra.client.config.ClientConfig;
 import endorh.aerobatic_elytra.common.capability.IAerobaticData;
 import endorh.aerobatic_elytra.common.config.Config;
 import endorh.aerobatic_elytra.common.flight.mode.FlightModeTags;
@@ -38,10 +39,10 @@ public class AerobaticElytraSound extends FadingTickableSound {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	protected final IAerobaticData aerobaticData;
-	private static final int FADE_IN = 15;
-	private static final int FADE_OUT = 8;
-	private static final int MIN_LEN = 20;
-	private static final IAttenuation ATTENUATION = IAttenuation.linear(64F);
+	protected static final int FADE_IN = 15;
+	protected static final int FADE_OUT = 8;
+	protected static final int MIN_LEN = 20;
+	protected static final IAttenuation ATTENUATION = IAttenuation.linear(64F);
 	
 	private static final SoundCategory CATEGORY = SoundCategory.PLAYERS;
 	
@@ -58,22 +59,26 @@ public class AerobaticElytraSound extends FadingTickableSound {
 	    oneTimeLogger(LOGGER::error), REFLECTION_ERROR_MESSAGE);
 	
 	protected float brakeVolume = 0F;
-	protected float brakePitch = 0F;
+	protected float brakePitch = 1F;
+	
+	protected float rotateVolume = 0F;
+	protected float rotatePitch = 1F;
 	
 	protected float whistleVolume = 0F;
-	protected float whistlePitch = 0F;
+	protected float whistlePitch = 1F;
 	
 	private final PlayerTickableSubSound brakeSound;
+	private final PlayerTickableSubSound rotateSound;
 	private final PlayerTickableSubSound whistleSound;
 	
 	public static void playBoostSound(PlayerEntity player) {
 		playPlayerSound(player, ModSounds.AEROBATIC_ELYTRA_BOOST,
-		                SoundCategory.PLAYERS, 1F, 1F);
+		                SoundCategory.PLAYERS, ClientConfig.sound.boost, 1F);
 	}
 	
 	public static void playSlowDownSound(PlayerEntity player) {
 		playPlayerSound(player, ModSounds.AEROBATIC_ELYTRA_SLOWDOWN,
-		                SoundCategory.PLAYERS, 1F, 1F);
+		                SoundCategory.PLAYERS, ClientConfig.sound.boost, 1F);
 	}
 	
 	/**
@@ -108,6 +113,8 @@ public class AerobaticElytraSound extends FadingTickableSound {
 		aerobaticData = getAerobaticDataOrDefault(player);
 		brakeSound = new PlayerTickableSubSound(
 		  player, ModSounds.AEROBATIC_ELYTRA_BRAKE, CATEGORY, ATTENUATION);
+		rotateSound = new PlayerTickableSubSound(
+		  player, ModSounds.AEROBATIC_ELYTRA_ROTATE, CATEGORY, ATTENUATION);
 		whistleSound = new PlayerTickableSubSound(
 		  player, ModSounds.AEROBATIC_ELYTRA_WHISTLE, CATEGORY, ATTENUATION);
 	}
@@ -122,6 +129,7 @@ public class AerobaticElytraSound extends FadingTickableSound {
 			if (tickableSound$finishPlaying.testInvoke(elytraSound)) {
 				aerobaticData.setElytraSound(null);
 				brakeSound.play();
+				rotateSound.play();
 				whistleSound.play();
 			} else finishPlaying();
 		}
@@ -129,6 +137,7 @@ public class AerobaticElytraSound extends FadingTickableSound {
 	
 	@Override protected void onFinish() {
 		brakeSound.finish();
+		rotateSound.finish();
 		whistleSound.finish();
 	}
 	
@@ -137,25 +146,22 @@ public class AerobaticElytraSound extends FadingTickableSound {
 	}
 	
 	@Override public void tick(float fade_factor) {
-		if (hasAerobaticElytra(player)
-		    && flightData.getFlightMode().is(FlightModeTags.AEROBATIC)) {
-			if (player.isInWater()) {
+		if (hasAerobaticElytra(player) && flightData.getFlightMode().is(FlightModeTags.AEROBATIC)) {
+			if (player.isInWater())
 				aerobaticUnderwaterTick(fade_factor);
-			} else {
-				aerobaticElytraTick(fade_factor);
-			}
+			else aerobaticElytraTick(fade_factor);
 		} else {
-			if (player.isInWater()) {
+			brakeVolume = rotateVolume = whistleVolume = 0F;
+			brakePitch = rotatePitch = whistlePitch = 1F;
+			if (player.isInWater())
 				elytraUnderwaterTick(fade_factor);
-			} else {
-				elytraTick(fade_factor);
-			}
-			brakeVolume = whistleVolume = 0F;
-			brakePitch = whistlePitch = 1F;
+			else elytraTick(fade_factor);
 		}
-		brakeSound.setVolume(brakeVolume);
+		brakeSound.setVolume(brakeVolume * ClientConfig.sound.brake);
 		brakeSound.setPitch(brakePitch);
-		whistleSound.setVolume(whistleVolume);
+		rotateSound.setVolume(rotateVolume * ClientConfig.sound.rotating_wind);
+		rotateSound.setPitch(rotatePitch);
+		whistleSound.setVolume(whistleVolume * ClientConfig.sound.whistle);
 		whistleSound.setPitch(whistlePitch);
 	}
 	
@@ -170,17 +176,21 @@ public class AerobaticElytraSound extends FadingTickableSound {
 		
 		float angularStrength = 2 * pitchTilt + rollTilt + 0.2F * yawTilt;
 		
-		volume = clamp(speed / 2F, -0.2F, 0.6F)
+		volume = clamp(speed / 4F, -0.2F, 0.6F)
 		         + clamp(angularStrength / 3F, 0F, 0.1F) * fade_factor;
 		volume = clamp(volume, 0F, 1F);
 		pitch = 1.0F;
 		
 		brakeVolume = aerobaticData.getBrakeStrength() * fade_factor;
-		whistlePitch = clamp(angularStrength / 2F, 1F, 1.25F);
+		rotatePitch = clamp(angularStrength / 2F, 1F, 1.25F);
 		float wVolume = clamp(angularStrength / 2F, 0.1F, 0.9F) * fade_factor
 		                * (float) clampedLerp(0F, 1F, speed / 2F);
-		whistleVolume = (whistleVolume + wVolume) / 2F;
-		volume *= 0.5F;
+		rotateVolume = (rotateVolume + wVolume) / 2F;
+		
+		float wave = (float) sin(player.ticksExisted / 40F);
+		whistleVolume = (float) clampedLerp(0F, 1F, (speed - 2.8) / 1.2 + wave * 0.2F);
+		whistlePitch = (float) clampedLerp(1F, 1.4F, (speed - 2.8) / 1.8 + wave * 0.3F);
+		volume *= ClientConfig.sound.wind;
 	}
 	
 	/**
@@ -194,13 +204,13 @@ public class AerobaticElytraSound extends FadingTickableSound {
 		volume = speedSquared >= 1E-7D
 		         ? clamp(speedSquared / 4F, 0F, 1F) : 0F;
 		volume *= age > ageThreshold
-		         ? min(age - ageThreshold, 20) / 20F * fade_factor : 0F;
+		          ? min(age - ageThreshold, 20) / 20F * fade_factor : 0F;
 		pitch = max(1F + volume - volumeThreshold, 1F);
 	}
 	
 	public void aerobaticUnderwaterTick(@SuppressWarnings("unused") float fade_factor) {
-		volume = brakeVolume = whistleVolume = 0F;
-		pitch = brakePitch = whistlePitch = 1F;
+		volume = brakeVolume = rotateVolume = whistleVolume = 0F;
+		pitch = brakePitch = rotatePitch = whistlePitch = 1F;
 	}
 	
 	public void elytraUnderwaterTick(@SuppressWarnings("unused") float fade_factor) {
@@ -211,8 +221,7 @@ public class AerobaticElytraSound extends FadingTickableSound {
 	/**
 	 * Intercept {@link ElytraSound}s and replace them if appropriate
 	 */
-	@SubscribeEvent
-	public static void onSoundEvent(PlaySoundEvent event) {
+	@SubscribeEvent public static void onSoundEvent(PlaySoundEvent event) {
 		if (SoundEvents.ITEM_ELYTRA_FLYING.getName().toString().equals("minecraft:" + event.getName())) {
 			ISound sound = event.getSound();
 			if (!(sound instanceof ElytraSound)) {

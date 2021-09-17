@@ -2,7 +2,7 @@
   "type": "aerobatic-elytra:upgrade_recipe",
   "_comment": "",
   "ingredients": [
-    "minecraft:firework_rocket[Fireworks.Flight(B)>=1]"
+    "minecraft:firework_rocket{Fireworks.Flight >= 1}"
   ],
   "upgrades": [
     {

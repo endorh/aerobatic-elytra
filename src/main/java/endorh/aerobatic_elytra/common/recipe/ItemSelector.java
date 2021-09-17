@@ -1,7 +1,10 @@
 package endorh.aerobatic_elytra.common.recipe;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonSyntaxException;
 import endorh.util.network.PacketBufferUtil;
+import endorh.util.nbt.NBTPredicate;
+import endorh.util.nbt.NBTPredicate.NBTPredicateParseException;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.Ingredient;
@@ -16,130 +19,158 @@ import net.minecraft.util.registry.Registry;
 import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static endorh.util.network.PacketBufferUtil.*;
-import static endorh.util.common.TextUtil.stc;
+import static endorh.util.network.PacketBufferUtil.readList;
+import static endorh.util.network.PacketBufferUtil.writeList;
+import static endorh.util.text.TextUtil.stc;
 
-// TODO: Proper JEI integration
 /**
  * Custom syntax for selecting items in the config
  * based on item name, tag and nbt predicates<br>
  * Examples:<br>
  * <ul>
  *    <li>{@code minecraft:stick}</li>
- *    <li>{@code {minecraft:leaves}}</li>
- *    <li>{@code minecraft:firework_rocket[Fireworks.Flight(B)<=2]}</li>
+ *    <li>{@code [minecraft:leaves]}</li>
+ *    <li>{@code minecraft:firework_rocket{Fireworks.Flight >= 2}}</li>
  * </ul>
- *
- * Any number of tag selectors and NBT predicates may be used
+ * Multiple tags are supported beside each other, and are combined
+ * with an OR operator (only one needs to match).
+ * {@link NBTPredicate}s can be rather complex, and have their own documentation
  */
 public class ItemSelector implements Predicate<ItemStack> {
-	private final String itemName;
-	private final Item item;
-	private final List<ITag<Item>> iTags;
-	private final List<String> tags;
-	private final List<NBTPredicate> nbtPredicates;
+	private final @Nullable Item item;
+	// The tags' names are stored for serialization
+	private final @Nullable Map<ITag<Item>, ResourceLocation> tags;
+	private final @Nullable NBTPredicate nbtPredicate;
 	
 	private static final Pattern item_selector_pattern = Pattern.compile(
-	  "(?<tags>(?:\\{.+?})+)?(?<name>(?:\\w+:)?\\w+)?(?<nbt>(?:\\[.+?])+)?");
+	  "\\s*(?:(?<tags>(?:\\[(?:[\\w.-]++:)?[\\w/.-]++]\\s*+)+)" +
+	  "|(?<name>(?:[\\w.-]++:)?[\\w/.-]++)\\s*+)" +
+	  "(?<nbt>\\{.+})?\\s*+");
 	private static final Pattern tag_selector_pattern = Pattern.compile(
-	  "\\{(?<name>\\w+:[\\w/]+)}");
+	  "\\[(?<name>\\w+:[\\w/.-]++)}");
 	
 	/**
 	 * Parse an item selector
 	 */
 	public static ItemSelector fromString(String str) {
-		Matcher matcher = item_selector_pattern.matcher(str);
-		if (matcher.find()) {
-			String itemName;
-			List<String> tags = new ArrayList<>();
-			List<NBTPredicate> nbtPredicates;
-			String tagsString = matcher.group("tags");
+		Matcher m = item_selector_pattern.matcher(str);
+		if (m.matches()) {
+			String nbt = m.group("nbt");
+			NBTPredicate nbtPredicate = null;
+			try {
+				if (nbt != null && !nbt.isEmpty()) {
+					nbtPredicate = NBTPredicate.parse(nbt).orElseThrow(
+					  () -> new IllegalArgumentException("Malformed NBT predicate: \"" + nbt + "\""));
+				}
+			} catch (NBTPredicateParseException e) {
+				throw new IllegalArgumentException(e.getLocalizedMessage(), e);
+			}
+			String tagsString = m.group("tags");
 			if (tagsString != null) {
 				Matcher tag_matcher = tag_selector_pattern.matcher(tagsString);
-				while (tag_matcher.find()) {
-					String tag_name = tag_matcher.group("name");
-					if (!tag_name.contains(":"))
-						tag_name = "minecraft:" + tag_name;
-					tags.add(tag_name);
-				}
+				List<ResourceLocation> tags = new ArrayList<>();
+				while (tag_matcher.find())
+					tags.add(new ResourceLocation(tag_matcher.group("name")));
+				return new ItemSelector(tags, nbtPredicate);
+			} else {
+				String itemName = m.group("name");
+				final Item item = Registry.ITEM.getOptional(new ResourceLocation(itemName))
+				  .orElseThrow(() -> new IllegalArgumentException("Unknown item: \"" + itemName + "\""));
+				return new ItemSelector(item, nbtPredicate);
 			}
-			itemName = matcher.group("name");
-			if (itemName == null || itemName.length() == 0)
-				itemName = null;
-			else
-				itemName = itemName.contains(":")? itemName : "minecraft:" + itemName;
-			String nbt = matcher.group("nbt");
-			if (nbt != null) {
-				nbtPredicates = NBTPredicate.parsePredicates(
-				  matcher.group("nbt"));
-			} else nbtPredicates = new ArrayList<>();
-			return new ItemSelector(itemName, tags, nbtPredicates);
-		} else throw new IllegalArgumentException(String.format(
-		  "Malformed item selector: '%s'", str));
+		} else throw new IllegalArgumentException("Malformed item selector: \"" + str + "\"");
 	}
 	
-	public ItemSelector(String itemName, List<String> tags, List<NBTPredicate> nbtPredicates) {
-		this.itemName = itemName;
-		this.tags = tags;
-		final ResourceLocation itemLocation = new ResourceLocation(itemName);
-		//noinspection deprecation
-		item =
-		  Registry.ITEM.getOptional(itemLocation).orElseThrow(
-		    () -> new IllegalArgumentException("Unknown item: '" + itemLocation + "'"));
+	public ItemSelector(List<ResourceLocation> tags, @Nullable NBTPredicate nbtPredicate) {
+		this.item = null;
 		final ITagCollection<Item> itemTags = TagCollectionManager.getManager().getItemTags();
-		iTags = tags.stream().map(str -> itemTags.get(new ResourceLocation(str))).collect(Collectors.toList());
-		this.nbtPredicates = nbtPredicates;
+		this.tags = tags.stream().collect(Collectors.toMap(r -> {
+			final ITag<Item> tag = itemTags.get(r);
+			if (tag == null)
+				throw new IllegalArgumentException("Unknown item tag name: \"" + tag + "\"");
+			return tag;
+		}, r -> r));
+		this.nbtPredicate = nbtPredicate;
+	}
+	
+	public ItemSelector(@NotNull Item item, @Nullable NBTPredicate nbtPredicate) {
+		this.item = item;
+		this.tags = null;
+		this.nbtPredicate = nbtPredicate;
+	}
+	
+	public boolean testIgnoringNBT(ItemStack stack) {
+		if (item != null)
+			return item.equals(stack.getItem());
+		else if (tags != null) {
+			return tags.keySet().stream().anyMatch(t -> t.contains(stack.getItem()));
+		} else throw new IllegalStateException("Both item and tags cannot be null");
 	}
 	
 	public boolean test(ItemStack stack) {
-		Item item = stack.getItem();
-		ResourceLocation itemName = item.getRegistryName();
-		assert itemName != null;
-		if (this.itemName != null &&
-		    !this.itemName.equalsIgnoreCase(item.getRegistryName().toString()))
+		if (!testIgnoringNBT(stack))
 			return false;
-		Set<ResourceLocation> itemTags = item.getTags();
-		for (String tag : this.tags) {
-			if (!itemTags.contains(new ResourceLocation(tag)))
-				return false;
-		}
-		for (NBTPredicate pred : this.nbtPredicates) {
-			if (!pred.test(stack))
-				return false;
-		}
-		return true;
+		return nbtPredicate == null || nbtPredicate.test(stack);
 	}
 	
 	public static List<ItemSelector> deserialize(JsonArray arr) {
 		List<ItemSelector> result = new ArrayList<>();
-		for (int i = 0; i < arr.size(); i++) {
-			String sel = JSONUtils.getString(arr.get(i), "ingredients[" + i + "]");
-			result.add(ItemSelector.fromString(sel));
+		try {
+			for (int i = 0; i < arr.size(); i++) {
+				String sel = JSONUtils.getString(arr.get(i), "ingredients[" + i + "]");
+				result.add(ItemSelector.fromString(sel));
+			}
+		} catch (IllegalArgumentException e) {
+			throw new JsonSyntaxException(e.getLocalizedMessage(), e);
 		}
 		return result;
 	}
 	
 	public static ItemSelector read(PacketBuffer buf) {
-		String itemName = readString(buf);
-		List<String> tags = readList(buf, PacketBufferUtil::readString);
-		List<NBTPredicate> nbtPredicates = readList(buf, NBTPredicate::read);
-		return new ItemSelector(itemName, tags, nbtPredicates);
+		if (buf.readBoolean()) {
+			final ResourceLocation itemName = buf.readResourceLocation();
+			Item item = Registry.ITEM.getOptional(itemName).orElseThrow(
+			  () -> new IllegalStateException("Unknown item name found in packet: \"" + itemName + "\""));
+			NBTPredicate nbtPredicate =
+			  buf.readBoolean() ? NBTPredicate.parse(PacketBufferUtil.readString(buf)).orElse(null) : null;
+			return new ItemSelector(item, nbtPredicate);
+		} else {
+			final List<ResourceLocation> tagNames = readList(buf, PacketBuffer::readResourceLocation);
+			final ITagCollection<Item> itemTags = TagCollectionManager.getManager().getItemTags();
+			for (ResourceLocation tagName : tagNames) {
+				if (itemTags.get(tagName) == null)
+					throw new IllegalStateException("Unknown item tag name found in packet: \"" + tagName + "\"");
+			}
+			NBTPredicate nbtPredicate =
+			  buf.readBoolean() ? NBTPredicate.parse(PacketBufferUtil.readString(buf)).orElse(null) : null;
+			return new ItemSelector(tagNames, nbtPredicate);
+		}
 	}
 	
 	public void write(PacketBuffer buf) {
-		buf.writeString(itemName);
-		writeList(buf, tags, PacketBuffer::writeString);
-		writeList(nbtPredicates, buf, NBTPredicate::write);
+		if (item != null) {
+			buf.writeBoolean(true);
+			//noinspection ConstantConditions
+			buf.writeResourceLocation(item.getRegistryName());
+		} else if (tags != null) {
+			buf.writeBoolean(false);
+			writeList(buf, tags.values(), PacketBuffer::writeResourceLocation);
+		}
+		buf.writeBoolean(nbtPredicate != null);
+		if (nbtPredicate != null)
+			nbtPredicate.write(buf);
 	}
 	
 	public static boolean any(List<ItemSelector> selectors, ItemStack stack) {
@@ -155,177 +186,48 @@ public class ItemSelector implements Predicate<ItemStack> {
 	 * @return An {@link Ingredient} close to this.
 	 */
 	public Ingredient similarIngredient() {
-		List<Ingredient.IItemList> lists = new ArrayList<>();
-		if (!iTags.isEmpty()) {
-			return Ingredient.fromTag(iTags.get(0));
-		} else {
+		if (tags != null && !tags.isEmpty()) {
+			return Ingredient.fromItems(tags.keySet().stream().flatMap(t -> t.getAllElements().stream()).toArray(Item[]::new));
+		} else if (item != null) {
 			return Ingredient.fromItems(item);
 		}
+		return Ingredient.EMPTY;
 	}
 	
-	public static class NBTPredicate implements Predicate<ItemStack> {
-		private final List<String> keys;
-		private final String lastKey;
-		private final Comparison comp;
-		private final Character type;
-		private final double value;
-		
-		private static final Pattern pattern = Pattern.compile(
-		  "(?i)\\[([\\w.]+)\\s*\\(([BSILFD])\\)\\s*([<>]=?|=)\\s*((?:\\d*\\.)?\\d+)]");
-		public static List<NBTPredicate> parsePredicates(String src) {
-			List<NBTPredicate> list = new ArrayList<>();
-			Matcher matcher = pattern.matcher(src);
-			while (matcher.find()) {
-				list.add(new NBTPredicate(
-				  matcher.group(1),
-				  Comparison.fromSymbol(matcher.group(3)),
-				  matcher.group(2).toUpperCase().charAt(0),
-				  Double.parseDouble(matcher.group(4))
-				));
-			}
-			return list;
-		}
-		
-		public NBTPredicate(
-		  Comparison comp, List<String> keys, String lastKey, Character type, double value
-		) {
-			this.comp = comp;
-			this.keys = keys;
-			this.lastKey = lastKey;
-			this.type = type;
-			this.value = value;
-		}
-		
-		public NBTPredicate(String path, Comparison comp, Character type, double value) {
-			this.comp = comp;
-			this.keys = new ArrayList<>(
-			  Arrays.asList(path.split("\\.")));
-			this.lastKey = this.keys.remove(this.keys.size() - 1);
-			this.type = type;
-			this.value = value;
-		}
-		
-		public static NBTPredicate read(PacketBuffer buf) {
-			Comparison comp = buf.readEnumValue(Comparison.class);
-			List<String> keys = readList(buf, PacketBufferUtil::readString);
-			String lastKey = readString(buf);
-			Character type = buf.readChar();
-			double value = buf.readDouble();
-			return new NBTPredicate(comp, keys, lastKey, type, value);
-		}
-		
-		public void write(PacketBuffer buf) {
-			buf.writeEnumValue(comp);
-			writeList(buf, keys, PacketBuffer::writeString);
-			buf.writeString(lastKey);
-			buf.writeChar(type);
-			buf.writeDouble(value);
-		}
-		
-		public boolean test(ItemStack stack) {
-			CompoundNBT nbt = stack.copy().getOrCreateTag();
-			for (String key : this.keys)
-				nbt = nbt.getCompound(key);
-			double value = getDouble(nbt, lastKey, type);
-			return comp.test(value, this.value);
-		}
-		
-		private static double getDouble(CompoundNBT nbt, String key, Character type) {
-			switch (type) {
-				case 'B': return nbt.getByte(key);
-				case 'S': return nbt.getShort(key);
-				case 'I': return nbt.getInt(key);
-				case 'L': return (double)nbt.getLong(key);
-				case 'F': return nbt.getFloat(key);
-				case 'D': return nbt.getDouble(key);
-				default: return Double.NaN;
-			}
-		}
-		
-		enum Comparison {
-			EQ("="),
-			LEQ("<="),
-			GEQ(">="),
-			LE("<"),
-			GE(">");
-			
-			private final String symbol;
-			Comparison(String symbol) {
-				this.symbol = symbol;
-			}
-			
-			public boolean test(double left, double right) {
-				switch (this) {
-					case LEQ: return left <= right;
-					case GEQ: return left >= right;
-					case LE: return left < right;
-					case GE: return left > right;
-					default: return Double.compare(left, right) == 0;
-				}
-			}
-			
-			public static Comparison fromSymbol(String symbol) {
-				for (Comparison comp : Comparison.values())
-					if (symbol.equals(comp.symbol))
-						return comp;
-				if ("==".equals(symbol))
-					return EQ;
-				throw new IllegalArgumentException(
-				  String.format("Unknown Comparison symbol: \"%s\"", symbol));
-			}
-			
-			@Override public String toString() {
-				return symbol;
-			}
-		}
-		
-		public ITextComponent getDisplay() {
-			IFormattableTextComponent d = stc("[");
-			for (String key : keys)
-				d = d.append(stc(key).mergeStyle(TextFormatting.GRAY))
-				  .append(stc(".").mergeStyle(TextFormatting.DARK_GRAY));
-			return d.append(stc(lastKey).mergeStyle(TextFormatting.GRAY))
-			  .append(stc(" " + comp + " ").mergeStyle(TextFormatting.GOLD))
-			  .append(stc(String.format("%.2f", value)).mergeStyle(TextFormatting.AQUA))
-			  .append(stc("]")).mergeStyle(TextFormatting.DARK_PURPLE);
-		}
-		
-		@Override public String toString() {
-			return '[' + String.join(".", keys)
-			  + '.' + lastKey + '(' + type + ')' + comp
-			  + String.format("%.2f", value) + ']';
-		}
+	public Optional<CompoundNBT> matchingNBT() {
+		if (nbtPredicate != null)
+			//noinspection unchecked
+			return (Optional<CompoundNBT>) (Optional<?>) nbtPredicate.generateValid();
+		return Optional.empty();
 	}
 	
 	public ITextComponent getDisplay() {
 		IFormattableTextComponent d = stc("");
-		for (String tag : tags)
-			d = d.append(
-			  stc("{")
-			    .append(stc(tag).mergeStyle(TextFormatting.GRAY))
-			    .append(stc("}"))
-			    .mergeStyle(TextFormatting.DARK_GREEN));
-		if (itemName.startsWith("minecraft:")) {
-			d.append(stc(itemName.substring(10)).mergeStyle(TextFormatting.WHITE));
-		} else if (itemName.contains(":")) {
-			final int split = itemName.indexOf(':') + 1;
-			d = d.append(stc(itemName.substring(0, split)).mergeStyle(TextFormatting.GRAY))
-			  .append(stc(itemName.substring(split)).mergeStyle(TextFormatting.WHITE));
-		} else {
-			d = d.append(stc(itemName).mergeStyle(TextFormatting.WHITE));
+		if (tags != null) {
+			for (ResourceLocation tagName : tags.values())
+				d = d.append(
+				  stc("{")
+					 .append(stc(tagName).mergeStyle(TextFormatting.GRAY))
+					 .append(stc("}"))
+					 .mergeStyle(TextFormatting.DARK_GREEN));
 		}
-		for (NBTPredicate pr : nbtPredicates)
-			d = d.append(pr.getDisplay());
+		if (item != null)
+			d = d.append(new ItemStack(item).getDisplayName());
+		if (nbtPredicate != null)
+			d = d.append(nbtPredicate.getDisplay());
 		return d;
 	}
 	
 	@Override public String toString() {
 		StringBuilder res = new StringBuilder();
-		for (String tag : tags)
-			res.append('{').append(tag).append('}');
-		res.append(itemName);
-		for (NBTPredicate pred : nbtPredicates)
-			res.append(pred);
+		if (tags != null) {
+			for (ResourceLocation tagName : tags.values())
+				res.append('{').append(tagName).append('}');
+		}
+		if (item != null)
+			res.append(item.getRegistryName());
+		if (nbtPredicate != null)
+			res.append(nbtPredicate);
 		return res.toString();
 	}
 }

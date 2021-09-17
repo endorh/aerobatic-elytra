@@ -1,10 +1,7 @@
 package endorh.aerobatic_elytra.common.flight;
 
 import endorh.aerobatic_elytra.AerobaticElytra;
-import endorh.aerobatic_elytra.common.config.Config;
 import endorh.aerobatic_elytra.common.config.Config.weather;
-import endorh.aerobatic_elytra.common.config.Config.weather.rain;
-import endorh.aerobatic_elytra.common.config.Config.weather.storm;
 import endorh.aerobatic_elytra.network.WeatherPackets.SWindNodePacket;
 import endorh.util.math.Vec3f;
 import net.minecraft.entity.player.PlayerEntity;
@@ -356,7 +353,6 @@ public class WeatherData {
 			return angularWind;
 		}
 		
-		private static final Vec3f windDelta = Vec3f.ZERO.get();
 		private static final Vec3f angularWindDelta = Vec3f.ZERO.get();
 		private static final Vec3f orthogonal = Vec3f.ZERO.get();
 		private static final Vec3f last = Vec3f.ZERO.get();

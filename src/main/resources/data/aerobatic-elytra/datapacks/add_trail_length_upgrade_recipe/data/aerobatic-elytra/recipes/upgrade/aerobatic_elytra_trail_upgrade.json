@@ -2,14 +2,14 @@
   "type": "aerobatic-elytra:upgrade_recipe",
   "_comment": "",
   "ingredients": [
-    "minecraft:blaze_powder"
+    "minecraft:glowstone_dust"
   ],
   "upgrades": [
     {
-      "type": "Speed",
-      "expression": "Speed + 0.1",
+      "type": "Trail",
+      "expression": "Trail + 0.1",
       "min": 0,
-      "max": 1
+      "max": 4
     }
   ]
 }

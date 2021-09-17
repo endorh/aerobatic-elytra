@@ -1,0 +1,7 @@
+{
+  "pack": {
+    "title": "Add trail length upgrade recipe",
+    "description": "Adds recipes to modify the trail length of Aerobatic Elytras",
+    "pack_format": 6
+  }
+}

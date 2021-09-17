@@ -1,9 +1,11 @@
 package endorh.aerobatic_elytra.server.command;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -13,6 +15,7 @@ import endorh.aerobatic_elytra.AerobaticElytra;
 import endorh.aerobatic_elytra.common.AerobaticElytraLogic;
 import endorh.aerobatic_elytra.common.capability.ElytraSpecCapability;
 import endorh.aerobatic_elytra.common.capability.IElytraSpec;
+import endorh.aerobatic_elytra.common.item.AerobaticElytraWingItem;
 import endorh.aerobatic_elytra.common.item.IAbility;
 import endorh.aerobatic_elytra.common.registry.ModRegistries;
 import endorh.aerobatic_elytra.debug.Debug;
@@ -21,7 +24,9 @@ import net.minecraft.command.ISuggestionProvider;
 import net.minecraft.command.arguments.EntityArgument;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.EquipmentSlotType;
+import net.minecraft.item.ItemStack;
 import net.minecraft.resources.IResourcePack;
 import net.minecraft.resources.ResourcePackInfo;
 import net.minecraft.resources.ResourcePackType;
@@ -48,14 +53,12 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-import static com.mojang.brigadier.arguments.BoolArgumentType.bool;
-import static com.mojang.brigadier.arguments.BoolArgumentType.getBool;
 import static com.mojang.brigadier.arguments.FloatArgumentType.floatArg;
 import static com.mojang.brigadier.arguments.FloatArgumentType.getFloat;
 import static com.mojang.brigadier.arguments.StringArgumentType.*;
 import static endorh.util.command.QualifiedNameArgumentType.optionallyQualified;
-import static endorh.util.common.TextUtil.stc;
-import static endorh.util.common.TextUtil.ttc;
+import static endorh.util.text.TextUtil.stc;
+import static endorh.util.text.TextUtil.ttc;
 import static net.minecraft.command.Commands.argument;
 import static net.minecraft.command.Commands.literal;
 import static net.minecraft.command.arguments.EntityArgument.entities;
@@ -68,6 +71,7 @@ public class AerobaticElytraCommand {
 	public static final SuggestionProvider<CommandSource> SUGGEST_PACKS =
 	  ((context, builder) -> ISuggestionProvider.suggest(
 	    getAvailablePacks(context.getSource()).values().stream()
+	      .filter(bd -> !isPackInstalled(context.getSource(), bd.getTitle()))
 	      .map(bd -> escapeIfRequired(bd.getTitle())), builder));
 	public static final SuggestionProvider<CommandSource> SUGGEST_ABILITIES =
 	  ((context, builder) -> ISuggestionProvider.suggest(
@@ -98,8 +102,11 @@ public class AerobaticElytraCommand {
 		      ).then(literal("list").executes(AerobaticElytraCommand::listPacks))
 		    ).then(
 		      literal("debug").then(
-		        argument("enable", bool())
-		          .executes(cc -> enableDebug(cc, getBool(cc, "enable"))))
+				  literal("show").executes(cc -> enableDebug(cc, true))
+		      ).then(
+				  literal("hide").executes(cc -> enableDebug(cc, false))
+		      ).then(
+				  literal("give").executes(AerobaticElytraCommand::giveDebugWing))
 		  ).then(
 		    literal("ability").then(
 		      literal("get").then(
@@ -195,7 +202,7 @@ public class AerobaticElytraCommand {
 		final IElytraSpec spec = getElytraSpec(cc);
 		if (!IAbility.isDefined(name))
 			throw UNKNOWN_ABILITY.create();
-		final IAbility ability = IAbility.fromJsonName(name);
+		final IAbility ability = IAbility.fromName(name);
 		if (spec.hasAbility(ability)) {
 			final float value = spec.getAbility(ability);
 			cc.getSource().sendFeedback(
@@ -278,7 +285,7 @@ public class AerobaticElytraCommand {
 	  throws CommandSyntaxException {
 		if (!IAbility.isDefined(name))
 			throw UNKNOWN_ABILITY.create();
-		final IAbility ability = IAbility.fromJsonName(name);
+		final IAbility ability = IAbility.fromName(name);
 		final List<IElytraSpec> specs = getElytraSpecs(cc);
 		specs.forEach(s -> s.setAbility(ability, value));
 		cc.getSource().sendFeedback(
@@ -308,7 +315,7 @@ public class AerobaticElytraCommand {
 	  throws CommandSyntaxException {
 		if (!IAbility.isDefined(name))
 			throw UNKNOWN_ABILITY.create();
-		final IAbility ability = IAbility.fromJsonName(name);
+		final IAbility ability = IAbility.fromName(name);
 		final List<IElytraSpec> specs = getElytraSpecs(cc);
 		specs.forEach(s -> s.resetAbility(ability));
 		cc.getSource().sendFeedback(
@@ -368,7 +375,7 @@ public class AerobaticElytraCommand {
 		final List<IElytraSpec> specs = getElytraSpecs(cc);
 		if (!IAbility.isDefined(name))
 			throw UNKNOWN_ABILITY.create();
-		IAbility ability = IAbility.fromJsonName(name);
+		IAbility ability = IAbility.fromName(name);
 		final long count = specs.stream().map(
 		  s -> s.removeAbility(ability)).filter(Objects::nonNull).count();
 		cc.getSource().sendFeedback(
@@ -399,19 +406,62 @@ public class AerobaticElytraCommand {
 		return 1;
 	}
 	
+	public static int giveDebugWing(CommandContext<CommandSource> context) {
+		try {
+			final ServerPlayerEntity player = context.getSource().asPlayer();
+			final ItemStack debugWing = AerobaticElytraWingItem.createDebugWing();
+			if (!player.inventory.addItemStackToInventory(debugWing))
+				player.dropItem(debugWing, false);
+			return 0;
+		} catch (CommandSyntaxException e) {
+			e.printStackTrace();
+			return -1;
+		}
+	}
+	
 	public static int listPacks(CommandContext<CommandSource> context) {
 		CommandSource source = context.getSource();
-		final Map<String, BundledDatapack> packs = getAvailablePacks(source);
+		final List<BundledDatapack> packs = getAvailablePacks(source)
+		  .values().stream().sorted(Comparator.comparing(bd -> bd.name))
+		  .collect(Collectors.toList());
 		if (packs.isEmpty()) {
 			source.sendErrorMessage(ttc("commands.aerobatic-elytra.datapack.list.empty"));
 		} else {
 			IFormattableTextComponent msg = ttc("commands.aerobatic-elytra.datapack.list.success");
-			for (BundledDatapack pack : packs.values())
+			for (BundledDatapack pack : packs)
 				msg = msg.appendString("\n  ").append(
-				  pack.getDisplayName().mergeStyle(TextFormatting.AQUA));
+				  pack.getDisplayName().modifyStyle(
+				    s -> {
+						 boolean isInstalled = isPackInstalled(source, pack.getTitle());
+						 boolean isEnabled = isInstalled
+						   && source.getServer().getResourcePacks().getEnabledPacks().stream().anyMatch(
+							  p -> p.getName().equals(pack.getPackName()));
+					    s = s.setFormatting(isInstalled? isEnabled? TextFormatting.GREEN : TextFormatting.DARK_RED :TextFormatting.AQUA)
+					      .setHoverEvent(new HoverEvent(
+						     HoverEvent.Action.SHOW_TEXT, stc(pack.getDescription()).appendString("\n")
+					        .append(ttc("commands.aerobatic-elytra.datapack.list.link."
+					                    + (isInstalled? isEnabled? "disable" : "enable" : "install")))));
+						 String command =
+						   isInstalled ?
+						   "/datapack " + (isEnabled? "disable" : "enable") + " \"" + pack.getPackName() + "\""
+						   : "/aerobatic-elytra datapack install " + StringArgumentType.escapeIfRequired(pack.getTitle());
+						 s = s.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, command));
+					    return s;
+				    }));
 			source.sendFeedback(msg, true);
 		}
 		return 0;
+	}
+	
+	public static String packPrefix = AerobaticElytra.MOD_ID + " - ";
+	
+	public static boolean isPackInstalled(CommandSource source, String name) {
+		final Map<String, BundledDatapack> availablePacks = getAvailablePacksByTitle(source);
+		if (!availablePacks.containsKey(name))
+			source.sendErrorMessage(ttc("commands.aerobatic-elytra.datapack.install.unknown"));
+		Path datapacksFolder = source.getServer().func_240776_a_(FolderName.DATAPACKS);
+		final Path destination = datapacksFolder.resolve(packPrefix + name);
+		return destination.toFile().exists();
 	}
 	
 	public static int installPack(CommandContext<CommandSource> context, String name) {
@@ -421,9 +471,15 @@ public class AerobaticElytraCommand {
 			source.sendErrorMessage(ttc("commands.aerobatic-elytra.datapack.install.unknown"));
 		final BundledDatapack pack = availablePacks.get(name);
 		Path datapacksFolder = source.getServer().func_240776_a_(FolderName.DATAPACKS);
-		final Path destination = datapacksFolder.resolve(AerobaticElytra.MOD_ID + " - " + name);
+		final Path destination = datapacksFolder.resolve(packPrefix + name);
+		final String enableCommandText = "/datapack enable \"file/" + destination.getFileName() + "\"";
+		ITextComponent enableCommand = TextComponentUtils.wrapWithSquareBrackets(
+		  stc(ellipsis(enableCommandText, 40)).modifyStyle(
+			 style -> style.setFormatting(TextFormatting.GREEN).setClickEvent(
+				  new ClickEvent(Action.SUGGEST_COMMAND, enableCommandText))
+				.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, stc(enableCommandText).mergeStyle(TextFormatting.AQUA)))));
 		if (destination.toFile().exists()) {
-			source.sendErrorMessage(ttc("commands.aerobatic-elytra.datapack.install.overwrite"));
+			source.sendErrorMessage(ttc("commands.aerobatic-elytra.datapack.install.overwrite", enableCommand));
 			return 1;
 		}
 		final Path anchor = new File(DATAPACK_LOCATION).toPath().resolve(pack.name);
@@ -451,20 +507,18 @@ public class AerobaticElytraCommand {
 		source.getServer().getResourcePacks().reloadPacksFromFinders();
 		
 		// Send feedback
-		final String command = "/datapack enable \"file/" + destination.getFileName() + "\"";
-		ITextComponent suggestedCommand = TextComponentUtils.wrapWithSquareBrackets(
-		  stc(command).modifyStyle(
-		    style -> style.setFormatting(TextFormatting.GREEN).setClickEvent(
-		      new ClickEvent(Action.SUGGEST_COMMAND, command))
-		  .setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, stc(command).mergeStyle(TextFormatting.AQUA)))));
 		source.sendFeedback(
-		  ttc("commands.aerobatic-elytra.datapack.install.success", suggestedCommand), true);
+		  ttc("commands.aerobatic-elytra.datapack.install.success", enableCommand), true);
 		return 0;
+	}
+	
+	public static String ellipsis(String str, int length) {
+		return str.length() < length? str : str.substring(0, length - 3) + "...";
 	}
 	
 	public static Map<String, BundledDatapack> getAvailablePacksByTitle(CommandSource source) {
 		return getAvailablePacks(source).values().stream()
-		  .collect(Collectors.toMap(BundledDatapack::getTitle, bd -> bd));
+		  .collect(Collectors.toMap(BundledDatapack::getTitle, bd -> bd, (a, b) -> a));
 	}
 	
 	public static Map<String, BundledDatapack> getAvailablePacks(CommandSource source) {
@@ -484,7 +538,7 @@ public class AerobaticElytraCommand {
 		).stream()
 		  .map(rl -> new BundledDatapack(
 		    resourcePack, new ResourceLocation(rl.getNamespace(), stripPath(rl.getPath()))))
-		  .collect(Collectors.toMap(bd -> bd.name, bd -> bd));
+		  .collect(Collectors.toMap(bd -> bd.name, bd -> bd, (a, b) -> a));
 	}
 	
 	public static String stripPath(String path) {
@@ -495,7 +549,8 @@ public class AerobaticElytraCommand {
 		public final String name;
 		public final ResourceLocation location;
 		public final IResourcePack pack;
-		private final IFormattableTextComponent title;
+		protected final String description;
+		protected final IFormattableTextComponent title;
 		
 		public BundledDatapack(IResourcePack pack, ResourceLocation location) {
 			this.pack = pack;
@@ -503,20 +558,33 @@ public class AerobaticElytraCommand {
 			final String[] split = location.getPath().split("/");
 			name = split[split.length - 1];
 			String title = name;
+			String description = "";
 			try {
 				final JsonParser parser = new JsonParser();
 				final JsonElement json = parser.parse(new InputStreamReader(
 				  pack.getResourceStream(ResourcePackType.SERVER_DATA, getMcMetaLocation())));
 				try {
-					if (json.isJsonObject())
-						title = JSONUtils.getString(JSONUtils.getJsonObject(json.getAsJsonObject(), "pack"), "title");
+					if (json.isJsonObject()) {
+						final JsonObject packInfo = JSONUtils.getJsonObject(json.getAsJsonObject(), "pack");
+						title = JSONUtils.getString(packInfo, "title");
+						description = JSONUtils.getString(packInfo, "description");
+					}
 				} catch (JsonSyntaxException ignored) {}
 			} catch (IOException ignored) {}
 			this.title = new StringTextComponent(title);
+			this.description = description;
 		}
 		
 		public String getTitle() {
 			return title.getString();
+		}
+		
+		public String getPackName() {
+			return "file/" + packPrefix + getTitle();
+		}
+		
+		public String getDescription() {
+			return description;
 		}
 		
 		public IFormattableTextComponent getDisplayName() {

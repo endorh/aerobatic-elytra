@@ -9,10 +9,8 @@ import endorh.aerobatic_elytra.common.item.AerobaticElytraWingItem;
 import endorh.util.common.ColorUtil;
 import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.item.*;
-import net.minecraft.item.ItemStack.TooltipDisplayFlags;
 import net.minecraft.item.crafting.IRecipeSerializer;
 import net.minecraft.item.crafting.SpecialRecipe;
-import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.BannerPattern;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
@@ -56,7 +54,7 @@ public class DyeRecipe extends SpecialRecipe {
 	@NotNull @Override
 	public ItemStack getCraftingResult(CraftingInventory inv) {
 		ItemStack elytra = ItemStack.EMPTY;
-		List<DyeItem> tintList = new ArrayList<>();
+		List<DyeItem> dyeList = new ArrayList<>();
 		
 		for (int i = 0; i < inv.getSizeInventory(); ++i) {
 			ItemStack current = inv.getStackInSlot(i);
@@ -71,26 +69,38 @@ public class DyeRecipe extends SpecialRecipe {
 			} else {
 				if (!(item instanceof DyeItem))
 					return ItemStack.EMPTY;
-				tintList.add((DyeItem) item);
+				dyeList.add((DyeItem) item);
 			}
 		}
-		if (elytra.isEmpty() || tintList.isEmpty())
+		if (elytra.isEmpty() || dyeList.isEmpty())
 			return ItemStack.EMPTY;
 		
+		return dye(elytra, dyeList);
+	}
+	
+	public static ItemStack dye(ItemStack elytra, List<DyeItem> dyes) {
 		ItemStack res = elytra.copy();
 		dyement.read(res);
 		res.removeChildTag("WingInfo");
 		res.removeChildTag("BlockEntityTag");
 		
 		List<Integer> colors = new ArrayList<>();
-		for (WingSide side : WingSide.values()) {
-			WingDyement wingDyement = dyement.getWing(side);
-			if (wingDyement.hasPattern) {
-				for (Pair<BannerPattern, DyeColor> pair : wingDyement.patternColorData)
-					colors.add(pair.getSecond().getColorValue());
-			} else if (wingDyement.hasColor) {
-				colors.add(wingDyement.color);
+		if (dyement.hasWingDyement) {
+			for (WingSide side : WingSide.values()) {
+				WingDyement wing = dyement.getWing(side);
+				if (wing.hasPattern) {
+					for (Pair<BannerPattern, DyeColor> pair : wing.patternColorData)
+						colors.add(pair.getSecond().getColorValue());
+				} else if (wing.hasColor)
+					colors.add(wing.color);
 			}
+		} else {
+			WingDyement wing = dyement.getFirst();
+			if (wing.hasPattern) {
+				for (Pair<BannerPattern, DyeColor> pair : wing.patternColorData)
+					colors.add(pair.getSecond().getColorValue());
+			} else if (wing.hasColor)
+				colors.add(wing.color);
 		}
 		if (!colors.isEmpty()) {
 			int color = ColorUtil.mix(colors);
@@ -98,18 +108,13 @@ public class DyeRecipe extends SpecialRecipe {
 		} else {
 			res.getOrCreateChildTag("display").remove("color");
 		}
-		res = IDyeableArmorItem.dyeItem(res, tintList);
+		res = IDyeableArmorItem.dyeItem(res, dyes);
 		
-		CompoundNBT tag = res.getOrCreateTag();
-		int flags = tag.contains("HideFlags", 99)
-		  ? tag.getInt("HideFlags") : 0;
-		flags |= TooltipDisplayFlags.DYE.func_242397_a();
-		tag.putInt("HideFlags", flags);
+		ElytraDyement.hideDyedFlag(res);
 		return res;
 	}
 	
-	@Override
-	public boolean canFit(int width, int height) {
+	@Override public boolean canFit(int width, int height) {
 		return width * height >= 2;
 	}
 	

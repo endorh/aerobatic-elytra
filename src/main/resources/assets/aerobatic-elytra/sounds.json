@@ -5,6 +5,9 @@
   "aerobatic_elytra.brake": {
     "sounds": ["aerobatic-elytra:aerobatic_elytra_brake"]
   },
+  "aerobatic_elytra.rotate": {
+    "sounds": ["aerobatic-elytra:aerobatic_elytra_rotate"]
+  },
   "aerobatic_elytra.whistle": {
     "sounds": ["aerobatic-elytra:aerobatic_elytra_whistle"]
   },

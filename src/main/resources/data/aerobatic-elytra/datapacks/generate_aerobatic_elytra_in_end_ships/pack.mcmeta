@@ -1,7 +1,7 @@
 {
   "pack": {
     "title": "Generate aerobatic elytra in End ships",
-    "description": "Replaces the elytra found at end ships by an Aerobatic Elytra if far enough from the End center",
+    "description": "Replaces the elytra found at end ships with an aerobatic elytra if far enough from the End center",
     "pack_format": 6
   }
 }

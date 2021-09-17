@@ -3,7 +3,9 @@ package endorh.aerobatic_elytra.common.item;
 import com.mojang.datafixers.util.Pair;
 import endorh.aerobatic_elytra.AerobaticElytra;
 import endorh.aerobatic_elytra.client.config.ClientConfig;
+import endorh.aerobatic_elytra.client.config.ClientConfig.style.visibility;
 import endorh.aerobatic_elytra.common.capability.ElytraSpecCapability;
+import endorh.aerobatic_elytra.common.capability.ElytraSpecCapability.Storage;
 import endorh.aerobatic_elytra.common.capability.IAerobaticData;
 import endorh.aerobatic_elytra.common.capability.IElytraSpec;
 import endorh.aerobatic_elytra.common.capability.IElytraSpec.TrailData;
@@ -14,10 +16,9 @@ import endorh.aerobatic_elytra.common.item.ElytraDyement.WingDyement;
 import endorh.aerobatic_elytra.common.item.ElytraDyement.WingSide;
 import endorh.aerobatic_elytra.common.recipe.CreativeTabAbilitySetRecipe;
 import endorh.aerobatic_elytra.common.recipe.RepairRecipe;
+import endorh.aerobatic_elytra.common.recipe.SplitRecipe;
 import endorh.util.common.ColorUtil;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.CauldronBlock;
+import endorh.util.nbt.NBTPath;
 import net.minecraft.block.DispenserBlock;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
@@ -27,14 +28,11 @@ import net.minecraft.enchantment.IArmorVanishable;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.*;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.BannerPattern;
-import net.minecraft.tileentity.BannerTileEntity;
 import net.minecraft.util.*;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
@@ -59,8 +57,9 @@ import static endorh.aerobatic_elytra.common.capability.FlightDataCapability.get
 import static endorh.aerobatic_elytra.common.item.IAbility.Ability.FUEL;
 import static endorh.aerobatic_elytra.common.item.IAbility.Ability.MAX_FUEL;
 import static endorh.util.common.ForgeUtil.getSerializedCaps;
-import static endorh.util.common.TextUtil.stc;
-import static endorh.util.common.TextUtil.ttc;
+import static endorh.util.text.TextUtil.stc;
+import static endorh.util.text.TextUtil.ttc;
+import static endorh.util.text.TooltipUtil.shiftToExpand;
 import static java.lang.Math.*;
 import static net.minecraft.util.math.MathHelper.hsvToRGB;
 import static net.minecraft.util.math.MathHelper.lerp;
@@ -112,6 +111,10 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 		}
 	}
 	
+	@Override public int getDamage(ItemStack stack) {
+		return min(super.getDamage(stack), getMaxDamage(stack) - 1);
+	}
+	
 	@Override public int getMaxDamage(ItemStack stack) {
 		return Config.item.durability;
 	}
@@ -126,15 +129,15 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 	}
 	
 	public boolean shouldFuelReplaceDurability(ItemStack stack, IElytraSpec spec) {
-		return (ClientConfig.style.fuel_display == ClientConfig.FuelDisplay.DURABILITY_BAR
-		        || ClientConfig.style.fuel_display == ClientConfig.FuelDisplay.DURABILITY_BAR_IF_LOWER
+		return (visibility.fuel_display == ClientConfig.FuelDisplay.DURABILITY_BAR
+		        || visibility.fuel_display == ClientConfig.FuelDisplay.DURABILITY_BAR_IF_LOWER
 		           && spec.getAbility(FUEL) / spec.getAbility(MAX_FUEL) < 1F - (float)stack.getDamage() / stack.getMaxDamage())
-		       && ClientConfig.style.fuel_visibility.test();
+		       && visibility.fuel_visibility.test();
 	}
 	
 	@SuppressWarnings("unused")
 	public boolean shouldFuelRenderOverRockets(ItemStack stack) {
-		return ClientConfig.style.fuel_display == ClientConfig.FuelDisplay.ROCKETS;
+		return visibility.fuel_display == ClientConfig.FuelDisplay.ROCKETS;
 	}
 	
 	public float getFuelFraction(ItemStack stack) {
@@ -232,7 +235,7 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 	
 	@Override
 	public boolean hasEffect(@NotNull ItemStack stack) {
-		return super.hasEffect(stack) && ClientConfig.style.enchantment_glint_visibility.test();
+		return super.hasEffect(stack) && visibility.enchantment_glint_visibility.test();
 	}
 	
 	public boolean hasModelEffect(@NotNull ItemStack stack) {
@@ -275,36 +278,8 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 	@NotNull @Override
 	public ActionResultType onItemUse(ItemUseContext context) {
 		World world = context.getWorld();
-		PlayerEntity player = context.getPlayer();
-		assert player != null;
-		BlockPos pos = context.getPos();
-		ItemStack stack = context.getItem();
-		Block block = world.getBlockState(pos).getBlock();
-		BlockState state = world.getBlockState(pos);
-		if (block instanceof CauldronBlock) {
-			int i = state.get(CauldronBlock.LEVEL);
-			if (i > 0 && BannerTileEntity.getPatterns(stack) > 0) {
-				CauldronBlock cauldron = (CauldronBlock) block;
-				ItemStack result = stack.copy();
-				result.setCount(1);
-				// Remove all banner layers
-				result.removeChildTag("BlockEntityTag");
-				
-				if (!player.abilities.isCreativeMode) {
-					stack.shrink(1);
-					cauldron.setWaterLevel(world, pos, state, i - 1);
-				}
-				
-				if (stack.isEmpty()) {
-					player.setHeldItem(context.getHand(), result);
-				} else if (!player.inventory.addItemStackToInventory(result)) {
-					player.dropItem(result, false);
-				} else if (player instanceof ServerPlayerEntity) {
-					((ServerPlayerEntity) player).sendContainerToPlayer(player.container);
-				}
-				return ActionResultType.func_233537_a_(world.isRemote());
-			}
-		}
+		if (ElytraDyement.clearDyesWithCauldron(context))
+			return ActionResultType.func_233537_a_(world.isRemote());
 		return super.onItemUse(context);
 	}
 	
@@ -485,7 +460,7 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 			tooltip.add(
 			  stc(indent).append(
 				 ttc("block.minecraft." + wing.basePatternColor.getTranslationKey() + "_banner")
-			  ).append(sideParenthesis).mergeStyle(TextFormatting.GRAY));
+			  ).append(sideParenthesis).appendString(": ").append(shiftToExpand()).mergeStyle(TextFormatting.GRAY));
 			String extraIndent = indent + "  ";
 			for (int i = 1; i < wing.patternColorData.size(); i++) {
 				BannerPattern pattern = wing.patternColorData.get(i).getFirst();
@@ -504,9 +479,7 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 				 ttc("block.minecraft." + wing.basePatternColor.getTranslationKey() + "_banner")
 				   .append(sideParenthesis)
 					.appendString(": ")
-					.append(
-					  ttc("aerobatic-elytra.gui.shift_to_expand")
-						 .mergeStyle(TextFormatting.DARK_GRAY))
+					.append(shiftToExpand())
 			  ).mergeStyle(TextFormatting.GRAY));
 		}
 	}
@@ -518,13 +491,19 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 	}
 	
 	public ItemStack getWing(ItemStack elytra, WingSide side) {
-		ItemStack wing = new ItemStack(getWingItem(elytra, side), 1, getSerializedCaps(elytra));
+		final CompoundNBT elytraCaps = getSerializedCaps(elytra);
+		ItemStack wing = new ItemStack(getWingItem(elytra, side), 1, elytraCaps.copy());
+		new NBTPath("Parent." + Storage.TAG_BASE + "." + Storage.TAG_TRAIL).delete(elytraCaps);
 		dyement.read(elytra);
 		dyement.getWing(side).write(wing, null);
-		wing.setDamage(elytra.getDamage());
-		CompoundNBT tag = elytra.getTag();
-		if (tag != null && tag.contains("HideFlags", 99))
-			wing.getOrCreateTag().putInt("HideFlags", tag.getInt("HideFlags"));
+		final CompoundNBT elytraTag = elytra.getOrCreateTag().copy();
+		elytraTag.remove("BlockEntityTag");
+		elytraTag.remove("WingInfo");
+		final CompoundNBT wingTag = wing.getOrCreateTag();
+		wingTag.put(SplitRecipe.TAG_SPLIT_ELYTRA, elytraTag);
+		wingTag.put(SplitRecipe.TAG_SPLIT_ELYTRA_CAPS, elytraCaps);
+		if (elytraTag.contains("Enchantments", 9))
+			wingTag.put("Enchantments", elytraTag.getList("Enchantments", 10));
 		getElytraSpecOrDefault(wing).getTrailData().keep(side);
 		return wing;
 	}

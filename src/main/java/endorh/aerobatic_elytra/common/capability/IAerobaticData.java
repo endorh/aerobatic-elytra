@@ -81,13 +81,15 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	
 	/**
 	 * Rotation base containing the camera orientation previous to the last
-	 * bounce, used to smooth camera rotations during bounces
+	 * bounce, used to smooth camera rotations during bounces.<br>
+	 * Must be stored, since 3D rotations are non-commutative
 	 */
 	VectorBase getPreBounceBase();
 	
 	/**
 	 * Rotation base containing the camera orientation after the last bounce,
-	 * used to smooth camera rotations during bounces
+	 * used to smooth camera rotations during bounces.<br>
+	 * Must be stored, since 3D rotations are non-commutative
 	 */
 	VectorBase getPosBounceBase();
 	
@@ -290,6 +292,35 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	void setBrakeStrength(float strength);
 	
 	/**
+	 * Get the brake heat, between 0~1
+	 */
+	float getBrakeHeat();
+	
+	/**
+	 * Set the brake heat, between 0~1
+	 */
+	void setBrakeHeat(float heat);
+	
+	/**
+	 * Get the brake cooling state
+	 */
+	boolean isBrakeCooling();
+	
+	/**
+	 * Set the brake cooling state
+	 */
+	void setBrakeCooling(boolean cooling);
+	
+	/**
+	 * Get the lift cut applied when colliding
+	 */
+	float getLiftCut();
+	/**
+	 * Set the lift cut applied when colliding
+	 */
+	void setLiftCut(float cut);
+	
+	/**
 	 * Internal sneaking state, different from {@link PlayerEntity#isSneaking()}
 	 */
 	boolean isSneaking();
@@ -417,6 +448,7 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 		setPropulsionStrength(0F);
 		getRotationBase().valid = false;
 		getLastTrailPos().set(Vector3d.ZERO);
+		setLiftCut(0F);
 	}
 	
 	/**
@@ -431,7 +463,10 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 		setTiltRoll(0F);
 		setTiltYaw(0F);
 		setLastRotationTime(0D);
+		setBrakeCooling(false);
+		setBrakeHeat(0F);
 		getRotationBase().valid = false;
 		getLastTrailPos().set(Vector3d.ZERO);
+		setLiftCut(0F);
 	}
 }

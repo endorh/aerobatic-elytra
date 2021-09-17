@@ -20,8 +20,8 @@ import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 import static endorh.aerobatic_elytra.AerobaticElytra.prefix;
@@ -151,11 +151,14 @@ public class AerobaticDataCapability {
 		
 		protected boolean braking = false;
 		protected float brakeStrength = 0F;
+		protected float brakeHeat = 0F;
+		protected boolean brakeCooling = false;
 		
 		protected float propStrength = 0F;
 		protected float propAcc = 0F;
 		protected boolean boosted = false;
 		protected float boostHeat = 0F;
+		protected float liftCut = 0F;
 		
 		protected boolean isFlying = false;
 		protected double lastRotationTime = 0D;
@@ -319,6 +322,25 @@ public class AerobaticDataCapability {
 		}
 		@Override public void setBraking(boolean braking) {
 			this.braking = braking;
+		}
+		@Override public float getBrakeHeat() {
+			return brakeHeat;
+		}
+		@Override public void setBrakeHeat(float heat) {
+			brakeHeat = heat;
+		}
+		@Override public boolean isBrakeCooling() {
+			return brakeCooling;
+		}
+		@Override public void setBrakeCooling(boolean cooling) {
+			brakeCooling = cooling;
+		}
+		
+		@Override public float getLiftCut() {
+			return liftCut;
+		}
+		@Override public void setLiftCut(float cut) {
+			liftCut = cut;
 		}
 		
 		@Override public boolean isSneaking() {

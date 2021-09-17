@@ -1,22 +1,22 @@
 package endorh.aerobatic_elytra.common.recipe;
 
-import endorh.aerobatic_elytra.common.item.ElytraDyement;
-import endorh.aerobatic_elytra.common.item.ElytraDyement.WingSide;
-import endorh.aerobatic_elytra.common.capability.ElytraSpecCapability;
 import endorh.aerobatic_elytra.common.capability.IElytraSpec.TrailData;
 import endorh.aerobatic_elytra.common.item.AerobaticElytraItem;
 import endorh.aerobatic_elytra.common.item.AerobaticElytraWingItem;
-import endorh.aerobatic_elytra.common.item.ModItems;
+import endorh.aerobatic_elytra.common.item.ElytraDyement;
+import endorh.aerobatic_elytra.common.item.ElytraDyement.WingSide;
 import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipeSerializer;
 import net.minecraft.item.crafting.SpecialRecipe;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 import static endorh.aerobatic_elytra.common.capability.ElytraSpecCapability.getElytraSpecOrDefault;
-import static endorh.util.common.ForgeUtil.getSerializedCaps;
 
 /**
  * Joins two {@link AerobaticElytraWingItem}s into an
@@ -77,12 +77,25 @@ public class JoinRecipe extends SpecialRecipe {
 	}
 	
 	public static boolean matches(ItemStack left, ItemStack right) {
-		return ElytraSpecCapability.compareNoTrail(
-		  getSerializedCaps(left), getSerializedCaps(right));
+		if (!(left.getItem() instanceof AerobaticElytraWingItem) || !(right.getItem() instanceof AerobaticElytraWingItem))
+			return false;
+		if (((AerobaticElytraWingItem) left.getItem()).getElytraItem() != ((AerobaticElytraWingItem) right.getItem()).getElytraItem())
+			return false;
+		return Objects.equals(left.getChildTag(SplitRecipe.TAG_SPLIT_ELYTRA),
+		                      right.getChildTag(SplitRecipe.TAG_SPLIT_ELYTRA))
+		       && Objects.equals(left.getChildTag(SplitRecipe.TAG_SPLIT_ELYTRA_CAPS),
+		                         right.getChildTag(SplitRecipe.TAG_SPLIT_ELYTRA_CAPS));
 	}
 	
+	/**
+	 * Join two aerobatic elytra wing stacks for which
+	 * {@link JoinRecipe#matches(ItemStack, ItemStack)} returns true
+	 */
 	public static ItemStack join(ItemStack left, ItemStack right) {
-		ItemStack elytra = new ItemStack(ModItems.AEROBATIC_ELYTRA, 1, getSerializedCaps(left));
+		final CompoundNBT caps = left.getOrCreateChildTag(SplitRecipe.TAG_SPLIT_ELYTRA_CAPS);
+		final CompoundNBT tag = left.getOrCreateChildTag(SplitRecipe.TAG_SPLIT_ELYTRA);
+		ItemStack elytra = new ItemStack(((AerobaticElytraWingItem) left.getItem()).getElytraItem(), 1, caps.copy());
+		elytra.setTag(tag.copy());
 		leftDyement.read(left);
 		rightDyement.read(right);
 		if (leftDyement.getWing(WingSide.LEFT).equals(rightDyement.getWing(WingSide.RIGHT))) {
@@ -91,10 +104,11 @@ public class JoinRecipe extends SpecialRecipe {
 			leftDyement.getWing(WingSide.LEFT).write(elytra, WingSide.LEFT);
 			rightDyement.getWing(WingSide.RIGHT).write(elytra, WingSide.RIGHT);
 		}
-		elytra.setDamage((left.getDamage() + right.getDamage()) / 2);
+		
+		getElytraSpecOrDefault(elytra);
+		TrailData trailData = getElytraSpecOrDefault(elytra).getTrailData();
 		TrailData leftData = getElytraSpecOrDefault(left).getTrailData();
 		TrailData rightData = getElytraSpecOrDefault(right).getTrailData();
-		TrailData trailData = getElytraSpecOrDefault(elytra).getTrailData();
 		trailData.set(WingSide.LEFT, leftData);
 		trailData.set(WingSide.RIGHT, rightData);
 		return elytra;

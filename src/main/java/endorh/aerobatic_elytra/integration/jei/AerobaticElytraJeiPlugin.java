@@ -1,37 +1,44 @@
 package endorh.aerobatic_elytra.integration.jei;
 
+import com.google.common.collect.ImmutableList;
 import endorh.aerobatic_elytra.AerobaticElytra;
 import endorh.aerobatic_elytra.client.input.KeyHandler;
+import endorh.aerobatic_elytra.common.item.AerobaticElytraItem;
 import endorh.aerobatic_elytra.common.item.ModItems;
-import endorh.aerobatic_elytra.common.recipe.ItemSelector;
-import endorh.aerobatic_elytra.common.recipe.JoinRecipe;
 import endorh.aerobatic_elytra.common.recipe.UpgradeRecipe;
-import endorh.aerobatic_elytra.integration.jei.category.JoinRecipeCategory;
-import endorh.aerobatic_elytra.integration.jei.category.UpgradeRecipeCategory;
+import endorh.aerobatic_elytra.integration.jei.category.*;
+import endorh.aerobatic_elytra.integration.jei.gui.MultiIngredientDrawable;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.VanillaTypes;
+import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.helpers.IJeiHelpers;
+import mezz.jei.api.recipe.IFocus;
+import mezz.jei.api.recipe.IFocus.Mode;
+import mezz.jei.api.recipe.IRecipeManager;
+import mezz.jei.api.recipe.advanced.IRecipeManagerPlugin;
 import mezz.jei.api.recipe.category.IRecipeCategory;
-import mezz.jei.api.registration.IRecipeCatalystRegistration;
-import mezz.jei.api.registration.IRecipeCategoryRegistration;
-import mezz.jei.api.registration.IRecipeRegistration;
-import mezz.jei.api.registration.ISubtypeRegistration;
+import mezz.jei.api.registration.*;
+import mezz.jei.api.runtime.IIngredientManager;
+import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.item.crafting.RecipeManager;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.Util;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
+import java.util.Collections;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static endorh.aerobatic_elytra.common.capability.ElytraSpecCapability.getElytraSpecOrDefault;
 
@@ -43,8 +50,19 @@ import static endorh.aerobatic_elytra.common.capability.ElytraSpecCapability.get
 public class AerobaticElytraJeiPlugin implements IModPlugin {
 	public static final ResourceLocation pluginUid = new ResourceLocation(
 	  AerobaticElytra.MOD_ID, "jei_plugin");
-	public IRecipeCategory<UpgradeRecipe> upgradeRecipeCategory;
-	public IRecipeCategory<JoinRecipe> joinRecipeIRecipeCategory;
+	public static IIngredientManager ingredientManager = null;
+	public static IRecipeManager recipeManager = null;
+	public static IGuiHelper guiHelper = null;
+	
+	protected static final List<Supplier<BaseCategory<?>>> categoryConstructors = Util.make(new ArrayList<>(), l -> {
+		l.add(UpgradeRecipeCategory::new);
+		l.add(TrailRecipeCategory::new);
+		l.add(DyeRecipeCategory::new);
+		l.add(BannerRecipeCategory::new);
+		l.add(SplitRecipeCategory::new);
+		l.add(JoinRecipeCategory::new);
+	});
+	protected static final List<BaseCategory<?>> categories = new ArrayList<>();
 	
 	@NotNull @Override public ResourceLocation getPluginUid() {
 		return pluginUid;
@@ -52,13 +70,16 @@ public class AerobaticElytraJeiPlugin implements IModPlugin {
 	
 	@Override public void registerCategories(IRecipeCategoryRegistration reg) {
 		IJeiHelpers jeiHelpers = reg.getJeiHelpers();
-		IGuiHelper guiHelper = jeiHelpers.getGuiHelper();
-		reg.addRecipeCategories(this.upgradeRecipeCategory = new UpgradeRecipeCategory(guiHelper));
-		reg.addRecipeCategories(this.joinRecipeIRecipeCategory = new JoinRecipeCategory(guiHelper));
+		guiHelper = jeiHelpers.getGuiHelper();
+		categories.clear();
+		for (Supplier<BaseCategory<?>> c : categoryConstructors) {
+			final BaseCategory<?> cat = c.get();
+			categories.add(cat);
+			reg.addRecipeCategories(cat);
+		}
 	}
 	
-	@Override
-	public void registerItemSubtypes(@NotNull ISubtypeRegistration reg) {
+	@Override public void registerItemSubtypes(@NotNull ISubtypeRegistration reg) {
 		// Differentiate aerobatic elytras by their abilities
 		reg.registerSubtypeInterpreter(
 		  ModItems.AEROBATIC_ELYTRA,
@@ -83,29 +104,72 @@ public class AerobaticElytraJeiPlugin implements IModPlugin {
 		RecipeManager recipeManager = world.getRecipeManager();
 		final Collection<IRecipe<?>> recipeList = recipeManager.getRecipes();
 		
-		// Register upgrade recipes
-		//noinspection unchecked
-		List<UpgradeRecipe> upgradeRecipes =
-		  ((Stream<UpgradeRecipe>) (Stream<?>) recipeList.stream().filter(
-			 r -> (r instanceof UpgradeRecipe)
-		  )).filter(UpgradeRecipe::isValid).sorted(
-			 Comparator.comparing(
-				r -> r.getSelectors().stream()
-				  .map(ItemSelector::toString).collect(Collectors.joining(";")))
-		  ).collect(Collectors.toList());
-		reg.addRecipes(upgradeRecipes, UpgradeRecipeCategory.UID);
-		
-		// Register join recipes
-		//noinspection unchecked
-		List<JoinRecipe> joinRecipes =
-		  (List<JoinRecipe>) (List<?>) recipeList.stream().filter(
-		    recipe -> recipe instanceof JoinRecipe
-		  ).collect(Collectors.toList());
-		reg.addRecipes(joinRecipes, JoinRecipeCategory.UID);
+		for (BaseCategory<?> cat : categories)
+			registerRecipes(reg, recipeManager, cat);
+	}
+	
+	protected static <V> void registerRecipes(
+	  IRecipeRegistration reg, RecipeManager manager, BaseCategory<V> cat
+	) {
+		ingredientManager = reg.getIngredientManager();
+		final Class<? extends V> cls = cat.getRecipeClass();
+		cat.registerRecipes(reg, manager);
 	}
 	
 	@Override public void registerRecipeCatalysts(IRecipeCatalystRegistration reg) {
 		// Register the Aerobatic Elytra item as catalyst for upgrade recipes
 		reg.addRecipeCatalyst(new ItemStack(ModItems.AEROBATIC_ELYTRA), UpgradeRecipeCategory.UID);
+		final ItemStack craftingTable = new ItemStack(Items.CRAFTING_TABLE);
+		reg.addRecipeCatalyst(
+		  craftingTable, JoinRecipeCategory.UID, SplitRecipeCategory.UID,
+		  DyeRecipeCategory.UID, BannerRecipeCategory.UID, TrailRecipeCategory.UID);
+	}
+	
+	@Override public void onRuntimeAvailable(IJeiRuntime jeiRuntime) {
+		ingredientManager = jeiRuntime.getIngredientManager();
+		recipeManager = jeiRuntime.getRecipeManager();
+	}
+	
+	@Override
+	public void registerAdvanced(IAdvancedRegistration registration) {
+		registration.addRecipeManagerPlugin(new RecipeManagerPlugin());
+	}
+	
+	public static class RecipeManagerPlugin implements IRecipeManagerPlugin {
+		@Override public <V> @NotNull List<ResourceLocation> getRecipeCategoryUids(
+		  @NotNull IFocus<V> focus
+		) {
+			if (focus.getValue() instanceof AerobaticElytraItem)
+				return ImmutableList.of(UpgradeRecipeCategory.UID);
+			else return Collections.emptyList();
+		}
+		
+		@Override public <T, V> @NotNull List<T> getRecipes(
+		  @NotNull IRecipeCategory<T> recipeCategory, @NotNull IFocus<V> focus
+		) {
+			if (recipeCategory instanceof UpgradeRecipeCategory) {
+				final ItemStack focused = (ItemStack) focus.getValue();
+				if (focused.getItem() instanceof AerobaticElytraItem) {
+					if (focus.getMode() == Mode.INPUT) {
+						//noinspection unchecked
+						return (List<T>) UpgradeRecipe.getUpgradeRecipes().stream().filter(
+						  r -> r.getResult(focused.copy(), 1).getRight() > 0
+						).collect(Collectors.toList());
+					} else return (List<T>) UpgradeRecipe.getUpgradeRecipes();
+				} else if (focus.getMode() == Mode.INPUT) {
+					//noinspection unchecked
+					return (List<T>) UpgradeRecipe.getUpgradeRecipes().stream().filter(
+					  r -> r.getSelectors().stream().anyMatch(s -> s.test(focused))
+					).collect(Collectors.toList());
+				}
+			}
+			return Collections.emptyList();
+		}
+		
+		@Override public <T> @NotNull List<T> getRecipes(@NotNull IRecipeCategory<T> recipeCategory) {
+			if (recipeCategory instanceof UpgradeRecipeCategory)
+				return (List<T>) UpgradeRecipe.getUpgradeRecipes();
+			return Collections.emptyList();
+		}
 	}
 }

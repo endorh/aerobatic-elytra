@@ -8,7 +8,7 @@ import endorh.aerobatic_elytra.common.capability.AerobaticDataCapability;
 import endorh.aerobatic_elytra.common.capability.ElytraSpecCapability;
 import endorh.aerobatic_elytra.common.capability.IAerobaticData;
 import endorh.aerobatic_elytra.common.capability.IElytraSpec;
-import endorh.aerobatic_elytra.common.capability.IElytraSpec.RocketExplosion;
+import endorh.aerobatic_elytra.common.capability.IElytraSpec.RocketStar;
 import endorh.aerobatic_elytra.common.capability.IElytraSpec.TrailData;
 import endorh.aerobatic_elytra.common.flight.AerobaticFlight.VectorBase;
 import endorh.aerobatic_elytra.common.item.ElytraDyement.WingSide;
@@ -25,7 +25,7 @@ import java.awt.*;
 import java.util.List;
 import java.util.*;
 
-import static endorh.aerobatic_elytra.common.capability.IElytraSpec.RocketExplosion.*;
+import static endorh.aerobatic_elytra.common.capability.IElytraSpec.RocketStar.*;
 import static endorh.aerobatic_elytra.common.item.IAbility.Ability.TRAIL;
 import static java.lang.Math.max;
 import static java.lang.Math.round;
@@ -204,12 +204,12 @@ public class AerobaticTrail {
 			  35, 0.16F, partialTick, ownPlayer, rollVec, side, data
 			)) : Optional.empty();
 		}
-		Optional<RocketExplosion> explosionOpt = pickRandom(data.get(side));
+		Optional<RocketStar> explosionOpt = pickRandom(data.get(side));
 		if (!explosionOpt.isPresent()) // Default
 			return shouldGenerate((byte)0, partial) ? Optional.of(new TrailParticleData(
 			  Color.WHITE, Color.WHITE, (byte)0, false, false,
 			  25, 0.2F, partialTick, ownPlayer, rollVec, side, data)) : Optional.empty();
-		RocketExplosion explosion = explosionOpt.get();
+		RocketStar explosion = explosionOpt.get();
 		
 		final Color color = new Color(pickRandom(explosion.colors).orElse(Color.WHITE.getRGB()));
 		final Color fadeColor = new Color(pickRandom(explosion.fadeColors).orElse(color.getRGB()));
@@ -233,10 +233,10 @@ public class AerobaticTrail {
 		TrailData trail = spec.getTrailData();
 		final float trailModifier = spec.getAbility(TRAIL);
 		
-		Optional<RocketExplosion[]> listOpt = trail.pickRandom();
-		RocketExplosion explosion = null;
+		Optional<RocketStar[]> listOpt = trail.pickRandom();
+		RocketStar explosion = null;
 		if (listOpt.isPresent()) {
-			final Optional<RocketExplosion> explosionOpt = pickRandom(listOpt.get());
+			final Optional<RocketStar> explosionOpt = pickRandom(listOpt.get());
 			if (explosionOpt.isPresent())
 				explosion = explosionOpt.get();
 		}
@@ -275,7 +275,7 @@ public class AerobaticTrail {
 		 null, null);
 	
 	public static TrailParticleData getBoostParticle(
-	  LivingEntity player, RocketExplosion explosion, float trailMod
+	  LivingEntity player, RocketStar explosion, float trailMod
 	) {
 		if (player.isInWater())
 			return UNDERWATER_BOOST_PARTICLE;
@@ -293,7 +293,7 @@ public class AerobaticTrail {
 	
 	private static final Vec3f off = Vec3f.ZERO.get();
 	public static void createBoostParticle(
-	  LivingEntity player, RocketExplosion explosion,
+	  LivingEntity player, RocketStar explosion,
 	  Vec3d pos, VectorBase base, Vec3f motion,
 	  float x, float y, float z, float noise, float trailMod
 	) {
@@ -392,6 +392,16 @@ public class AerobaticTrail {
 		}
 		public TranslationTextComponent getDisplayName() {
 			return new TranslationTextComponent(translationKey);
+		}
+		
+		public RocketSide opposite() {
+			switch (this) {
+				case LEFT: return RIGHT;
+				case RIGHT: return LEFT;
+				case CENTER_LEFT: return CENTER_RIGHT;
+				case CENTER_RIGHT: return CENTER_LEFT;
+				default: return null;
+			}
 		}
 		
 		public static RocketSide[] forWingSide(WingSide side) {

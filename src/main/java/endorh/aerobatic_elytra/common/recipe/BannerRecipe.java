@@ -66,6 +66,10 @@ public class BannerRecipe extends SpecialRecipe {
 		
 		assert !elytra.isEmpty() && !banner.isEmpty();
 		
+		return apply(elytra, banner);
+	}
+	
+	public static ItemStack apply(ItemStack elytra, ItemStack banner) {
 		ItemStack result = elytra.copy();
 		result.setCount(1);
 		CompoundNBT source = banner.getChildTag("BlockEntityTag");

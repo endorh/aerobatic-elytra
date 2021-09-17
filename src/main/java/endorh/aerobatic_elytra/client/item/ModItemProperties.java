@@ -1,6 +1,6 @@
 package endorh.aerobatic_elytra.client.item;
 
-import endorh.aerobatic_elytra.client.config.ClientConfig;
+import endorh.aerobatic_elytra.client.config.ClientConfig.style.visibility;
 import endorh.aerobatic_elytra.common.item.ElytraDyement;
 import endorh.aerobatic_elytra.common.capability.IElytraSpec;
 import endorh.aerobatic_elytra.common.item.AerobaticElytraItem;
@@ -76,11 +76,11 @@ public class ModItemProperties {
 		if (!((AerobaticElytraItem) stack.getItem()).shouldFuelRenderOverRockets(stack))
 			return 1F;
 		if (holder == null)
-			return ClientConfig.style.fuel_visibility.test() ? 0F : 1F;
+			return visibility.fuel_visibility.test() ? 0F : 1F;
 		ItemStack chest = holder.getItemStackFromSlot(EquipmentSlotType.CHEST);
 		if (chest == stack)
 			return 0F;
-		return ClientConfig.style.fuel_visibility.test() ? 0F : 1F;
+		return visibility.fuel_visibility.test() ? 0F : 1F;
 	}
 	
 	public static float getEqualWingsProperty(

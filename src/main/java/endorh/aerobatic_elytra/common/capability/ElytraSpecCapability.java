@@ -195,7 +195,7 @@ public class ElytraSpecCapability {
 			data.put(TAG_ABILITIES, ability);
 			
 			CompoundNBT trailNBT = inst.getTrailData().write();
-			if (trailNBT != null)
+			if (!trailNBT.isEmpty())
 				data.put(TAG_TRAIL, trailNBT);
 			
 			nbt.put(TAG_BASE, data);
