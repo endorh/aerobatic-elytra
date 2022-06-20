@@ -23,7 +23,7 @@ apply plugin: 'net.minecraftforge.gradle'
 
 // Mod info -----------------------------------------------------------------------
 
-def mod_id = "aerobatic-elytra"
+def mod_id = "aerobaticelytra"
 group = "endorh.aerobatic_elytra"
 def group_slashed = project.group.replaceAll("\\.", "/"),
 	classname = "AerobaticElytra"
@@ -250,7 +250,7 @@ dependencies {
 
 	// Used for debug
 	// Aerobatic Elytra Jetpack
-	runtimeOnly fg.deobf("endorh.aerobatic_elytra.jetpack:aerobatic-elytra-jetpack:${aerobatic_elytra_jetpack_version}")
+	// runtimeOnly fg.deobf("endorh.aerobatic_elytra.jetpack:aerobatic-elytra-jetpack:${aerobatic_elytra_jetpack_version}")
 
 	// Curious Elytra
 	runtimeOnly fg.deobf("curse.maven:curiouselytra-${curious_elytra_version}")

@@ -1,0 +1,10 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "aerobaticelytra:item/aerobatic_elytra_layer_left_1",
+    "layer1": "aerobaticelytra:item/aerobatic_elytra_layer_left_2",
+    "layer2": "aerobaticelytra:item/aerobatic_elytra_layer_right_1",
+    "layer3": "aerobaticelytra:item/aerobatic_elytra_layer_right_2",
+    "layer4": "aerobaticelytra:item/aerobatic_elytra_rockets_fuel_2"
+  }
+}

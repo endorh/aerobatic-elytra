@@ -1,0 +1,13 @@
+{
+  "type": "aerobaticelytra:upgrade_recipe",
+  "_comment": "Enables water breathing underwater",
+  "ingredients": [
+    "minecraft:pufferfish"
+  ],
+  "upgrades": [
+    {
+      "type": "UnderwaterBreathing",
+      "expression": "1"
+    }
+  ]
+}

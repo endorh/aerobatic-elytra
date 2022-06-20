@@ -1,0 +1,20 @@
+{
+  "aerobatic_elytra.flight": {
+    "sounds": ["aerobaticelytra:aerobatic_elytra_flight"]
+  },
+  "aerobatic_elytra.brake": {
+    "sounds": ["aerobaticelytra:aerobatic_elytra_brake"]
+  },
+  "aerobatic_elytra.rotate": {
+    "sounds": ["aerobaticelytra:aerobatic_elytra_rotate"]
+  },
+  "aerobatic_elytra.whistle": {
+    "sounds": ["aerobaticelytra:aerobatic_elytra_whistle"]
+  },
+  "aerobatic_elytra.boost": {
+    "sounds": ["aerobaticelytra:aerobatic_elytra_boost"]
+  },
+  "aerobatic_elytra.slowdown": {
+    "sounds": ["aerobaticelytra:aerobatic_elytra_slowdown"]
+  }
+}

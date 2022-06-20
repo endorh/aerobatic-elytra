@@ -1,0 +1,6 @@
+{
+  "type": "aerobaticelytra:repair_recipe",
+  "ingredient": {
+    "item": "minecraft:phantom_membrane"
+  }
+}

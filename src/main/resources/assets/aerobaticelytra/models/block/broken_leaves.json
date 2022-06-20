@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/leaves",
+  "textures": {
+    "all": "aerobaticelytra:block/broken_leaves"
+  }
+}

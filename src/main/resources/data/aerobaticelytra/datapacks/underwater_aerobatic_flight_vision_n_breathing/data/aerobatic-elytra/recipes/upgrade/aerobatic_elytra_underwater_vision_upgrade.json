@@ -1,0 +1,13 @@
+{
+  "type": "aerobaticelytra:upgrade_recipe",
+  "_comment": "Enables night vision underwater",
+  "ingredients": [
+    "minecraft:golden_carrot"
+  ],
+  "upgrades": [
+    {
+      "type": "UnderwaterVision",
+      "expression": "1"
+    }
+  ]
+}

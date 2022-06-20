@@ -1,0 +1,15 @@
+{
+  "type": "aerobaticelytra:upgrade_recipe",
+  "_comment": "",
+  "ingredients": [
+    "minecraft:heart_of_the_sea"
+  ],
+  "upgrades": [
+    {
+      "type": "Aquatic",
+      "expression": "Aquatic + 0.1",
+      "min": 0.6,
+      "max": 1
+    }
+  ]
+}

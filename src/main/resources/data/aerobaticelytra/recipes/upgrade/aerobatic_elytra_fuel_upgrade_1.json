@@ -1,0 +1,13 @@
+{
+  "type": "aerobaticelytra:upgrade_recipe",
+  "_comment": "",
+  "ingredients": [
+    "minecraft:firework_rocket{Fireworks.Flight >= 1}"
+  ],
+  "upgrades": [
+    {
+      "type": "Fuel",
+      "expression": "min(Fuel + 2, MaxFuel)"
+    }
+  ]
+}

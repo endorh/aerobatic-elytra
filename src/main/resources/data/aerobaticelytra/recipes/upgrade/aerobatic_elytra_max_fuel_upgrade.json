@@ -1,0 +1,15 @@
+{
+  "type": "aerobaticelytra:upgrade_recipe",
+  "_comment": "",
+  "ingredients": [
+    "minecraft:shulker_shell"
+  ],
+  "upgrades": [
+    {
+      "type": "MaxFuel",
+      "expression": "MaxFuel + 20",
+      "min": 0,
+      "max": 512
+    }
+  ]
+}
