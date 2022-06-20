@@ -9,13 +9,13 @@ import net.minecraft.util.text.event.ClickEvent;
 import net.minecraft.util.text.event.HoverEvent;
 import net.minecraftforge.fml.config.ModConfig.Type;
 
-import java.util.Optional;
-
 import static endorh.simple_config.core.SimpleConfig.group;
 import static endorh.simple_config.core.entry.Builders.*;
 import static endorh.util.text.TextUtil.stc;
 import static endorh.util.text.TextUtil.ttc;
 import static java.lang.Math.*;
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
 
 public class Config {
 	private static SimpleConfig SERVER = null;
@@ -33,11 +33,12 @@ public class Config {
 		            .add("range_roll", number(9.0F, 180))
 		            .add("range_yaw", number(0.7F, 180)))
 		       .n(group("propulsion")
-		            .add("min", number(0.0F))
+		            .add("min", number(0.0F).error(
+		              d -> d > SERVER.getGUIFloat("aerobatic.propulsion.max")
+		                   ? of(ttc("simple-config.config.error.min_greater_than_max")) : empty()))
 		            .add("max", number(2.4F).error(
-		              d -> d < SERVER.getFloat("aerobatic.propulsion.min")
-		                   ? Optional.of(ttc("simple-config.config.error.min_greater_than_max"))
-		                   : Optional.empty()))
+		              d -> d < SERVER.getGUIFloat("aerobatic.propulsion.min")
+		                   ? of(ttc("simple-config.config.error.min_greater_than_max")) : empty()))
 		            .add("takeoff", number(0.0F)))
 		       .n(group("physics")
 		            .add("gravity_multiplier", number(0.8F))

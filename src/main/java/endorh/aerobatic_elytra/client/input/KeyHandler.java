@@ -57,7 +57,7 @@ public class KeyHandler {
 			fd.nextFlightMode();
 			IFlightMode mode = fd.getFlightMode();
 			new DFlightModePacket(mode).send();
-			AerobaticOverlays.showModePopupIfRelevant(player, mode);
+			AerobaticOverlays.showModeToastIfRelevant(player, mode);
 		}
 	}
 	

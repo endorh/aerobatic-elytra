@@ -16,6 +16,17 @@ import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+/**
+ * Abstract flight mode.<br>
+ * A player can be in only one flight mode at a time.<br>
+ * The player may attempt to change flight mode at any time.<br>
+ * Mods may add other key combinations to change flight modes.<br>
+ * A flight mode can prevent being left by overriding {@link IFlightMode#canChangeTo(IFlightMode)}
+ * or being used by overriding {@link IFlightMode#canBeUsedBy(PlayerEntity)}<br><br>
+ * A flight mode is responsible for handling the player movement by overriding
+ * {@link IFlightMode#getFlightHandler()} and its variants.<br>
+ * Flight modes may also provide their own {@link IElytraPose}s for players.<br>
+ */
 public interface IFlightMode extends IForgeRegistryEntry<IFlightMode> {
 	/**
 	 * Whether or not should the mode be used as one of the candidates
@@ -41,59 +52,93 @@ public interface IFlightMode extends IForgeRegistryEntry<IFlightMode> {
 		return true;
 	}
 	
-	@Override
-	default Class<IFlightMode> getRegistryType() {
+	@Override default Class<IFlightMode> getRegistryType() {
 		return IFlightMode.class;
 	}
 	
-	@Override
-	IFlightMode setRegistryName(ResourceLocation name);
+	@Override IFlightMode setRegistryName(ResourceLocation name);
 	
-	@NotNull
-	@Override
-	ResourceLocation getRegistryName();
+	@NotNull @Override ResourceLocation getRegistryName();
 	
 	default int getRegistryOrder() {
 		return 0;
 	}
 	
+	/**
+	 * @return The method used to handle a flight tick for a player
+	 */
 	BiPredicate<PlayerEntity, Vector3d> getFlightHandler();
 	
-	@Nullable
-	default BiConsumer<PlayerEntity, Vector3d> getNonFlightHandler() {
+	/**
+	 * @return The method used to handle a non-flight tick for a player
+	 */
+	@Nullable default BiConsumer<PlayerEntity, Vector3d> getNonFlightHandler() {
 		return null;
 	}
 	
-	@Nullable
-	default Consumer<PlayerEntity> getRemoteFlightHandler() {
+	/**
+	 * @return The method used to handle a flight tick for a
+	 * {@link net.minecraft.client.entity.player.RemoteClientPlayerEntity}
+	 */
+	@Nullable default Consumer<PlayerEntity> getRemoteFlightHandler() {
 		return null;
 	}
 	
-	@Nullable
-	default Consumer<PlayerEntity> getRemoteNonFlightHandler() {
+	/**
+	 * @return The method used to handle a non-flight tick for a
+	 * {@link net.minecraft.client.entity.player.RemoteClientPlayerEntity}
+	 */
+	@Nullable default Consumer<PlayerEntity> getRemoteNonFlightHandler() {
 		return null;
 	}
 	
-	ResourceLocation getPopupIconLocation();
-	int getPopupIconU();
-	int getPopupIconV();
+	/**
+	 * @return The texture location of the toast displaying the flight mode icon
+	 */
+	ResourceLocation getToastIconLocation();
 	
+	/**
+	 * @return The texture U coordinate of the toast displaying the flight mode icon
+	 */
+	int getToastIconU();
+	/**
+	 * @return The texture V coordinate of the toast displaying the flight mode icon
+	 */
+	int getToastIconV();
+	
+	/**
+	 * Determine if it's possible to change to another flight mode
+	 * in the current state
+	 */
 	default boolean canChangeTo(IFlightMode other) {
 		return true;
 	}
 	
+	/**
+	 * @return The next flight mode when cycling
+	 */
 	default IFlightMode next() {
 		return next(IFlightMode::shouldCycle, 1);
 	}
 	
+	/**
+	 * @return The previous flight mode when cycling
+	 */
 	default IFlightMode prev() {
 		return next(IFlightMode::shouldCycle, -1);
 	}
 	
+	/**
+	 * Get the next flight mode in cycle order that satisfies a predicate
+	 */
 	default IFlightMode next(Predicate<IFlightMode> predicate) {
 		return next(predicate, 1);
 	}
 	
+	/**
+	 * Get a flight mode in cycle order by a certain step that satisfies a predicate.<br>
+	 * Usually, the step is either +1 or -1
+	 */
 	default IFlightMode next(Predicate<IFlightMode> predicate, int step) {
 		int l = ModRegistries.FLIGHT_MODE_LIST.size();
 		int o = ModRegistries.FLIGHT_MODE_LIST.indexOf(this);
@@ -106,10 +151,16 @@ public interface IFlightMode extends IForgeRegistryEntry<IFlightMode> {
 		return this;
 	}
 	
+	/**
+	 * Serialize to packet
+	 */
 	default void write(PacketBuffer buf) {
 		buf.writeResourceLocation(getRegistryName());
 	}
 	
+	/**
+	 * Read froom packet
+	 */
 	static IFlightMode read(PacketBuffer buf) {
 		final ResourceLocation regName = buf.readResourceLocation();
 		if (!ModRegistries.FLIGHT_MODE_REGISTRY.containsKey(regName))
@@ -118,12 +169,15 @@ public interface IFlightMode extends IForgeRegistryEntry<IFlightMode> {
 		return ModRegistries.FLIGHT_MODE_REGISTRY.getValue(regName);
 	}
 	
-	default IElytraPose getElytraPose(PlayerEntity player) {
+	/**
+	 * Get the {@link IElytraPose} for a player in the current state.
+	 */
+	default @Nullable IElytraPose getElytraPose(PlayerEntity player) {
 		return null;
 	}
 	
 	/**
-	 * Boilerplate for enum based IFlightMode s
+	 * Boilerplate for enum based IFlightMode s, taking use of the Enum#name() method
 	 */
 	interface IEnumFlightMode extends IFlightMode {
 		String name();
