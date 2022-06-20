@@ -2,6 +2,7 @@ package endorh.aerobaticelytra.integration.jei.category;
 
 import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
+import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.ModResources;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
 import endorh.aerobaticelytra.common.item.AerobaticElytraWingItem;
@@ -9,7 +10,6 @@ import endorh.aerobaticelytra.common.item.ModItems;
 import endorh.aerobaticelytra.common.recipe.BannerRecipe;
 import endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiHelper;
 import endorh.aerobaticelytra.integration.jei.category.BannerRecipeCategory.BannerRecipeWrapper;
-import endorh.aerobaticelytra.AerobaticElytra;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -36,7 +36,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiHelper.*;
-import static endorh.util.text.TextUtil.*;
+import static endorh.util.text.TextUtil.optSplitTtc;
+import static endorh.util.text.TextUtil.ttc;
 
 public class BannerRecipeCategory extends BaseCategory<BannerRecipeWrapper> {
 	public static final ResourceLocation UID = AerobaticElytra.prefix("banner");

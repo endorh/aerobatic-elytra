@@ -2,9 +2,9 @@ package endorh.aerobaticelytra.common.recipe;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonSyntaxException;
-import endorh.util.network.PacketBufferUtil;
 import endorh.util.nbt.NBTPredicate;
 import endorh.util.nbt.NBTPredicate.NBTPredicateParseException;
+import endorh.util.network.PacketBufferUtil;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.Ingredient;
@@ -99,7 +99,7 @@ public class ItemSelector implements Predicate<ItemStack> {
 		this.tags = tags.stream().collect(Collectors.toMap(r -> {
 			final ITag<Item> tag = itemTags.get(r);
 			if (tag == null)
-				throw new IllegalArgumentException("Unknown item tag name: \"" + tag + "\"");
+				throw new IllegalArgumentException("Unknown item tag name: \"" + r + "\"");
 			return tag;
 		}, r -> r));
 		this.nbtPredicate = nbtPredicate;

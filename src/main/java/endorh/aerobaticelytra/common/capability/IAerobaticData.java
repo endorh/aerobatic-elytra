@@ -1,7 +1,7 @@
 package endorh.aerobaticelytra.common.capability;
 
-import endorh.aerobaticelytra.common.flight.AerobaticFlight.VectorBase;
 import endorh.aerobaticelytra.client.sound.AerobaticElytraSound;
+import endorh.aerobaticelytra.common.flight.AerobaticFlight.VectorBase;
 import endorh.util.math.Vec3d;
 import net.minecraft.client.audio.ElytraSound;
 import net.minecraft.entity.player.PlayerEntity;

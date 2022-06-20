@@ -12,8 +12,8 @@ import endorh.aerobaticelytra.common.capability.IElytraSpec.RocketStar;
 import endorh.aerobaticelytra.common.capability.IElytraSpec.TrailData;
 import endorh.aerobaticelytra.common.flight.AerobaticFlight.VectorBase;
 import endorh.aerobaticelytra.common.item.ElytraDyement.WingSide;
-import endorh.aerobaticelytra.common.particle.TrailParticleData;
 import endorh.aerobaticelytra.common.item.IAbility.Ability;
+import endorh.aerobaticelytra.common.particle.TrailParticleData;
 import endorh.util.math.Vec3d;
 import endorh.util.math.Vec3f;
 import net.minecraft.client.Minecraft;
@@ -29,7 +29,7 @@ import java.util.*;
 import static endorh.aerobaticelytra.common.capability.IElytraSpec.RocketStar.*;
 import static java.lang.Math.max;
 import static java.lang.Math.round;
-import static net.minecraft.util.math.MathHelper.*;
+import static net.minecraft.util.math.MathHelper.clampedLerp;
 
 public class AerobaticTrail {
 	public static final Map<Byte, BoostShape> SHAPES = new HashMap<>();

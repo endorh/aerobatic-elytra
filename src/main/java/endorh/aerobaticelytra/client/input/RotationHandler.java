@@ -5,8 +5,8 @@ import endorh.aerobaticelytra.client.config.ClientConfig;
 import endorh.aerobaticelytra.common.capability.IAerobaticData;
 import endorh.aerobaticelytra.common.config.Config;
 import endorh.aerobaticelytra.common.config.Const;
-import endorh.aerobaticelytra.common.flight.AerobaticFlight.VectorBase;
 import endorh.aerobaticelytra.common.flight.AerobaticFlight;
+import endorh.aerobaticelytra.common.flight.AerobaticFlight.VectorBase;
 import endorh.flight_core.events.PlayerEntityRotateEvent;
 import net.minecraft.client.GameSettings;
 import net.minecraft.client.Minecraft;
@@ -19,10 +19,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import static endorh.aerobaticelytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
-import static java.lang.Math.abs;
-import static java.lang.String.format;
 import static endorh.util.math.Interpolator.clampedLerp;
-import static net.minecraft.util.math.MathHelper.*;
+import static java.lang.Math.abs;
+import static net.minecraft.util.math.MathHelper.clamp;
+import static net.minecraft.util.math.MathHelper.signum;
 
 /**
  * Handle Player rotation events

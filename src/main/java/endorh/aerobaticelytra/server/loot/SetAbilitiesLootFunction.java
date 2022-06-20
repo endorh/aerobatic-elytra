@@ -45,8 +45,8 @@ public class SetAbilitiesLootFunction extends LootFunction {
 	}
 	
 	public static class Builder extends LootFunction.Builder<SetAbilitiesLootFunction.Builder> {
-		private Map<IAbility, Float> abilities = new HashMap<>();
-		private Map<String, Float> unknown = new HashMap<>();
+		private final Map<IAbility, Float> abilities = new HashMap<>();
+		private final Map<String, Float> unknown = new HashMap<>();
 		
 		@Override protected @NotNull Builder doCast() {
 			return this;

@@ -2,11 +2,11 @@ package endorh.aerobaticelytra.integration.jei.category;
 
 import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
+import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.ModResources;
 import endorh.aerobaticelytra.common.item.ModItems;
 import endorh.aerobaticelytra.common.recipe.JoinRecipe;
 import endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiHelper;
-import endorh.aerobaticelytra.AerobaticElytra;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.gui.ingredient.IGuiItemStackGroup;

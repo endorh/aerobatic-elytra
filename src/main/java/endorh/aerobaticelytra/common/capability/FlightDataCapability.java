@@ -123,7 +123,7 @@ public class FlightDataCapability {
 	 * Default implementation for {@link IFlightData}
 	 */
 	public static class FlightData implements IFlightData {
-		@SuppressWarnings({"unused", "FieldCanBeLocal"})
+		@SuppressWarnings({"unused"})
 		protected final WeakReference<PlayerEntity> player;
 		protected @Nonnull IFlightMode mode = FlightModes.ELYTRA_FLIGHT;
 		

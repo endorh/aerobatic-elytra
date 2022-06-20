@@ -1,11 +1,11 @@
 package endorh.aerobaticelytra.common.recipe;
 
 import com.mojang.datafixers.util.Pair;
+import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
+import endorh.aerobaticelytra.common.item.AerobaticElytraWingItem;
 import endorh.aerobaticelytra.common.item.ElytraDyement;
 import endorh.aerobaticelytra.common.item.ElytraDyement.WingDyement;
 import endorh.aerobaticelytra.common.item.ElytraDyement.WingSide;
-import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
-import endorh.aerobaticelytra.common.item.AerobaticElytraWingItem;
 import endorh.util.common.ColorUtil;
 import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.item.*;

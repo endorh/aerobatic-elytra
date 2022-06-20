@@ -5,7 +5,10 @@ import endorh.aerobaticelytra.client.block.ModBlockColors;
 import endorh.aerobaticelytra.common.config.Config;
 import endorh.aerobaticelytra.common.config.Config.collision.leave_breaking;
 import endorh.aerobaticelytra.common.tile.BrokenLeavesTileEntity;
-import net.minecraft.block.*;
+import net.minecraft.block.AbstractBlock;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.LeavesBlock;
+import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.tileentity.TileEntity;
@@ -24,7 +27,8 @@ import net.minecraftforge.common.util.Constants.BlockFlags;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Optional;
+import java.util.Random;
 
 import static endorh.aerobaticelytra.AerobaticElytra.prefix;
 import static net.minecraft.tags.BlockTags.LEAVES;

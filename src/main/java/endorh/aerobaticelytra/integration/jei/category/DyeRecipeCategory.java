@@ -1,13 +1,13 @@
 package endorh.aerobaticelytra.integration.jei.category;
 
 import com.google.common.collect.ImmutableList;
+import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.ModResources;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
 import endorh.aerobaticelytra.common.item.AerobaticElytraWingItem;
 import endorh.aerobaticelytra.common.item.ModItems;
 import endorh.aerobaticelytra.common.recipe.DyeRecipe;
 import endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiHelper;
-import endorh.aerobaticelytra.AerobaticElytra;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -28,12 +28,16 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiHelper.*;
-import static endorh.util.text.TextUtil.*;
+import static endorh.util.text.TextUtil.optSplitTtc;
+import static endorh.util.text.TextUtil.ttc;
 import static java.lang.Math.ceil;
 import static java.lang.Math.min;
 

@@ -1,6 +1,8 @@
 package endorh.aerobaticelytra.common.registry;
 
-import com.google.gson.*;
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.common.AerobaticElytraLogic;
 import endorh.aerobaticelytra.common.capability.ElytraSpecCapability;
@@ -26,7 +28,8 @@ import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.lang.Math.max;

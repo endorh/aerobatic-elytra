@@ -2,10 +2,10 @@ package endorh.aerobaticelytra.client.sound;
 
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.config.ClientConfig;
+import endorh.aerobaticelytra.common.AerobaticElytraLogic;
 import endorh.aerobaticelytra.common.capability.IAerobaticData;
 import endorh.aerobaticelytra.common.config.Config;
 import endorh.aerobaticelytra.common.flight.mode.FlightModeTags;
-import endorh.aerobaticelytra.common.AerobaticElytraLogic;
 import endorh.util.common.LogUtil;
 import endorh.util.common.ObfuscationReflectionUtil;
 import endorh.util.common.ObfuscationReflectionUtil.SoftField;

@@ -1,6 +1,7 @@
 package endorh.aerobaticelytra.integration.jei.category;
 
 import com.google.common.collect.ImmutableList;
+import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.ModResources;
 import endorh.aerobaticelytra.client.trail.AerobaticTrail.RocketSide;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
@@ -8,7 +9,6 @@ import endorh.aerobaticelytra.common.item.AerobaticElytraWingItem;
 import endorh.aerobaticelytra.common.item.ModItems;
 import endorh.aerobaticelytra.common.recipe.TrailRecipe;
 import endorh.aerobaticelytra.integration.jei.category.TrailRecipeCategory.TrailRecipeWrapper;
-import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.util.text.TextUtil;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
@@ -36,7 +36,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiHelper.*;
-import static endorh.util.text.TextUtil.*;
+import static endorh.util.text.TextUtil.optSplitTtc;
+import static endorh.util.text.TextUtil.splitTtc;
 import static net.minecraft.item.ItemStack.EMPTY;
 
 public class TrailRecipeCategory extends BaseCategory<TrailRecipeWrapper> {

@@ -14,10 +14,10 @@ import endorh.aerobaticelytra.common.config.Config;
 import endorh.aerobaticelytra.common.flight.mode.FlightModeTags;
 import endorh.aerobaticelytra.common.item.ElytraDyement.WingDyement;
 import endorh.aerobaticelytra.common.item.ElytraDyement.WingSide;
+import endorh.aerobaticelytra.common.item.IAbility.Ability;
 import endorh.aerobaticelytra.common.recipe.CreativeTabAbilitySetRecipe;
 import endorh.aerobaticelytra.common.recipe.RepairRecipe;
 import endorh.aerobaticelytra.common.recipe.SplitRecipe;
-import endorh.aerobaticelytra.common.item.IAbility.Ability;
 import endorh.util.common.ColorUtil;
 import endorh.util.nbt.NBTPath;
 import net.minecraft.block.DispenserBlock;
@@ -68,7 +68,6 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 		this(new Item.Properties());
 	}
 	public static final String NAME = "aerobatic_elytra";
-	@SuppressWarnings({"FieldMayBeFinal", "FieldCanBeLocal"})
 	public static int DEFAULT_COLOR = 0x8F9EAE;
 	protected final ElytraDyement dyement = new ElytraDyement();
 	

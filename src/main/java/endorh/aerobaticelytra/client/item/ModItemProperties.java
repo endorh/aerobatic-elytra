@@ -1,11 +1,11 @@
 package endorh.aerobaticelytra.client.item;
 
 import endorh.aerobaticelytra.client.config.ClientConfig.style.visibility;
-import endorh.aerobaticelytra.common.item.ElytraDyement;
 import endorh.aerobaticelytra.common.capability.IElytraSpec;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
-import endorh.aerobaticelytra.common.item.ModItems;
+import endorh.aerobaticelytra.common.item.ElytraDyement;
 import endorh.aerobaticelytra.common.item.IAbility.Ability;
+import endorh.aerobaticelytra.common.item.ModItems;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.inventory.EquipmentSlotType;
