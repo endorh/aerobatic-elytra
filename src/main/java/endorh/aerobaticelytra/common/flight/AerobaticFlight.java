@@ -134,12 +134,12 @@ public class AerobaticFlight {
 		Vec3f windVec = WeatherData.getWindVector(player);
 		rainAcc.set(
 		  0F,
-		  -rain * Config.weather.rain.rain_strength_per_tick - storm * Config.weather.storm.rain_strength_per_tick,
+		  -rain * Config.weather.rain.rain_strength_tick - storm * Config.weather.storm.rain_strength_tick,
 		  0F);
 		
 		// Update boost
 		if (!data.isBoosted()
-		    && data.getPropulsionStrength() == propulsion.max_tick
+		    && data.getPropulsionStrength() == propulsion.range_tick.getFloatMax()
 		    && data.isSprinting() && data.getBoostHeat() <= 0.2F
 		) {
 			data.setBoosted(true);
@@ -163,11 +163,11 @@ public class AerobaticFlight {
 			player.setSprinting(false);
 		
 		// Update acceleration
-		float propAccStrength = (propulsion.max_tick - propulsion.min_tick) / 20F; // 1 second
+		float propAccStrength = propulsion.range_length / 20F; // 1 second
 		float propAcc = data.getPropulsionAcceleration();
 		data.setPropulsionStrength(clamp(
 		  data.getPropulsionStrength() + propAcc * propAccStrength,
-		  propulsion.min_tick, propulsion.max_tick));
+		  propulsion.range_tick.getFloatMin(), propulsion.range_tick.getFloatMax()));
 		if (travelVector != null) {
 			propAcc = (float) clamp((propAcc + 2 * Math.signum(travelVector.z)) / 3, -1F, 1F);
 			data.setPropulsionAcceleration(propAcc);
@@ -228,10 +228,10 @@ public class AerobaticFlight {
 		
 		// Gravity acceleration
 		gravAccVec.set(
-		  0, -(float) grav * physics.gravity_multiplier - brakeStrength * braking.gravity_per_tick, 0);
+		  0, -(float) grav * physics.gravity_multiplier - brakeStrength * braking.added_gravity_tick, 0);
 		float stasis = player.isInWater()? 0F :
-		               Interpolator.quadInOut(1F - propStrength / propulsion.max_tick);
-		gravAccVec.y -= stasis * physics.motorless_gravity_per_tick;
+		               Interpolator.quadInOut(1F - propStrength / propulsion.range_tick.getFloatMax());
+		gravAccVec.y -= stasis * physics.motorless_gravity_tick;
 		
 		// Friction
 		float friction;
@@ -416,7 +416,7 @@ public class AerobaticFlight {
 			  propulsion.takeoff_tick +
 			  signum(propStrength - propulsion.takeoff_tick) *
 			  max(0F, abs(propStrength - propulsion.takeoff_tick) -
-			          step * max(propulsion.max_tick, propulsion.min_tick)));
+			          step * max(propulsion.range_tick.getFloatMax(), propulsion.range_tick.getFloatMin())));
 		}
 		float boostHeat = data.getBoostHeat();
 		if (boostHeat > 0F) {

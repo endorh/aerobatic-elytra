@@ -4,7 +4,7 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.common.capability.IAerobaticData;
 import endorh.aerobaticelytra.common.config.Const;
-import endorh.flight_core.events.ApplyRotationsRenderPlayerEvent;
+import endorh.flightcore.events.SetupRotationsRenderPlayerEvent;
 import endorh.util.math.Interpolator;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerModelPart;
@@ -40,7 +40,7 @@ public class PlayerRendererHandler {
 	 */
 	@SubscribeEvent
 	public static void onApplyRotationsRenderPlayerEvent(
-	  ApplyRotationsRenderPlayerEvent event
+	  SetupRotationsRenderPlayerEvent event
 	) {
 		PlayerEntity player = event.player;
 		IAerobaticData data = getAerobaticDataOrDefault(player);

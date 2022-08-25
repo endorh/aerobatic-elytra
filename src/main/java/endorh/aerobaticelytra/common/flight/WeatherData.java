@@ -364,11 +364,11 @@ public class WeatherData {
 			float storm = region.world.getThunderStrength(1F);
 			if (rain > 0F || !wind.isZero(1E-5)) {
 				float wind_randomness =
-				  weather.rain.wind_randomness_per_tick * rain * weather.rain.wind_strength_per_tick
-				  + weather.storm.wind_randomness_per_tick * storm * weather.storm.wind_strength_per_tick;
+				  weather.rain.wind_randomness_tick * rain * weather.rain.wind_strength_tick
+				  + weather.storm.wind_randomness_tick * storm * weather.storm.wind_strength_tick;
 				if (wind_randomness > 0F) {
-					float strength = rain * weather.rain.wind_strength_per_tick + storm * weather.storm.wind_strength_per_tick;
-					float delta = rain * weather.rain.wind_randomness_per_tick + storm * weather.storm.wind_randomness_per_tick;
+					float strength = rain * weather.rain.wind_strength_tick + storm * weather.storm.wind_strength_tick;
+					float delta = rain * weather.rain.wind_randomness_tick + storm * weather.storm.wind_randomness_tick;
 					
 					last.set(wind);
 					if (wind.isZero(1E-5))
@@ -380,15 +380,15 @@ public class WeatherData {
 					wind.lerp(last, 0.6F);
 					
 					angularWindDelta.setRandom(
-					  weather.rain.wind_randomness_per_tick * rain *
-					  weather.rain.wind_angular_strength_per_tick
-					  + weather.storm.wind_randomness_per_tick * storm *
-					    weather.storm.wind_angular_strength_per_tick
+					  weather.rain.wind_randomness_tick * rain *
+					  weather.rain.wind_angular_strength_tick
+					  + weather.storm.wind_randomness_tick * storm *
+					    weather.storm.wind_angular_strength_tick
 					);
 					angularWind.add(angularWindDelta);
 					angularWind.clamp(
-					  rain * weather.rain.wind_angular_strength_per_tick
-					  + storm * weather.storm.wind_angular_strength_per_tick);
+					  rain * weather.rain.wind_angular_strength_tick
+					  + storm * weather.storm.wind_angular_strength_tick);
 				}
 				new SWindNodePacket(this).sendTracking();
 			}

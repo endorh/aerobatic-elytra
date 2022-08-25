@@ -3,8 +3,8 @@ package endorh.aerobaticelytra.common.flight;
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.common.flight.mode.IFlightMode;
 import endorh.aerobaticelytra.common.registry.ModRegistries;
-import endorh.flight_core.events.PlayerEntityTravelEvent;
-import endorh.flight_core.events.PlayerEntityTravelEvent.RemotePlayerEntityTravelEvent;
+import endorh.flightcore.events.PlayerTravelEvent;
+import endorh.flightcore.events.PlayerTravelEvent.RemotePlayerEntityTravelEvent;
 import endorh.util.common.ObfuscationReflectionUtil;
 import endorh.util.common.ObfuscationReflectionUtil.SoftField;
 import net.minecraft.entity.LivingEntity;
@@ -57,7 +57,7 @@ public class TravelHandler {
 	 * @see LivingEntity#travel
 	 */
 	@SubscribeEvent
-	public static void onPlayerEntityTravelEvent(PlayerEntityTravelEvent event) {
+	public static void onPlayerEntityTravelEvent(PlayerTravelEvent event) {
 		PlayerEntity player = event.player;
 		getFlightData(player).ifPresent(fd -> {
 			final IFlightMode mode = fd.getFlightMode();

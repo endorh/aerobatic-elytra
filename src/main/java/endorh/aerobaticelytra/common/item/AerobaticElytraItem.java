@@ -309,9 +309,7 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 		if (entity instanceof PlayerEntity) {
 			IAerobaticData data = getAerobaticDataOrDefault((PlayerEntity) entity);
 			if (data.isFlying() && !((PlayerEntity) entity).isCreative()) {
-				float rel_prop = abs(data.getPropulsionStrength()) /
-				                 max(abs(Config.aerobatic.propulsion.max_tick),
-				                     abs(Config.aerobatic.propulsion.min_tick));
+				float rel_prop = abs(data.getPropulsionStrength()) / Config.aerobatic.propulsion.span;
 				float fuel_usage = rel_prop * Config.fuel.usage_linear_tick +
 				                   rel_prop * rel_prop * Config.fuel.usage_quad_tick +
 				                   MathHelper.sqrt(rel_prop) * Config.fuel.usage_sqrt_tick;

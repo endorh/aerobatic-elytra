@@ -2,7 +2,7 @@ package endorh.aerobaticelytra.client.render;
 
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.common.AerobaticElytraLogic;
-import endorh.flight_core.events.CancelCapeRenderEvent;
+import endorh.flightcore.events.CancelCapeRenderEvent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;

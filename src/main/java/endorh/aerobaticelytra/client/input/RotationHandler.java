@@ -7,7 +7,7 @@ import endorh.aerobaticelytra.common.config.Config;
 import endorh.aerobaticelytra.common.config.Const;
 import endorh.aerobaticelytra.common.flight.AerobaticFlight;
 import endorh.aerobaticelytra.common.flight.AerobaticFlight.VectorBase;
-import endorh.flight_core.events.PlayerEntityRotateEvent;
+import endorh.flightcore.events.PlayerTurnEvent;
 import net.minecraft.client.GameSettings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.PointOfView;
@@ -33,7 +33,6 @@ public class RotationHandler {
 	public static final float ROLL_SENS_PRESCALE = 0.012F;
 	public static final float PITCH_SENS_PRESCALE = 0.02F;
 	public static final float YAW_SENS_PRESCALE = 0.1F;
-	private static final Logger LOGGER = LogManager.getLogger();
 	
 	private static boolean flying = false;
 	
@@ -41,7 +40,7 @@ public class RotationHandler {
 	 * Event filter for the player rotation<br>
 	 */
 	@SubscribeEvent
-	public static void onPlayerEntityRotateEvent(PlayerEntityRotateEvent event) {
+	public static void onPlayerEntityRotateEvent(PlayerTurnEvent event) {
 		PlayerEntity player = event.player;
 		if (AerobaticFlight.isAerobaticFlying(player)) {
 			flying = true;

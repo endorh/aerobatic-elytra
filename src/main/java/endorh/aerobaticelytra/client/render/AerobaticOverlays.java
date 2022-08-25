@@ -47,8 +47,8 @@ public class AerobaticOverlays {
 	
 	public static void showModeToast(IFlightMode modeIn) {
 		mode = modeIn;
-		toastEnd = currentTimeMillis() + visual.mode_toast_length_millis;
-		remainingToastTime = visual.mode_toast_length_millis;
+		toastEnd = currentTimeMillis() + visual.mode_toast_length_ms;
+		remainingToastTime = visual.mode_toast_length_ms;
 	}
 	
 	@SubscribeEvent
@@ -57,7 +57,7 @@ public class AerobaticOverlays {
 			Minecraft mc = Minecraft.getInstance();
 			PlayerEntity pl = mc.player;
 			assert pl != null;
-			float alpha = remainingToastTime / (float) visual.mode_toast_length_millis;
+			float alpha = remainingToastTime / (float) visual.mode_toast_length_ms;
 			renderToast(mode, alpha, event.getMatrixStack(),
 			            mc.getTextureManager(), event.getWindow());
 			final long t = currentTimeMillis();
@@ -224,8 +224,8 @@ public class AerobaticOverlays {
 		IAerobaticData data = AerobaticDataCapability.getAerobaticDataOrDefault(player);
 		float pr = data.getPropulsionStrength();
 		int prop = (int)(
-		  (pr >= 0F? pr / Config.aerobatic.propulsion.positive_range
-		           : pr / Config.aerobatic.propulsion.negative_range
+		  (pr >= 0F? pr / Config.aerobatic.propulsion.positive_span
+		           : pr / Config.aerobatic.propulsion.negative_span
 		  ) * barLength);
 		int boost = (int)(data.getBoostHeat() * barLength);
 		int brake_heat = (int)((1.0 - Math.pow(1F - data.getBrakeHeat(), 1.4)) * barLength);

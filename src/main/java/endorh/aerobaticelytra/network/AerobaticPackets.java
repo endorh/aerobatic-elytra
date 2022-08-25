@@ -5,6 +5,7 @@ import endorh.aerobaticelytra.common.capability.FlightDataCapability;
 import endorh.aerobaticelytra.common.capability.IAerobaticData;
 import endorh.aerobaticelytra.common.capability.IFlightData;
 import endorh.aerobaticelytra.common.config.Config;
+import endorh.aerobaticelytra.common.config.Config.aerobatic.propulsion;
 import endorh.aerobaticelytra.common.config.Const;
 import endorh.aerobaticelytra.common.flight.AerobaticFlight.VectorBase;
 import endorh.aerobaticelytra.common.flight.mode.IFlightMode;
@@ -233,7 +234,7 @@ public class AerobaticPackets {
 		@Override public void onCommon(PlayerEntity sender, Context ctx) {
 			IAerobaticData data = getAerobaticDataOrDefault(sender);
 			data.setPropulsionStrength(
-			  validateClamp(propStrength, Config.aerobatic.propulsion.min_tick, Config.aerobatic.propulsion.max_tick));
+			  validateClamp(propStrength, propulsion.range_tick.getFloatMin(), propulsion.range_tick.getFloatMax()));
 			data.setBrakeStrength(validateClamp(brakeStrength, 0F, 1F));
 		}
 		@Override protected void serialize(PacketBuffer buf) {

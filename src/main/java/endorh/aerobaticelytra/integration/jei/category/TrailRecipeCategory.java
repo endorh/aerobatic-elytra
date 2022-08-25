@@ -98,11 +98,11 @@ public class TrailRecipeCategory extends BaseCategory<TrailRecipeWrapper> {
 				tooltip.addAll(TextUtil.splitTtc(
 				  "aerobaticelytra.recipe.trail.applies_to_side",
 				  RocketSide.values()[i - 1].getDisplayName().mergeStyle(TextFormatting.GRAY)
-				).mergeStyle(TextFormatting.DARK_GRAY));
+				).withStyle(TextFormatting.DARK_GRAY));
 				if (recipe.clear)
 					tooltip.addAll(
 					  splitTtc("aerobaticelytra.recipe.trail.clears_trail")
-					    .mergeStyle(TextFormatting.DARK_GRAY));
+					    .withStyle(TextFormatting.DARK_GRAY));
 			}
 		});
 	}

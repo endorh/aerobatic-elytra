@@ -3,7 +3,7 @@ package endorh.aerobaticelytra.server;
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.common.config.Config;
 import endorh.aerobaticelytra.common.flight.AerobaticFlight;
-import endorh.flight_core.events.DisableElytraCheckEvent;
+import endorh.flightcore.events.DisableElytraCheckEvent;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;

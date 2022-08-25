@@ -113,7 +113,7 @@ public class CameraHandler {
 			double newFOV = 0D;
 			if (data.isFlying()) {
 				final double f = Math.min(1D, data.ticksFlying() / 4D);
-				final double p = abs(data.getPropulsionStrength()) / Config.aerobatic.propulsion.range * 10;
+				final double p = abs(data.getPropulsionStrength()) / Config.aerobatic.propulsion.span * 10;
 				final double b = data.isBoosted()? 15 : 0;
 				newFOV = f * (p + b) * visual.fov_effect_strength;
 			}

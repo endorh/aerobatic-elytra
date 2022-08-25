@@ -9,24 +9,25 @@ license="${license}"
 	#updateJSONURL="${update_json}"
 	#displayURL="${page}"
 	logoFile="${logo_file}"
+    itemIcon="aerobaticelytra:aerobatic_elytra"
 	credits="${credits}"
 	authors="${authors}"
 	description='''${description}'''
 [[dependencies.aerobaticelytra]]
-    modId="flight-core"
+    modId="flightcore"
     mandatory=true
-    versionRange="[0.1,1)"
+    versionRange="[0.5,1.0)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.aerobaticelytra]]
-    modId="simple-config"
-    versionRange="[0.1,1.0)"
+    modId="simpleconfig"
+    versionRange="[1.0,2.0)"
     mandatory=true
     ordering="NONE"
     side="BOTH"
 [[dependencies.aerobaticelytra]]
-    modId="endor-util"
-    versionRange="[0.1,1.0)"
+    modId="endorutil"
+    versionRange="[0.5,1.0)"
     mandatory=true
     ordering="NONE"
     side="BOTH"

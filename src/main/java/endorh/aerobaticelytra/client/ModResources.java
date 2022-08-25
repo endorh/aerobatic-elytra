@@ -16,10 +16,7 @@ import java.util.function.Function;
 /**
  * Centralization of client {@link ResourceLocation}s
  */
-@EventBusSubscriber(value=Dist.CLIENT, bus = Bus.MOD, modid = AerobaticElytra.MOD_ID)
 public class ModResources {
-	private static final Logger LOGGER = LogManager.getLogger();
-	
 	public static final ResourceLocation FLIGHT_GUI_ICONS_LOCATION =
 	  AerobaticElytra.prefix("textures/gui/flight_icons.png");
 	public static final ResourceLocation TEXTURE_AEROBATIC_ELYTRA =
