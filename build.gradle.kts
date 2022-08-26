@@ -30,8 +30,8 @@ val modVersion = "0.2.18"
 val mcVersion = "1.16.5"
 val forge = "36.1.0"
 val forgeVersion = "$mcVersion-$forge"
-val mappingsChannel = "snapshot"
-val mappingsVersion = "20201028-1.16.3"
+val mappingsChannel = "official"
+val mappingsVersion = "1.16.5"
 
 group = modGroup
 version = modVersion

@@ -39,13 +39,13 @@ public class AerobaticElytraLogic {
 	}
 	
 	public static boolean isRemoteClientPlayerEntity(PlayerEntity player) {
-		if (!player.world.isRemote)
+		if (!player.level.isClientSide)
 			return false;
 		return (player instanceof RemoteClientPlayerEntity);
 	}
 	
 	public static boolean isClientPlayerEntity(PlayerEntity player) {
-		if (!player.world.isRemote)
+		if (!player.level.isClientSide)
 			return false;
 		return (player instanceof ClientPlayerEntity);
 	}
@@ -54,7 +54,7 @@ public class AerobaticElytraLogic {
 	 * Get the elytra itemStack, or empty if the entity doesn't have one equipped
 	 */
 	public static ItemStack getAerobaticElytra(LivingEntity entity) {
-		ItemStack chest = entity.getItemStackFromSlot(EquipmentSlotType.CHEST);
+		ItemStack chest = entity.getItemBySlot(EquipmentSlotType.CHEST);
 		ItemStack elytra = ItemStack.EMPTY;
 		if (chest.getItem() instanceof AerobaticElytraItem)
 			return chest;

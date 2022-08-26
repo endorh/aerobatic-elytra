@@ -53,13 +53,13 @@ public class BrokenLeavesBlock extends LeavesBlock {
 	
 	private static AbstractBlock.Properties createBlockProperties() {
 		return AbstractBlock.Properties
-		  .create(Material.LEAVES).hardnessAndResistance(0.2F)
-		  .sound(SoundType.PLANT).notSolid()
-		  .setAllowsSpawn((state, reader, pos, type) -> false)
-		  .setSuffocates((state, reader, pos) -> false)
-		  .setBlocksVision((state, reader, pos) -> false)
-		  .tickRandomly()
-		  .doesNotBlockMovement().noDrops();
+		  .of(Material.LEAVES).strength(0.2F)
+		  .sound(SoundType.GRASS).noOcclusion()
+		  .isValidSpawn((state, reader, pos, type) -> false)
+		  .isSuffocating((state, reader, pos) -> false)
+		  .isViewBlocking((state, reader, pos) -> false)
+		  .randomTicks()
+		  .noCollission().noDrops();
 	}
 	
 	@Override public boolean hasTileEntity(BlockState state) {
@@ -72,15 +72,15 @@ public class BrokenLeavesBlock extends LeavesBlock {
 	
 	@SuppressWarnings("deprecation")
 	@Override
-	public void onEntityCollision(
+	public void entityInside(
 	  @NotNull BlockState state, @NotNull World world, @NotNull BlockPos pos, Entity entity
 	) {
 		final float fallDistance = entity.fallDistance;
-		entity.setMotionMultiplier(state, new Vector3d(
+		entity.makeStuckInBlock(state, new Vector3d(
 		  Config.collision.leave_breaking.motion_multiplier,
 		  Config.collision.leave_breaking.motion_multiplier,
 		  Config.collision.leave_breaking.motion_multiplier));
-		if (entity.getMotion().lengthSquared() > 0.25D)
+		if (entity.getDeltaMovement().lengthSqr() > 0.25D)
 			entity.fallDistance = fallDistance;
 	}
 	
@@ -93,37 +93,37 @@ public class BrokenLeavesBlock extends LeavesBlock {
 	 * @throws IllegalArgumentException if leaves aren't found at pos on the server
 	 */
 	public static void breakLeaves(World world, BlockPos pos) {
-		if (world.isRemote) {
-			world.playSound(
-			  pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_GRASS_BREAK,
+		if (world.isClientSide) {
+			world.playLocalSound(
+			  pos.getX(), pos.getY(), pos.getZ(), SoundEvents.GRASS_BREAK,
 			  SoundCategory.BLOCKS, 1F, 1F, false);
 			return;
 		}
 		final BlockState prevBlockState = world.getBlockState(pos);
-		if (!prevBlockState.getBlock().isIn(BlockTags.LEAVES))
+		if (!prevBlockState.getBlock().is(BlockTags.LEAVES))
 			throw new IllegalArgumentException(
 			  "Attempt to replace non leaves block with broken leaves");
-		final Integer dist = prevBlockState.get(DISTANCE);
+		final Integer dist = prevBlockState.getValue(DISTANCE);
 		final BlockPos.Mutable cursor = new Mutable();
 		for (Direction direction : Direction.values()) {
-			cursor.setAndMove(pos, direction);
+			cursor.setWithOffset(pos, direction);
 			final BlockState adj = world.getBlockState(cursor);
-			if (adj.getBlock().isIn(BlockTags.LEAVES) && !adj.get(PERSISTENT)
-			    && adj.get(DISTANCE) < 7 && adj.get(DISTANCE) > dist)
+			if (adj.getBlock().is(BlockTags.LEAVES) && !adj.getValue(PERSISTENT)
+			    && adj.getValue(DISTANCE) < 7 && adj.getValue(DISTANCE) > dist)
 				breakLeaves(world, cursor);
 		}
-		world.setBlockState(
-		  pos, ModBlocks.BROKEN_LEAVES.getDefaultState()
-			 .with(DISTANCE, prevBlockState.get(DISTANCE))
-			 .with(PERSISTENT, prevBlockState.get(PERSISTENT)),
+		world.setBlock(
+		  pos, ModBlocks.BROKEN_LEAVES.defaultBlockState()
+			 .setValue(DISTANCE, prevBlockState.getValue(DISTANCE))
+			 .setValue(PERSISTENT, prevBlockState.getValue(PERSISTENT)),
 		  BlockFlags.DEFAULT);
-		TileEntity tile = world.getTileEntity(pos);
+		TileEntity tile = world.getBlockEntity(pos);
 		if (!(tile instanceof BrokenLeavesTileEntity))
 			throw new IllegalStateException(
 			  "Broken leaves block did not have BrokenLeavesTileEntity");
 		BrokenLeavesTileEntity te = (BrokenLeavesTileEntity) tile;
 		te.replacedLeaves = prevBlockState;
-		te.markDirty();
+		te.setChanged();
 	}
 	
 	public void tryRestoreBrokenLeaves(
@@ -132,19 +132,19 @@ public class BrokenLeavesBlock extends LeavesBlock {
 		final BlockState bs = world.getBlockState(pos);
 		if (!(bs.getBlock() == ModBlocks.BROKEN_LEAVES))
 			return;
-		TileEntity tile = world.getTileEntity(pos);
+		TileEntity tile = world.getBlockEntity(pos);
 		if (!(tile instanceof BrokenLeavesTileEntity))
 			return;
 		BrokenLeavesTileEntity te = (BrokenLeavesTileEntity) tile;
 		if (te.replacedLeaves != null) {
-			if (world.placedBlockCollides(te.replacedLeaves, pos, ISelectionContext.dummy()))
-				world.setBlockState(pos, te.replacedLeaves);
+			if (world.isUnobstructed(te.replacedLeaves, pos, ISelectionContext.empty()))
+				world.setBlockAndUpdate(pos, te.replacedLeaves);
 		} else {
 			world.destroyBlock(pos, false);
 		}
 	}
 	
-	@Override public boolean ticksRandomly(@NotNull BlockState state) {
+	@Override public boolean isRandomlyTicking(@NotNull BlockState state) {
 		return true;
 	}
 	
@@ -153,14 +153,14 @@ public class BrokenLeavesBlock extends LeavesBlock {
 	  @NotNull BlockPos pos, @NotNull Random random
 	) {
 		super.randomTick(state, world, pos, random);
-		if (!world.isBlockPowered(pos) && world.rand.nextFloat() > leave_breaking.regrow_chance) // 0.4F)
+		if (!world.hasNeighborSignal(pos) && world.random.nextFloat() > leave_breaking.regrow_chance) // 0.4F)
 			tryRestoreBrokenLeaves(world, pos);
 	}
 	
 	public static Optional<BlockState> getStoredBlockState(
 	  IBlockDisplayReader world, BlockPos pos
 	) {
-		TileEntity tile = world.getTileEntity(pos);
+		TileEntity tile = world.getBlockEntity(pos);
 		if (!(tile instanceof BrokenLeavesTileEntity))
 			return Optional.empty();
 		BrokenLeavesTileEntity te = (BrokenLeavesTileEntity) tile;

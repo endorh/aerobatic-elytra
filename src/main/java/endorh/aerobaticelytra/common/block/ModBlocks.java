@@ -48,8 +48,8 @@ public class ModBlocks {
 	@SubscribeEvent
 	public static void onModelBake(ModelBakeEvent event) {
 		final Map<ResourceLocation, IBakedModel> reg = event.getModelRegistry();
-		for (BlockState bs : BROKEN_LEAVES.getStateContainer().getValidStates()) {
-			ModelResourceLocation variantMRL = BlockModelShapes.getModelLocation(bs);
+		for (BlockState bs : BROKEN_LEAVES.getStateDefinition().getPossibleStates()) {
+			ModelResourceLocation variantMRL = BlockModelShapes.stateToModelLocation(bs);
 			IBakedModel existingModel = reg.get(variantMRL);
 			if (existingModel == null)
 				throw new IllegalStateException("Missing fallback model for Broken Leaves block");
@@ -64,6 +64,6 @@ public class ModBlocks {
 	
 	@SubscribeEvent
 	public static void onClientSetup(FMLClientSetupEvent event) {
-		RenderTypeLookup.setRenderLayer(BROKEN_LEAVES, RenderType.getCutoutMipped());
+		RenderTypeLookup.setRenderLayer(BROKEN_LEAVES, RenderType.cutoutMipped());
 	}
 }

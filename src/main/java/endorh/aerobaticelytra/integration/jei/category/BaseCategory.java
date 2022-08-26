@@ -76,7 +76,7 @@ public abstract class BaseCategory<T> implements IRecipeCategory<T> {
 	}
 	
 	@Override public @NotNull String getTitle() {
-		return I18n.format(localizedNameKey);
+		return I18n.get(localizedNameKey);
 	}
 	
 	@Override public @NotNull IDrawable getBackground() {
@@ -120,7 +120,7 @@ public abstract class BaseCategory<T> implements IRecipeCategory<T> {
 		if (focus != null && focus.getMode() == mode) {
 			ItemStack focusStack = (ItemStack) focus.getValue();
 			for (int i = 0; i < focused.size(); i++) {
-				if (focusStack.isItemEqual(focused.get(i))) {
+				if (focusStack.sameItem(focused.get(i))) {
 					return Collections.singletonList(other.get(i));
 				}
 			}

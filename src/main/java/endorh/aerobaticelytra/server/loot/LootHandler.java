@@ -24,13 +24,13 @@ public class LootHandler {
 	  final GenerateEndShipItemFrameEvent event
 	) {
 		LOGGER.debug(event.world);
-		LootTable table = event.world.getServer().getLootTableManager()
-		  .getLootTableFromLocation(ModLootTables.END_SHIP_ELYTRA);
+		LootTable table = event.world.getServer().getLootTables()
+		  .get(ModLootTables.END_SHIP_ELYTRA);
 		
-		List<ItemStack> list = table.generate(
+		List<ItemStack> list = table.getRandomItems(
 		  new LootContext.Builder(event.world).withRandom(event.random)
-		    .withParameter(LootParameters.field_237457_g_, event.getItemFrame().getPositionVec())
-		    .build(LootParameterSets.CHEST));
+		    .withParameter(LootParameters.ORIGIN, event.getItemFrame().position())
+		    .create(LootParameterSets.CHEST));
 		
 		if (!list.isEmpty()) {
 			event.setElytraStack(list.get(0));

@@ -29,27 +29,27 @@ public class ElytraFlight {
 	  PlayerEntity player, @SuppressWarnings("unused") Vector3d travelVector
 	) {
 		// Stop conditions
-		if (!player.isElytraFlying() || player.abilities.isFlying
+		if (!player.isFallFlying() || player.abilities.flying
 		    || !getFlightDataOrDefault(player).getFlightMode().is(FlightModeTags.ELYTRA))
 			return false;
 		final ItemStack elytra = AerobaticElytraLogic.getAerobaticElytra(player);
 		if (elytra.isEmpty())
 			return false;
 		final IElytraSpec spec = ElytraSpecCapability.getElytraSpecOrDefault(elytra);
-		if (((elytra.getDamage() >= elytra.getMaxDamage() - 1 || !(spec.getAbility(FUEL) > 0))
+		if (((elytra.getDamageValue() >= elytra.getMaxDamage() - 1 || !(spec.getAbility(FUEL) > 0))
 		     && !player.isCreative())
 		    || player.isInLava() || player.isInWater())
 			return false;
 		
 		// Previous pos
-		double prevX = player.getPosX();
-		double prevY = player.getPosY();
-		double prevZ = player.getPosZ();
+		double prevX = player.getX();
+		double prevY = player.getY();
+		double prevZ = player.getZ();
 		
 		// Get gravity and apply SLOW_FALLING potion effect as needed
 		double grav = TravelHandler.travelGravity(player);
 		
-		Vector3d motionVec = player.getMotion();
+		Vector3d motionVec = player.getDeltaMovement();
 		
 		double hSpeedPrev = new Vec3f(motionVec).hNorm();
 		
@@ -59,15 +59,15 @@ public class ElytraFlight {
 		}
 		
 		// Compute motion
-		Vector3d look = player.getLookVec();
-		float pitchRad = player.rotationPitch * (float)Math.PI / 180F;
+		Vector3d look = player.getLookAngle();
+		float pitchRad = player.xRot * (float)Math.PI / 180F;
 		double look_hor_norm = Math.sqrt(look.x * look.x + look.z * look.z);
 		double motion_hor_norm = Math.sqrt(motionVec.x * motionVec.x + motionVec.z * motionVec.z);
 		double look_norm = look.length();
 		float pitchCos = MathHelper.cos(pitchRad);
 		pitchCos = (float) ((double) pitchCos * (double) pitchCos *
 		                    min(1.0D, look_norm / 0.4D));
-		motionVec = player.getMotion().add(0.0D, grav * (-1.0D + (double) pitchCos * 0.75D),
+		motionVec = player.getDeltaMovement().add(0.0D, grav * (-1.0D + (double) pitchCos * 0.75D),
 		                                   0.0D);
 		if (motionVec.y < 0.0D && look_hor_norm > 0.0D) {
 			double y_friction = motionVec.y * -0.1D * (double) pitchCos;
@@ -88,37 +88,37 @@ public class ElytraFlight {
 		}
 		
 		// Apply motion
-		player.setMotion(motionVec.mul(0.99F, 0.98F, 0.99F));
-		player.move(MoverType.SELF, player.getMotion());
+		player.setDeltaMovement(motionVec.multiply(0.99F, 0.98F, 0.99F));
+		player.move(MoverType.SELF, player.getDeltaMovement());
 		
 		// Apply collision damage
-		if (player.collidedHorizontally && !player.world.isRemote) {
-			double hSpeedNew = new Vec3f(player.getMotion()).hNorm();
+		if (player.horizontalCollision && !player.level.isClientSide) {
+			double hSpeedNew = new Vec3f(player.getDeltaMovement()).hNorm();
 			double reaction = hSpeedPrev - hSpeedNew;
 			float collisionStrength = (float)(reaction * 10.0D - 3.0D);
 			if (collisionStrength > 0.0F) {
 				player.playSound(
 				  collisionStrength > 4
-				  ? SoundEvents.ENTITY_PLAYER_BIG_FALL
-				  : SoundEvents.ENTITY_PLAYER_SMALL_FALL,
+				  ? SoundEvents.PLAYER_BIG_FALL
+				  : SoundEvents.PLAYER_SMALL_FALL,
 				  1.0F, 1.0F);
-				player.attackEntityFrom(
+				player.hurt(
 				  DamageSource.FLY_INTO_WALL,
 				  collisionStrength);
 			}
 		}
 		
 		// Stop flying when on ground
-		if (player.isOnGround() && player.isServerWorld()) {
+		if (player.isOnGround() && player.isEffectiveAi()) {
 			player.stopFallFlying();
 		}
 		
 		// Update player limbSwingAmount
-		player.func_233629_a_(player, player instanceof IFlyingAnimal);
+		player.calculateEntityAnimation(player, player instanceof IFlyingAnimal);
 		
 		// Add movement stat
-		player.addMovementStat(
-		  player.getPosX() - prevX, player.getPosY() - prevY, player.getPosZ() - prevZ);
+		player.checkMovementStatistics(
+		  player.getX() - prevX, player.getY() - prevY, player.getZ() - prevZ);
 		
 		// Cancel default travel logic
 		return true;

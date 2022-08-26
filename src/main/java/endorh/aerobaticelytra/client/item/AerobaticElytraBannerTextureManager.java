@@ -28,13 +28,13 @@ public class AerobaticElytraBannerTextureManager extends ReloadListener<SheetDat
 		//noinspection unchecked
 		ModelBakery$LOCATIONS_BUILTIN_TEXTURES =
 		  (Set<RenderMaterial>) ObfuscationReflectionUtil.getStaticFieldValue(
-		    ModelBakery.class, "field_177602_b"
+		    ModelBakery.class, "UNREFERENCED_TEXTURES"
 		  ).orElseThrow(() -> new IllegalStateException(
 		    "Could not access ModelBakery$LOCATIONS_BUILTIN_TEXTURES"));
 	}
 	
 	public AerobaticElytraBannerTextureManager(IReloadableResourceManager resourceManager) {
-		resourceManager.addReloadListener(this);
+		resourceManager.registerReloadListener(this);
 		// Add render materials (not thread-safe)
 		for(BannerPattern pattern : BannerPattern.values())
 			ModelBakery$LOCATIONS_BUILTIN_TEXTURES.add(
@@ -43,16 +43,16 @@ public class AerobaticElytraBannerTextureManager extends ReloadListener<SheetDat
 	}
 	
 	public ResourceLocation getTextureLocation(BannerPattern pattern) {
-		return new ResourceLocation(AerobaticElytra.MOD_ID, "entity/aerobatic_elytra/" + pattern.getFileName());
+		return new ResourceLocation(AerobaticElytra.MOD_ID, "entity/aerobatic_elytra/" + pattern.getFilename());
 	}
 	
 	@Override protected @NotNull SheetData prepare(@NotNull IResourceManager resourceManager, IProfiler profiler) {
 		profiler.startTick();
-		profiler.startSection("stitching");
-		final SheetData sheetData = atlas.stitch(
+		profiler.push("stitching");
+		final SheetData sheetData = atlas.prepareToStitch(
 		  resourceManager, Arrays.stream(BannerPattern.values()).map(this::getTextureLocation),
 		  profiler, 2);
-		profiler.endSection();
+		profiler.pop();
 		profiler.endTick();
 		return sheetData;
 	}
@@ -62,9 +62,9 @@ public class AerobaticElytraBannerTextureManager extends ReloadListener<SheetDat
 	  @NotNull IProfiler profiler
 	) {
 		profiler.startTick();
-		profiler.startSection("upload");
-		atlas.upload(sheetData);
-		profiler.endSection();
+		profiler.push("upload");
+		atlas.reload(sheetData);
+		profiler.pop();
 		profiler.endTick();
 	}
 }

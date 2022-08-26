@@ -96,64 +96,64 @@ public class TrailParticle extends SpriteTexturedParticle {
 		setColor(this.color);
 		
 		this.size = size;
-		particleScale = size;
+		quadSize = size;
 		
-		maxAge = max(life, 1);
+		lifetime = max(life, 1);
 		
-		particleAlpha = 1F;
-		particleGravity = 0.05F;
+		alpha = 1F;
+		gravity = 0.05F;
 		if (type == 5)
-			particleGravity = -0.02F;
+			gravity = -0.02F;
 		
 		// Apply partial gravity
-		double prevMotionY = -0.04D * particleGravity * (1F - partialTick);
+		double prevMotionY = -0.04D * gravity * (1F - partialTick);
 		move(0D, prevMotionY, 0D);
 		
-		motionX = speedX;
-		motionY = speedY + prevMotionY;
-		motionZ = speedZ;
+		xd = speedX;
+		yd = speedY + prevMotionY;
+		zd = speedZ;
 		
-		canCollide = true;
+		hasPhysics = true;
 	}
 	
 	private void setColor(Color color) {
 		setColor(color.getRed()/255F, color.getGreen()/255F, color.getBlue()/255F);
 	}
 	
-	@Override public void renderParticle(
+	@Override public void render(
 	  @NotNull IVertexBuilder buffer, @NotNull ActiveRenderInfo renderInfo, float partialTicks
 	) {
 		Minecraft minecraft = Minecraft.getInstance();
 		float lSquared =
-		  (float)minecraft.gameRenderer.getActiveRenderInfo().getProjectedView()
-		    .squareDistanceTo(posX, posY, posZ);
-		boolean shouldRender = minecraft.gameSettings.getPointOfView() == PointOfView.FIRST_PERSON
+		  (float)minecraft.gameRenderer.getMainCamera().getPosition()
+		    .distanceToSqr(x, y, z);
+		boolean shouldRender = minecraft.options.getCameraType() == PointOfView.FIRST_PERSON
 		  ? (age > 5 || lSquared > 12F) : (age > 10 || lSquared > 6F);
 		if (shouldRender || !ownPlayer) {
-			particleScale = scale(age + partialTicks);
-			setAlphaF(alpha(age + partialTicks));
-			super.renderParticle(buffer, renderInfo, partialTicks);
+			quadSize = getScaleForAge(age + partialTicks);
+			setAlpha(getAlphaForAge(age + partialTicks));
+			super.render(buffer, renderInfo, partialTicks);
 		}
 	}
 	
 	
 	
-	public float scale(float age) {
+	public float getScaleForAge(float age) {
 		final float start_animation = 10F;
 		final float end_animation = 30F;
 		if (age < start_animation)
 			return size * (age / start_animation);
-		if (maxAge - age < end_animation)
-			return MathHelper.lerp((age - maxAge + end_animation) / end_animation, size, size * 1.5F);
+		if (lifetime - age < end_animation)
+			return MathHelper.lerp((age - lifetime + end_animation) / end_animation, size, size * 1.5F);
 		return size;
 	}
 	
-	public float alpha(float age) {
+	public float getAlphaForAge(float age) {
 		final float end_animation = 30F;
-		if (age >= maxAge)
+		if (age >= lifetime)
 			return 0F;
 		if (flicker) {
-			float r = rand.nextFloat();
+			float r = random.nextFloat();
 			if (flickerState) {
 				if (r >= 0.6F) {
 					flickerState = false;
@@ -165,41 +165,41 @@ public class TrailParticle extends SpriteTexturedParticle {
 				flickerState = true;
 			}
 		}
-		if (maxAge - age < end_animation)
-			return MathHelper.lerp((age - maxAge + end_animation) / end_animation, 0.8F, 0F);
-		return MathHelper.lerp((age / (maxAge - end_animation)), 1F, 0.8F);
+		if (lifetime - age < end_animation)
+			return MathHelper.lerp((age - lifetime + end_animation) / end_animation, 0.8F, 0F);
+		return MathHelper.lerp((age / (lifetime - end_animation)), 1F, 0.8F);
 	}
 	
 	@Override public void tick() {
 		if (trail && age == 0)
-			m = new Vec3f(motionX, motionY, motionZ);
-		prevPosX = posX;
-      prevPosY = posY;
-      prevPosZ = posZ;
+			m = new Vec3f(xd, yd, zd);
+		xo = x;
+      yo = y;
+      zo = z;
       if (type == 5) {
 	      if (random.nextFloat() > 0.9F)
-		      age = maxAge;
-	      else if (!world.getBlockState(new BlockPos(posX, posY, posZ))
-	        .getFluidState().getFluid().isIn(FluidTags.WATER))
-		      age = maxAge;
+		      age = lifetime;
+	      else if (!level.getBlockState(new BlockPos(x, y, z))
+	        .getFluidState().getType().is(FluidTags.WATER))
+		      age = lifetime;
       }
       
-      selectSpriteRandomly(sprites);
-		setColor(ColorUtil.hsbLerp((float)age / maxAge, color, fadeColor));
+      pickSprite(sprites);
+		setColor(ColorUtil.hsbLerp((float)age / lifetime, color, fadeColor));
       
-      if (age++ >= maxAge) {
-         setExpired();
+      if (age++ >= lifetime) {
+         remove();
       } else {
-         motionY -= 0.04D * (double)particleGravity;
-         move(motionX, motionY, motionZ);
+         yd -= 0.04D * (double)gravity;
+         move(xd, yd, zd);
 	
 	      float friction = 0.98F; // 0.98F
-	      motionX *= friction;
-         motionY *= friction;
-         motionZ *= friction;
+	      xd *= friction;
+         yd *= friction;
+         zd *= friction;
          if (onGround) {
-            this.motionX *= 0.7F;
-            motionZ *= 0.7F;
+            this.xd *= 0.7F;
+            zd *= 0.7F;
          }
       }
       if (trail && age == 1) {
@@ -232,14 +232,14 @@ public class TrailParticle extends SpriteTexturedParticle {
 			r.mul(p_r);
 			TrailParticleData data = childrenParticle();
 			if (data != null) {
-				world.addParticle(
-				  data, posX, posY, posZ,
+				level.addParticle(
+				  data, x, y, z,
 				  r.x + f_m * m.x + f_o * o.x,
 				  r.y + f_m * m.y + f_o * o.y,
 				  r.z + f_m * m.z + f_o * o.z);
 			}
 		}
-		maxAge = 2;
+		lifetime = 2;
 	}
 	
 	public TrailParticleData childrenParticle() {
@@ -254,7 +254,7 @@ public class TrailParticle extends SpriteTexturedParticle {
 		
 		Color cColor = new Color(pickRandom(explosion.colors).orElse(Color.WHITE.getRGB()));
 		Color cFadeColor = new Color(pickRandom(explosion.colors).orElse(color.getRGB()));
-		final int life = maxAge - 10;
+		final int life = lifetime - 10;
 		final float cSize = size * 0.5F;
 		return new TrailParticleData(
 		  cColor, cFadeColor, explosion.type, explosion.flicker, false,
@@ -287,7 +287,7 @@ public class TrailParticle extends SpriteTexturedParticle {
 		}
 		
 		@Nullable @Override
-		public Particle makeParticle(
+		public Particle createParticle(
 		  @NotNull TrailParticleData data, @NotNull ClientWorld world,
 		  double x, double y, double z,
 		  double xSpeed, double ySpeed, double zSpeed
@@ -297,7 +297,7 @@ public class TrailParticle extends SpriteTexturedParticle {
 			  data.color, data.fadeColor, data.type, data.flicker, data.trail,
 			  data.size, data.life, data.partialTick,
 			  data.ownPlayer, data.side, data.rollVec, data.trailData, sprites);
-			particle.selectSpriteWithAge(sprites);
+			particle.setSpriteFromAge(sprites);
 			return particle;
 		}
 	}

@@ -32,6 +32,9 @@ import static endorh.aerobaticelytra.common.capability.AerobaticDataCapability.g
 import static endorh.util.common.LogUtil.oneTimeLogger;
 import static java.lang.Math.*;
 
+import endorh.util.sound.PlayerTickableSound.IAttenuation;
+import endorh.util.sound.PlayerTickableSound.PlayerTickableSubSound;
+
 @EventBusSubscriber(value = Dist.CLIENT, modid = AerobaticElytra.MOD_ID)
 public class AerobaticElytraSound extends FadingTickableSound {
 	
@@ -49,12 +52,12 @@ public class AerobaticElytraSound extends FadingTickableSound {
 	  "Aerobatic Elytra sound may not play properly";
 	private static final SoftField<ElytraSound, PlayerEntity> elytraSound$player =
 	  ObfuscationReflectionUtil.getSoftField(
-		 ElytraSound.class, "field_189405_m", "player",
+		 ElytraSound.class, "player", "player",
 		 oneTimeLogger(LOGGER::error), REFLECTION_ERROR_MESSAGE);
 	
 	private static final SoftMethod<TickableSound, Void> tickableSound$finishPlaying =
 	  ObfuscationReflectionUtil.getSoftMethod(
-	    TickableSound.class, "func_239509_o_", "finishPlaying",
+	    TickableSound.class, "stop", "finishPlaying",
 	    oneTimeLogger(LOGGER::error), REFLECTION_ERROR_MESSAGE);
 	
 	protected float brakeVolume = 0F;
@@ -89,19 +92,19 @@ public class AerobaticElytraSound extends FadingTickableSound {
 	  PlayerEntity player, SoundEvent sound, SoundCategory category,
 	  float volume, float pitch
 	) {
-		if (!player.world.isRemote)
+		if (!player.level.isClientSide)
 			return;
-		Vector3d position = player.getPositionVec();
+		Vector3d position = player.position();
 		if (player instanceof RemoteClientPlayerEntity) {
 			PlayerEntity client = Minecraft.getInstance().player;
 			if (client == null)
 				return;
-			Vector3d clientPos = client.getPositionVec();
+			Vector3d clientPos = client.position();
 			volume = ATTENUATION.attenuate(
 			  volume, (float) position.distanceTo(clientPos));
 			position = clientPos;
 		}
-		player.world.playSound(
+		player.level.playLocalSound(
 		  position.x, position.y, position.z, sound,
 		  category, volume, pitch, false);
 	}
@@ -119,18 +122,18 @@ public class AerobaticElytraSound extends FadingTickableSound {
 	}
 	
 	@Override public boolean shouldFadeOut() {
-		return !player.isElytraFlying();
+		return !player.isFallFlying();
 	}
 	
 	@Override protected void onStart() {
 		ElytraSound elytraSound = aerobaticData.getElytraSound();
-		if (elytraSound != null && !elytraSound.isDonePlaying()) {
+		if (elytraSound != null && !elytraSound.isStopped()) {
 			if (tickableSound$finishPlaying.testInvoke(elytraSound)) {
 				aerobaticData.setElytraSound(null);
 				brakeSound.play();
 				rotateSound.play();
 				whistleSound.play();
-			} else finishPlaying();
+			} else stop();
 		}
 	}
 	
@@ -169,7 +172,7 @@ public class AerobaticElytraSound extends FadingTickableSound {
 	 * Adjust volume and pitch according to aerobatic flight
 	 */
 	public void aerobaticElytraTick(float fade_factor) {
-		float speed = (float)player.getMotion().length();
+		float speed = (float)player.getDeltaMovement().length();
 		float pitchTilt = abs(aerobaticData.getTiltPitch() / Config.aerobatic.tilt.range_pitch);
 		float rollTilt = abs(aerobaticData.getTiltRoll() / Config.aerobatic.tilt.range_roll);
 		float yawTilt = abs(aerobaticData.getTiltYaw() / Config.aerobatic.tilt.range_yaw);
@@ -187,7 +190,7 @@ public class AerobaticElytraSound extends FadingTickableSound {
 		                * (float) MathHelper.clampedLerp(0F, 1F, speed / 2F);
 		rotateVolume = (rotateVolume + wVolume) / 2F;
 		
-		float wave = (float) sin(player.ticksExisted / 40F);
+		float wave = (float) sin(player.tickCount / 40F);
 		whistleVolume = (float) MathHelper.clampedLerp(0F, 1F, (speed - 2.8) / 1.2 + wave * 0.2F);
 		whistlePitch = (float) MathHelper.clampedLerp(1F, 1.4F, (speed - 2.8) / 1.8 + wave * 0.3F);
 		volume *= ClientConfig.sound.wind;
@@ -199,7 +202,7 @@ public class AerobaticElytraSound extends FadingTickableSound {
 	public void elytraTick(float fade_factor) {
 		final int ageThreshold = 20;
 		final float volumeThreshold = 0.8F;
-		float speedSquared = (float) player.getMotion().lengthSquared();
+		float speedSquared = (float) player.getDeltaMovement().lengthSqr();
 		
 		volume = speedSquared >= 1E-7D
 		         ? MathHelper.clamp(speedSquared / 4F, 0F, 1F) : 0F;
@@ -222,7 +225,7 @@ public class AerobaticElytraSound extends FadingTickableSound {
 	 * Intercept {@link ElytraSound}s and replace them if appropriate
 	 */
 	@SubscribeEvent public static void onSoundEvent(PlaySoundEvent event) {
-		if (SoundEvents.ITEM_ELYTRA_FLYING.getName().toString().equals("minecraft:" + event.getName())) {
+		if (SoundEvents.ELYTRA_FLYING.getLocation().toString().equals("minecraft:" + event.getName())) {
 			ISound sound = event.getSound();
 			if (!(sound instanceof ElytraSound)) {
 				LogUtil.errorOnce(

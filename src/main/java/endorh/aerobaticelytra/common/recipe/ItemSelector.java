@@ -95,9 +95,9 @@ public class ItemSelector implements Predicate<ItemStack> {
 	
 	public ItemSelector(List<ResourceLocation> tags, @Nullable NBTPredicate nbtPredicate) {
 		this.item = null;
-		final ITagCollection<Item> itemTags = TagCollectionManager.getManager().getItemTags();
+		final ITagCollection<Item> itemTags = TagCollectionManager.getInstance().getItems();
 		this.tags = tags.stream().collect(Collectors.toMap(r -> {
-			final ITag<Item> tag = itemTags.get(r);
+			final ITag<Item> tag = itemTags.getTag(r);
 			if (tag == null)
 				throw new IllegalArgumentException("Unknown item tag name: \"" + r + "\"");
 			return tag;
@@ -129,7 +129,7 @@ public class ItemSelector implements Predicate<ItemStack> {
 		List<ItemSelector> result = new ArrayList<>();
 		try {
 			for (int i = 0; i < arr.size(); i++) {
-				String sel = JSONUtils.getString(arr.get(i), "ingredients[" + i + "]");
+				String sel = JSONUtils.convertToString(arr.get(i), "ingredients[" + i + "]");
 				result.add(ItemSelector.fromString(sel));
 			}
 		} catch (IllegalArgumentException e) {
@@ -148,9 +148,9 @@ public class ItemSelector implements Predicate<ItemStack> {
 			return new ItemSelector(item, nbtPredicate);
 		} else {
 			final List<ResourceLocation> tagNames = readList(buf, PacketBuffer::readResourceLocation);
-			final ITagCollection<Item> itemTags = TagCollectionManager.getManager().getItemTags();
+			final ITagCollection<Item> itemTags = TagCollectionManager.getInstance().getItems();
 			for (ResourceLocation tagName : tagNames) {
-				if (itemTags.get(tagName) == null)
+				if (itemTags.getTag(tagName) == null)
 					throw new IllegalStateException("Unknown item tag name found in packet: \"" + tagName + "\"");
 			}
 			NBTPredicate nbtPredicate =
@@ -187,9 +187,9 @@ public class ItemSelector implements Predicate<ItemStack> {
 	 */
 	public Ingredient similarIngredient() {
 		if (tags != null && !tags.isEmpty()) {
-			return Ingredient.fromItems(tags.keySet().stream().flatMap(t -> t.getAllElements().stream()).toArray(Item[]::new));
+			return Ingredient.of(tags.keySet().stream().flatMap(t -> t.getValues().stream()).toArray(Item[]::new));
 		} else if (item != null) {
-			return Ingredient.fromItems(item);
+			return Ingredient.of(item);
 		}
 		return Ingredient.EMPTY;
 	}
@@ -207,12 +207,12 @@ public class ItemSelector implements Predicate<ItemStack> {
 			for (ResourceLocation tagName : tags.values())
 				d = d.append(
 				  stc("{")
-					 .append(stc(tagName).mergeStyle(TextFormatting.GRAY))
+					 .append(stc(tagName).withStyle(TextFormatting.GRAY))
 					 .append(stc("}"))
-					 .mergeStyle(TextFormatting.DARK_GREEN));
+					 .withStyle(TextFormatting.DARK_GREEN));
 		}
 		if (item != null)
-			d = d.append(new ItemStack(item).getDisplayName());
+			d = d.append(new ItemStack(item).getHoverName());
 		if (nbtPredicate != null)
 			d = d.append(nbtPredicate.getDisplay());
 		return d;

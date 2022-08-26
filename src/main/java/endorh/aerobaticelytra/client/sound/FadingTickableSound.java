@@ -16,6 +16,8 @@ import javax.annotation.Nullable;
 
 import static endorh.aerobaticelytra.common.capability.FlightDataCapability.getFlightDataOrDefault;
 
+import endorh.util.sound.PlayerTickableSound.IAttenuation;
+
 /**
  * Faded TickableSound with recovery
  */
@@ -88,9 +90,9 @@ public abstract class FadingTickableSound extends PlayerTickableSound {
 		FadingTickableSound sound = flightData.getFlightSound(type);
 		if (sound != null) {
 			sound.recover();
-			finishPlaying();
+			stop();
 		} else {
-			Minecraft.getInstance().getSoundHandler().play(this);
+			Minecraft.getInstance().getSoundManager().play(this);
 			flightData.putFlightSound(type, this);
 			onStart();
 		}
@@ -112,7 +114,7 @@ public abstract class FadingTickableSound extends PlayerTickableSound {
 			tick(fade_factor);
 			if (animation <= 0) {
 				onFinish();
-				finishPlaying();
+				stop();
 				animation = -1;
 				volume = 0F;
 				if (flightData.getFlightSound(type) == this)

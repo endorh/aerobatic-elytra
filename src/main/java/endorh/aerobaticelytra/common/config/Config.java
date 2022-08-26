@@ -98,14 +98,14 @@ public class Config {
 		  .text(() -> ttc(
 			 "aerobaticelytra.config.text.datapack_tip",
 			 stc(datapack_command)
-			   .modifyStyle(style -> style
-			     .setFormatting(TextFormatting.GOLD)
-				  .setHoverEvent(new HoverEvent(
+			   .withStyle(style -> style
+			     .withColor(TextFormatting.GOLD)
+				  .withHoverEvent(new HoverEvent(
 				    HoverEvent.Action.SHOW_TEXT, ttc("chat.copy.click")))
 				  // The SUGGEST_COMMAND action requires the chat to be open
 				  //.setClickEvent(new ClickEvent(
 				  //  ClickEvent.Action.SUGGEST_COMMAND, datapack_command))
-				  .setClickEvent(new ClickEvent(
+				  .withClickEvent(new ClickEvent(
 				    ClickEvent.Action.COPY_TO_CLIPBOARD, datapack_command)))))
 		  .buildAndRegister();
 	}

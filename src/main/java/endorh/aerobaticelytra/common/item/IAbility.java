@@ -211,8 +211,8 @@ public interface IAbility extends IForgeRegistryEntry<IAbility> {
 			return new DisplayType() {
 				@Override public Optional<IFormattableTextComponent> format(IAbility ability, float value) {
 					return Optional.of(
-					  ability.getDisplayName().appendString(": ")
-						 .append(formatter.apply(value).copyRaw().mergeStyle(format)));
+					  ability.getDisplayName().append(": ")
+						 .append(formatter.apply(value).plainCopy().withStyle(format)));
 				}
 			};
 		}

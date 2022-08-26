@@ -107,7 +107,7 @@ public class ElytraDyement {
 	 * @param readWings False to only read hasWingDyement
 	 */
 	public void read(ItemStack elytra, int defaultColor, boolean readWings) {
-		hasWingDyement = elytra.getChildTag("WingInfo") != null;
+		hasWingDyement = elytra.getTagElement("WingInfo") != null;
 		if (readWings) {
 			if (hasWingDyement) {
 				for (WingSide side : sides.keySet())
@@ -175,11 +175,11 @@ public class ElytraDyement {
 	 */
 	public void write(ItemStack stack) {
 		if (hasWingDyement) {
-			stack.removeChildTag("BlockEntityTag");
+			stack.removeTagKey("BlockEntityTag");
 			for (WingSide side : WingSide.values())
 				sides.get(side).write(stack, side);
 		} else {
-			stack.removeChildTag("WingInfo");
+			stack.removeTagKey("WingInfo");
 			getFirst().write(stack, null);
 		}
 	}
@@ -248,14 +248,14 @@ public class ElytraDyement {
 		 * @param defaultColor Default color used when no color is present
 		 */
 		public void read(ItemStack elytra, WingSide side, int defaultColor) {
-			CompoundNBT wingInfo = elytra.getChildTag("WingInfo");
+			CompoundNBT wingInfo = elytra.getTagElement("WingInfo");
 			CompoundNBT data;
 			if (wingInfo == null) {
-				data = elytra.getChildTag("BlockEntityTag");
+				data = elytra.getTagElement("BlockEntityTag");
 				if (data == null) {
 					hasPattern = false;
 					patternColorData = null;
-					CompoundNBT display = elytra.getChildTag("display");
+					CompoundNBT display = elytra.getTagElement("display");
 					if (display == null) {
 						hasColor = false;
 						color = defaultColor;
@@ -345,11 +345,11 @@ public class ElytraDyement {
 			if (hasPattern) {
 				CompoundNBT nbt;
 				if (side != null) {
-					nbt = stack.getOrCreateChildTag("WingInfo");
+					nbt = stack.getOrCreateTagElement("WingInfo");
 					nbt.put(side.tag, new CompoundNBT());
 					nbt = nbt.getCompound(side.tag);
 				} else {
-					nbt = stack.getOrCreateChildTag("BlockEntityTag");
+					nbt = stack.getOrCreateTagElement("BlockEntityTag");
 				}
 				nbt.putInt("Base", basePatternColor.getId());
 				ListNBT list = new ListNBT();
@@ -365,29 +365,29 @@ public class ElytraDyement {
 			} else if (hasColor) {
 				CompoundNBT nbt;
 				if (side != null) {
-					nbt = stack.getOrCreateChildTag("WingInfo");
+					nbt = stack.getOrCreateTagElement("WingInfo");
 					nbt.put(side.tag, new CompoundNBT());
 					nbt = nbt.getCompound(side.tag);
 					nbt.remove("Base");
 					nbt.remove("Patterns");
 				} else {
-					stack.removeChildTag("BlockEntityTag");
-					nbt = stack.getOrCreateChildTag("display");
+					stack.removeTagKey("BlockEntityTag");
+					nbt = stack.getOrCreateTagElement("display");
 				}
 				nbt.putInt("color", color);
 			} else {
-				stack.removeChildTag("BlockEntityTag");
-				final CompoundNBT display = stack.getChildTag("display");
+				stack.removeTagKey("BlockEntityTag");
+				final CompoundNBT display = stack.getTagElement("display");
 				if (display != null)
 					display.remove("color");
 				if (side != null) {
-					final CompoundNBT nbt = stack.getChildTag("WingInfo");
+					final CompoundNBT nbt = stack.getTagElement("WingInfo");
 					if (nbt != null) {
 						nbt.remove(side.tag);
 						if (nbt.isEmpty())
-							stack.removeChildTag("WingInfo");
+							stack.removeTagKey("WingInfo");
 					}
-				} else stack.removeChildTag("WingInfo");
+				} else stack.removeTagKey("WingInfo");
 			}
 			hideDyedFlag(stack);
 		}
@@ -410,21 +410,21 @@ public class ElytraDyement {
 	public static void hideDyedFlag(ItemStack stack) {
 		CompoundNBT tag = stack.getOrCreateTag();
 		int flags = tag.getInt("HideFlags");
-		flags |= TooltipDisplayFlags.DYE.func_242397_a();
+		flags |= TooltipDisplayFlags.DYE.getMask();
 		tag.putInt("HideFlags", flags);
 	}
 	
 	public static boolean clearDyesWithCauldron(ItemUseContext context) {
-		final World world = context.getWorld();
-		final BlockPos pos = context.getPos();
+		final World world = context.getLevel();
+		final BlockPos pos = context.getClickedPos();
 		final BlockState state = world.getBlockState(pos);
 		final Block block = state.getBlock();
 		
 		if (block instanceof CauldronBlock) {
 			final PlayerEntity player = context.getPlayer();
-			final ItemStack stack = context.getItem();
+			final ItemStack stack = context.getItemInHand();
 			
-			int i = state.get(CauldronBlock.LEVEL);
+			int i = state.getValue(CauldronBlock.LEVEL);
 			dyement.read(stack);
 			if (i > 0 && !dyement.isClear()) {
 				final CauldronBlock cauldron = (CauldronBlock) block;
@@ -433,21 +433,21 @@ public class ElytraDyement {
 				dyement.clear();
 				dyement.write(result);
 				
-				if (player != null && !player.abilities.isCreativeMode) {
+				if (player != null && !player.abilities.instabuild) {
 					stack.shrink(1);
 					cauldron.setWaterLevel(world, pos, state, i - 1);
 				}
 				
 				if (player != null) {
 					if (stack.isEmpty()) {
-						player.setHeldItem(context.getHand(), result);
-					} else if (!player.inventory.addItemStackToInventory(result)) {
-						player.dropItem(result, false);
+						player.setItemInHand(context.getHand(), result);
+					} else if (!player.inventory.add(result)) {
+						player.drop(result, false);
 					} else if (player instanceof ServerPlayerEntity) {
-						((ServerPlayerEntity) player).sendContainerToPlayer(player.container);
+						((ServerPlayerEntity) player).refreshContainer(player.inventoryMenu);
 					}
 				} else {
-					world.addEntity(new ItemEntity(world, pos.getX(), pos.getY(), pos.getZ(), result));
+					world.addFreshEntity(new ItemEntity(world, pos.getX(), pos.getY(), pos.getZ(), result));
 				}
 				return true;
 			}

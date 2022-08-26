@@ -73,25 +73,25 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 		super(
 		  builder
 		    //.group(ItemGroup.TRANSPORTATION)
-		    .maxDamage(432 * 3)
+		    .durability(432 * 3)
 		    .rarity(Rarity.RARE));
 		setRegistryName(NAME);
-		DispenserBlock.registerDispenseBehavior(this, ArmorItem.DISPENSER_BEHAVIOR);
+		DispenserBlock.registerBehavior(this, ArmorItem.DISPENSE_ITEM_BEHAVIOR);
 	}
 	
-	@Override public void fillItemGroup(
+	@Override public void fillItemCategory(
 	  @NotNull ItemGroup group, @NotNull NonNullList<ItemStack> items) {
-		super.fillItemGroup(group, items);
-		if (group == ItemGroup.TRANSPORTATION || group == ItemGroup.SEARCH) {
+		super.fillItemCategory(group, items);
+		if (group == ItemGroup.TAB_TRANSPORTATION || group == ItemGroup.TAB_SEARCH) {
 			DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () ->
-			  () -> fillItemGroup(group.getPath(), items));
+			  () -> fillItemGroup(group.getRecipeFolderName(), items));
 		}
 	}
 	
 	public void fillItemGroup(
 	  String groupLabel, NonNullList<ItemStack> items
 	) {
-		final ClientWorld world = Minecraft.getInstance().world;
+		final ClientWorld world = Minecraft.getInstance().level;
 		if (world == null)
 			return;
 		//noinspection unchecked
@@ -115,7 +115,7 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 		return Config.item.durability;
 	}
 	
-	@Override public boolean isDamageable() {
+	@Override public boolean canBeDepleted() {
 		return !Config.item.undamageable;
 	}
 	
@@ -127,7 +127,7 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 	public boolean shouldFuelReplaceDurability(ItemStack stack, IElytraSpec spec) {
 		return (visibility.fuel_display == ClientConfig.FuelDisplay.DURABILITY_BAR
 		        || visibility.fuel_display == ClientConfig.FuelDisplay.DURABILITY_BAR_IF_LOWER
-		           && spec.getAbility(Ability.FUEL) / spec.getAbility(Ability.MAX_FUEL) < 1F - (float)stack.getDamage() / stack.getMaxDamage())
+		           && spec.getAbility(Ability.FUEL) / spec.getAbility(Ability.MAX_FUEL) < 1F - (float)stack.getDamageValue() / stack.getMaxDamage())
 		       && visibility.fuel_visibility.test();
 	}
 	
@@ -166,7 +166,7 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 	@Override
 	public int getRGBDurabilityForDisplay(ItemStack stack) {
 		if (shouldFuelReplaceDurability(stack)) {
-			return MathHelper.hsvToRGB(MathHelper.lerp(
+			return MathHelper.hsvToRgb(MathHelper.lerp(
 			  1F - getFuelFraction(stack), 0.58F, 0.7F), 0.8F, 1F);
 		} else return super.getRGBDurabilityForDisplay(stack);
 	}
@@ -175,12 +175,12 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 	 * Adds information to the tooltip
 	 */
 	@Override
-	public void addInformation(
+	public void appendHoverText(
 	  @NotNull ItemStack stack, @Nullable World world,
 	  @NotNull List<ITextComponent> tooltip, @NotNull ITooltipFlag flag) {
 		tooltip.addAll(getTooltipInfo(stack, flag));
 		
-		if (!stack.getEnchantmentTagList().isEmpty())
+		if (!stack.getEnchantmentTags().isEmpty())
 			tooltip.add(stc("")); // Separator
 	}
 	
@@ -211,33 +211,33 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 		  stc(indent).append(
 		    ttc("aerobaticelytra.item.fuel",
 		        stc(String.format("%.1f", spec.getAbility(Ability.FUEL)))
-		          .mergeStyle(TextFormatting.AQUA),
+		          .withStyle(TextFormatting.AQUA),
 		        String.format("%.1f", spec.getAbility(Ability.MAX_FUEL)))
-		      .mergeStyle(TextFormatting.GRAY))
+		      .withStyle(TextFormatting.GRAY))
 		);
 		if (!flag.isAdvanced()) {
 			tooltip.add(
 			  stc(indent).append(
 			    ttc("item.durability",
 			        stc(String.format("%d", getMaxDamage(stack) - getDamage(stack)))
-			          .mergeStyle(TextFormatting.GOLD),
+			          .withStyle(TextFormatting.GOLD),
 			        String.format("%d", getMaxDamage(stack)))
-			      .mergeStyle(TextFormatting.GRAY))
+			      .withStyle(TextFormatting.GRAY))
 			);
 		}
 	}
 	
-	@NotNull @Override public ITextComponent getDisplayName(@NotNull ItemStack stack) {
-		return ttc(getTranslationKey(stack)).mergeStyle(TextFormatting.DARK_AQUA);
+	@NotNull @Override public ITextComponent getName(@NotNull ItemStack stack) {
+		return ttc(getDescriptionId(stack)).withStyle(TextFormatting.DARK_AQUA);
 	}
 	
 	@Override
-	public boolean hasEffect(@NotNull ItemStack stack) {
-		return super.hasEffect(stack) && visibility.enchantment_glint_visibility.test();
+	public boolean isFoil(@NotNull ItemStack stack) {
+		return super.isFoil(stack) && visibility.enchantment_glint_visibility.test();
 	}
 	
 	public boolean hasModelEffect(@NotNull ItemStack stack) {
-		return super.hasEffect(stack);
+		return super.isFoil(stack);
 	}
 	
 	// Behaviour
@@ -247,25 +247,25 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 		return EquipmentSlotType.CHEST;
 	}
 	
-	@Override public boolean getIsRepairable(@NotNull ItemStack toRepair, @NotNull ItemStack repair) {
+	@Override public boolean isValidRepairItem(@NotNull ItemStack toRepair, @NotNull ItemStack repair) {
 		return RepairRecipe.getRepairRecipes().stream().anyMatch(r -> r.ingredient.test(repair));
 	}
 	
 	/**
 	 * Equips the elytra
 	 */
-	@NotNull public ActionResult<ItemStack> onItemRightClick(
+	@NotNull public ActionResult<ItemStack> use(
 	  @NotNull World world, PlayerEntity player, @NotNull Hand hand
 	) {
-		ItemStack itemStack = player.getHeldItem(hand);
-		EquipmentSlotType equipmentSlotType = MobEntity.getSlotForItemStack(itemStack);
-		ItemStack equippedStack = player.getItemStackFromSlot(equipmentSlotType);
+		ItemStack itemStack = player.getItemInHand(hand);
+		EquipmentSlotType equipmentSlotType = MobEntity.getEquipmentSlotForItem(itemStack);
+		ItemStack equippedStack = player.getItemBySlot(equipmentSlotType);
 		if (equippedStack.isEmpty()) {
-			player.setItemStackToSlot(equipmentSlotType, itemStack.copy());
+			player.setItemSlot(equipmentSlotType, itemStack.copy());
 			itemStack.setCount(0);
-			return ActionResult.func_233538_a_(itemStack, world.isRemote());
+			return ActionResult.sidedSuccess(itemStack, world.isClientSide());
 		} else {
-			return ActionResult.resultFail(itemStack);
+			return ActionResult.fail(itemStack);
 		}
 	}
 	
@@ -274,11 +274,11 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 	 * The dye is already handled by the {@link IDyeableArmorItem} interface
 	 */
 	@NotNull @Override
-	public ActionResultType onItemUse(ItemUseContext context) {
-		World world = context.getWorld();
+	public ActionResultType useOn(ItemUseContext context) {
+		World world = context.getLevel();
 		if (ElytraDyement.clearDyesWithCauldron(context))
-			return ActionResultType.func_233537_a_(world.isRemote());
-		return super.onItemUse(context);
+			return ActionResultType.sidedSuccess(world.isClientSide());
+		return super.useOn(context);
 	}
 	
 	// Elytra stuff
@@ -296,14 +296,14 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 			if (player.isCreative())
 				return true;
 		}
-		return stack.getDamage() < stack.getMaxDamage() - 1;
+		return stack.getDamageValue() < stack.getMaxDamage() - 1;
 		//return AerobaticElytraLogic.canFallFly(stack, entity);
 	}
 	
 	@Override
 	public boolean elytraFlightTick(@NotNull ItemStack stack, LivingEntity entity, int flightTicks) {
-		if (!entity.world.isRemote && (flightTicks + 1) % 20 == 0 && !Config.item.undamageable)
-			stack.damageItem(1, entity, e -> e.sendBreakAnimation(EquipmentSlotType.CHEST));
+		if (!entity.level.isClientSide && (flightTicks + 1) % 20 == 0 && !Config.item.undamageable)
+			stack.hurtAndBreak(1, entity, e -> e.broadcastBreakEvent(EquipmentSlotType.CHEST));
 		if (entity instanceof PlayerEntity) {
 			IAerobaticData data = getAerobaticDataOrDefault((PlayerEntity) entity);
 			if (data.isFlying() && !((PlayerEntity) entity).isCreative()) {
@@ -384,7 +384,7 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 	}
 	
 	public ResourceLocation getTextureLocation(BannerPattern pattern) {
-		return new ResourceLocation(AerobaticElytra.MOD_ID, "entity/aerobatic_elytra/" + pattern.getFileName());
+		return new ResourceLocation(AerobaticElytra.MOD_ID, "entity/aerobatic_elytra/" + pattern.getFilename());
 	}
 	
 	@OnlyIn(Dist.CLIENT)
@@ -423,23 +423,23 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 			Color color = new Color(wing.color);
 			ITextComponent colorName =
 			  flag.isAdvanced()
-			  ? stc(String.format("#%6h", color)).mergeStyle(TextFormatting.GRAY)
+			  ? stc(String.format("#%6h", color)).withStyle(TextFormatting.GRAY)
 			  : ColorUtil.closestDyeColor(color)
-				 .map(dyeColor -> ttc("color.minecraft." + dyeColor.getTranslationKey()))
+				 .map(dyeColor -> ttc("color.minecraft." + dyeColor.getName()))
 				 .orElseGet(() -> ttc("item.minecraft.firework_star.custom_color"))
-				 .mergeStyle(TextFormatting.GRAY);
+				 .withStyle(TextFormatting.GRAY);
 			tooltip.add(
 			  stc(indent).append(
 				 ttc(key, stc("≈").append(colorName)
-				   .mergeStyle(ColorUtil.discardBlack(
+				   .withStyle(ColorUtil.discardBlack(
 				     ColorUtil.closestTextColor(color)
 				       .orElse(TextFormatting.GRAY))))
-			  ).mergeStyle(TextFormatting.GRAY));
+			  ).withStyle(TextFormatting.GRAY));
 		} else {
 			tooltip.add(
 			  stc(indent).append(
-				 ttc(key, ttc("gui.none").mergeStyle(TextFormatting.DARK_GRAY))
-			  ).mergeStyle(TextFormatting.GRAY));
+				 ttc(key, ttc("gui.none").withStyle(TextFormatting.DARK_GRAY))
+			  ).withStyle(TextFormatting.GRAY));
 		}
 	}
 	
@@ -447,17 +447,17 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 	  List<ITextComponent> tooltip, WingDyement wing, String key, String indent) {
 		List<Pair<BannerPattern, DyeColor>> layers = wing.patternColorData;
 		ITextComponent sideParenthesis = key != null
-		  ? stc(" (").append(ttc(key)).appendString(")") : stc("");
+		  ? stc(" (").append(ttc(key)).append(")") : stc("");
 		if (layers.size() == 1) {
 			tooltip.add(
 			  stc(indent).append(
-			    ttc("block.minecraft." + wing.basePatternColor.getTranslationKey() + "_banner")
-			  ).append(sideParenthesis).mergeStyle(TextFormatting.GRAY));
+			    ttc("block.minecraft." + wing.basePatternColor.getName() + "_banner")
+			  ).append(sideParenthesis).withStyle(TextFormatting.GRAY));
 		} else if (Screen.hasShiftDown()) {
 			tooltip.add(
 			  stc(indent).append(
-				 ttc("block.minecraft." + wing.basePatternColor.getTranslationKey() + "_banner")
-			  ).append(sideParenthesis).appendString(": ").append(shiftToExpand()).mergeStyle(TextFormatting.GRAY));
+				 ttc("block.minecraft." + wing.basePatternColor.getName() + "_banner")
+			  ).append(sideParenthesis).append(": ").append(shiftToExpand()).withStyle(TextFormatting.GRAY));
 			String extraIndent = indent + "  ";
 			for (int i = 1; i < wing.patternColorData.size(); i++) {
 				BannerPattern pattern = wing.patternColorData.get(i).getFirst();
@@ -465,19 +465,19 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 				tooltip.add(
 				  stc(extraIndent).append(
 					 ttc("block.minecraft.banner."
-					     + pattern.getFileName() + '.'
-					     + color.getTranslationKey())
-						.mergeStyle(TextFormatting.GRAY)
+					     + pattern.getFilename() + '.'
+					     + color.getName())
+						.withStyle(TextFormatting.GRAY)
 				  ));
 			}
 		} else {
 			tooltip.add(
 			  stc(indent).append(
-				 ttc("block.minecraft." + wing.basePatternColor.getTranslationKey() + "_banner")
+				 ttc("block.minecraft." + wing.basePatternColor.getName() + "_banner")
 				   .append(sideParenthesis)
-					.appendString(": ")
+					.append(": ")
 					.append(shiftToExpand())
-			  ).mergeStyle(TextFormatting.GRAY));
+			  ).withStyle(TextFormatting.GRAY));
 		}
 	}
 	

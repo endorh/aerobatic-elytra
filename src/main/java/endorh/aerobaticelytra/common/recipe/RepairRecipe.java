@@ -51,10 +51,10 @@ public class RepairRecipe extends SpecialRecipe {
 	@Override public boolean matches(@NotNull CraftingInventory inv, @NotNull World world) {
 		return false;
 	}
-	@Override public @NotNull ItemStack getCraftingResult(@NotNull CraftingInventory inv) {
+	@Override public @NotNull ItemStack assemble(@NotNull CraftingInventory inv) {
 		return ItemStack.EMPTY;
 	}
-	@Override public boolean canFit(int width, int height) {
+	@Override public boolean canCraftInDimensions(int width, int height) {
 		return false;
 	}
 	
@@ -70,25 +70,25 @@ public class RepairRecipe extends SpecialRecipe {
 			setRegistryName(NAME);
 		}
 		
-		@Override public @NotNull RepairRecipe read(
+		@Override public @NotNull RepairRecipe fromJson(
 		  @NotNull ResourceLocation recipeId, @NotNull JsonObject json
 		) {
-			final Ingredient ingredient = Ingredient.deserialize(
-			  JSONUtils.getJsonObject(json, "ingredient"));
-			final int amount = JSONUtils.getInt(json, "amount", 0); // Unused
+			final Ingredient ingredient = Ingredient.fromJson(
+			  JSONUtils.getAsJsonObject(json, "ingredient"));
+			final int amount = JSONUtils.getAsInt(json, "amount", 0); // Unused
 			return new RepairRecipe(recipeId, ingredient, amount);
 		}
 		
-		@Nullable @Override public RepairRecipe read(
+		@Nullable @Override public RepairRecipe fromNetwork(
 		  @NotNull ResourceLocation recipeId, @NotNull PacketBuffer buf
 		) {
-			return new RepairRecipe(recipeId, Ingredient.read(buf), buf.readVarInt());
+			return new RepairRecipe(recipeId, Ingredient.fromNetwork(buf), buf.readVarInt());
 		}
 		
-		@Override public void write(
+		@Override public void toNetwork(
 		  @NotNull PacketBuffer buf, @NotNull RepairRecipe recipe
 		) {
-			recipe.ingredient.write(buf);
+			recipe.ingredient.toNetwork(buf);
 			buf.writeVarInt(recipe.amount);
 		}
 	}

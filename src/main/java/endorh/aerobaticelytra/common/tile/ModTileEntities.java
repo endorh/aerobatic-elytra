@@ -27,7 +27,7 @@ public class ModTileEntities {
 	  RegistryEvent.Register<TileEntityType<?>> event
 	) {
 		final IForgeRegistry<TileEntityType<?>> reg = event.getRegistry();
-		TileEntityType<?> type = TileEntityType.Builder.create(
+		TileEntityType<?> type = TileEntityType.Builder.of(
 		  BrokenLeavesTileEntity::new, ModBlocks.BROKEN_LEAVES
 		).build(null);
 		type.setRegistryName(prefix(BrokenLeavesTileEntity.NAME));

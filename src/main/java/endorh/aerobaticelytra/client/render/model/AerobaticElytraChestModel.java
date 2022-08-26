@@ -27,38 +27,38 @@ public class AerobaticElytraChestModel<T extends LivingEntity> extends BipedMode
      * Build model
      */
     public AerobaticElytraChestModel() {
-        super(RenderType::getEntityCutoutNoCull, 1F, 0F, 128, 128);
-        textureWidth = 128;
-        textureHeight = 64;
+        super(RenderType::entityCutoutNoCull, 1F, 0F, 128, 128);
+        texWidth = 128;
+        texHeight = 64;
     
         // Replace bipedBody with empty model
-        this.bipedBody = new ModelRenderer(this, 0, 0);
-        this.bipedBody.setRotationPoint(0F, 0F, 0F);
+        this.body = new ModelRenderer(this, 0, 0);
+        this.body.setPos(0F, 0F, 0F);
         
         leftRocket = new ModelRenderer(this, 0, 20);
-        leftRocket.setRotationPoint(-4.0F, 0.0F, -2.0F);
+        leftRocket.setPos(-4.0F, 0.0F, -2.0F);
         leftRocket.addBox(4.5F, 0.8F, 3.0F, 3.0F, 10.0F, 3.0F, -0.5F, -1.2F, -0.5F);
-        leftRocket.setTextureOffset(0, 33).addBox(3.5F, 2.6F, 2.0F, 5.0F, 2.0F, 5.0F, -1.0F, -0.2F, -1.0F);
-        leftRocket.setTextureOffset(0, 33).addBox(5.5F, 1.1F, 4.0F, 1.0F, 1.0F, 1.0F, -0.1F, -0.1F, -0.1F);
-        leftRocket.setTextureOffset(0, 35).addBox(5.5F, 9.5F, 4.0F, 1.0F, 1.0F, 1.0F, -0.1F, -0.1F, -0.1F);
+        leftRocket.texOffs(0, 33).addBox(3.5F, 2.6F, 2.0F, 5.0F, 2.0F, 5.0F, -1.0F, -0.2F, -1.0F);
+        leftRocket.texOffs(0, 33).addBox(5.5F, 1.1F, 4.0F, 1.0F, 1.0F, 1.0F, -0.1F, -0.1F, -0.1F);
+        leftRocket.texOffs(0, 35).addBox(5.5F, 9.5F, 4.0F, 1.0F, 1.0F, 1.0F, -0.1F, -0.1F, -0.1F);
         rightRocket = new ModelRenderer(this, 20, 20);
-        rightRocket.setRotationPoint(-4.0F, 0.0F, -2.0F);
+        rightRocket.setPos(-4.0F, 0.0F, -2.0F);
         rightRocket.addBox(0.5F, 0.8F, 3.0F, 3.0F, 10.0F, 3.0F, -0.5F, -1.2F, -0.5F);
-        rightRocket.setTextureOffset(20, 33).addBox(-0.5F, 2.6F, 2.0F, 5.0F, 2.0F, 5.0F, -1.0F, -0.2F, -1.0F);
-        rightRocket.setTextureOffset(20, 33).addBox(1.5F, 1.1F, 4.0F, 1.0F, 1.0F, 1.0F, -0.1F, -0.1F, -0.1F);
-        rightRocket.setTextureOffset(20, 35).addBox(1.5F, 9.5F, 4.0F, 1.0F, 1.0F, 1.0F, -0.1F, -0.1F, -0.1F);
+        rightRocket.texOffs(20, 33).addBox(-0.5F, 2.6F, 2.0F, 5.0F, 2.0F, 5.0F, -1.0F, -0.2F, -1.0F);
+        rightRocket.texOffs(20, 33).addBox(1.5F, 1.1F, 4.0F, 1.0F, 1.0F, 1.0F, -0.1F, -0.1F, -0.1F);
+        rightRocket.texOffs(20, 35).addBox(1.5F, 9.5F, 4.0F, 1.0F, 1.0F, 1.0F, -0.1F, -0.1F, -0.1F);
         
-        bipedBody.addChild(leftRocket);
-        bipedBody.addChild(rightRocket);
+        body.addChild(leftRocket);
+        body.addChild(rightRocket);
         
-        bipedBody.showModel = true;
+        body.visible = true;
         
-        bipedHead.showModel = false;
-        bipedLeftArm.showModel = false;
-        bipedRightArm.showModel = false;
-        bipedLeftLeg.showModel = false;
-        bipedRightLeg.showModel = false;
-        bipedHeadwear.showModel = false;
+        head.visible = false;
+        leftArm.visible = false;
+        rightArm.visible = false;
+        leftLeg.visible = false;
+        rightLeg.visible = false;
+        hat.visible = false;
     }
 
     /*@Override
@@ -70,29 +70,29 @@ public class AerobaticElytraChestModel<T extends LivingEntity> extends BipedMode
     /**
      * Only the bipedBody part can be visible
      */
-    @Override public void setVisible(boolean visible) {
-        this.bipedBody.showModel = visible;
+    @Override public void setAllVisible(boolean visible) {
+        this.body.visible = visible;
     }
     
     /**
      * This is a helper function from Tabula to set the rotation of model parts
      */
     public void setRotateAngle(ModelRenderer modelRenderer, float x, float y, float z) {
-        modelRenderer.rotateAngleX = x;
-        modelRenderer.rotateAngleY = y;
-        modelRenderer.rotateAngleZ = z;
+        modelRenderer.xRot = x;
+        modelRenderer.yRot = y;
+        modelRenderer.zRot = z;
     }
     
     @Override
-    public void setRotationAngles(
+    public void setupAnim(
       @NotNull T entity, float limbSwing, float limbSwingAmount,
       float ageInTicks, float netHeadYaw, float headPitch
     ) {
-        super.setRotationAngles(
+        super.setupAnim(
           entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
         if (entity instanceof ArmorStandEntity) {
-            final Rotations rot = ((ArmorStandEntity) entity).getBodyRotation();
-            setRotateAngle(bipedBody, rot.getX() * TO_RAD, rot.getY() * TO_RAD, rot.getZ() * TO_RAD);
+            final Rotations rot = ((ArmorStandEntity) entity).getBodyPose();
+            setRotateAngle(body, rot.getX() * TO_RAD, rot.getY() * TO_RAD, rot.getZ() * TO_RAD);
         }
     }
 }

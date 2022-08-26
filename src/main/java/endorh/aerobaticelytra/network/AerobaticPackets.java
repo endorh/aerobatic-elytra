@@ -42,7 +42,7 @@ public class AerobaticPackets {
 	private static final Map<String, Map<String, Integer>> LAST_WARNS = new HashMap<>();
 	private static boolean logWarning(PlayerEntity player, String message, Object... args) {
 		final String name = player.getScoreboardName();
-		final int time = player.ticksExisted;
+		final int time = player.tickCount;
 		if (!LAST_WARNS.computeIfAbsent(name, s -> new HashMap<>()).containsKey(message)
 		    || time - LAST_WARNS.get(name).get(message) >= TIME_BETWEEN_WARNINGS) {
 			Object[] formatArgs = new Object[args.length+1];
@@ -121,16 +121,16 @@ public class AerobaticPackets {
 			if (!Config.network.disable_aerobatic_elytra_rotation_check && !sender.isInWater()) {
 				MinecraftServer server = sender.getServer();
 				assert server != null;
-				long[] times = server.getTickTime(sender.world.getDimensionKey());
+				long[] times = server.getTickTime(sender.level.dimension());
 				long mspt = times != null ? max(Arrays.stream(times).sum() / times.length, 50L) : 50L;
-				float lag = max(50F, ((ServerPlayerEntity) sender).ping);
+				float lag = max(50F, ((ServerPlayerEntity) sender).latency);
 				
 				// Take lag into account when validating packets, plus extra tolerance
 				float overlook =
 				  (mspt / 50F) * (lag / 50F) * Config.network.aerobatic_elytra_rotation_check_overlook;
 				// Multiply by motion strength, plus extra tolerance
 				float mul =
-				  overlook * max(0.2F, abs(new Vec3f(sender.getMotion()).dot(rotation.look)));
+				  overlook * max(0.2F, abs(new Vec3f(sender.getDeltaMovement()).dot(rotation.look)));
 				
 				float[] distance = data.getRotationBase().distance(rotation);
 				float tiltYaw = validateClose(distance[0], 0F, Config.aerobatic.tilt.range_yaw * mul);
@@ -333,10 +333,10 @@ public class AerobaticPackets {
 			targetData.copy(data);
 		}
 		@Override protected void serialize(PacketBuffer buf) {
-			buf.writeCompoundTag(AerobaticDataCapability.asNBT(data));
+			buf.writeNbt(AerobaticDataCapability.asNBT(data));
 		}
 		@Override protected void deserialize(PacketBuffer buf) {
-			data = AerobaticDataCapability.fromNBT(buf.readCompoundTag());
+			data = AerobaticDataCapability.fromNBT(buf.readNbt());
 		}
 	}
 	
@@ -358,10 +358,10 @@ public class AerobaticPackets {
 			targetData.copy(data);
 		}
 		@Override protected void serialize(PacketBuffer buf) {
-			buf.writeCompoundTag(FlightDataCapability.asNBT(data));
+			buf.writeNbt(FlightDataCapability.asNBT(data));
 		}
 		@Override protected void deserialize(PacketBuffer buf) {
-			data = FlightDataCapability.fromNBT(buf.readCompoundTag());
+			data = FlightDataCapability.fromNBT(buf.readNbt());
 		}
 	}
 }

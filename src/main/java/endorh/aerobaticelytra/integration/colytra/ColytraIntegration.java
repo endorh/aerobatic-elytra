@@ -34,9 +34,9 @@ public class ColytraIntegration {
 	 * Get the Colytra subitem from an armor, only if it's an aerobatic elytra
 	 */
 	public static ItemStack getColytraSubItem(ItemStack chest) {
-		CompoundNBT colytraTag = chest.getChildTag("colytra:ElytraUpgrade");
+		CompoundNBT colytraTag = chest.getTagElement("colytra:ElytraUpgrade");
 		if (colytraTag != null) {
-			ItemStack elytra = ItemStack.read(colytraTag);
+			ItemStack elytra = ItemStack.of(colytraTag);
 			if (elytra.getItem() instanceof AerobaticElytraItem)
 				return elytra;
 		}
@@ -47,7 +47,7 @@ public class ColytraIntegration {
 	 * Get the Colytra subitem from an armor, only if it's an aerobatic elytra
 	 */
 	public static ItemStack getColytraSubItem(LivingEntity entity) {
-		return getColytraSubItem(entity.getItemStackFromSlot(EquipmentSlotType.CHEST));
+		return getColytraSubItem(entity.getItemBySlot(EquipmentSlotType.CHEST));
 	}
 	
 	/**
@@ -60,7 +60,7 @@ public class ColytraIntegration {
 			return;
 		
 		PlayerEntity player = event.player;
-		ItemStack chest = player.getItemStackFromSlot(EquipmentSlotType.CHEST);
+		ItemStack chest = player.getItemBySlot(EquipmentSlotType.CHEST);
 		if (!(chest.getItem() instanceof ArmorItem))
 			return;
 		ItemStack elytra = getColytraSubItem(chest);
@@ -74,6 +74,6 @@ public class ColytraIntegration {
 		assert flightAttribute != null;
 		flightAttribute.removeModifier(COLYTRA_CAELUS_FLIGHT_MODIFIER);
 		if (elytra.getItem().canElytraFly(elytra, player))
-			flightAttribute.applyNonPersistentModifier(COLYTRA_CAELUS_FLIGHT_MODIFIER);
+			flightAttribute.addTransientModifier(COLYTRA_CAELUS_FLIGHT_MODIFIER);
 	}
 }

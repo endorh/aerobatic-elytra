@@ -42,7 +42,7 @@ public class ModItemProperties {
 	private static void reg(
 	  Item item, ResourceLocation property, IItemPropertyGetter getter
 	) {
-		ItemModelsProperties.registerProperty(item, property, getter);
+		ItemModelsProperties.register(item, property, getter);
 	}
 	
 	public static float getFuelProperty(ItemStack stack, ClientWorld world, LivingEntity holder) {
@@ -64,7 +64,7 @@ public class ModItemProperties {
 	 */
 	public static float getBrokenProperty(ItemStack stack, ClientWorld world, LivingEntity holder) {
 		return MathHelper.clamp(
-		  (float)stack.getDamage() / (float)(stack.getMaxDamage() - 1),
+		  (float)stack.getDamageValue() / (float)(stack.getMaxDamage() - 1),
 		  0F, 1F);
 	}
 	
@@ -77,7 +77,7 @@ public class ModItemProperties {
 			return 1F;
 		if (holder == null)
 			return visibility.fuel_visibility.test() ? 0F : 1F;
-		ItemStack chest = holder.getItemStackFromSlot(EquipmentSlotType.CHEST);
+		ItemStack chest = holder.getItemBySlot(EquipmentSlotType.CHEST);
 		if (chest == stack)
 			return 0F;
 		return visibility.fuel_visibility.test() ? 0F : 1F;

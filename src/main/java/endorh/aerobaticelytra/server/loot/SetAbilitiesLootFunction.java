@@ -29,14 +29,14 @@ public class SetAbilitiesLootFunction extends LootFunction {
 	}
 	
 	@Override
-	protected @NotNull ItemStack doApply(@NotNull ItemStack stack, @NotNull LootContext context) {
+	protected @NotNull ItemStack run(@NotNull ItemStack stack, @NotNull LootContext context) {
 		final IElytraSpec spec = ElytraSpecCapability.getElytraSpecOrDefault(stack);
 		spec.putAbilities(abilities);
 		spec.getUnknownAbilities().putAll(unknown);
 		return stack;
 	}
 	
-	@Override public @NotNull LootFunctionType getFunctionType() {
+	@Override public @NotNull LootFunctionType getType() {
 		return ModLootFunctions.SET_ABILITIES;
 	}
 	
@@ -48,7 +48,7 @@ public class SetAbilitiesLootFunction extends LootFunction {
 		private final Map<IAbility, Float> abilities = new HashMap<>();
 		private final Map<String, Float> unknown = new HashMap<>();
 		
-		@Override protected @NotNull Builder doCast() {
+		@Override protected @NotNull Builder getThis() {
 			return this;
 		}
 		

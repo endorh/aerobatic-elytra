@@ -42,10 +42,10 @@ public class ShapelessDecoratedDrawable implements IDrawable {
 		decorated.draw(mStack, xOffset, yOffset);
 		final int shapelessIconX = getWidth() - (shapelessIcon.getWidth() / scale);
 		
-		mStack.push(); {
+		mStack.pushPose(); {
 			mStack.translate(shapelessIconX, 0, 0);
 			mStack.scale(1F / scale, 1F / scale, 1);
 			(dark ? darkShapelessIcon : shapelessIcon).draw(mStack);
-		} mStack.pop();
+		} mStack.popPose();
 	}
 }

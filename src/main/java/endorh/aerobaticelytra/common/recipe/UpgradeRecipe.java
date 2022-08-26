@@ -200,12 +200,12 @@ public class UpgradeRecipe extends SpecialRecipe {
 	 * @param player Player holding the ingredients
 	 */
 	public void apply(PlayerEntity player) {
-		ItemStack elytra = player.getItemStackFromSlot(EquipmentSlotType.OFFHAND);
-		ItemStack stack = player.getItemStackFromSlot(EquipmentSlotType.MAINHAND);
+		ItemStack elytra = player.getItemBySlot(EquipmentSlotType.OFFHAND);
+		ItemStack stack = player.getItemBySlot(EquipmentSlotType.MAINHAND);
 		if (!matches(elytra, stack))
 			return;
 		final Pair<ItemStack, Integer> result = getResult(elytra, stack.getCount());
-		player.setItemStackToSlot(EquipmentSlotType.OFFHAND, result.getLeft());
+		player.setItemSlot(EquipmentSlotType.OFFHAND, result.getLeft());
 		if (!player.isCreative()) {
 			stack.shrink(result.getRight());
 		}
@@ -243,11 +243,11 @@ public class UpgradeRecipe extends SpecialRecipe {
 	 * @param recipes Recipe collection
 	 */
 	public static void apply(PlayerEntity player, Collection<UpgradeRecipe> recipes) {
-		ItemStack elytra = player.getItemStackFromSlot(EquipmentSlotType.OFFHAND);
-		final ItemStack stack = player.getItemStackFromSlot(EquipmentSlotType.MAINHAND);
+		ItemStack elytra = player.getItemBySlot(EquipmentSlotType.OFFHAND);
+		final ItemStack stack = player.getItemBySlot(EquipmentSlotType.MAINHAND);
 		int n = stack.getCount();
 		final ItemStack result = apply(elytra, stack, recipes);
-		player.setItemStackToSlot(EquipmentSlotType.OFFHAND, result);
+		player.setItemSlot(EquipmentSlotType.OFFHAND, result);
 		if (player.isCreative())
 			stack.setCount(n);
 	}
@@ -257,13 +257,13 @@ public class UpgradeRecipe extends SpecialRecipe {
 	}
 	
 	// Forced methods
-	@Deprecated @Override public boolean canFit(int width, int height) {
+	@Deprecated @Override public boolean canCraftInDimensions(int width, int height) {
 		return false;
 	}
 	@Deprecated @Override public boolean matches(@NotNull CraftingInventory inv, @NotNull World worldIn) {
 		return false;
 	}
-	@Deprecated @NotNull @Override public ItemStack getCraftingResult(@NotNull CraftingInventory inv) {
+	@Deprecated @NotNull @Override public ItemStack assemble(@NotNull CraftingInventory inv) {
 		return ItemStack.EMPTY;
 	}
 	
@@ -287,7 +287,7 @@ public class UpgradeRecipe extends SpecialRecipe {
 	}
 	
 	@Override
-	public @NotNull ItemStack getRecipeOutput() {
+	public @NotNull ItemStack getResultItem() {
 		return new ItemStack(ModItems.AEROBATIC_ELYTRA);
 	}
 	
@@ -305,22 +305,22 @@ public class UpgradeRecipe extends SpecialRecipe {
 			setRegistryName(NAME);
 		}
 		
-		@NotNull @Override public UpgradeRecipe read(
+		@NotNull @Override public UpgradeRecipe fromJson(
 		  @NotNull ResourceLocation recipeId, @NotNull JsonObject json
 		) {
 			final List<ItemSelector> ing = ItemSelector.deserialize(
-			  JSONUtils.getJsonArray(json, "ingredients"));
+			  JSONUtils.getAsJsonArray(json, "ingredients"));
 			final List<Upgrade> upgrades = IElytraSpec.Upgrade.deserialize(
-			  JSONUtils.getJsonArray(json, "upgrades"));
+			  JSONUtils.getAsJsonArray(json, "upgrades"));
 			final ElytraRequirement req =
-			  JSONUtils.hasField(json, "requirement")
-			  ? ElytraRequirement.deserialize(JSONUtils.getJsonObject(json, "requirement"))
+			  JSONUtils.isValidNode(json, "requirement")
+			  ? ElytraRequirement.deserialize(JSONUtils.getAsJsonObject(json, "requirement"))
 			  : ElytraRequirement.NONE;
-			final boolean lenient = JSONUtils.getBoolean(json, "lenient", true);
+			final boolean lenient = JSONUtils.getAsBoolean(json, "lenient", true);
 			return new UpgradeRecipe(recipeId, ing, upgrades, req, lenient);
 		}
 		
-		@Nullable @Override public UpgradeRecipe read(
+		@Nullable @Override public UpgradeRecipe fromNetwork(
 		  @NotNull ResourceLocation id, @NotNull PacketBuffer buf
 		) {
 			return new UpgradeRecipe(id,
@@ -330,7 +330,7 @@ public class UpgradeRecipe extends SpecialRecipe {
 			  buf.readBoolean());
 		}
 		
-		@Override public void write(
+		@Override public void toNetwork(
 		  @NotNull PacketBuffer buf, @NotNull UpgradeRecipe recipe
 		) {
 			writeList(recipe.ingredients, buf, ItemSelector::write);

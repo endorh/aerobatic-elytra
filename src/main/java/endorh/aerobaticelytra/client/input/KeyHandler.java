@@ -55,7 +55,7 @@ public class KeyHandler {
 			return;
 		final IFlightData fd = getFlightDataOrDefault(player);
 		
-		if (FLIGHT_MODE_KEYBINDING.isPressed()) {
+		if (FLIGHT_MODE_KEYBINDING.consumeClick()) {
 			fd.nextFlightMode();
 			IFlightMode mode = fd.getFlightMode();
 			new DFlightModePacket(mode).send();
@@ -70,13 +70,13 @@ public class KeyHandler {
 		final MovementInput movementInput = event.getMovementInput();
 		final IFlightMode mode = getFlightDataOrDefault(player).getFlightMode();
 		
-		if (mode.is(FlightModeTags.AEROBATIC) && player.isElytraFlying()) {
-			if (data.updateJumping(movementInput.jump))
+		if (mode.is(FlightModeTags.AEROBATIC) && player.isFallFlying()) {
+			if (data.updateJumping(movementInput.jumping))
 				new DJumpingPacket(data).send();
 		}
 		boolean sprinting =
-		  mode.is(FlightModeTags.AEROBATIC) && player.isElytraFlying()
-		  && Minecraft.getInstance().gameSettings.keyBindSprint.isKeyDown();
+		  mode.is(FlightModeTags.AEROBATIC) && player.isFallFlying()
+		  && Minecraft.getInstance().options.keySprint.isDown();
 		if (sprinting)
 			player.setSprinting(false);
 		if (data.updateSprinting(sprinting)) {

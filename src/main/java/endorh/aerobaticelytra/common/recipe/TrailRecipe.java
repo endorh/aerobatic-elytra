@@ -34,8 +34,8 @@ public class TrailRecipe extends SpecialRecipe {
 		ItemStack elytra = null;
 		int e = 0;
 		int rockets = 0;
-		for (int k = 0; k < inv.getSizeInventory(); k++) {
-			ItemStack item = inv.getStackInSlot(k);
+		for (int k = 0; k < inv.getContainerSize(); k++) {
+			ItemStack item = inv.getItem(k);
 			if (item.isEmpty())
 				continue;
 			if (AerobaticElytraLogic.isAerobaticElytra(item)) {
@@ -58,14 +58,14 @@ public class TrailRecipe extends SpecialRecipe {
 			for (int y = 0; y < h; y++) {
 				if (x == j - 1 || x == j + 1) {
 					if (y == i || y == i + 1) {
-						if (!inv.getStackInSlot(y * w + x).isEmpty())
+						if (!inv.getItem(y * w + x).isEmpty())
 							count++;
 						continue;
 					}
 				}
 				if (x == j && y == i)
 					continue;
-				if (!inv.getStackInSlot(y * w + x).isEmpty())
+				if (!inv.getItem(y * w + x).isEmpty())
 					return false;
 			}
 		}
@@ -74,11 +74,11 @@ public class TrailRecipe extends SpecialRecipe {
 	}
 	
 	@NotNull @Override
-	public ItemStack getCraftingResult(@NotNull CraftingInventory inv) {
+	public ItemStack assemble(@NotNull CraftingInventory inv) {
 		ItemStack elytra = ItemStack.EMPTY;
 		int k;
-		for (k = 0; k < inv.getSizeInventory(); k++) {
-			ItemStack item = inv.getStackInSlot(k);
+		for (k = 0; k < inv.getContainerSize(); k++) {
+			ItemStack item = inv.getItem(k);
 			if (item.isEmpty())
 				continue;
 			if (AerobaticElytraLogic.isAerobaticElytra(item)) {
@@ -97,14 +97,14 @@ public class TrailRecipe extends SpecialRecipe {
 		RocketSide[] sides = RocketSide.values();
 		
 		if (j > 0) {
-			rockets[0] = inv.getStackInSlot(k - 1);
+			rockets[0] = inv.getItem(k - 1);
 			if (i < h - 1)
-				rockets[2] = inv.getStackInSlot(k + w - 1);
+				rockets[2] = inv.getItem(k + w - 1);
 		}
 		if (j < w - 1) {
-			rockets[1] = inv.getStackInSlot(k + 1);
+			rockets[1] = inv.getItem(k + 1);
 			if (i < h - 1)
-				rockets[3] = inv.getStackInSlot(k + w + 1);
+				rockets[3] = inv.getItem(k + w + 1);
 		}
 		
 		return apply(elytra, rockets);
@@ -152,7 +152,7 @@ public class TrailRecipe extends SpecialRecipe {
 	}
 	
 	@Override
-	public boolean canFit(int width, int height) {
+	public boolean canCraftInDimensions(int width, int height) {
 		return width >= 2 && height >= 1;
 	}
 	

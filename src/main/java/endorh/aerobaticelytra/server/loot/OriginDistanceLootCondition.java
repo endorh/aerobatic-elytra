@@ -18,12 +18,12 @@ public class OriginDistanceLootCondition implements ILootCondition {
 		this.maxDistance = maxDistance;
 	}
 	
-	@Override public @NotNull LootConditionType func_230419_b_() {
+	@Override public @NotNull LootConditionType getType() {
 		return ModLootConditions.ORIGIN_DISTANCE;
 	}
 	
 	@Override public boolean test(LootContext lootContext) {
-		Vector3d position = lootContext.get(LootParameters.field_237457_g_);
+		Vector3d position = lootContext.getParamOrNull(LootParameters.ORIGIN);
 		if (position == null)
 			throw new IllegalStateException(
 			  "Cannot use 'origin_distance' loot condition in this loot table type");

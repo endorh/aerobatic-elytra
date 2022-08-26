@@ -46,7 +46,7 @@ public class TravelHandler {
 	 */
 	public static final SoftField<ServerPlayNetHandler, Integer> ServerPlayNetHandler$floatingTickCount =
 	  ObfuscationReflectionUtil.getSoftField(
-	    ServerPlayNetHandler.class, "field_147365_f", "floatingTickCount",
+	    ServerPlayNetHandler.class, "aboveGroundTickCount", "floatingTickCount",
 	    oneTimeLogger(LOGGER::error),
 	    "Some flight modes may kick players for flying",
 	    "A flight mode tried to prevent a player from being kicked for flying, but reflection failed.");
@@ -101,19 +101,19 @@ public class TravelHandler {
 	public static double travelGravity(PlayerEntity player) {
 		double grav = 0.08D;
 		ModifiableAttributeInstance gravity = player.getAttribute(ForgeMod.ENTITY_GRAVITY.get());
-		boolean flag = player.getMotion().y <= 0.0D;
+		boolean flag = player.getDeltaMovement().y <= 0.0D;
 		if (SLOW_FALLING != null) {
 			assert gravity != null;
 			// Directly extracted from LivingEntity#travel
-			if (flag && player.isPotionActive(Effects.SLOW_FALLING)) {
+			if (flag && player.hasEffect(Effects.SLOW_FALLING)) {
 				if (!gravity.hasModifier(SLOW_FALLING))
-					gravity.applyNonPersistentModifier(SLOW_FALLING);
+					gravity.addTransientModifier(SLOW_FALLING);
 				player.fallDistance = 0.0F;
 			} else if (gravity.hasModifier(SLOW_FALLING)) {
 				gravity.removeModifier(SLOW_FALLING);
 			}
 			grav = gravity.getValue();
-		} else if (flag && player.isPotionActive(Effects.SLOW_FALLING)) {
+		} else if (flag && player.hasEffect(Effects.SLOW_FALLING)) {
 			// Reflection failed, defaulting to direct computation ignoring AttributeModifier
 			grav = 0.01F;
 			player.fallDistance = 0.0F;

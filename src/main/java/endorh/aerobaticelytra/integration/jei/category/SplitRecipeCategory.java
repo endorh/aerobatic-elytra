@@ -67,7 +67,7 @@ public class SplitRecipeCategory extends BaseCategory<SplitRecipe> {
 		stacks.set(18, wings.getSecond());
 		for (int i = 0, s = min(recipe.ingredients.size(), 8); i < s; i++) {
 			final List<ItemStack> ing = Arrays.asList(
-			  recipe.ingredients.get(i).getLeft().getMatchingStacks());
+			  recipe.ingredients.get(i).getLeft().getItems());
 			final List<ItemStack> st = getItemMatchingFocus(
 			  focus, Mode.INPUT, ing, ing);
 			stacks.set(i + 1, st);
@@ -80,7 +80,7 @@ public class SplitRecipeCategory extends BaseCategory<SplitRecipe> {
 	private static List<ItemStack> damage(List<ItemStack> stacks, int damage) {
 		return stacks.stream().map(s -> {
 			s = s.copy();
-			s.setDamage(s.getDamage() + damage);
+			s.setDamageValue(s.getDamageValue() + damage);
 			return s;
 		}).collect(Collectors.toList());
 	}

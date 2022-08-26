@@ -32,27 +32,27 @@ public class BrokenLeavesTileEntity extends TileEntity {
 	@Nullable
 	@Override
 	public SUpdateTileEntityPacket getUpdatePacket() {
-		return new SUpdateTileEntityPacket(pos, 0, getUpdateTag());
+		return new SUpdateTileEntityPacket(worldPosition, 0, getUpdateTag());
 	}
 	
 	@Override public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
 		super.onDataPacket(net, pkt);
-		CompoundNBT updateNBT = pkt.getNbtCompound();
+		CompoundNBT updateNBT = pkt.getTag();
 		replacedLeaves = NBTUtil.readBlockState(updateNBT.getCompound(TAG_REPLACED_LEAVES));
 		final BlockState state = getBlockState();
-		assert world != null;
-		world.notifyBlockUpdate(pos, state, state, BlockFlags.DEFAULT_AND_RERENDER);
+		assert level != null;
+		level.sendBlockUpdated(worldPosition, state, state, BlockFlags.DEFAULT_AND_RERENDER);
 	}
 	
-	@Override public @NotNull CompoundNBT write(@NotNull CompoundNBT compound) {
-		CompoundNBT nbt = super.write(compound);
+	@Override public @NotNull CompoundNBT save(@NotNull CompoundNBT compound) {
+		CompoundNBT nbt = super.save(compound);
 		if (replacedLeaves != null)
 			nbt.put(TAG_REPLACED_LEAVES, NBTUtil.writeBlockState(replacedLeaves));
 		return nbt;
 	}
 	
-	@Override public void read(@NotNull BlockState state, @NotNull CompoundNBT nbt) {
-		super.read(state, nbt);
+	@Override public void load(@NotNull BlockState state, @NotNull CompoundNBT nbt) {
+		super.load(state, nbt);
 		if (nbt.contains(TAG_REPLACED_LEAVES))
 			replacedLeaves = NBTUtil.readBlockState(nbt.getCompound(TAG_REPLACED_LEAVES));
 	}

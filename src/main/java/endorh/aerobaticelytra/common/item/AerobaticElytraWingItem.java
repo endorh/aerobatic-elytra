@@ -39,6 +39,8 @@ import static endorh.aerobaticelytra.common.capability.ElytraSpecCapability.getE
 import static endorh.util.text.TextUtil.stc;
 import static endorh.util.text.TextUtil.ttc;
 
+import net.minecraft.item.Item.Properties;
+
 public class AerobaticElytraWingItem extends Item implements IDyeableArmorItem {
 	public static final String NAME = "aerobatic_elytra_wing";
 	
@@ -47,13 +49,13 @@ public class AerobaticElytraWingItem extends Item implements IDyeableArmorItem {
 	}
 	
 	public AerobaticElytraWingItem(Properties builder) {
-		super(builder.group(ItemGroup.MISC));
+		super(builder.tab(ItemGroup.TAB_MISC));
 		setRegistryName(NAME);
 	}
 	
 	public static ItemStack createDebugWing() {
 		final ItemStack stack = new ItemStack(ModItems.AEROBATIC_ELYTRA_WING, 1);
-		stack.setDisplayName(new StringTextComponent("Debug Wing"));
+		stack.setHoverName(new StringTextComponent("Debug Wing"));
 		return stack;
 	}
 	
@@ -66,58 +68,58 @@ public class AerobaticElytraWingItem extends Item implements IDyeableArmorItem {
 	 */
 	public static boolean hasDebugWing(PlayerEntity player) {
 		return canUseDebugWing(player) &&
-		       (isDebugWing(player.getHeldItem(Hand.MAIN_HAND))
-		        || isDebugWing(player.getHeldItem(Hand.OFF_HAND)));
+		       (isDebugWing(player.getItemInHand(Hand.MAIN_HAND))
+		        || isDebugWing(player.getItemInHand(Hand.OFF_HAND)));
 	}
 	
 	/**
 	 * Check if the player can use the Debug Wing and has it held in the offhand
 	 */
 	public static boolean hasOffhandDebugWing(PlayerEntity player) {
-		return canUseDebugWing(player) && isDebugWing(player.getHeldItem(Hand.OFF_HAND));
+		return canUseDebugWing(player) && isDebugWing(player.getItemInHand(Hand.OFF_HAND));
 	}
 	
 	public static boolean isDebugWing(ItemStack stack) {
 		return stack.getItem() == ModItems.AEROBATIC_ELYTRA_WING
-		  && "Debug Wing".equals(stack.getDisplayName().getString());
+		  && "Debug Wing".equals(stack.getHoverName().getString());
 	}
 	
 	/**
 	 * If in creative mode and named "Debug Wing", used to test
 	 * the broken leaves block.
 	 */
-	@Override public @NotNull ActionResultType onItemUse(ItemUseContext context) {
-		World world = context.getWorld();
+	@Override public @NotNull ActionResultType useOn(ItemUseContext context) {
+		World world = context.getLevel();
 		if (ElytraDyement.clearDyesWithCauldron(context))
-			return ActionResultType.func_233537_a_(world.isRemote());
-		final ItemStack stack = context.getItem();
+			return ActionResultType.sidedSuccess(world.isClientSide());
+		final ItemStack stack = context.getItemInHand();
 		final PlayerEntity player = context.getPlayer();
 		if (isDebugWing(stack) && player != null && canUseDebugWing(player)) {
-			final BlockPos pos = context.getPos();
+			final BlockPos pos = context.getClickedPos();
 			final Block block = world.getBlockState(pos).getBlock();
-			if (block.isIn(BlockTags.LEAVES)) {
+			if (block.is(BlockTags.LEAVES)) {
 				BrokenLeavesBlock.breakLeaves(world, pos);
 			} else if (block == ModBlocks.BROKEN_LEAVES && context.isInside()) {
-				final BlockPos next = pos.subtract(context.getFace().getDirectionVec());
-				if (world.getBlockState(next).getBlock().isIn(BlockTags.LEAVES)) {
+				final BlockPos next = pos.subtract(context.getClickedFace().getNormal());
+				if (world.getBlockState(next).getBlock().is(BlockTags.LEAVES)) {
 					BrokenLeavesBlock.breakLeaves(world, next);
-					final BlockPos down = next.down();
-					if (world.getBlockState(down).getBlock().isIn(BlockTags.LEAVES))
+					final BlockPos down = next.below();
+					if (world.getBlockState(down).getBlock().is(BlockTags.LEAVES))
 						BrokenLeavesBlock.breakLeaves(world, down);
 				}
 			}
-			return ActionResultType.func_233537_a_(world.isRemote());
+			return ActionResultType.sidedSuccess(world.isClientSide());
 		}
-		return super.onItemUse(context);
+		return super.useOn(context);
 	}
 	
 	@Override
-	public @NotNull ActionResult<ItemStack> onItemRightClick(
+	public @NotNull ActionResult<ItemStack> use(
 	  @NotNull World world, @NotNull PlayerEntity player, @NotNull Hand hand
 	) {
 		IAerobaticData data = getAerobaticDataOrDefault(player);
 		if (data.isFlying() && hasDebugWing(player)) {
-			if (player.isSneaking()) {
+			if (player.isShiftKeyDown()) {
 				data.setTiltPitch(0F);
 				data.setTiltRoll(0F);
 				data.setTiltYaw(0F);
@@ -125,28 +127,28 @@ public class AerobaticElytraWingItem extends Item implements IDyeableArmorItem {
 				VectorBase base = data.getRotationBase();
 				final Vec3f ax = Vec3f.forAxis(Axis.X);
 				base.mirror(ax);
-				Vec3f motionVec = new Vec3f(player.getMotion());
+				Vec3f motionVec = new Vec3f(player.getDeltaMovement());
 				motionVec.reflect(ax);
-				player.setMotion(motionVec.toVector3d());
+				player.setDeltaMovement(motionVec.toVector3d());
 				data.setLastBounceTime(System.currentTimeMillis());
 				data.getPreBounceBase().set(data.getCameraBase());
 				data.getPosBounceBase().set(base);
 			}
-			return ActionResult.resultConsume(player.getHeldItem(hand));
+			return ActionResult.consume(player.getItemInHand(hand));
 		}
-		return super.onItemRightClick(world, player, hand);
+		return super.use(world, player, hand);
 	}
 	
 	@Override
-	public boolean hasEffect(@NotNull ItemStack stack) {
-		return super.hasEffect(stack) && visibility.enchantment_glint_visibility.test()
+	public boolean isFoil(@NotNull ItemStack stack) {
+		return super.isFoil(stack) && visibility.enchantment_glint_visibility.test()
 		       || isDebugWing(stack);
 	}
 	
-	@Override public @NotNull ITextComponent getDisplayName(@NotNull ItemStack stack) {
-		IFormattableTextComponent name = super.getDisplayName(stack).copyRaw();
-		return "Debug Wing".equals(name.getString())? name.mergeStyle(TextFormatting.OBFUSCATED).mergeStyle(
-		  TextFormatting.LIGHT_PURPLE) : name.mergeStyle(TextFormatting.BLUE);
+	@Override public @NotNull ITextComponent getName(@NotNull ItemStack stack) {
+		IFormattableTextComponent name = super.getName(stack).plainCopy();
+		return "Debug Wing".equals(name.getString())? name.withStyle(TextFormatting.OBFUSCATED).withStyle(
+		  TextFormatting.LIGHT_PURPLE) : name.withStyle(TextFormatting.BLUE);
 	}
 	
 	@Override public int getMaxDamage(ItemStack stack) {
@@ -157,11 +159,11 @@ public class AerobaticElytraWingItem extends Item implements IDyeableArmorItem {
 	}
 	
 	@Override public int getColor(ItemStack stack) {
-		CompoundNBT display = stack.getChildTag("display");
+		CompoundNBT display = stack.getTagElement("display");
 		if (display != null) {
 			return display.contains("color", 99) ? display.getInt("color") : AerobaticElytraItem.DEFAULT_COLOR;
 		}
-		display = stack.getChildTag("BlockEntityTag");
+		display = stack.getTagElement("BlockEntityTag");
 		if (display != null) {
 			return DyeColor.byId(display.getInt("Base")).getColorValue();
 		}
@@ -169,30 +171,30 @@ public class AerobaticElytraWingItem extends Item implements IDyeableArmorItem {
 	}
 	
 	@Override
-	public boolean hasColor(ItemStack stack) {
-		CompoundNBT tag = stack.getChildTag("BlockEntityTag");
-		return IDyeableArmorItem.super.hasColor(stack) || tag != null;
+	public boolean hasCustomColor(ItemStack stack) {
+		CompoundNBT tag = stack.getTagElement("BlockEntityTag");
+		return IDyeableArmorItem.super.hasCustomColor(stack) || tag != null;
 	}
 	
 	@Override
-	public void removeColor(@NotNull ItemStack stack) {
-		IDyeableArmorItem.super.removeColor(stack);
-		CompoundNBT tag = stack.getChildTag("BlockEntityTag");
+	public void clearColor(@NotNull ItemStack stack) {
+		IDyeableArmorItem.super.clearColor(stack);
+		CompoundNBT tag = stack.getTagElement("BlockEntityTag");
 		if (tag != null)
-			stack.removeChildTag("BlockEntityTag");
+			stack.removeTagKey("BlockEntityTag");
 	}
 	
 	@Override
-	public void addInformation(
+	public void appendHoverText(
 	  @NotNull ItemStack stack, @Nullable World world, @NotNull List<ITextComponent> tooltip, @NotNull ITooltipFlag flag
 	) {
 		if (!isDebugWing(stack)) {
 			tooltip.addAll(getTooltipInfo(stack, flag));
-			if (!stack.getEnchantmentTagList().isEmpty())
+			if (!stack.getEnchantmentTags().isEmpty())
 				tooltip.add(stc("")); // Separator
 		} else tooltip.add(
 		  ttc("item.aerobaticelytra.aerobatic_elytra_wing.debug_wing.tooltip")
-		    .mergeStyle(TextFormatting.GRAY));
+		    .withStyle(TextFormatting.GRAY));
 	}
 	
 	public AerobaticElytraItem getElytraItem() {

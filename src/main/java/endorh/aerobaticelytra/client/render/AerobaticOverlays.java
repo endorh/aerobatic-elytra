@@ -73,11 +73,11 @@ public class AerobaticOverlays {
 	  IFlightMode mode, float alpha, MatrixStack mStack,
 	  TextureManager tManager, MainWindow win
 	) {
-		tManager.bindTexture(mode.getToastIconLocation());
+		tManager.bind(mode.getToastIconLocation());
 		RenderSystem.enableBlend();
 		RenderSystem.color4f(1F, 1F, 1F, alpha);
-		int winW = win.getScaledWidth();
-		int winH = win.getScaledHeight();
+		int winW = win.getGuiScaledWidth();
+		int winH = win.getGuiScaledHeight();
 		int tW = Const.FLIGHT_GUI_TEXTURE_WIDTH, tH = Const.FLIGHT_GUI_TEXTURE_HEIGHT;
 		int iW = Const.FLIGHT_MODE_TOAST_WIDTH, iH = Const.FLIGHT_MODE_TOAST_HEIGHT;
 		int u = mode.getToastIconU(), v = mode.getToastIconV();
@@ -97,13 +97,13 @@ public class AerobaticOverlays {
 			PlayerEntity pl = mc.player;
 			assert pl != null;
 			if (AerobaticFlight.isAerobaticFlying(pl)) {
-				GameSettings st = mc.gameSettings;
-				assert mc.playerController != null;
-				// Mimic logic from IngameGui#func_238456_d_
-				if (st.getPointOfView().func_243192_a()
-				    && mc.playerController.getCurrentGameType() != GameType.SPECTATOR
-				    && !st.hideGUI) {
-					if (st.showDebugInfo && !pl.hasReducedDebug() && !st.reducedDebugInfo) {
+				GameSettings st = mc.options;
+				assert mc.gameMode != null;
+				// Mimic logic from IngameGui#renderCrosshair
+				if (st.getCameraType().isFirstPerson()
+				    && mc.gameMode.getPlayerMode() != GameType.SPECTATOR
+				    && !st.hideGui) {
+					if (st.renderDebug && !pl.isReducedDebugInfo() && !st.reducedDebugInfo) {
 						awaitingDebugCrosshair = true;
 						onPreDebugCrosshair(pl, event.getWindow());
 					} else {
@@ -131,7 +131,7 @@ public class AerobaticOverlays {
 	  PlayerEntity player, MatrixStack mStack,
 	  TextureManager tManager, MainWindow win
 	) {
-		tManager.bindTexture(FLIGHT_GUI_ICONS_LOCATION);
+		tManager.bind(FLIGHT_GUI_ICONS_LOCATION);
 		RenderSystem.enableBlend();
 		RenderSystem.enableAlphaTest();
 		RenderSystem.blendFuncSeparate(
@@ -140,8 +140,8 @@ public class AerobaticOverlays {
 		  GlStateManager.SourceFactor.ONE,
 		  GlStateManager.DestFactor.ZERO);
 		
-		int winW = win.getScaledWidth();
-		int winH = win.getScaledHeight();
+		int winW = win.getGuiScaledWidth();
+		int winH = win.getGuiScaledHeight();
 		
 		int tW = Const.FLIGHT_GUI_TEXTURE_WIDTH; int tH = Const.FLIGHT_GUI_TEXTURE_HEIGHT;
 		int cS = Const.FLIGHT_GUI_CROSSHAIR_SIZE;
@@ -203,16 +203,16 @@ public class AerobaticOverlays {
 		// RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 		RenderSystem.enableBlend();
 		
-		tManager.bindTexture(FLIGHT_GUI_ICONS_LOCATION);
+		tManager.bind(FLIGHT_GUI_ICONS_LOCATION);
 		
-		int winW = win.getScaledWidth();
-		int winH = win.getScaledHeight();
+		int winW = win.getGuiScaledWidth();
+		int winH = win.getGuiScaledHeight();
 		
-		int cap = player.xpBarCap();
+		int cap = player.getXpNeededForNextLevel();
 		
 		int x = winW / 2 - 91; // from ForgeIngameGui#renderIngameGui
-		int y = winH - 32 + 3; // from IngameGui#func_238454_b_
-		float barLength = 183F; // from IngameGui#func_238454_b_
+		int y = winH - 32 + 3; // from IngameGui#renderExperienceBar
+		float barLength = 183F; // from IngameGui#renderExperienceBar
 		int barHeight = 5;
 		if (!replace) { // OVER_XP
 			y -= 3;
@@ -269,8 +269,8 @@ public class AerobaticOverlays {
 	 * {@link AerobaticOverlays#onPostDebugCrosshair()} must be called after this on the same frame.
 	 */
 	private static void onPreDebugCrosshair(PlayerEntity player, MainWindow win) {
-		int winW = win.getScaledWidth();
-		int winH = win.getScaledHeight();
+		int winW = win.getGuiScaledWidth();
+		int winH = win.getGuiScaledHeight();
 		IAerobaticData data = AerobaticDataCapability.getAerobaticDataOrDefault(player);
 		
 		GL11.glPushMatrix();

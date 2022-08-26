@@ -77,8 +77,8 @@ public class AerobaticElytraLayer<T extends LivingEntity, M extends BipedModel<T
 		
 		dyement.read(elytra);
 		
-		getEntityModel().setModelAttributes(this.modelBack);
-		modelBack.setRotationAngles(
+		getParentModel().copyPropertiesTo(this.modelBack);
+		modelBack.setupAnim(
 		  entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
 		renderBackRockets(
 		  mStack, buffer, packedLight, entity, limbSwing, limbSwingAmount, partialTicks,
@@ -87,8 +87,8 @@ public class AerobaticElytraLayer<T extends LivingEntity, M extends BipedModel<T
 		// This translation added by the ElytraLayer is instead added by the model itself,
 		// which allows the model to be rotated along with armor stand entities
 		//   mStack.translate(0.0D, 0.0D, 0.125D);
-		getEntityModel().copyModelAttributesTo(modelElytra);
-		modelElytra.setRotationAngles(
+		getParentModel().copyPropertiesTo(modelElytra);
+		modelElytra.setupAnim(
 		  entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
 		
 		final boolean effect = !visibility.disable_wing_glint && item.hasModelEffect(elytra);
@@ -125,9 +125,9 @@ public class AerobaticElytraLayer<T extends LivingEntity, M extends BipedModel<T
 		AerobaticElytraItem item = (AerobaticElytraItem)elytra.getItem();
 		ResourceLocation texture = getElytraTexture(elytra, entity);
 		
-		IVertexBuilder rocketBuilder = ItemRenderer.getArmorVertexBuilder(
-		  buffer, RenderType.getArmorCutoutNoCull(texture), false, item.hasModelEffect(elytra));
-		modelElytra.rocketsModel.render(
+		IVertexBuilder rocketBuilder = ItemRenderer.getArmorFoilBuffer(
+		  buffer, RenderType.armorCutoutNoCull(texture), false, item.hasModelEffect(elytra));
+		modelElytra.rocketsModel.renderToBuffer(
 		  mStack, rocketBuilder, packedLight, OverlayTexture.NO_OVERLAY,
 		  1F, 1F, 1F, 1F);
 	}
@@ -138,9 +138,9 @@ public class AerobaticElytraLayer<T extends LivingEntity, M extends BipedModel<T
 	  float netHeadYaw, float headPitch, ItemStack elytra
 	) {
 		AerobaticElytraItem item = (AerobaticElytraItem)elytra.getItem();
-		IVertexBuilder backBuilder = ItemRenderer.getArmorVertexBuilder(
-		  buffer, RenderType.getArmorCutoutNoCull(TEXTURE_AEROBATIC_ELYTRA), false, item.hasModelEffect(elytra));
-		modelBack.render(mStack, backBuilder, packedLight, OverlayTexture.NO_OVERLAY,
+		IVertexBuilder backBuilder = ItemRenderer.getArmorFoilBuffer(
+		  buffer, RenderType.armorCutoutNoCull(TEXTURE_AEROBATIC_ELYTRA), false, item.hasModelEffect(elytra));
+		modelBack.renderToBuffer(mStack, backBuilder, packedLight, OverlayTexture.NO_OVERLAY,
 		                 1F, 1F, 1F, 1F);
 	}
 	
@@ -152,8 +152,8 @@ public class AerobaticElytraLayer<T extends LivingEntity, M extends BipedModel<T
 		float[] components = componentArray(color);
 		ResourceLocation texture = getElytraTexture(elytra, entity);
 		
-		IVertexBuilder elytraBuilder = ItemRenderer.getArmorVertexBuilder(
-		  buffer, RenderType.getArmorCutoutNoCull(texture), false, effect);
+		IVertexBuilder elytraBuilder = ItemRenderer.getArmorFoilBuffer(
+		  buffer, RenderType.armorCutoutNoCull(texture), false, effect);
 		modelElytra.renderWing(
 		  side, mStack, elytraBuilder, packedLight, OverlayTexture.NO_OVERLAY,
 		  components[0], components[1], components[2], 1F);
@@ -168,14 +168,14 @@ public class AerobaticElytraLayer<T extends LivingEntity, M extends BipedModel<T
 		final int size = min(visual.max_rendered_banner_layers + 1, patternColorData.size());
 		for (int i = 0; i < size; ++i) {
 			Pair<BannerPattern, DyeColor> pair = patternColorData.get(i);
-			float[] color = pair.getSecond().getColorComponentValues();
+			float[] color = pair.getSecond().getTextureDiffuseColors();
 			RenderMaterial material = new RenderMaterial(
 			  AerobaticElytraBannerTextureManager.LOCATION_AEROBATIC_ELYTRA_BANNER_ATLAS,
 			  item.getTextureLocation(pair.getFirst()));
 			// Unknown patterns are omitted
-			if (material.getSprite().getName() != MissingTextureSprite.getLocation())
+			if (material.sprite().getName() != MissingTextureSprite.getLocation())
 				modelElytra.renderWing(
-				  side, mStack, material.getBuffer(buffer, RenderType::getEntityTranslucent),
+				  side, mStack, material.buffer(buffer, RenderType::entityTranslucent),
 				  packedLight, OverlayTexture.NO_OVERLAY, color[0], color[1], color[2], 1F);
 		}
 	}
@@ -202,7 +202,7 @@ public class AerobaticElytraLayer<T extends LivingEntity, M extends BipedModel<T
 		if (!addedToArmorStands && event.getEntity() instanceof ArmorStandEntity) {
 			ArmorStandEntity entity = (ArmorStandEntity) event.getEntity();
 			ArmorStandRenderer renderer = (ArmorStandRenderer) Minecraft.getInstance()
-			  .getRenderManager().getRenderer(entity);
+			  .getEntityRenderDispatcher().getRenderer(entity);
 			renderer.addLayer(new AerobaticElytraLayer<>(renderer));
 			addedToArmorStands = true;
 			AerobaticElytra.logRegistered("Armor Stand Layer");

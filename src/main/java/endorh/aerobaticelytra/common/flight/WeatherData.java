@@ -39,8 +39,8 @@ public class WeatherData {
 		
 		private ChunkUpdateTask(IChunk chunk, boolean unload) {
 			world = (World) chunk.getWorldForge();
-			x = chunk.getPos().getXStart();
-			z = chunk.getPos().getZStart();
+			x = chunk.getPos().getMinBlockX();
+			z = chunk.getPos().getMinBlockZ();
 			this.unload = unload;
 		}
 		
@@ -63,7 +63,7 @@ public class WeatherData {
 	public static final PacketDistributor<WeatherRegion> TRACKING_WEATHER_REGION = new PacketDistributor<>(
 	  (dist, regionSupplier) -> p ->
 		  ((Set<? extends ServerPlayerEntity>)regionSupplier.get().affectedPlayers()).forEach(
-		    pl -> pl.connection.netManager.sendPacket(p)),
+		    pl -> pl.connection.connection.send(p)),
 	  NetworkDirection.PLAY_TO_CLIENT
 	);
 	
@@ -107,7 +107,7 @@ public class WeatherData {
 		}
 		
 		public static Set<WeatherRegion> of(PlayerEntity player) {
-			return of(player.world, player.getPosX(), player.getPosZ());
+			return of(player.level, player.getX(), player.getZ());
 		}
 		
 		public static Set<WeatherRegion> of(World world, double x, double z) {
@@ -247,26 +247,26 @@ public class WeatherData {
 		}
 		
 		public boolean contains(PlayerEntity player) {
-			if (player.world != world)
+			if (player.level != world)
 				return false;
 			return containsNoWorldCheck(player);
 		}
 		
 		public boolean containsNoWorldCheck(PlayerEntity player) {
-			return contains(player.getPosX(), player.getPosZ());
+			return contains(player.getX(), player.getZ());
 		}
 		
 		@SuppressWarnings("unused")
 		public boolean affects(PlayerEntity player) {
-			if (world != player.world)
+			if (world != player.level)
 				return false;
 			return affectsNoWorldCheck(player);
 		}
 		
 		public boolean affectsNoWorldCheck(PlayerEntity player) {
-			return EntityPredicates.NOT_SPECTATING.test(player)
-			       && abs(player.getPosX() - centerX) < RADIUS + BORDER
-			       && abs(player.getPosZ() - centerZ) < RADIUS + BORDER;
+			return EntityPredicates.NO_SPECTATORS.test(player)
+			       && abs(player.getX() - centerX) < RADIUS + BORDER
+			       && abs(player.getZ() - centerZ) < RADIUS + BORDER;
 		}
 		
 		public boolean contains(double x, double z) {
@@ -278,7 +278,7 @@ public class WeatherData {
 		}
 		
 		public Set<? extends PlayerEntity> affectedPlayers() {
-			return world.getPlayers().stream().filter(
+			return world.players().stream().filter(
 			  this::affectsNoWorldCheck).collect(Collectors.toSet());
 		}
 		
@@ -324,7 +324,7 @@ public class WeatherData {
 		}
 		
 		public static Set<WindRegion> of(PlayerEntity player) {
-			return of(player.world, player.getPosX(), player.getPosZ());
+			return of(player.level, player.getX(), player.getZ());
 		}
 		
 		public static Set<WindRegion> of(World world, double x, double z) {
@@ -360,8 +360,8 @@ public class WeatherData {
 		protected void tick() {
 			if (!weather.enabled)
 				return;
-			float rain = region.world.getRainStrength(1F);
-			float storm = region.world.getThunderStrength(1F);
+			float rain = region.world.getRainLevel(1F);
+			float storm = region.world.getThunderLevel(1F);
 			if (rain > 0F || !wind.isZero(1E-5)) {
 				float wind_randomness =
 				  weather.rain.wind_randomness_tick * rain * weather.rain.wind_strength_tick
@@ -424,7 +424,7 @@ public class WeatherData {
 	}
 	
 	public static float getBiomePrecipitationStrength(PlayerEntity player) {
-		switch (player.world.getBiome(player.getPosition()).getPrecipitation()) {
+		switch (player.level.getBiome(player.blockPosition()).getPrecipitation()) {
 			case NONE: return 0F;
 			case SNOW: return 1.2F;
 			default: return 1F;

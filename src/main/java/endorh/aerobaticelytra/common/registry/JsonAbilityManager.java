@@ -36,7 +36,7 @@ import static java.lang.Math.max;
 
 @EventBusSubscriber(modid = AerobaticElytra.MOD_ID)
 public class JsonAbilityManager extends JsonReloadListener {
-	private static final Gson GSON = LootSerializers.func_237386_a_()
+	private static final Gson GSON = LootSerializers.createConditionSerializer()
 	  .registerTypeAdapter(EffectAbility.class, new Deserializer())
 	  .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
 	  .create();
@@ -88,9 +88,9 @@ public class JsonAbilityManager extends JsonReloadListener {
 	}
 	
 	public static LootContext createEffectAbilityLootContext(ServerPlayerEntity player) {
-		return new Builder(player.getServerWorld()).withRandom(player.getRNG())
+		return new Builder(player.getLevel()).withRandom(player.getRandom())
 		  .withParameter(LootParameters.THIS_ENTITY, player)
-		  .withParameter(LootParameters.field_237457_g_, player.getPositionVec())
-		  .build(LootParameterSets.GIFT);
+		  .withParameter(LootParameters.ORIGIN, player.position())
+		  .create(LootParameterSets.GIFT);
 	}
 }

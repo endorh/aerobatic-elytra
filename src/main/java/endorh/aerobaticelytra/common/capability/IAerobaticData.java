@@ -26,7 +26,7 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	 * @return {@link PlayerEntity#rotationPitch}
 	 */
 	default float getRotationPitch() {
-		return getPlayer().rotationPitch;
+		return getPlayer().xRot;
 	}
 	/**
 	 * Player roll, in degrees
@@ -37,7 +37,7 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	 * @return {@link PlayerEntity#rotationYaw}
 	 */
 	default float getRotationYaw() {
-		return getPlayer().rotationYaw;
+		return getPlayer().yRot;
 	}
 	
 	/**
@@ -46,8 +46,8 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	 */
 	default void setRotationPitch(float pitch) {
 		PlayerEntity player = getPlayer();
-		player.prevRotationPitch = player.rotationPitch;
-		player.rotationPitch = pitch;
+		player.xRotO = player.xRot;
+		player.xRot = pitch;
 	}
 	/**
 	 * Set player roll
@@ -61,8 +61,8 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	 */
 	default void setRotationYaw(float yaw) {
 		PlayerEntity player = getPlayer();
-		player.prevRotationYaw = player.rotationYaw;
-		player.rotationYaw = yaw;
+		player.yRotO = player.yRot;
+		player.yRot = yaw;
 	}
 	
 	/**
@@ -111,7 +111,7 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	 * @return {@link PlayerEntity#prevRotationPitch}
 	 */
 	default float getPrevTickRotationPitch() {
-		return getPlayer().prevRotationPitch;
+		return getPlayer().xRotO;
 	}
 	/**
 	 * Previous player roll, used for rendering interpolation
@@ -122,7 +122,7 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	 * @return {@link PlayerEntity#prevRotationYaw}
 	 */
 	default float getPrevTickRotationYaw() {
-		return getPlayer().prevRotationYaw;
+		return getPlayer().yRotO;
 	}
 	/**
 	 * Set previous player pitch

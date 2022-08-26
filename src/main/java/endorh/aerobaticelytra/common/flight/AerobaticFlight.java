@@ -106,7 +106,7 @@ public class AerobaticFlight {
 		else grav *= 1F - spec.getAbility(Ability.LIFT);
 		float liftCut = data.getLiftCut();
 		
-		motionVec.set(player.getMotion());
+		motionVec.set(player.getDeltaMovement());
 		prevMotionVec.set(motionVec);
 		Vec3f prevMotionVec = motionVec.copy();
 		double hSpeedPrev = motionVec.hNorm();
@@ -121,12 +121,12 @@ public class AerobaticFlight {
 		
 		// Rain and wind
 		final boolean affectedByWeather =
-		  weather.ignore_cloud_level || player.getPosition().getY() > weather.cloud_level
-		  || player.world.canBlockSeeSky(player.getPosition());
+		  weather.ignore_cloud_level || player.blockPosition().getY() > weather.cloud_level
+		  || player.level.canSeeSkyFromBelowWater(player.blockPosition());
 		data.setAffectedByWeather(affectedByWeather);
 		final float biomePrecipitation = WeatherData.getBiomePrecipitationStrength(player);
-		final float rain = player.world.getRainStrength(1F) * biomePrecipitation;
-		final float storm = player.world.getThunderStrength(1F) * biomePrecipitation;
+		final float rain = player.level.getRainLevel(1F) * biomePrecipitation;
+		final float storm = player.level.getThunderLevel(1F) * biomePrecipitation;
 		final boolean useWeather = Config.weather.enabled && rain > 0F && !player.isInWater() && affectedByWeather;
 		Vec3f windVec = WeatherData.getWindVector(player);
 		rainAcc.set(
@@ -140,8 +140,8 @@ public class AerobaticFlight {
 		    && data.isSprinting() && data.getBoostHeat() <= 0.2F
 		) {
 			data.setBoosted(true);
-			player.addStat(FlightStats.AEROBATIC_BOOSTS, 1);
-			if (player.world.isRemote) {
+			player.awardStat(FlightStats.AEROBATIC_BOOSTS, 1);
+			if (player.level.isClientSide) {
 				AerobaticTrail.addBoostParticles(player);
 				AerobaticElytraSound.playBoostSound(player);
 			}
@@ -149,7 +149,7 @@ public class AerobaticFlight {
 		  data.isBoosted() && (!data.isSprinting() || data.getBoostHeat() == 1F)
 		) {
 			data.setBoosted(false);
-			if (player.world.isRemote)
+			if (player.level.isClientSide)
 				AerobaticElytraSound.playSlowDownSound(player);
 		}
 		final float heatStep = data.isBoosted() ? 0.01F : -0.0075F;
@@ -284,7 +284,7 @@ public class AerobaticFlight {
 				String warning = format(
 				  "Player %s is flying too fast!: %.1f. Aerobatic Elytra config might be broken",
 				  player.getScoreboardName(), max(max(motionVec.x, motionVec.y), motionVec.z));
-				player.sendStatusMessage(chatWarning, false);
+				player.displayClientMessage(chatWarning, false);
 				LOGGER.warn(warning);
 				motionVec.x = min(motionVec.x, speed_cap);
 				motionVec.y = min(motionVec.y, speed_cap);
@@ -297,12 +297,12 @@ public class AerobaticFlight {
 			motionVec.lerp(prevMotionVec, physics.inertia);
 		
 		// Apply motion
-		player.setMotion(motionVec.toVector3d());
+		player.setDeltaMovement(motionVec.toVector3d());
 		if (!isRemote && !AerobaticElytraWingItem.hasDebugWing(player))
-			player.move(MoverType.SELF, player.getMotion());
+			player.move(MoverType.SELF, player.getDeltaMovement());
 		
 		// Collisions
-		if (player.collidedHorizontally || player.collidedVertically)
+		if (player.horizontalCollision || player.verticalCollision)
 			AerobaticCollision.onAerobaticCollision(player, hSpeedPrev, motionVec);
 		else data.setLiftCut(MathHelper.clamp(liftCut - 0.15F, 0F, 1F));
 		
@@ -318,11 +318,11 @@ public class AerobaticFlight {
 			data.land();
 		
 		// Update player limb swing
-		player.func_233629_a_(player, player instanceof IFlyingAnimal);
+		player.calculateEntityAnimation(player, player instanceof IFlyingAnimal);
 		
 		// Add movement stat
-		player.addStat(FlightStats.AEROBATIC_FLIGHT_ONE_CM,
-		               (int)Math.round(player.getMotion().length() * 100F));
+		player.awardStat(FlightStats.AEROBATIC_FLIGHT_ONE_CM,
+		               (int)Math.round(player.getDeltaMovement().length() * 100F));
 		
 		// Update sound for remote players
 		if (isRemote) {
@@ -331,9 +331,9 @@ public class AerobaticFlight {
 		}
 		
 		// Add trail
-		if (player.world.isRemote) {
+		if (player.level.isClientSide) {
 			if (data.ticksFlying() > Const.TAKEOFF_ANIMATION_LENGTH_TICKS
-			    && !player.collidedVertically && !player.collidedHorizontally
+			    && !player.verticalCollision && !player.horizontalCollision
 			    // Cowardly refuse to smooth trail on bounces
 			    && System.currentTimeMillis() - data.getLastBounceTime() > 250L
 			    && !hasOffhandDebugWing(player)) {
@@ -363,8 +363,8 @@ public class AerobaticFlight {
 	) {
 		IAerobaticData data = getAerobaticDataOrDefault(player);
 		if (data.updateBoosted(false)) {
-			player.world.playSound(
-			  player, player.getPosition(), ModSounds.AEROBATIC_ELYTRA_SLOWDOWN,
+			player.level.playSound(
+			  player, player.blockPosition(), ModSounds.AEROBATIC_ELYTRA_SLOWDOWN,
 			  SoundCategory.PLAYERS, 1F, 1F);
 		}
 		if (data.updateFlying(false))
@@ -381,8 +381,8 @@ public class AerobaticFlight {
 	) {
 		IAerobaticData data = getAerobaticDataOrDefault(player);
 		if (data.updateBoosted(false)) {
-			player.world.playSound(
-			  player, player.getPosition(), ModSounds.AEROBATIC_ELYTRA_SLOWDOWN,
+			player.level.playSound(
+			  player, player.blockPosition(), ModSounds.AEROBATIC_ELYTRA_SLOWDOWN,
 			  SoundCategory.PLAYERS, 1F, 1F);
 		}
 		if (data.getRotationBase().valid)
@@ -411,7 +411,7 @@ public class AerobaticFlight {
 			float step = player.isOnGround() ? 0.05F : 0.02F;
 			data.setPropulsionStrength(
 			  propulsion.takeoff_tick +
-			  MathHelper.signum(propStrength - propulsion.takeoff_tick) *
+			  MathHelper.sign(propStrength - propulsion.takeoff_tick) *
 			  max(0F, abs(propStrength - propulsion.takeoff_tick) -
 			          step * max(propulsion.range_tick.getFloatMax(), propulsion.range_tick.getFloatMin())));
 		}
@@ -429,14 +429,14 @@ public class AerobaticFlight {
 	}
 	
 	private static boolean shouldAerobaticFly(PlayerEntity player) {
-		if (!player.isElytraFlying() || player.abilities.isFlying
+		if (!player.isFallFlying() || player.abilities.flying
 		    || !getFlightDataOrDefault(player).getFlightMode().is(FlightModeTags.AEROBATIC))
 			return false;
 		final ItemStack elytra = AerobaticElytraLogic.getAerobaticElytra(player);
 		if (elytra.isEmpty())
 			return false;
 		final IElytraSpec spec = ElytraSpecCapability.getElytraSpecOrDefault(elytra);
-		return (elytra.getDamage() < elytra.getMaxDamage() - 1 && spec.getAbility(Ability.FUEL) > 0
+		return (elytra.getDamageValue() < elytra.getMaxDamage() - 1 && spec.getAbility(Ability.FUEL) > 0
 		        || player.isCreative())
 		       && !player.isInLava() && (!player.isInWater() || spec.getAbility(Ability.AQUATIC) != 0);
 	}
@@ -474,7 +474,7 @@ public class AerobaticFlight {
 		float tiltRoll = data.getTiltRoll();
 		float tiltYaw = data.getTiltYaw();
 		
-		motionVec.set(player.getMotion());
+		motionVec.set(player.getDeltaMovement());
 		
 		if (!rotationBase.valid) {
 			rotationBase.init(data);
@@ -503,7 +503,7 @@ public class AerobaticFlight {
 		} else {
 			cameraBase.set(rotationBase);
 		}
-		float[] spherical = cameraBase.toSpherical(player.prevRotationYaw);
+		float[] spherical = cameraBase.toSpherical(player.yRotO);
 		
 		data.setRotationYaw(spherical[0]);
 		data.setRotationPitch(spherical[1]);

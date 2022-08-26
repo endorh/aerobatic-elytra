@@ -138,7 +138,7 @@ public class AerobaticElytraJeiHelper {
 	}
 	
 	public static ItemStack makeBanner(DyeColor base, List<Pair<BannerPattern, DyeColor>> patterns) {
-		final ItemStack banner = new ItemStack(BannerBlock.forColor(base).asItem());
+		final ItemStack banner = new ItemStack(BannerBlock.byColor(base).asItem());
 		dyement.read(banner);
 		dyement.setPattern(base, patterns);
 		dyement.write(banner);
@@ -168,7 +168,7 @@ public class AerobaticElytraJeiHelper {
 	
 	public static ItemStack makeRocket(List<RocketStar> stars) {
 		final ItemStack rocket = new ItemStack(Items.FIREWORK_ROCKET);
-		final CompoundNBT fireworks = rocket.getOrCreateChildTag("Fireworks");
+		final CompoundNBT fireworks = rocket.getOrCreateTagElement("Fireworks");
 		fireworks.put("Explosions", RocketStar.listAsNBT(stars.toArray(new RocketStar[0])));
 		return rocket;
 	}
@@ -202,11 +202,11 @@ public class AerobaticElytraJeiHelper {
 			final ItemStack focusStack = (ItemStack) focus.getValue();
 			if (focusStack.getItem() instanceof AerobaticElytraItem) {
 				final ItemStack elytra = focusStack.copy();
-				elytra.setDamage(0);
+				elytra.setDamageValue(0);
 				return ImmutableList.of(elytra);
 			} else if (focusStack.getItem() instanceof AerobaticElytraWingItem) {
 				final ItemStack right = focusStack.copy();
-				right.setDamage(0);
+				right.setDamageValue(0);
 				final List<ItemStack> leftWings = getAerobaticElytras().stream()
 				  .map(s -> ((AerobaticElytraItem) s.getItem()).getWing(s, WingSide.LEFT))
 				  .collect(Collectors.toList());

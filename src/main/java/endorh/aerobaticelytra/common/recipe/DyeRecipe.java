@@ -31,8 +31,8 @@ public class DyeRecipe extends SpecialRecipe {
 		boolean found = false;
 		int tints = 0;
 		
-		for (int i = 0; i < inv.getSizeInventory(); ++i) {
-			ItemStack current = inv.getStackInSlot(i);
+		for (int i = 0; i < inv.getContainerSize(); ++i) {
+			ItemStack current = inv.getItem(i);
 			if (current.isEmpty())
 				continue;
 			final Item item = current.getItem();
@@ -52,12 +52,12 @@ public class DyeRecipe extends SpecialRecipe {
 	}
 	
 	@NotNull @Override
-	public ItemStack getCraftingResult(CraftingInventory inv) {
+	public ItemStack assemble(CraftingInventory inv) {
 		ItemStack elytra = ItemStack.EMPTY;
 		List<DyeItem> dyeList = new ArrayList<>();
 		
-		for (int i = 0; i < inv.getSizeInventory(); ++i) {
-			ItemStack current = inv.getStackInSlot(i);
+		for (int i = 0; i < inv.getContainerSize(); ++i) {
+			ItemStack current = inv.getItem(i);
 			if (current.isEmpty())
 				continue;
 			Item item = current.getItem();
@@ -81,8 +81,8 @@ public class DyeRecipe extends SpecialRecipe {
 	public static ItemStack dye(ItemStack elytra, List<DyeItem> dyes) {
 		ItemStack res = elytra.copy();
 		dyement.read(res);
-		res.removeChildTag("WingInfo");
-		res.removeChildTag("BlockEntityTag");
+		res.removeTagKey("WingInfo");
+		res.removeTagKey("BlockEntityTag");
 		
 		List<Integer> colors = new ArrayList<>();
 		if (dyement.hasWingDyement) {
@@ -104,17 +104,17 @@ public class DyeRecipe extends SpecialRecipe {
 		}
 		if (!colors.isEmpty()) {
 			int color = ColorUtil.mix(colors);
-			res.getOrCreateChildTag("display").putInt("color", color);
+			res.getOrCreateTagElement("display").putInt("color", color);
 		} else {
-			res.getOrCreateChildTag("display").remove("color");
+			res.getOrCreateTagElement("display").remove("color");
 		}
-		res = IDyeableArmorItem.dyeItem(res, dyes);
+		res = IDyeableArmorItem.dyeArmor(res, dyes);
 		
 		ElytraDyement.hideDyedFlag(res);
 		return res;
 	}
 	
-	@Override public boolean canFit(int width, int height) {
+	@Override public boolean canCraftInDimensions(int width, int height) {
 		return width * height >= 2;
 	}
 	

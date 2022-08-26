@@ -56,13 +56,13 @@ public class ModParticles {
 	
 	@SubscribeEvent
 	public static void onParticleFactoryRegistration(ParticleFactoryRegisterEvent event) {
-		ParticleManager p = Minecraft.getInstance().particles;
+		ParticleManager p = Minecraft.getInstance().particleEngine;
 		
-		p.registerFactory(TRAIL_PARTICLE, TrailParticle.Factory::new);
-		p.registerFactory(STAR_TRAIL_PARTICLE, TrailParticle.Factory::new);
-		p.registerFactory(CREEPER_TRAIL_PARTICLE, TrailParticle.Factory::new);
-		p.registerFactory(BURST_TRAIL_PARTICLE, TrailParticle.Factory::new);
-		p.registerFactory(BUBBLE_TRAIL_PARTICLE, TrailParticle.Factory::new);
+		p.register(TRAIL_PARTICLE, TrailParticle.Factory::new);
+		p.register(STAR_TRAIL_PARTICLE, TrailParticle.Factory::new);
+		p.register(CREEPER_TRAIL_PARTICLE, TrailParticle.Factory::new);
+		p.register(BURST_TRAIL_PARTICLE, TrailParticle.Factory::new);
+		p.register(BUBBLE_TRAIL_PARTICLE, TrailParticle.Factory::new);
 		
 		AerobaticElytra.logRegistered("Particle Factories");
 	}

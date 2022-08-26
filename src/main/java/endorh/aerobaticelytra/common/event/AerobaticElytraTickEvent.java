@@ -6,6 +6,8 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraftforge.eventbus.api.Cancelable;
 import net.minecraftforge.eventbus.api.Event;
 
+import net.minecraftforge.eventbus.api.Event.HasResult;
+
 /**
  * @see Pre
  * @see Post

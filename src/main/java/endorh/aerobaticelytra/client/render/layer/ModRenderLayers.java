@@ -13,7 +13,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 public class ModRenderLayers {
 	@SubscribeEvent
 	public static void postSetup(FMLLoadCompleteEvent evt) {
-		EntityRendererManager rendererManager = Minecraft.getInstance().getRenderManager();
+		EntityRendererManager rendererManager = Minecraft.getInstance().getEntityRenderDispatcher();
 		rendererManager.getSkinMap().values()
 		  .forEach(renderer -> renderer.addLayer(new AerobaticElytraLayer<>(renderer)));
 		AerobaticElytra.logRegistered("Render Layers");

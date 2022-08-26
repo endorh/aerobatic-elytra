@@ -32,7 +32,7 @@ public class DebugOverlay {
 		if (!Debug.isEnabled())
 			return;
 		if (event.getType() == ElementType.TEXT
-		    && !Minecraft.getInstance().gameSettings.showDebugInfo) {
+		    && !Minecraft.getInstance().options.renderDebug) {
 			event.getLeft().addAll(getLeftInfo());
 			event.getRight().addAll(getRightInfo());
 		}
@@ -63,8 +63,8 @@ public class DebugOverlay {
 		
 		PlayerEntity player = Minecraft.getInstance().player;
 		if (player != null) {
-			ret.add(format("yaw:  %.2f", player.rotationYaw));
-			ret.add(format("yawh: %.2f", player.getRotationYawHead()));
+			ret.add(format("yaw:  %.2f", player.yRot));
+			ret.add(format("yawh: %.2f", player.getYHeadRot()));
 			
 			ret.add("");
 			
@@ -102,19 +102,19 @@ public class DebugOverlay {
 		
 		ret.add("");
 		
-		float pitch = player.rotationPitch;
+		float pitch = player.xRot;
 		
-		ret.add(format("Yaw: %+2.3f", ((player.rotationYaw % 360F) + 360F * 2) % 360F));
+		ret.add(format("Yaw: %+2.3f", ((player.yRot % 360F) + 360F * 2) % 360F));
 		if (Math.abs(pitch) >= 89.9F)
-			ret.add(format(">> Pitch: %+2.3f", player.rotationPitch));
+			ret.add(format(">> Pitch: %+2.3f", player.xRot));
 		else
-			ret.add(format("Pitch: %+2.3f", player.rotationPitch));
+			ret.add(format("Pitch: %+2.3f", player.xRot));
 		ret.add(format("Roll: %+2.3f", data.getRotationRoll()));
 		
 		ret.add("");
 		
 		WindRegion node = WindRegion.of(
-		  player.world, WeatherRegion.scale(player.getPosX()), WeatherRegion.scale(player.getPosZ()));
+		  player.level, WeatherRegion.scale(player.getX()), WeatherRegion.scale(player.getZ()));
 		ret.add("Wind: " + node.wind);
 		ret.add("Angular Wind: " + node.angularWind);
 		
@@ -122,7 +122,7 @@ public class DebugOverlay {
 		
 		ret.add("");
 		
-		ret.add(format("Speed: %.2f", player.getMotion().length()));
+		ret.add(format("Speed: %.2f", player.getDeltaMovement().length()));
 		
 		/*
 		ret.add("");

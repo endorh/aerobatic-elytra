@@ -89,7 +89,7 @@ public class AerobaticElytraCommand {
 	public static void register(CommandDispatcher<CommandSource> dispatcher) {
 		LiteralArgumentBuilder<CommandSource> installDatapackCommand =
 		  Commands.literal("aerobaticelytra")
-		    .requires(cs -> cs.hasPermissionLevel(2))
+		    .requires(cs -> cs.hasPermission(2))
 		    .then(
 		      Commands.literal("datapack").then(
 			     Commands.literal("install").then(
@@ -171,7 +171,7 @@ public class AerobaticElytraCommand {
 	  throws CommandSyntaxException {
 		final List<IElytraSpec> list = EntityArgument.getEntities(cc, "target").stream()
 		  .filter(e -> e instanceof LivingEntity)
-		  .map(e -> ((LivingEntity) e).getItemStackFromSlot(EquipmentSlotType.CHEST))
+		  .map(e -> ((LivingEntity) e).getItemBySlot(EquipmentSlotType.CHEST))
 		  .filter(AerobaticElytraLogic::isAerobaticElytra)
 		  .map(ElytraSpecCapability::getElytraSpecOrDefault)
 		  .collect(Collectors.toList());
@@ -190,7 +190,7 @@ public class AerobaticElytraCommand {
 	
 	public static ITextComponent displayFloat(float value) {
 		return new StringTextComponent(String.format("%5.2f", value))
-		  .mergeStyle(TextFormatting.AQUA);
+		  .withStyle(TextFormatting.AQUA);
 	}
 	
 	public static int getAbility(
@@ -202,13 +202,13 @@ public class AerobaticElytraCommand {
 		final IAbility ability = IAbility.fromName(name);
 		if (spec.hasAbility(ability)) {
 			final float value = spec.getAbility(ability);
-			cc.getSource().sendFeedback(
+			cc.getSource().sendSuccess(
 			  ttc("commands.aerobaticelytra.ability.get.success", getTarget(cc).getDisplayName())
-				 .appendString("\n")
+				 .append("\n")
 				 .append(ttc("commands.aerobaticelytra.ability.get.ability",
 				             ability.getDisplayName(), displayFloat(value))), true);
 		} else {
-			cc.getSource().sendFeedback(
+			cc.getSource().sendSuccess(
 			  ttc("commands.aerobaticelytra.ability.get.default",
 			      ability.getDisplayName(), getTarget(cc).getDisplayName(),
 			      displayFloat(ability.getDefault())), true);
@@ -222,13 +222,13 @@ public class AerobaticElytraCommand {
 		final IElytraSpec spec = getElytraSpec(cc);
 		if (spec.getUnknownAbilities().containsKey(name)) {
 			final float value = spec.getUnknownAbilities().get(name);
-			cc.getSource().sendFeedback(
+			cc.getSource().sendSuccess(
 			  ttc("commands.aerobaticelytra.ability.get.success.unknown", getTarget(cc).getDisplayName())
-				 .appendString("\n")
+				 .append("\n")
 				 .append(ttc("commands.aerobaticelytra.ability.get.ability.unknown",
 				             name, displayFloat(value))), true);
 		} else {
-			cc.getSource().sendErrorMessage(
+			cc.getSource().sendFailure(
 			  ttc("commands.aerobaticelytra.ability.get.failure.unknown", name, getTarget(cc).getDisplayName()));
 		}
 		return 0;
@@ -255,26 +255,26 @@ public class AerobaticElytraCommand {
 			  ttc("commands.aerobaticelytra.ability.get.all.success",
 			      spec.getAbilities().size(), name));
 			for (IAbility ability : ModRegistries.getAbilities().values())
-				msg = msg.appendString("\n").append(
+				msg = msg.append("\n").append(
 				  ttc("commands.aerobaticelytra.ability.get.ability", ability.getDisplayName(),
 				      displayFloat(spec.getAbility(ability))));
 		}
 		if (show_unknown) {
 			final Map<String, Float> unknown = spec.getUnknownAbilities();
 			if (unknown.isEmpty()) {
-				msg = msg.appendString("\n").append(
+				msg = msg.append("\n").append(
 				  ttc("commands.aerobaticelytra.ability.get.all.unknown.empty", name));
 			} else {
-				msg = msg.appendString("\n").append(
+				msg = msg.append("\n").append(
 				  ttc("commands.aerobaticelytra.ability.get.all.unknown", unknown.size(), name));
 				for (Entry<String, Float> entry : unknown.entrySet()) {
-					msg = msg.appendString("\n").append(
+					msg = msg.append("\n").append(
 					  ttc("commands.aerobaticelytra.ability.get.ability.unknown",
 					      entry.getKey(), displayFloat(entry.getValue())));
 				}
 			}
 		}
-		cc.getSource().sendFeedback(msg, true);
+		cc.getSource().sendSuccess(msg, true);
 		return 0;
 	}
 	
@@ -285,9 +285,9 @@ public class AerobaticElytraCommand {
 		final IAbility ability = IAbility.fromName(name);
 		final List<IElytraSpec> specs = getElytraSpecs(cc);
 		specs.forEach(s -> s.setAbility(ability, value));
-		cc.getSource().sendFeedback(
+		cc.getSource().sendSuccess(
 		  ttc("commands.aerobaticelytra.ability.set.success", specs.size())
-		    .appendString("\n")
+		    .append("\n")
 		    .append(ttc(
 		      "commands.aerobaticelytra.ability.set.ability", ability.getDisplayName(),
 		      displayFloat(value))), true);
@@ -299,9 +299,9 @@ public class AerobaticElytraCommand {
 	) throws CommandSyntaxException {
 		final List<IElytraSpec> specs = getElytraSpecs(cc);
 		specs.forEach(s -> s.getUnknownAbilities().put(name, value));
-		cc.getSource().sendFeedback(
+		cc.getSource().sendSuccess(
 		  ttc("commands.aerobaticelytra.ability.set.success.unknown", specs.size())
-		    .appendString("\n").append(
+		    .append("\n").append(
 		      ttc("commands.aerobaticelytra.ability.set.ability.unknown", name, displayFloat(value))),
 		  true
 		);
@@ -315,10 +315,10 @@ public class AerobaticElytraCommand {
 		final IAbility ability = IAbility.fromName(name);
 		final List<IElytraSpec> specs = getElytraSpecs(cc);
 		specs.forEach(s -> s.resetAbility(ability));
-		cc.getSource().sendFeedback(
+		cc.getSource().sendSuccess(
 		  ttc(
 			 "commands.aerobaticelytra.ability.reset.success", specs.size())
-			 .appendString("\n")
+			 .append("\n")
 			 .append(ttc(
 				"commands.aerobaticelytra.ability.reset.ability", ability.getDisplayName(),
 				displayFloat(ability.getDefault()))), true
@@ -335,10 +335,10 @@ public class AerobaticElytraCommand {
 		  "commands.aerobaticelytra.ability.reset.all.success",
 		  ModRegistries.getAbilities().values().size(), specs.size());
 		for (IAbility ability : ModRegistries.getAbilities().values())
-			msg = msg.appendString("\n").append(
+			msg = msg.append("\n").append(
 			  ttc("commands.aerobaticelytra.ability.reset.ability", ability.getDisplayName(),
 			      displayFloat(ability.getDefault())));
-		context.getSource().sendFeedback(msg, true);
+		context.getSource().sendSuccess(msg, true);
 		return 0;
 	}
 	
@@ -350,7 +350,7 @@ public class AerobaticElytraCommand {
 			ModRegistries.getAbilities().values().forEach(s::removeAbility);
 			s.getUnknownAbilities().clear();
 		});
-		cc.getSource().sendFeedback(
+		cc.getSource().sendSuccess(
 		  ttc("commands.aerobaticelytra.ability.remove.all.success", specs.size()), true
 		);
 		return 0;
@@ -361,7 +361,7 @@ public class AerobaticElytraCommand {
 	) throws CommandSyntaxException {
 		final List<IElytraSpec> specs = getElytraSpecs(cc);
 		specs.forEach(s -> s.getUnknownAbilities().clear());
-		cc.getSource().sendFeedback(
+		cc.getSource().sendSuccess(
 		  ttc("commands.aerobaticelytra.ability.remove.all.unknown.success", specs.size()), true);
 		return 0;
 	}
@@ -375,7 +375,7 @@ public class AerobaticElytraCommand {
 		IAbility ability = IAbility.fromName(name);
 		final long count = specs.stream().map(
 		  s -> s.removeAbility(ability)).filter(Objects::nonNull).count();
-		cc.getSource().sendFeedback(
+		cc.getSource().sendSuccess(
 		  ttc("commands.aerobaticelytra.ability.remove.success",
 		      ability.getDisplayName(), count, specs.size()), true);
 		return 0;
@@ -387,7 +387,7 @@ public class AerobaticElytraCommand {
 		final List<IElytraSpec> specs = getElytraSpecs(cc);
 		final long count = specs.stream().map(
 		  s -> s.getUnknownAbilities().remove(name)).filter(Objects::nonNull).count();
-		cc.getSource().sendFeedback(
+		cc.getSource().sendSuccess(
 		  ttc("commands.aerobaticelytra.ability.remove.success.unknown",
 		      name, count, specs.size()), true);
 		return 0;
@@ -395,7 +395,7 @@ public class AerobaticElytraCommand {
 	
 	public static int enableDebug(CommandContext<CommandSource> context, boolean enable) {
 		try {
-			Debug.toggleDebug(context.getSource().asPlayer(), enable);
+			Debug.toggleDebug(context.getSource().getPlayerOrException(), enable);
 		} catch (CommandSyntaxException e) {
 			e.printStackTrace();
 			return 0;
@@ -405,10 +405,10 @@ public class AerobaticElytraCommand {
 	
 	public static int giveDebugWing(CommandContext<CommandSource> context) {
 		try {
-			final ServerPlayerEntity player = context.getSource().asPlayer();
+			final ServerPlayerEntity player = context.getSource().getPlayerOrException();
 			final ItemStack debugWing = AerobaticElytraWingItem.createDebugWing();
-			if (!player.inventory.addItemStackToInventory(debugWing))
-				player.dropItem(debugWing, false);
+			if (!player.inventory.add(debugWing))
+				player.drop(debugWing, false);
 			return 0;
 		} catch (CommandSyntaxException e) {
 			e.printStackTrace();
@@ -422,30 +422,30 @@ public class AerobaticElytraCommand {
 		  .values().stream().sorted(Comparator.comparing(bd -> bd.name))
 		  .collect(Collectors.toList());
 		if (packs.isEmpty()) {
-			source.sendErrorMessage(ttc("commands.aerobaticelytra.datapack.list.empty"));
+			source.sendFailure(ttc("commands.aerobaticelytra.datapack.list.empty"));
 		} else {
 			IFormattableTextComponent msg = ttc("commands.aerobaticelytra.datapack.list.success");
 			for (BundledDatapack pack : packs)
-				msg = msg.appendString("\n  ").append(
-				  pack.getDisplayName().modifyStyle(
+				msg = msg.append("\n  ").append(
+				  pack.getDisplayName().withStyle(
 				    s -> {
 						 boolean isInstalled = isPackInstalled(source, pack.getTitle());
 						 boolean isEnabled = isInstalled
-						   && source.getServer().getResourcePacks().getEnabledPacks().stream().anyMatch(
-							  p -> p.getName().equals(pack.getPackName()));
-					    s = s.setFormatting(isInstalled? isEnabled? TextFormatting.GREEN : TextFormatting.DARK_RED :TextFormatting.AQUA)
-					      .setHoverEvent(new HoverEvent(
-						     HoverEvent.Action.SHOW_TEXT, stc(pack.getDescription()).appendString("\n")
+						   && source.getServer().getPackRepository().getSelectedPacks().stream().anyMatch(
+							  p -> p.getId().equals(pack.getPackName()));
+					    s = s.withColor(isInstalled? isEnabled? TextFormatting.GREEN : TextFormatting.DARK_RED :TextFormatting.AQUA)
+					      .withHoverEvent(new HoverEvent(
+						     HoverEvent.Action.SHOW_TEXT, stc(pack.getDescription()).append("\n")
 					        .append(ttc("commands.aerobaticelytra.datapack.list.link."
 					                    + (isInstalled? isEnabled? "disable" : "enable" : "install")))));
 						 String command =
 						   isInstalled ?
 						   "/datapack " + (isEnabled? "disable" : "enable") + " \"" + pack.getPackName() + "\""
 						   : "/aerobaticelytra datapack install " + StringArgumentType.escapeIfRequired(pack.getTitle());
-						 s = s.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, command));
+						 s = s.withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, command));
 					    return s;
 				    }));
-			source.sendFeedback(msg, true);
+			source.sendSuccess(msg, true);
 		}
 		return 0;
 	}
@@ -455,8 +455,8 @@ public class AerobaticElytraCommand {
 	public static boolean isPackInstalled(CommandSource source, String name) {
 		final Map<String, BundledDatapack> availablePacks = getAvailablePacksByTitle(source);
 		if (!availablePacks.containsKey(name))
-			source.sendErrorMessage(ttc("commands.aerobaticelytra.datapack.install.unknown"));
-		Path datapacksFolder = source.getServer().func_240776_a_(FolderName.DATAPACKS);
+			source.sendFailure(ttc("commands.aerobaticelytra.datapack.install.unknown"));
+		Path datapacksFolder = source.getServer().getWorldPath(FolderName.DATAPACK_DIR);
 		final Path destination = datapacksFolder.resolve(packPrefix + name);
 		return destination.toFile().exists();
 	}
@@ -465,18 +465,18 @@ public class AerobaticElytraCommand {
 		CommandSource source = context.getSource();
 		final Map<String, BundledDatapack> availablePacks = getAvailablePacksByTitle(source);
 		if (!availablePacks.containsKey(name))
-			source.sendErrorMessage(ttc("commands.aerobaticelytra.datapack.install.unknown"));
+			source.sendFailure(ttc("commands.aerobaticelytra.datapack.install.unknown"));
 		final BundledDatapack pack = availablePacks.get(name);
-		Path datapacksFolder = source.getServer().func_240776_a_(FolderName.DATAPACKS);
+		Path datapacksFolder = source.getServer().getWorldPath(FolderName.DATAPACK_DIR);
 		final Path destination = datapacksFolder.resolve(packPrefix + name);
 		final String enableCommandText = "/datapack enable \"file/" + destination.getFileName() + "\"";
-		ITextComponent enableCommand = TextComponentUtils.wrapWithSquareBrackets(
-		  stc(ellipsis(enableCommandText, 40)).modifyStyle(
-			 style -> style.setFormatting(TextFormatting.GREEN).setClickEvent(
+		ITextComponent enableCommand = TextComponentUtils.wrapInSquareBrackets(
+		  stc(ellipsis(enableCommandText, 40)).withStyle(
+			 style -> style.withColor(TextFormatting.GREEN).withClickEvent(
 				  new ClickEvent(Action.SUGGEST_COMMAND, enableCommandText))
-				.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, stc(enableCommandText).mergeStyle(TextFormatting.AQUA)))));
+				.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, stc(enableCommandText).withStyle(TextFormatting.AQUA)))));
 		if (destination.toFile().exists()) {
-			source.sendErrorMessage(ttc("commands.aerobaticelytra.datapack.install.overwrite", enableCommand));
+			source.sendFailure(ttc("commands.aerobaticelytra.datapack.install.overwrite", enableCommand));
 			return 1;
 		}
 		final Path anchor = new File(DATAPACK_LOCATION).toPath().resolve(pack.name);
@@ -490,21 +490,21 @@ public class AerobaticElytraCommand {
 			}
 		} catch (IOException | AssertionError e) {
 			e.printStackTrace();
-			source.sendErrorMessage(ttc("commands.aerobaticelytra.datapack.install.failure.copy", e.getLocalizedMessage()));
+			source.sendFailure(ttc("commands.aerobaticelytra.datapack.install.failure.copy", e.getLocalizedMessage()));
 			try { // Undo
 				FileUtils.deleteDirectory(destination.toFile());
 			} catch (IOException f) {
 				f.printStackTrace();
-				source.sendErrorMessage(ttc("commands.aerobaticelytra.datapack.install.failure.undo", f.getLocalizedMessage()));
+				source.sendFailure(ttc("commands.aerobaticelytra.datapack.install.failure.undo", f.getLocalizedMessage()));
 			}
 			return 2;
 		}
 		
 		// Refresh the pack list so that '/datapack enable' works without calling '/datapack list' before
-		source.getServer().getResourcePacks().reloadPacksFromFinders();
+		source.getServer().getPackRepository().reload();
 		
 		// Send feedback
-		source.sendFeedback(
+		source.sendSuccess(
 		  ttc("commands.aerobaticelytra.datapack.install.success", enableCommand), true);
 		return 0;
 	}
@@ -519,17 +519,17 @@ public class AerobaticElytraCommand {
 	}
 	
 	public static Map<String, BundledDatapack> getAvailablePacks(CommandSource source) {
-		final ResourcePackInfo pack = source.getServer().getResourcePacks()
-		  .getPackInfo("mod:" + AerobaticElytra.MOD_ID);
+		final ResourcePackInfo pack = source.getServer().getPackRepository()
+		  .getPack("mod:" + AerobaticElytra.MOD_ID);
 		
 		if (pack == null) {
 			LOGGER.warn("Could not find mod datapack");
 			return Collections.emptyMap();
 		}
 		
-		final IResourcePack resourcePack = pack.getResourcePack();
+		final IResourcePack resourcePack = pack.open();
 		
-		return resourcePack.getAllResourceLocations(
+		return resourcePack.getResources(
 		  ResourcePackType.SERVER_DATA, AerobaticElytra.MOD_ID, "datapacks", 2,
 		  s -> !stripPath(s).equals("datapacks")
 		).stream()
@@ -559,12 +559,12 @@ public class AerobaticElytraCommand {
 			try {
 				final JsonParser parser = new JsonParser();
 				final JsonElement json = parser.parse(new InputStreamReader(
-				  pack.getResourceStream(ResourcePackType.SERVER_DATA, getMcMetaLocation())));
+				  pack.getResource(ResourcePackType.SERVER_DATA, getMcMetaLocation())));
 				try {
 					if (json.isJsonObject()) {
-						final JsonObject packInfo = JSONUtils.getJsonObject(json.getAsJsonObject(), "pack");
-						title = JSONUtils.getString(packInfo, "title");
-						description = JSONUtils.getString(packInfo, "description");
+						final JsonObject packInfo = JSONUtils.getAsJsonObject(json.getAsJsonObject(), "pack");
+						title = JSONUtils.getAsString(packInfo, "title");
+						description = JSONUtils.getAsString(packInfo, "description");
 					}
 				} catch (JsonSyntaxException ignored) {}
 			} catch (IOException ignored) {}
@@ -593,7 +593,7 @@ public class AerobaticElytraCommand {
 		}
 		
 		public Collection<ResourceLocation> getAllResourceLocations() {
-			final Collection<ResourceLocation> locations = pack.getAllResourceLocations(
+			final Collection<ResourceLocation> locations = pack.getResources(
 			  ResourcePackType.SERVER_DATA, location.getNamespace(),
 			  location.getPath(), Integer.MAX_VALUE, s -> !s.equals(location.getPath()));
 			locations.add(getMcMetaLocation());
@@ -604,7 +604,7 @@ public class AerobaticElytraCommand {
 			Map<ResourceLocation, InputStream> streams = new HashMap<>();
 			for (ResourceLocation rl : getAllResourceLocations()) {
 				try {
-					streams.put(rl, pack.getResourceStream(ResourcePackType.SERVER_DATA, rl));
+					streams.put(rl, pack.getResource(ResourcePackType.SERVER_DATA, rl));
 				} catch (IOException e) {
 					LOGGER.warn("Could not get resource stream for bundled datapack resource " + rl);
 					e.printStackTrace();

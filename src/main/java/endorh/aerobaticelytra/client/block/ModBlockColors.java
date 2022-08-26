@@ -20,13 +20,13 @@ public class ModBlockColors {
 	@SubscribeEvent
 	public static void registerBlockColors(ColorHandlerEvent.Block event) {
 		BlockColors colors = event.getBlockColors();
-		int defaultColor = ColorUtil.multiply(new Color(FoliageColors.getSpruce()), 0.6F).getRGB();
+		int defaultColor = ColorUtil.multiply(new Color(FoliageColors.getEvergreenColor()), 0.6F).getRGB();
 		// Return the color of the leaves block stored under the Tile Entity, or a fallback
 		colors.register(
 		  (state, world, pos, layer) -> {
 			  if (world == null || pos == null)
 				  return defaultColor;
-			  final TileEntity tile = world.getTileEntity(pos);
+			  final TileEntity tile = world.getBlockEntity(pos);
 			  if (!(tile instanceof BrokenLeavesTileEntity))
 				  return defaultColor;
 			  BrokenLeavesTileEntity te = (BrokenLeavesTileEntity) tile;

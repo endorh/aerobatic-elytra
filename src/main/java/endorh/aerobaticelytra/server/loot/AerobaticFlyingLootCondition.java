@@ -18,12 +18,12 @@ import static endorh.aerobaticelytra.common.capability.AerobaticDataCapability.g
 public class AerobaticFlyingLootCondition implements ILootCondition {
 	public AerobaticFlyingLootCondition() {}
 	
-	@Override public @NotNull LootConditionType func_230419_b_() {
+	@Override public @NotNull LootConditionType getType() {
 		return ModLootConditions.AEROBATIC_FLYING;
 	}
 	
 	@Override public boolean test(LootContext lootContext) {
-		final Entity entity = lootContext.get(LootParameters.THIS_ENTITY);
+		final Entity entity = lootContext.getParamOrNull(LootParameters.THIS_ENTITY);
 		if (!(entity instanceof PlayerEntity))
 			return false;
 		final IAerobaticData data = getAerobaticDataOrDefault((PlayerEntity) entity);

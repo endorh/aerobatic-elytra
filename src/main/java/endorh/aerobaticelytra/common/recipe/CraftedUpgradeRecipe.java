@@ -32,23 +32,23 @@ public class CraftedUpgradeRecipe extends SpecialRecipe {
 	  @NotNull CraftingInventory inv, @NotNull World world
 	) {
 		ItemStack upgrade = ItemStack.EMPTY, elytra = ItemStack.EMPTY;
-		for (int i = 0; i < inv.getSizeInventory(); i++) {
-			ItemStack cur = inv.getStackInSlot(i);
+		for (int i = 0; i < inv.getContainerSize(); i++) {
+			ItemStack cur = inv.getItem(i);
 			if (cur.isEmpty())
 				continue;
 			upgrade = cur;
 			int j;
-			for (j = 1; j < inv.getWidth() && i + j < inv.getSizeInventory(); j++) {
-				if (!inv.getStackInSlot(i + j).isEmpty())
+			for (j = 1; j < inv.getWidth() && i + j < inv.getContainerSize(); j++) {
+				if (!inv.getItem(i + j).isEmpty())
 					return false;
 			}
-			if (i + j < inv.getSizeInventory()) {
-				elytra = inv.getStackInSlot(i + j);
+			if (i + j < inv.getContainerSize()) {
+				elytra = inv.getItem(i + j);
 				if (!isAerobaticElytra(elytra))
 					return false;
 			}
-			for (i += j + 1; i < inv.getSizeInventory(); i++)
-				if (!inv.getStackInSlot(i).isEmpty())
+			for (i += j + 1; i < inv.getContainerSize(); i++)
+				if (!inv.getItem(i).isEmpty())
 					return false;
 		}
 		if (upgrade.isEmpty() || elytra.isEmpty())
@@ -57,16 +57,16 @@ public class CraftedUpgradeRecipe extends SpecialRecipe {
 		return !UpgradeRecipe.getUpgradeRecipes(elytra, upgrade).isEmpty();
 	}
 	
-	@Override public @NotNull ItemStack getCraftingResult(
+	@Override public @NotNull ItemStack assemble(
 	  @NotNull CraftingInventory inv
 	) {
 		ItemStack upgrade = ItemStack.EMPTY, elytra = ItemStack.EMPTY;
-		for (int i = 0; i < inv.getSizeInventory(); i++) {
-			ItemStack cur = inv.getStackInSlot(i);
+		for (int i = 0; i < inv.getContainerSize(); i++) {
+			ItemStack cur = inv.getItem(i);
 			if (cur.isEmpty())
 				continue;
 			upgrade = cur;
-			elytra = inv.getStackInSlot(i + inv.getWidth());
+			elytra = inv.getItem(i + inv.getWidth());
 			break;
 		}
 		final ItemStack elytraStack = elytra;
@@ -77,7 +77,7 @@ public class CraftedUpgradeRecipe extends SpecialRecipe {
 		).collect(Collectors.toList()));
 	}
 	
-	@Override public boolean canFit(int width, int height) {
+	@Override public boolean canCraftInDimensions(int width, int height) {
 		return width >= 1 && height >= 2;
 	}
 	

@@ -27,8 +27,8 @@ public class BannerRecipe extends SpecialRecipe {
 		boolean foundElytra = false;
 		boolean foundBanner = false;
 		
-		for (int i = 0; i < inv.getSizeInventory(); i++) {
-			ItemStack current = inv.getStackInSlot(i);
+		for (int i = 0; i < inv.getContainerSize(); i++) {
+			ItemStack current = inv.getItem(i);
 			if (current.isEmpty())
 				continue;
 			final Item item = current.getItem();
@@ -47,12 +47,12 @@ public class BannerRecipe extends SpecialRecipe {
 	}
 	
 	@NotNull @Override
-	public ItemStack getCraftingResult(CraftingInventory inv) {
+	public ItemStack assemble(CraftingInventory inv) {
 		ItemStack elytra = ItemStack.EMPTY;
 		ItemStack banner = ItemStack.EMPTY;
 		
-		for (int i = 0; i < inv.getSizeInventory(); ++i) {
-			ItemStack current = inv.getStackInSlot(i);
+		for (int i = 0; i < inv.getContainerSize(); ++i) {
+			ItemStack current = inv.getItem(i);
 			if (current.isEmpty())
 				continue;
 			final Item item = current.getItem();
@@ -72,19 +72,19 @@ public class BannerRecipe extends SpecialRecipe {
 	public static ItemStack apply(ItemStack elytra, ItemStack banner) {
 		ItemStack result = elytra.copy();
 		result.setCount(1);
-		CompoundNBT source = banner.getChildTag("BlockEntityTag");
+		CompoundNBT source = banner.getTagElement("BlockEntityTag");
 		CompoundNBT tag = source == null ? new CompoundNBT() : source.copy();
 		
 		tag.putInt("Base", ((BannerItem) banner.getItem()).getColor().getId());
-		result.setTagInfo("BlockEntityTag", tag);
+		result.addTagElement("BlockEntityTag", tag);
 		
 		// Remove dye if it has one
-		result.removeChildTag("display");
+		result.removeTagKey("display");
 		return result;
 	}
 	
 	@Override
-	public boolean canFit(int width, int height) {
+	public boolean canCraftInDimensions(int width, int height) {
 		return width * height >= 2;
 	}
 	

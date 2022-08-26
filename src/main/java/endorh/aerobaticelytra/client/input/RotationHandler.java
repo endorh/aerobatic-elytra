@@ -63,12 +63,12 @@ public class RotationHandler {
 		double scaledX = x * 0.15D;
 		
 		// Inverted controls
-		final GameSettings settings = Minecraft.getInstance().gameSettings;
-		int i_p = settings.invertMouse ? -1 : 1;
+		final GameSettings settings = Minecraft.getInstance().options;
+		int i_p = settings.invertYMouse ? -1 : 1;
 		int i_r = 1;
 		if (ClientConfig.controls.invert_pitch)
 			i_p *= -1;
-		if (settings.getPointOfView() == PointOfView.THIRD_PERSON_FRONT
+		if (settings.getCameraType() == PointOfView.THIRD_PERSON_FRONT
 		    && ClientConfig.controls.invert_front_third_person) {
 			i_p *= -1;
 			i_r *= -1;
@@ -88,9 +88,9 @@ public class RotationHandler {
 		tiltPitch = MathHelper.clamp(tiltPitch, -Config.aerobatic.tilt.range_pitch, Config.aerobatic.tilt.range_pitch);
 		
 		// Update yaw tilt from the moveStrafing field
-		float yawDelta = -0.5F * MathHelper.signum(tiltYaw) + 1.5F * MathHelper.signum(player.moveStrafing);
-		if (player.moveStrafing == 0)
-			yawDelta = MathHelper.signum(yawDelta) * MathHelper.clamp(2 * abs(yawDelta), 0F, abs(tiltYaw));
+		float yawDelta = -0.5F * MathHelper.sign(tiltYaw) + 1.5F * MathHelper.sign(player.xxa);
+		if (player.xxa == 0)
+			yawDelta = MathHelper.sign(yawDelta) * MathHelper.clamp(2 * abs(yawDelta), 0F, abs(tiltYaw));
 		tiltYaw = MathHelper.clamp(tiltYaw + yawDelta * YAW_SENS_PRESCALE * ClientConfig.controls.yaw_sens,
 		                           -Config.aerobatic.tilt.range_yaw, Config.aerobatic.tilt.range_yaw);
 		
@@ -108,12 +108,12 @@ public class RotationHandler {
 		double scaledX = x * 0.15D;
 		
 		// Inverted controls
-		final GameSettings settings = Minecraft.getInstance().gameSettings;
-		int i_p = settings.invertMouse ? -1 : 1;
+		final GameSettings settings = Minecraft.getInstance().options;
+		int i_p = settings.invertYMouse ? -1 : 1;
 		int i_r = 1;
 		if (ClientConfig.controls.invert_pitch)
 			i_p *= -1;
-		if (settings.getPointOfView() == PointOfView.THIRD_PERSON_FRONT
+		if (settings.getCameraType() == PointOfView.THIRD_PERSON_FRONT
 		    && ClientConfig.controls.invert_front_third_person) {
 			i_p *= -1;
 			i_r *= -1;
@@ -127,7 +127,7 @@ public class RotationHandler {
 		VectorBase base = data.getRotationBase();
 		final float underwaterSens = clampedLerp(
 		  Const.UNDERWATER_CONTROLS_DIRECT_SENSIBILITY_MAX, Const.UNDERWATER_CONTROLS_DIRECT_SENSIBILITY_MIN,
-		  (float) player.getMotion().length() / 0.8F);
+		  (float) player.getDeltaMovement().length() / 0.8F);
 		
 		/*LOGGER.debug(format(
 		  "X delta: %5.2f, Y delta: %5.2f",
@@ -154,9 +154,9 @@ public class RotationHandler {
 		base.roll.rotateAlongOrtVecDegrees(base.look, rollDelta);
 		base.normal.rotateAlongOrtVecDegrees(base.look, rollDelta);
 		
-		float yawDelta = -0.5F * MathHelper.signum(tiltYaw) + 1.5F * MathHelper.signum(player.moveStrafing);
-		if (player.moveStrafing == 0)
-			yawDelta = MathHelper.signum(yawDelta) * MathHelper.clamp(2 * abs(yawDelta), 0F, abs(tiltYaw));
+		float yawDelta = -0.5F * MathHelper.sign(tiltYaw) + 1.5F * MathHelper.sign(player.xxa);
+		if (player.xxa == 0)
+			yawDelta = MathHelper.sign(yawDelta) * MathHelper.clamp(2 * abs(yawDelta), 0F, abs(tiltYaw));
 		final float underwaterYawSens = Const.UNDERWATER_YAW_RANGE_MULTIPLIER;
 		tiltYaw = MathHelper.clamp(tiltYaw + yawDelta * YAW_SENS_PRESCALE * ClientConfig.controls.yaw_sens * underwaterYawSens,
 		  -Config.aerobatic.tilt.range_yaw * underwaterYawSens, Config.aerobatic.tilt.range_yaw * underwaterYawSens);

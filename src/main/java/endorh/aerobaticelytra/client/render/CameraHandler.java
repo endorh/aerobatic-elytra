@@ -37,20 +37,20 @@ public class CameraHandler {
 	@SubscribeEvent
 	public static void onCameraSetup(final CameraSetup event) {
 		ActiveRenderInfo info = event.getInfo();
-		Entity entity = info.getRenderViewEntity();
+		Entity entity = info.getEntity();
 		if (entity instanceof ClientPlayerEntity) {
 			ClientPlayerEntity player = (ClientPlayerEntity)entity;
 			IAerobaticData data = getAerobaticDataOrDefault(player);
 			
-			GameSettings gameSettings = Minecraft.getInstance().gameSettings;
-			int i = gameSettings.getPointOfView() == PointOfView.THIRD_PERSON_FRONT? -1 : 1;
+			GameSettings gameSettings = Minecraft.getInstance().options;
+			int i = gameSettings.getCameraType() == PointOfView.THIRD_PERSON_FRONT? -1 : 1;
 			if (data.isFlying()) {
 				lastRoll = data.getRotationRoll();
 				event.setRoll(lastRoll * i);
 				
 				// Prevent wrong interpolation of arm render offsets when flying
-				player.renderArmYaw = player.prevRenderArmYaw = player.rotationYaw;
-				player.renderArmPitch = player.prevRenderArmPitch = player.rotationPitch;
+				player.yBob = player.yBobO = player.yRot;
+				player.xBob = player.xBobO = player.xRot;
 			} else {
 				if (lastRoll != 0F) {
 					lastRoll = lastRoll > 180F ? 360F - (360F - lastRoll) * 0.75F : lastRoll * 0.75F;
@@ -89,9 +89,9 @@ public class CameraHandler {
 				  data.getTiltYaw() / Config.aerobatic.tilt.range_yaw * -1.5F);
 			}
 			final MatrixStack mStack = event.getMatrixStack();
-			mStack.rotate(Vector3f.XP.rotationDegrees(lastPitchOffset));
-			mStack.rotate(Vector3f.YP.rotationDegrees(lastYawOffset));
-			mStack.rotate(Vector3f.ZP.rotationDegrees(lastRollOffset));
+			mStack.mulPose(Vector3f.XP.rotationDegrees(lastPitchOffset));
+			mStack.mulPose(Vector3f.YP.rotationDegrees(lastYawOffset));
+			mStack.mulPose(Vector3f.ZP.rotationDegrees(lastRollOffset));
 		} else if (cameraOffset) {
 			cameraOffset = false;
 			lastPitchOffset = lastRollOffset = lastYawOffset = 0F;
@@ -104,7 +104,7 @@ public class CameraHandler {
 	@SubscribeEvent
 	public static void onFovModifier(final FOVModifier event) {
 		ActiveRenderInfo info = event.getInfo();
-		Entity entity = info.getRenderViewEntity();
+		Entity entity = info.getEntity();
 		if (entity instanceof PlayerEntity) {
 			PlayerEntity player = (PlayerEntity)entity;
 			IAerobaticData data = getAerobaticDataOrDefault(player);

@@ -25,7 +25,7 @@ public class KickHandler {
 	public static final Map<UUID, Integer> INVALID_PACKET_COUNT = new HashMap<>();
 	
 	public static void incrementInvalidPacketCount(ServerPlayerEntity player) {
-		UUID id = player.getUniqueID();
+		UUID id = player.getUUID();
 		int count = INVALID_PACKET_COUNT.containsKey(id)?
 		            INVALID_PACKET_COUNT.get(id) + 1 : 1;
 		INVALID_PACKET_COUNT.put(id, count);

@@ -51,8 +51,8 @@ public class TrailRecipeCategory extends BaseCategory<TrailRecipeWrapper> {
 	  @NotNull TrailRecipeWrapper recipe, @NotNull IIngredients ingredients
 	) {
 		ingredients.setInputIngredients(ImmutableList.of(
-		  Ingredient.fromItems(ModItems.AEROBATIC_ELYTRA, ModItems.AEROBATIC_ELYTRA_WING),
-		  Ingredient.fromTag(ItemTags.BANNERS)));
+		  Ingredient.of(ModItems.AEROBATIC_ELYTRA, ModItems.AEROBATIC_ELYTRA_WING),
+		  Ingredient.of(ItemTags.BANNERS)));
 		ingredients.setOutputLists(VanillaTypes.ITEM, ImmutableList.of(ImmutableList.of(
 		  new ItemStack(ModItems.AEROBATIC_ELYTRA), new ItemStack(ModItems.AEROBATIC_ELYTRA_WING))));
 	}
@@ -96,7 +96,7 @@ public class TrailRecipeCategory extends BaseCategory<TrailRecipeWrapper> {
 			if (1 <= i && i <= 4) {
 				tooltip.addAll(TextUtil.splitTtc(
 				  "aerobaticelytra.recipe.trail.applies_to_side",
-				  RocketSide.values()[i - 1].getDisplayName().mergeStyle(TextFormatting.GRAY)
+				  RocketSide.values()[i - 1].getDisplayName().withStyle(TextFormatting.GRAY)
 				).withStyle(TextFormatting.DARK_GRAY));
 				if (recipe.clear)
 					tooltip.addAll(

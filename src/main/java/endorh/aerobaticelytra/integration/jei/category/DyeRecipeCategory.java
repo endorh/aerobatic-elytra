@@ -54,7 +54,7 @@ public class DyeRecipeCategory extends BaseCategory<DyeRecipeCategory.DyeRecipeW
 	  @NotNull DyeRecipeWrapper recipe, @NotNull IIngredients ingredients
 	) {
 		ingredients.setInputIngredients(ImmutableList.of(
-		  Ingredient.fromItems(ModItems.AEROBATIC_ELYTRA, ModItems.AEROBATIC_ELYTRA_WING),
+		  Ingredient.of(ModItems.AEROBATIC_ELYTRA, ModItems.AEROBATIC_ELYTRA_WING),
 		  DyeRecipeWrapper.dyeIngredient));
 		ingredients.setOutputLists(VanillaTypes.ITEM, ImmutableList.of(ImmutableList.of(
 		  new ItemStack(ModItems.AEROBATIC_ELYTRA), new ItemStack(ModItems.AEROBATIC_ELYTRA_WING))));
@@ -88,7 +88,7 @@ public class DyeRecipeCategory extends BaseCategory<DyeRecipeCategory.DyeRecipeW
 		}
 		stacks.addTooltipCallback((i, input, ingredient, tooltip) -> {
 			if (1 <= i && i <= min(recipe.dyeAmount, 8))
-				tooltip.add(ttc("jei.tooltip.recipe.tag", "minecraft:dyes").mergeStyle(TextFormatting.GRAY));
+				tooltip.add(ttc("jei.tooltip.recipe.tag", "minecraft:dyes").withStyle(TextFormatting.GRAY));
 		});
 		stacks.set(9, dye(elytras, dyes));
 	}
@@ -127,10 +127,10 @@ public class DyeRecipeCategory extends BaseCategory<DyeRecipeCategory.DyeRecipeW
 	
 	public static class DyeRecipeWrapper {
 		protected static final List<DyeItem> dyeItems =
-		  Arrays.stream(DyeColor.values()).map(DyeItem::getItem).collect(Collectors.toList());
-		protected static final Ingredient dyeIngredient = Ingredient.fromItems(dyeItems.toArray(new DyeItem[0]));
+		  Arrays.stream(DyeColor.values()).map(DyeItem::byColor).collect(Collectors.toList());
+		protected static final Ingredient dyeIngredient = Ingredient.of(dyeItems.toArray(new DyeItem[0]));
 		protected static final List<ItemStack> dyeStacks =
-		  Arrays.asList(dyeIngredient.getMatchingStacks());
+		  Arrays.asList(dyeIngredient.getItems());
 		protected final DyeRecipe recipe;
 		protected final int dyeAmount;
 		protected final boolean wings;
@@ -143,7 +143,7 @@ public class DyeRecipeCategory extends BaseCategory<DyeRecipeCategory.DyeRecipeW
 		
 		public List<Ingredient> getIngredients() {
 			return Util.make(new ArrayList<>(), l -> {
-				l.add(Ingredient.fromItems(ModItems.AEROBATIC_ELYTRA));
+				l.add(Ingredient.of(ModItems.AEROBATIC_ELYTRA));
 				for (int i = 0; i < dyeAmount; i++)
 					l.add(dyeIngredient);
 			});
@@ -154,7 +154,7 @@ public class DyeRecipeCategory extends BaseCategory<DyeRecipeCategory.DyeRecipeW
 		final long t = System.currentTimeMillis();
 		if (t - lastIconChange > 1000L) {
 			icon = createMultiIngredientDrawable(
-			  new ItemStack(iconItems.getFirst()), new ItemStack(DyeItem.getItem(nextDyeColor())));
+			  new ItemStack(iconItems.getFirst()), new ItemStack(DyeItem.byColor(nextDyeColor())));
 			lastIconChange = t;
 		}
 		return icon;

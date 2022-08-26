@@ -218,7 +218,7 @@ public class ElytraSpecCapability {
 			
 			Map<String, Float> unknown = inst.getUnknownAbilities();
 			unknown.clear();
-			for (String name : ability.keySet()) {
+			for (String name : ability.getAllKeys()) {
 				if (!IAbility.isDefined(name))
 					unknown.put(name, ability.getFloat(name));
 			}

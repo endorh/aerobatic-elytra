@@ -52,8 +52,8 @@ public class BannerRecipeCategory extends BaseCategory<BannerRecipeWrapper> {
 	  @NotNull BannerRecipeWrapper recipe, @NotNull IIngredients ingredients
 	) {
 		ingredients.setInputIngredients(ImmutableList.of(
-		  Ingredient.fromItems(ModItems.AEROBATIC_ELYTRA, ModItems.AEROBATIC_ELYTRA_WING),
-		  Ingredient.fromTag(ItemTags.BANNERS)));
+		  Ingredient.of(ModItems.AEROBATIC_ELYTRA, ModItems.AEROBATIC_ELYTRA_WING),
+		  Ingredient.of(ItemTags.BANNERS)));
 		ingredients.setOutputLists(VanillaTypes.ITEM, ImmutableList.of(ImmutableList.of(
 		  new ItemStack(ModItems.AEROBATIC_ELYTRA), new ItemStack(ModItems.AEROBATIC_ELYTRA_WING))));
 	}
@@ -84,7 +84,7 @@ public class BannerRecipeCategory extends BaseCategory<BannerRecipeWrapper> {
 		), banners));
 		stacks.addTooltipCallback((i, input, ingredient, tooltip) -> {
 			if (i == 1)
-				tooltip.add(ttc("jei.tooltip.recipe.tag", ItemTags.BANNERS.getName()).mergeStyle(TextFormatting.GRAY));
+				tooltip.add(ttc("jei.tooltip.recipe.tag", ItemTags.BANNERS.getName()).withStyle(TextFormatting.GRAY));
 		});
 	}
 	

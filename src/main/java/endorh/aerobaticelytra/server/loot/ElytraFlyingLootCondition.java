@@ -15,13 +15,13 @@ import org.jetbrains.annotations.NotNull;
 public class ElytraFlyingLootCondition implements ILootCondition {
 	public ElytraFlyingLootCondition() {}
 	
-	@Override public @NotNull LootConditionType func_230419_b_() {
+	@Override public @NotNull LootConditionType getType() {
 		return ModLootConditions.ELYTRA_FLYING;
 	}
 	
 	@Override public boolean test(LootContext lootContext) {
-		final Entity entity = lootContext.get(LootParameters.THIS_ENTITY);
-		return entity instanceof LivingEntity && ((LivingEntity) entity).isElytraFlying();
+		final Entity entity = lootContext.getParamOrNull(LootParameters.THIS_ENTITY);
+		return entity instanceof LivingEntity && ((LivingEntity) entity).isFallFlying();
 	}
 	
 	public static class Serializer implements ILootSerializer<ElytraFlyingLootCondition> {

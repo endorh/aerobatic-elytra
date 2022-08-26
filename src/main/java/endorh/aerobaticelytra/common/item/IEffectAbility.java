@@ -46,12 +46,12 @@ public interface IEffectAbility extends IDatapackAbility {
 		
 		private static final SoftField<EffectInstance, Integer> EffectInstance$duration =
 		  ObfuscationReflectionUtil.getSoftField(
-		    EffectInstance.class, "field_76460_b", "duration",
+		    EffectInstance.class, "duration", "duration",
 		    LOGGER::error, REFLECTION_ERROR_MESSAGE);
 		
 		private static final SoftField<EffectInstance, EffectInstance> EffectInstance$hiddenEffects =
 		  ObfuscationReflectionUtil.getSoftField(
-		    EffectInstance.class, "field_230115_j_", "hiddenEffects",
+		    EffectInstance.class, "hiddenEffect", "hiddenEffects",
 		    LOGGER::error, REFLECTION_ERROR_MESSAGE);
 		
 		public final String jsonName;
@@ -88,7 +88,7 @@ public interface IEffectAbility extends IDatapackAbility {
 		
 		@Override public void applyEffect(ServerPlayerEntity player) {
 			for (Effect effect : effects.keySet()) {
-				final EffectInstance active = player.getActivePotionEffect(effect);
+				final EffectInstance active = player.getEffect(effect);
 				final Integer level = effects.get(effect);
 				if (active != null) {
 					if (level <= active.getAmplifier()) {
@@ -97,24 +97,24 @@ public interface IEffectAbility extends IDatapackAbility {
 						return;
 					}
 					final EffectInstance instance = new EffectInstance(effect, 0, level, true, false, false);
-					instance.setPotionDurationMax(true);
-					player.addPotionEffect(instance); // This updates `active` with `instance`s values and queues a copy of `active` in its hiddenEffects values, thus, the next line
+					instance.setNoCounter(true);
+					player.addEffect(instance); // This updates `active` with `instance`s values and queues a copy of `active` in its hiddenEffects values, thus, the next line
 					EffectInstance$duration.set(active, Integer.MAX_VALUE);
 				} else {
 					final EffectInstance instance = new EffectInstance(effect, Integer.MAX_VALUE, level, true, false, false);
-					instance.setPotionDurationMax(true);
-					player.addPotionEffect(instance);
+					instance.setNoCounter(true);
+					player.addEffect(instance);
 				}
 			}
 		}
 		
 		@Override public void undoEffect(ServerPlayerEntity player) {
-			final Map<Effect, EffectInstance> potionMap = player.getActivePotionMap();
+			final Map<Effect, EffectInstance> potionMap = player.getActiveEffectsMap();
 			effects:for (Effect effect : effects.keySet()) {
 				EffectInstance instance = potionMap.get(effect);
 				if (instance.getAmplifier() == effects.get(effect)
 				    && instance.getDuration() > Integer.MAX_VALUE / 2
-				    && instance.isAmbient() && !instance.doesShowParticles()) { // && instance.getIsPotionDurationMax()) {
+				    && instance.isAmbient() && !instance.isVisible()) { // && instance.getIsPotionDurationMax()) {
 					EffectInstance$duration.set(instance, 1);
 					continue;
 				}
@@ -126,7 +126,7 @@ public interface IEffectAbility extends IDatapackAbility {
 						continue effects;
 					if (instance.getAmplifier() == effects.get(effect)
 					    && instance.getDuration() > Integer.MAX_VALUE / 2
-					    && instance.isAmbient() && !instance.doesShowParticles()) { // && instance.getIsPotionDurationMax()) {
+					    && instance.isAmbient() && !instance.isVisible()) { // && instance.getIsPotionDurationMax()) {
 						// Remove instance from the linked array
 						EffectInstance$hiddenEffects.set(prev, EffectInstance$hiddenEffects.get(instance));
 						continue effects;
@@ -150,7 +150,7 @@ public interface IEffectAbility extends IDatapackAbility {
 				throw new IllegalStateException("Cannot get display name of unregistered IEffectAbility");
 			if (translationKey == null)
 				translationKey = "aerobaticelytra.effect-abilities." + fullName().replace(':', '.');
-			return I18n.hasKey(translationKey)? ttc(translationKey) : stc(jsonName);
+			return I18n.exists(translationKey)? ttc(translationKey) : stc(jsonName);
 		}
 		
 		@Override public DisplayType getDisplayType() {
@@ -185,32 +185,32 @@ public interface IEffectAbility extends IDatapackAbility {
 				if (!json.isJsonObject())
 					throw new JsonParseException("Aerobatic elytra effect abilities must be JSON objects");
 				final JsonObject obj = json.getAsJsonObject();
-				final String type = JSONUtils.getString(obj, "type");
+				final String type = JSONUtils.getAsString(obj, "type");
 				if (!type.equals(EFFECT_ABILITY_TYPE))
 					throw new JsonParseException("Unknown aerobatic elytra effect ability: '" + type + "'. Only known value is '" + EFFECT_ABILITY_TYPE + "'");
-				final String jsonName = JSONUtils.getString(obj, "id");
-				final String colorName = JSONUtils.getString(obj, "color", "GRAY");
-				final TextFormatting color = TextFormatting.getValueByName(colorName);
+				final String jsonName = JSONUtils.getAsString(obj, "id");
+				final String colorName = JSONUtils.getAsString(obj, "color", "GRAY");
+				final TextFormatting color = TextFormatting.getByName(colorName);
 				if (color == null || !color.isColor())
 					throw new JsonParseException("Invalid aerobatic elytra effect ability: '" + colorName + "'");
-				final float defValue = JSONUtils.getFloat(obj, "default", 0F);
+				final float defValue = JSONUtils.getAsFloat(obj, "default", 0F);
 				
-				final JsonObject effectsObj = JSONUtils.getJsonObject(obj, "effects", new JsonObject());
+				final JsonObject effectsObj = JSONUtils.getAsJsonObject(obj, "effects", new JsonObject());
 				final Map<Effect, Integer> effects = new HashMap<>();
 				for (Entry<String, JsonElement> entry : effectsObj.entrySet()) {
 					final Effect effect = ForgeRegistries.POTIONS.getValue(new ResourceLocation(entry.getKey()));
 					final JsonObject effectData = entry.getValue().getAsJsonObject();
-					effects.put(effect, JSONUtils.getInt(effectData, "amplifier", 1) - 1);
+					effects.put(effect, JSONUtils.getAsInt(effectData, "amplifier", 1) - 1);
 				}
 				
-				final JsonArray conditionsArr = JSONUtils.getJsonArray(obj, "conditions", new JsonArray());
+				final JsonArray conditionsArr = JSONUtils.getAsJsonArray(obj, "conditions", new JsonArray());
 				// This makes re-serialization impossible
 				//noinspection unchecked
 				final Predicate<LootContext> condition = ((Stream<Predicate<LootContext>>) (Stream<?>)
 				  Arrays.stream(context.<ILootCondition[]>deserialize(conditionsArr, ILootCondition[].class))
 				).reduce(Predicate::and).orElse(c -> true);
 				
-				final float consumption = JSONUtils.getFloat(obj, "consumption", 0F);
+				final float consumption = JSONUtils.getAsFloat(obj, "consumption", 0F);
 				
 				return new EffectAbility(jsonName, color, defValue, effects, condition, consumption);
 			}

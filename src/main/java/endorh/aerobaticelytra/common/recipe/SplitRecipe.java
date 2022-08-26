@@ -78,8 +78,8 @@ public class SplitRecipe extends SpecialRecipe {
 		
 		public static LeaveData from(JsonObject obj) {
 			return new LeaveData(
-			  JSONUtils.getBoolean(obj, "leave", false),
-			  JSONUtils.getInt(obj, "damage", 0));
+			  JSONUtils.getAsBoolean(obj, "leave", false),
+			  JSONUtils.getAsInt(obj, "damage", 0));
 		}
 	}
 	
@@ -100,7 +100,7 @@ public class SplitRecipe extends SpecialRecipe {
 	  NonNullList<Pair<Ingredient, LeaveData>> ingredients
 	) {
 		final NonNullList<Ingredient> res = NonNullList.withSize(ingredients.size() + 1, Ingredient.EMPTY);
-		res.set(0, Ingredient.fromItems(ModItems.AEROBATIC_ELYTRA));
+		res.set(0, Ingredient.of(ModItems.AEROBATIC_ELYTRA));
 		for (int i = 0, s = ingredients.size(); i < s; i++)
 			res.set(i + 1, ingredients.get(i).getLeft());
 		return res;
@@ -111,8 +111,8 @@ public class SplitRecipe extends SpecialRecipe {
 	) {
 		ItemStack elytra = ItemStack.EMPTY;
 		final List<ItemStack> inputs = new ArrayList<>();
-		for (int i = 0; i < inv.getSizeInventory(); i++) {
-			ItemStack current = inv.getStackInSlot(i);
+		for (int i = 0; i < inv.getContainerSize(); i++) {
+			ItemStack current = inv.getItem(i);
 			if (current.isEmpty())
 				continue;
 			if (current.getItem() instanceof AerobaticElytraItem) {
@@ -128,12 +128,12 @@ public class SplitRecipe extends SpecialRecipe {
 	}
 	
 	@Override
-	public @NotNull ItemStack getCraftingResult(
+	public @NotNull ItemStack assemble(
 	  @NotNull CraftingInventory inv
 	) {
 		ItemStack elytra = ItemStack.EMPTY;
-		for (int i = 0; i < inv.getSizeInventory(); i++) {
-			ItemStack current = inv.getStackInSlot(i);
+		for (int i = 0; i < inv.getContainerSize(); i++) {
+			ItemStack current = inv.getItem(i);
 			if (current.getItem() instanceof AerobaticElytraItem) {
 				elytra = current;
 				break;
@@ -145,12 +145,12 @@ public class SplitRecipe extends SpecialRecipe {
 	
 	@Override
 	public @NotNull NonNullList<ItemStack> getRemainingItems(@NotNull CraftingInventory inv) {
-		NonNullList<ItemStack> rem = NonNullList.withSize(inv.getSizeInventory(), ItemStack.EMPTY);
+		NonNullList<ItemStack> rem = NonNullList.withSize(inv.getContainerSize(), ItemStack.EMPTY);
 		
 		List<ItemStack> inputs = new java.util.ArrayList<>();
 		List<Integer> inputMap = new ArrayList<>();
-		for(int i = 0; i < inv.getSizeInventory(); i++) {
-			ItemStack current = inv.getStackInSlot(i);
+		for(int i = 0; i < inv.getContainerSize(); i++) {
+			ItemStack current = inv.getItem(i);
 			if (!current.isEmpty()) {
 				inputs.add(current);
 				inputMap.add(i);
@@ -164,14 +164,14 @@ public class SplitRecipe extends SpecialRecipe {
 		int j;
 		for (int i = 0; i < inputMap.size(); i++) {
 			j = inputMap.get(i);
-			final ItemStack stack = inv.getStackInSlot(j);
+			final ItemStack stack = inv.getItem(j);
 			if (stack.getItem() instanceof AerobaticElytraItem) {
 				rem.set(j, getWing(stack, WingSide.LEFT));
 			} else {
 				final LeaveData data = ingredients.get(map[i - 1]).getRight();
 				if (data.leave) {
 					ItemStack left = stack.copy();
-					left.setDamage(left.getDamage() + data.damage);
+					left.setDamageValue(left.getDamageValue() + data.damage);
 					rem.set(j, left);
 				} else if (stack.hasContainerItem())
 					rem.set(j, stack.getContainerItem());
@@ -185,7 +185,7 @@ public class SplitRecipe extends SpecialRecipe {
 		return ((AerobaticElytraItem) elytra.getItem()).getWing(elytra, side);
 	}
 	
-	@Override public boolean canFit(int width, int height) {
+	@Override public boolean canCraftInDimensions(int width, int height) {
 		return width * height >= 2;
 	}
 	
@@ -201,11 +201,11 @@ public class SplitRecipe extends SpecialRecipe {
 		}
 		
 		@Override
-		public @NotNull SplitRecipe read(
+		public @NotNull SplitRecipe fromJson(
 		  @NotNull ResourceLocation recipeId, @NotNull JsonObject json
 		) {
 			NonNullList<Pair<Ingredient, LeaveData>> list =
-			  readIngredients(JSONUtils.getJsonArray(json, "ingredients"));
+			  readIngredients(JSONUtils.getAsJsonArray(json, "ingredients"));
 			if (list.size() > MAX_WIDTH * MAX_HEIGHT - 1) {
 				throw new JsonParseException("Too many ingredients for split recipe, the max is " + (SplitRecipe.MAX_WIDTH * SplitRecipe.MAX_HEIGHT - 1));
 			} else {
@@ -224,16 +224,16 @@ public class SplitRecipe extends SpecialRecipe {
 					JsonObject obj = elem.getAsJsonObject();
 					if (!obj.has("ingredient")) {
 						list.add(Pair.of(
-						  Ingredient.fromItemListStream(Stream.of(
-						    Ingredient.deserializeItemList(obj))),
+						  Ingredient.fromValues(Stream.of(
+						    Ingredient.valueFromJson(obj))),
 						  LeaveData.from(obj)));
 					} else {
 						JsonElement ing = obj.get("ingredient");
 						LeaveData data = LeaveData.from(obj);
 						if (ing.isJsonObject()) {
 							list.add(Pair.of(
-							  Ingredient.fromItemListStream(Stream.of(
-							    Ingredient.deserializeItemList(ing.getAsJsonObject())
+							  Ingredient.fromValues(Stream.of(
+							    Ingredient.valueFromJson(ing.getAsJsonObject())
 							  )), data));
 						} else if (ing.isJsonArray()) {
 							list.add(Pair.of(ingredientFromJsonArray(ing.getAsJsonArray()), data));
@@ -257,26 +257,26 @@ public class SplitRecipe extends SpecialRecipe {
 			if (arr.size() == 0) {
 				throw new JsonSyntaxException("Item array cannot be empty, at least one item must be defined");
 			} else {
-				return Ingredient.fromItemListStream(
+				return Ingredient.fromValues(
 				  StreamSupport.stream(arr.spliterator(), false).map(
-				    (element) -> Ingredient.deserializeItemList(JSONUtils.getJsonObject(element, "item"))));
+				    (element) -> Ingredient.valueFromJson(JSONUtils.convertToJsonObject(element, "item"))));
 			}
 		}
 		
 		@Override
-		public SplitRecipe read(@NotNull ResourceLocation recipeId, @NotNull PacketBuffer buf) {
+		public SplitRecipe fromNetwork(@NotNull ResourceLocation recipeId, @NotNull PacketBuffer buf) {
 			NonNullList<Pair<Ingredient, LeaveData>> ingredients =
 			  PacketBufferUtil.readNonNullList(
-			    buf, b -> Pair.of(Ingredient.read(b), LeaveData.read(b)),
+			    buf, b -> Pair.of(Ingredient.fromNetwork(b), LeaveData.read(b)),
 			    Pair.of(Ingredient.EMPTY, LeaveData.DO_NOT_LEAVE));
 			return new SplitRecipe(recipeId, ingredients);
 		}
 		
 		@Override
-		public void write(@NotNull PacketBuffer buf, @NotNull SplitRecipe recipe) {
+		public void toNetwork(@NotNull PacketBuffer buf, @NotNull SplitRecipe recipe) {
 			PacketBufferUtil.writeList(
 			  recipe.ingredients, buf, (p, b) -> {
-			  	   p.getLeft().write(b);
+			  	   p.getLeft().toNetwork(b);
 			  	   p.getRight().write(b);
 			  });
 		}

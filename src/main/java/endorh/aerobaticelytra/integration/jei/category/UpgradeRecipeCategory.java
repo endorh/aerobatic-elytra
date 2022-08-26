@@ -40,10 +40,10 @@ public class UpgradeRecipeCategory extends BaseCategory<UpgradeRecipe> {
 	  @NotNull UpgradeRecipe recipe, @NotNull IIngredients ingredients
 	) {
 		final List<Ingredient> ing = new ArrayList<>(recipe.getIngredients());
-		ing.add(Ingredient.fromItems(ModItems.AEROBATIC_ELYTRA));
+		ing.add(Ingredient.of(ModItems.AEROBATIC_ELYTRA));
 		ingredients.setInputIngredients(ing);
 		ingredients.setOutputLists(VanillaTypes.ITEM, ImmutableList.of(ImmutableList.of(
-		  recipe.getRecipeOutput())));
+		  recipe.getResultItem())));
 	}
 	
 	@Override public void setRecipe(

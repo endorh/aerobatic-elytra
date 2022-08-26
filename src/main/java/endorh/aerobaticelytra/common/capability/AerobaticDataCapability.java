@@ -181,24 +181,24 @@ public class AerobaticDataCapability {
 		@Override public float getRotationPitch() {
 			if (player == null)
 				return 0F;
-			return player.rotationPitch;
+			return player.xRot;
 		}
 		@Override public float getRotationYaw() {
 			if (player == null)
 				return 0F;
-			return player.rotationYaw;
+			return player.yRot;
 		}
 		@Override public void setRotationPitch(float pitch) {
 			if (player == null)
 				return;
-			player.prevRotationPitch = player.rotationPitch;
-			player.rotationPitch = pitch;
+			player.xRotO = player.xRot;
+			player.xRot = pitch;
 		}
 		@Override public void setRotationYaw(float yaw) {
 			if (player == null)
 				return;
-			player.prevRotationYaw = player.rotationYaw;
-			player.rotationYaw = yaw;
+			player.yRotO = player.yRot;
+			player.yRot = yaw;
 		}
 		
 		@Override public VectorBase getRotationBase() {
@@ -268,11 +268,11 @@ public class AerobaticDataCapability {
 				return;
 			isFlying = flying;
 			if (flying)
-				lastLiftOff = player.ticksExisted;
+				lastLiftOff = player.tickCount;
 		}
 		
 		@Override public int ticksFlying() {
-			return isFlying? player.ticksExisted - lastLiftOff : 0;
+			return isFlying? player.tickCount - lastLiftOff : 0;
 		}
 		
 		@Override public boolean isAffectedByWeather() {

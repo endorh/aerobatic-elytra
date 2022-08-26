@@ -26,13 +26,13 @@ public class SubmergedLootCondition implements ILootCondition {
 		this.fluidTag = fluidTag;
 	}
 	
-	@Override public @NotNull LootConditionType func_230419_b_() {
+	@Override public @NotNull LootConditionType getType() {
 		return ModLootConditions.SUBMERGED;
 	}
 	
 	@Override public boolean test(LootContext lootContext) {
 		//noinspection ConstantConditions
-		return lootContext.get(LootParameters.THIS_ENTITY).areEyesInFluid(fluidTag);
+		return lootContext.getParamOrNull(LootParameters.THIS_ENTITY).isEyeInFluid(fluidTag);
 	}
 	
 	public static class Serializer implements ILootSerializer<SubmergedLootCondition> {
@@ -46,8 +46,8 @@ public class SubmergedLootCondition implements ILootCondition {
 		@Override public @NotNull SubmergedLootCondition deserialize(
 		  @NotNull JsonObject json, @NotNull JsonDeserializationContext context
 		) {
-			final ResourceLocation fluid = new ResourceLocation(JSONUtils.getString(json, "fluid", "water"));
-			final Optional<? extends INamedTag<Fluid>> tag = FluidTags.getAllTags().stream()
+			final ResourceLocation fluid = new ResourceLocation(JSONUtils.getAsString(json, "fluid", "water"));
+			final Optional<? extends INamedTag<Fluid>> tag = FluidTags.getWrappers().stream()
 			  .filter(t -> t.getName().equals(fluid)).findFirst();
 			if (!tag.isPresent())
 				throw new JsonParseException("Unknown fluid tag: \"" + fluid + "\"");

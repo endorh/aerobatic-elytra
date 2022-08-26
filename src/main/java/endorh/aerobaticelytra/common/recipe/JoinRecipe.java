@@ -36,18 +36,18 @@ public class JoinRecipe extends SpecialRecipe {
 	public boolean matches(@NotNull CraftingInventory inv, @NotNull World world) {
 		ItemStack left = ItemStack.EMPTY, right = ItemStack.EMPTY;
 		boolean found = false;
-		for (int i = 0; i < inv.getSizeInventory(); i++) {
-			ItemStack current = inv.getStackInSlot(i);
+		for (int i = 0; i < inv.getContainerSize(); i++) {
+			ItemStack current = inv.getItem(i);
 			if (current.isEmpty())
 				continue;
 			if (found)
 				return false;
 			if (!(current.getItem() instanceof AerobaticElytraWingItem)
 			    || (i + 1) % inv.getWidth() == 0
-			    || !(inv.getStackInSlot(i + 1).getItem() instanceof AerobaticElytraWingItem))
+			    || !(inv.getItem(i + 1).getItem() instanceof AerobaticElytraWingItem))
 				return false;
-			left = inv.getStackInSlot(i);
-			right = inv.getStackInSlot(i + 1);
+			left = inv.getItem(i);
+			right = inv.getItem(i + 1);
 			i++;
 			found = true;
 		}
@@ -58,10 +58,10 @@ public class JoinRecipe extends SpecialRecipe {
 	}
 	
 	@Override
-	public @NotNull ItemStack getCraftingResult(@NotNull CraftingInventory inv) {
+	public @NotNull ItemStack assemble(@NotNull CraftingInventory inv) {
 		ItemStack left = ItemStack.EMPTY, right = ItemStack.EMPTY;
-		for (int i = 0; i < inv.getSizeInventory(); i++) {
-			ItemStack current = inv.getStackInSlot(i);
+		for (int i = 0; i < inv.getContainerSize(); i++) {
+			ItemStack current = inv.getItem(i);
 			if (current.isEmpty())
 				continue;
 			if (left.isEmpty())
@@ -81,10 +81,10 @@ public class JoinRecipe extends SpecialRecipe {
 			return false;
 		if (((AerobaticElytraWingItem) left.getItem()).getElytraItem() != ((AerobaticElytraWingItem) right.getItem()).getElytraItem())
 			return false;
-		return Objects.equals(left.getChildTag(SplitRecipe.TAG_SPLIT_ELYTRA),
-		                      right.getChildTag(SplitRecipe.TAG_SPLIT_ELYTRA))
-		       && Objects.equals(left.getChildTag(SplitRecipe.TAG_SPLIT_ELYTRA_CAPS),
-		                         right.getChildTag(SplitRecipe.TAG_SPLIT_ELYTRA_CAPS));
+		return Objects.equals(left.getTagElement(SplitRecipe.TAG_SPLIT_ELYTRA),
+		                      right.getTagElement(SplitRecipe.TAG_SPLIT_ELYTRA))
+		       && Objects.equals(left.getTagElement(SplitRecipe.TAG_SPLIT_ELYTRA_CAPS),
+		                         right.getTagElement(SplitRecipe.TAG_SPLIT_ELYTRA_CAPS));
 	}
 	
 	/**
@@ -92,8 +92,8 @@ public class JoinRecipe extends SpecialRecipe {
 	 * {@link JoinRecipe#matches(ItemStack, ItemStack)} returns true
 	 */
 	public static ItemStack join(ItemStack left, ItemStack right) {
-		final CompoundNBT caps = left.getOrCreateChildTag(SplitRecipe.TAG_SPLIT_ELYTRA_CAPS);
-		final CompoundNBT tag = left.getOrCreateChildTag(SplitRecipe.TAG_SPLIT_ELYTRA);
+		final CompoundNBT caps = left.getOrCreateTagElement(SplitRecipe.TAG_SPLIT_ELYTRA_CAPS);
+		final CompoundNBT tag = left.getOrCreateTagElement(SplitRecipe.TAG_SPLIT_ELYTRA);
 		ItemStack elytra = new ItemStack(((AerobaticElytraWingItem) left.getItem()).getElytraItem(), 1, caps.copy());
 		elytra.setTag(tag.copy());
 		leftDyement.read(left);
@@ -115,7 +115,7 @@ public class JoinRecipe extends SpecialRecipe {
 	}
 	
 	@Override
-	public boolean canFit(int width, int height) {
+	public boolean canCraftInDimensions(int width, int height) {
 		return width >= 2 && height >= 1;
 	}
 	

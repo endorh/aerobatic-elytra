@@ -41,8 +41,8 @@ public class ClientColytraIntegration {
 		int index = 0;
 		boolean found = false;
 		// Try to find the colytra tooltip in the list
-		if (elytra.hasDisplayName()) {
-			ITextComponent display = elytra.getDisplayName();
+		if (elytra.hasCustomHoverName()) {
+			ITextComponent display = elytra.getHoverName();
 			final String name = display.getString();
 			for (ITextComponent component : tooltip) {
 				if (name.equals(component.getString())) {
@@ -66,10 +66,10 @@ public class ClientColytraIntegration {
 		// Replace the found tooltip in place
 		if (found) {
 			tooltip.remove(index);
-			if (elytra.hasDisplayName())
-				tooltip.add(index++, elytra.getDisplayName().copyRaw()
-				  .mergeStyle(TextFormatting.AQUA).mergeStyle(TextFormatting.ITALIC));
-			else tooltip.add(index++, item.getDisplayName(elytra));
+			if (elytra.hasCustomHoverName())
+				tooltip.add(index++, elytra.getHoverName().plainCopy()
+				  .withStyle(TextFormatting.AQUA).withStyle(TextFormatting.ITALIC));
+			else tooltip.add(index++, item.getName(elytra));
 			tooltip.addAll(index, item.getTooltipInfo(elytra, event.getFlags(), "  "));
 		}
 	}
@@ -81,7 +81,7 @@ public class ClientColytraIntegration {
 	@SubscribeEvent(priority = EventPriority.LOW)
 	public static void onRenderElytraEvent(RenderElytraEvent event) {
 		ItemStack elytra = getColytraSubItem(
-		  event.getPlayer().getItemStackFromSlot(EquipmentSlotType.CHEST));
+		  event.getPlayer().getItemBySlot(EquipmentSlotType.CHEST));
 		if ((elytra.getItem() instanceof AerobaticElytraItem))
 			event.setRender(false);
 	}

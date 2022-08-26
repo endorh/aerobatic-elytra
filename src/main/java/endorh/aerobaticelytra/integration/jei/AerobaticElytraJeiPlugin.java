@@ -88,16 +88,16 @@ public class AerobaticElytraJeiPlugin implements IModPlugin {
 	
 	@Override public void registerRecipes(@NotNull IRecipeRegistration reg) {
 		// Add info to item
-		String key = KeyHandler.FLIGHT_MODE_KEYBINDING.getKey().getTranslationKey();
-		String keyName = I18n.format(key);
+		String key = KeyHandler.FLIGHT_MODE_KEYBINDING.getKey().getName();
+		String keyName = I18n.get(key);
 		if (key.equals(keyName))
 			keyName = keyName.replaceFirst("key\\.keyboard\\.", "");
 		reg.addIngredientInfo(
 		  new ItemStack(ModItems.AEROBATIC_ELYTRA), VanillaTypes.ITEM,
-		  I18n.format("aerobaticelytra.jei.info.aerobatic_elytra", keyName));
+		  I18n.get("aerobaticelytra.jei.info.aerobatic_elytra", keyName));
 		
 		// Get recipe list
-		final ClientWorld world = Minecraft.getInstance().world;
+		final ClientWorld world = Minecraft.getInstance().level;
 		assert world != null;
 		RecipeManager recipeManager = world.getRecipeManager();
 		final Collection<IRecipe<?>> recipeList = recipeManager.getRecipes();

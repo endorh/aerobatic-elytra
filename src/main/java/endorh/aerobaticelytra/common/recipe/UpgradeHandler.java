@@ -25,11 +25,11 @@ public class UpgradeHandler {
 	public static void onPlayerRightClickItem(PlayerInteractEvent.RightClickItem event) {
 		PlayerEntity player = event.getPlayer();
 		if (player.isOnGround()) {
-			ItemStack elytra = player.getItemStackFromSlot(EquipmentSlotType.OFFHAND);
+			ItemStack elytra = player.getItemBySlot(EquipmentSlotType.OFFHAND);
 			if (elytra.getItem() instanceof AerobaticElytraItem) {
 				ItemStack itemStack = event.getItemStack();
 				if (onItemUse(player, elytra, itemStack)) {
-					event.setCancellationResult(ActionResultType.func_233537_a_(player.world.isRemote));
+					event.setCancellationResult(ActionResultType.sidedSuccess(player.level.isClientSide));
 					event.setCanceled(true);
 				}
 			}
@@ -48,7 +48,7 @@ public class UpgradeHandler {
 			/*if (!player.world.isRemote)
 				return false;
 			return player instanceof AbstractClientPlayerEntity;*/
-			if (player.world.isRemote)
+			if (player.level.isClientSide)
 				new UpgradeRecipePacket(player, upgrades).send();
 			return true;
 		}

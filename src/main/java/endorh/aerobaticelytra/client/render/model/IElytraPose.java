@@ -179,10 +179,10 @@ public interface IElytraPose {
 				scaledRoll = data.getTiltRoll() / Config.aerobatic.tilt.range_roll;
 				
 				tipBase = DEG_5;
-				tipLift = -(float) player.getLookVec().y * 0.5F;
+				tipLift = -(float) player.getLookAngle().y * 0.5F;
 				tipRoll = scaledRoll * 0.3F;
 				
-				Vec3f motionVec = new Vec3f(player.getMotion());
+				Vec3f motionVec = new Vec3f(player.getDeltaMovement());
 				if (motionVec.y < 0D)
 					yTilt = 1F - (float) Math.pow(-motionVec.y / motionVec.norm(), 1.5D);
 			} else if (entity instanceof ArmorStandEntity) {
@@ -194,10 +194,10 @@ public interface IElytraPose {
 				tipLift = -DEG_10;
 				tipRoll = scaledRoll * 0.3F;
 				
-				yTilt = Math.min(1F - stand.getHeadRotation().getZ() / 180F, 1F);
+				yTilt = Math.min(1F - stand.getHeadPose().getZ() / 180F, 1F);
 				
-				leftTipExtra = MathHelper.wrapDegrees(stand.getLeftArmRotation().getZ() + 10F) * TO_RAD;
-				rightTipExtra = MathHelper.wrapDegrees(stand.getRightArmRotation().getZ() - 10F) * TO_RAD;
+				leftTipExtra = MathHelper.wrapDegrees(stand.getLeftArmPose().getZ() + 10F) * TO_RAD;
+				rightTipExtra = MathHelper.wrapDegrees(stand.getRightArmPose().getZ() - 10F) * TO_RAD;
 			} else return pose;
 			
 			yTilt = Math.max(yTilt, 0.3F);

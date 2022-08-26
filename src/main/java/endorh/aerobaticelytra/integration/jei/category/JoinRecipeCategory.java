@@ -35,8 +35,8 @@ public class JoinRecipeCategory extends BaseCategory<JoinRecipe> {
 	  @NotNull JoinRecipe recipe, @NotNull IIngredients ingredients
 	) {
 		ingredients.setInputIngredients(ImmutableList.of(
-		  Ingredient.fromItems(ModItems.AEROBATIC_ELYTRA_WING),
-		  Ingredient.fromItems(ModItems.AEROBATIC_ELYTRA_WING)));
+		  Ingredient.of(ModItems.AEROBATIC_ELYTRA_WING),
+		  Ingredient.of(ModItems.AEROBATIC_ELYTRA_WING)));
 		ingredients.setOutputLists(VanillaTypes.ITEM, ImmutableList.of(
 		  ImmutableList.of(new ItemStack(ModItems.AEROBATIC_ELYTRA))));
 	}

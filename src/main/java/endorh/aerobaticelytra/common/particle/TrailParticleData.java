@@ -22,6 +22,8 @@ import java.awt.*;
 import java.util.List;
 import java.util.Locale;
 
+import net.minecraft.particles.IParticleData.IDeserializer;
+
 public class TrailParticleData implements IParticleData {
 	
 	public final float size;
@@ -72,7 +74,7 @@ public class TrailParticleData implements IParticleData {
 		return ModParticles.TRAIL_PARTICLES.get(type);
 	}
 	
-	@Override public void write(@NotNull PacketBuffer buf) {
+	@Override public void writeToNetwork(@NotNull PacketBuffer buf) {
 		buf.writeInt(color.getRGB());
 		buf.writeInt(fadeColor.getRGB());
 		buf.writeByte(type);
@@ -83,11 +85,11 @@ public class TrailParticleData implements IParticleData {
 		buf.writeFloat(partialTick);
 		buf.writeBoolean(ownPlayer);
 		rollVec.write(buf);
-		buf.writeEnumValue(side);
+		buf.writeEnum(side);
 		PacketBufferUtil.writeNullable(trailData, buf, TrailData::write);
 	}
 	
-	@NotNull @Override public String getParameters() {
+	@NotNull @Override public String writeToString() {
 		return String.format(
 		  Locale.ROOT, "%s %d %d %d %d %d %d %d %b %b %f %f %b %f %f %f %d",
 		  this.getType().getRegistryName(),
@@ -114,7 +116,7 @@ public class TrailParticleData implements IParticleData {
 	
 	@SuppressWarnings("deprecation")
 	public static final IDeserializer<TrailParticleData> DESERIALIZER = new IDeserializer<TrailParticleData>() {
-		@NotNull @Override public TrailParticleData deserialize(
+		@NotNull @Override public TrailParticleData fromCommand(
 		  @NotNull ParticleType<TrailParticleData> type, @NotNull StringReader reader
 		) throws CommandSyntaxException {
 			reader.expect(' ');
@@ -158,7 +160,7 @@ public class TrailParticleData implements IParticleData {
 			  partialTick, ownPlayer, rollVec, side, null);
 		}
 		
-		@Override public @NotNull TrailParticleData read(
+		@Override public @NotNull TrailParticleData fromNetwork(
 		  @NotNull ParticleType<TrailParticleData> type, PacketBuffer buf
 		) {
 			int rgb = buf.readInt();
@@ -171,7 +173,7 @@ public class TrailParticleData implements IParticleData {
 			float partialTick = buf.readFloat();
 			boolean ownPlayer = buf.readBoolean();
 			Vec3f rollVec = Vec3f.read(buf);
-			RocketSide side = buf.readEnumValue(RocketSide.class);
+			RocketSide side = buf.readEnum(RocketSide.class);
 			TrailData trailData = PacketBufferUtil.readNullable(buf, TrailData::read);
 			
 			return new TrailParticleData(
@@ -188,7 +190,7 @@ public class TrailParticleData implements IParticleData {
 		public TrailParticleType(boolean alwaysShow) {
 			super(alwaysShow, DESERIALIZER);
 		}
-		@NotNull @Override public Codec<TrailParticleData> func_230522_e_() {
+		@NotNull @Override public Codec<TrailParticleData> codec() {
 			return CODEC;
 		}
 	}

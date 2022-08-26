@@ -50,8 +50,8 @@ public class AbilityNBTInheritingShapedRecipe extends NBTInheritingShapedRecipe 
 	}
 	
 	@NotNull @Override
-	public ItemStack getCraftingResult(@NotNull CraftingInventory inv) {
-		ItemStack result = super.getCraftingResult(inv);
+	public ItemStack assemble(@NotNull CraftingInventory inv) {
+		ItemStack result = super.assemble(inv);
 		final IElytraSpec spec = getElytraSpecOrDefault(result);
 		spec.setAbilities(abilities);
 		spec.getUnknownAbilities().clear();
@@ -70,28 +70,28 @@ public class AbilityNBTInheritingShapedRecipe extends NBTInheritingShapedRecipe 
 			setRegistryName(NAME);
 		}
 		
-		@NotNull @Override public AbilityNBTInheritingShapedRecipe read(
+		@NotNull @Override public AbilityNBTInheritingShapedRecipe fromJson(
 		  @NotNull ResourceLocation recipeId, @NotNull JsonObject json
 		) {
-			String group = JSONUtils.getString(json, "group", "");
-			boolean allowUnknown = JSONUtils.getBoolean(json, "allow_unknown_items", false);
+			String group = JSONUtils.getAsString(json, "group", "");
+			boolean allowUnknown = JSONUtils.getAsBoolean(json, "allow_unknown_items", false);
 			Map<String, Ingredient> map = NBTInheritingShapedRecipe.Serializer
-			  .deserializeKey(JSONUtils.getJsonObject(json, "key"), allowUnknown);
+			  .deserializeKey(JSONUtils.getAsJsonObject(json, "key"), allowUnknown);
 			String[] pat = NBTInheritingShapedRecipe.Serializer.shrink(
 			  NBTInheritingShapedRecipe.Serializer.patternFromJson(
-			    JSONUtils.getJsonArray(json, "pattern")));
+			    JSONUtils.getAsJsonArray(json, "pattern")));
 			int w = pat[0].length();
 			int h = pat.length;
 			NonNullList<int[]> nbtSources = NBTInheritingShapedRecipe.Serializer
 			  .nbtSourcesFromPattern(pat);
 			NonNullList<Ingredient> list = NBTInheritingShapedRecipe.Serializer
 			  .deserializeIngredients(pat, map, w, h);
-			ItemStack output = ShapedRecipe.deserializeItem(JSONUtils.getJsonObject(json, "result"));
+			ItemStack output = ShapedRecipe.itemFromJson(JSONUtils.getAsJsonObject(json, "result"));
 			CompoundNBT outputTag = NBTInheritingShapedRecipe.Serializer
 			  .nbtFromJson(json);
 			Pair<Map<IAbility, Float>, Map<String, Float>> abilities = abilitiesFromJson(
-			  JSONUtils.getJsonObject(
-			    JSONUtils.getJsonObject(json, "result"), "abilities")
+			  JSONUtils.getAsJsonObject(
+			    JSONUtils.getAsJsonObject(json, "result"), "abilities")
 			);
 			
 			return new AbilityNBTInheritingShapedRecipe(
@@ -99,24 +99,24 @@ public class AbilityNBTInheritingShapedRecipe extends NBTInheritingShapedRecipe 
 			  abilities.getLeft(), abilities.getRight());
 		}
 		
-		@Nullable @Override public AbilityNBTInheritingShapedRecipe read(
+		@Nullable @Override public AbilityNBTInheritingShapedRecipe fromNetwork(
 		  @NotNull ResourceLocation id, @NotNull PacketBuffer buf
 		) {
 			int w = buf.readVarInt();
 			int h = buf.readVarInt();
-			String group = buf.readString(32767);
+			String group = buf.readUtf(32767);
 			NonNullList<Ingredient> list = NonNullList.withSize(w * h, Ingredient.EMPTY);
 			
-			list.replaceAll(ignored -> Ingredient.read(buf));
+			list.replaceAll(ignored -> Ingredient.fromNetwork(buf));
 			
-			ItemStack output = buf.readItemStack();
+			ItemStack output = buf.readItem();
 			
 			int l = buf.readVarInt();
 			NonNullList<int[]> nbtSources = NonNullList.withSize(l, new int[] {0, 0});
 			for (int i = 0; i < l; i++)
 				nbtSources.set(i, buf.readVarIntArray());
 			
-			CompoundNBT outputTag = buf.readCompoundTag();
+			CompoundNBT outputTag = buf.readNbt();
 			
 			Map<IAbility, Float> upgrades = PacketBufferUtil.readMap(
 			  buf, IAbility::read, PacketBuffer::readFloat);
@@ -127,28 +127,28 @@ public class AbilityNBTInheritingShapedRecipe extends NBTInheritingShapedRecipe 
 			  id, group, w, h, nbtSources, list, output, outputTag, upgrades, unknown);
 		}
 		
-		@Override public void write(
+		@Override public void toNetwork(
 		  @NotNull PacketBuffer buf, @NotNull AbilityNBTInheritingShapedRecipe recipe
 		) {
-			buf.writeVarInt(recipe.recipeWidth);
-			buf.writeVarInt(recipe.recipeHeight);
-			buf.writeString(recipe.getGroup());
+			buf.writeVarInt(recipe.getRecipeWidth());
+			buf.writeVarInt(recipe.getRecipeHeight());
+			buf.writeUtf(recipe.getGroup());
 			
 			for (Ingredient ing : recipe.recipeItems)
-				ing.write(buf);
+				ing.toNetwork(buf);
 			
-			buf.writeItemStack(recipe.getRecipeOutput());
+			buf.writeItem(recipe.getResultItem());
 			
 			buf.writeVarInt(recipe.nbtSources.size());
 			for (int[] nbtSource : recipe.nbtSources)
 				buf.writeVarIntArray(nbtSource);
 			
-			buf.writeCompoundTag(recipe.outputTag);
+			buf.writeNbt(recipe.outputTag);
 			
 			PacketBufferUtil.writeMap2(
 			  buf, recipe.abilities, IAbility::write, PacketBuffer::writeFloat);
 			PacketBufferUtil.writeMap(
-			  buf, recipe.unknown, PacketBuffer::writeString, PacketBuffer::writeFloat);
+			  buf, recipe.unknown, PacketBuffer::writeUtf, PacketBuffer::writeFloat);
 		}
 		
 		public static Pair<Map<IAbility, Float>, Map<String, Float>> abilitiesFromJson(

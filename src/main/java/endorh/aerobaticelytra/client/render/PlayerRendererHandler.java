@@ -28,10 +28,10 @@ public class PlayerRendererHandler {
 	public static void onRenderPlayerEvent(RenderPlayerEvent.Pre event) {
 		PlayerEntity player = event.getPlayer();
 		if (isAerobaticFlying(player)) {
-			player.renderYawOffset = player.rotationYaw;
-			player.prevRenderYawOffset = player.rotationYaw;
-			player.rotationYawHead = player.rotationYaw;
-			player.prevRotationYawHead = player.rotationYaw;
+			player.yBodyRot = player.yRot;
+			player.yBodyRotO = player.yRot;
+			player.yHeadRot = player.yRot;
+			player.yHeadRotO = player.yRot;
 		}
 	}
 	
@@ -47,30 +47,30 @@ public class PlayerRendererHandler {
 		if (data.isFlying()) {
 			event.setCanceled(true);
 			MatrixStack mStack = event.matrixStack;
-			float t = (player.getTicksElytraFlying() + event.partialTicks) / Const.TAKEOFF_ANIMATION_LENGTH_TICKS;
-			float yaw = (180F - player.rotationYaw);
-			float pitch = (-90F - player.rotationPitch);
+			float t = (player.getFallFlyingTicks() + event.partialTicks) / Const.TAKEOFF_ANIMATION_LENGTH_TICKS;
+			float yaw = (180F - player.yRot);
+			float pitch = (-90F - player.xRot);
 			if (t < 1F) {
 				// Smooth lift off
 				float i = Interpolator.quadInOut(t);
-				yaw = MathHelper.lerp(i, (180F - player.prevRotationYaw), yaw);
+				yaw = MathHelper.lerp(i, (180F - player.yRotO), yaw);
 				pitch = MathHelper.lerp(i, 0F, pitch);
 				// No need to smooth the roll since it starts being 0
 			}
 			
-			mStack.rotate(Vector3f.YP.rotationDegrees(yaw));
-			mStack.rotate(Vector3f.XP.rotationDegrees(pitch));
-			mStack.rotate(Vector3f.YP.rotationDegrees(
+			mStack.mulPose(Vector3f.YP.rotationDegrees(yaw));
+			mStack.mulPose(Vector3f.XP.rotationDegrees(pitch));
+			mStack.mulPose(Vector3f.YP.rotationDegrees(
 			  data.getRotationRoll() + data.getTiltRoll() * Const.TILT_ROLL_RENDER_OFFSET));
-			mStack.rotate(Vector3f.XP.rotationDegrees(- data.getTiltPitch() * Const.TILT_PITCH_RENDER_OFFSET));
-			mStack.rotate(Vector3f.ZP.rotationDegrees(data.getTiltYaw() * Const.TILT_YAW_RENDER_OFFSET));
+			mStack.mulPose(Vector3f.XP.rotationDegrees(- data.getTiltPitch() * Const.TILT_PITCH_RENDER_OFFSET));
+			mStack.mulPose(Vector3f.ZP.rotationDegrees(data.getTiltYaw() * Const.TILT_YAW_RENDER_OFFSET));
 			
 			// Keep the easter egg
-			String s = TextFormatting.getTextWithoutFormattingCodes(player.getName().getString());
+			String s = TextFormatting.stripFormatting(player.getName().getString());
 			//noinspection SpellCheckingInspection
-			if (("Dinnerbone".equals(s) || "Grumm".equals(s)) && player.isWearing(PlayerModelPart.CAPE)) {
-				mStack.translate(0D, (double)player.getHeight() + 0.1F, 0D);
-				mStack.rotate(Vector3f.ZP.rotationDegrees(180F));
+			if (("Dinnerbone".equals(s) || "Grumm".equals(s)) && player.isModelPartShown(PlayerModelPart.CAPE)) {
+				mStack.translate(0D, (double)player.getBbHeight() + 0.1F, 0D);
+				mStack.mulPose(Vector3f.ZP.rotationDegrees(180F));
 			}
 		}
 	}

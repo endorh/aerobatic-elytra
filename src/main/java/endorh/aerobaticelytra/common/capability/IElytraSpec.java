@@ -179,9 +179,9 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 			tooltip.add(
 			  stc(indent).append(
 				 ttc("aerobaticelytra.abilities")
-					.appendString(": ")
-					.append(ttc("gui.none").mergeStyle(TextFormatting.DARK_GRAY))
-			  ).mergeStyle(TextFormatting.GRAY));
+					.append(": ")
+					.append(ttc("gui.none").withStyle(TextFormatting.DARK_GRAY))
+			  ).withStyle(TextFormatting.GRAY));
 		} else if (Screen.hasAltDown()) {
 			abs.sort(Comparator.<IAbility, Integer>comparing(
 			  ab -> ab.getDisplayType().isBool() ? 1 : 0
@@ -189,19 +189,19 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 			tooltip.add(
 			  stc(indent).append(
 			    ttc("aerobaticelytra.abilities")
-			      .appendString(": ").append(altToExpand())
-			  ).mergeStyle(TextFormatting.GRAY)
+			      .append(": ").append(altToExpand())
+			  ).withStyle(TextFormatting.GRAY)
 			);
 			final String innerIndent = indent + "  ";
 			for (IAbility ability : abs)
 				ability.getDisplayType().format(ability, getAbility(ability)).ifPresent(
-				  tc -> tooltip.add(stc(innerIndent).append(tc).mergeStyle(TextFormatting.GRAY)));
+				  tc -> tooltip.add(stc(innerIndent).append(tc).withStyle(TextFormatting.GRAY)));
 		} else {
 			tooltip.add(
 			  stc(indent).append(
 			    ttc("aerobaticelytra.abilities")
-				   .appendString(": ").append(altToExpand())
-			  ).mergeStyle(TextFormatting.GRAY));
+				   .append(": ").append(altToExpand())
+			  ).withStyle(TextFormatting.GRAY));
 		}
 	}
 	
@@ -262,12 +262,12 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 		
 		public static TrailData read(PacketBuffer buf) {
 			TrailData data = new TrailData();
-			data.read(buf.readCompoundTag());
+			data.read(buf.readNbt());
 			return data;
 		}
 		
 		public void write(PacketBuffer buf) {
-			buf.writeCompoundTag(write());
+			buf.writeNbt(write());
 		}
 		
 		public void read(CompoundNBT trailNBT) {
@@ -320,8 +320,8 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 					trailInfo.add(
 					  stc(innerIndent)
 					    .append(side.getDisplayName())
-					    .appendString(": ")
-					    .mergeStyle(TextFormatting.GRAY));
+					    .append(": ")
+					    .withStyle(TextFormatting.GRAY));
 					trailInfo.addAll(RocketStar.getTooltipInfo(
 					  stars, innerIndent + "  ", TextFormatting.GRAY)
 					);
@@ -331,14 +331,14 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 				tooltip.add(
 				  stc(indent).append(
 				    ttc(I18N_TRAIL)
-				      .appendString(": ").append(
-				        ttc("gui.none").mergeStyle(TextFormatting.DARK_GRAY)
-				      )).mergeStyle(TextFormatting.GRAY));
+				      .append(": ").append(
+				        ttc("gui.none").withStyle(TextFormatting.DARK_GRAY)
+				      )).withStyle(TextFormatting.GRAY));
 			} else {
 				tooltip.add(
 				  stc(indent).append(
-				    ttc(I18N_TRAIL).appendString(": ").append(ctrlToExpand())
-				  ).mergeStyle(TextFormatting.GRAY));
+				    ttc(I18N_TRAIL).append(": ").append(ctrlToExpand())
+				  ).withStyle(TextFormatting.GRAY));
 				if (Screen.hasControlDown())
 					tooltip.addAll(trailInfo);
 			}
@@ -420,12 +420,12 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 			FormattableTextComponentList tooltip = new FormattableTextComponentList();
 			final String inner = indent + "  ";
 			for (RocketStar star : list) {
-				FireworkRocketItem.Shape shape = FireworkRocketItem.Shape.get(star.type);
+				FireworkRocketItem.Shape shape = FireworkRocketItem.Shape.byId(star.type);
 				IFormattableTextComponent tc = stc(indent)
-				  .append(ttc("item.minecraft.firework_star.shape." + shape.getShapeName()))
-				  .mergeStyle(format);
+				  .append(ttc("item.minecraft.firework_star.shape." + shape.getName()))
+				  .withStyle(format);
 				if (star.trail) {
-					tc.appendString(": ");
+					tc.append(": ");
 					tc.append(ttc("item.minecraft.firework_star.trail"));
 				}
 				if (star.flicker) {
@@ -434,17 +434,17 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 					else tc.append(stc(": "));
 					tc.append(ttc("item.minecraft.firework_star.flicker"));
 				}
-				tooltip.add(tc.mergeStyle(format));
+				tooltip.add(tc.withStyle(format));
 				if (star.colors.length > 0)
-					tooltip.add(joinDyeList(stc(inner), star.colors).mergeStyle(format));
+					tooltip.add(joinDyeList(stc(inner), star.colors).withStyle(format));
 				if (star.fadeColors.length > 0)
 					tooltip.add(
 					  stc(inner)
 					    .append(joinDyeList(
 					      ttc("item.minecraft.firework_star.fade_to")
-					        .appendString(" "),
+					        .append(" "),
 					      star.fadeColors))
-					    .mergeStyle(format)
+					    .withStyle(format)
 					);
 			}
 			return tooltip;
@@ -453,7 +453,7 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 		private static IFormattableTextComponent joinDyeList(IFormattableTextComponent tc, int[] list) {
 			for(int i = 0; i < list.length; ++i) {
 				if (i > 0)
-					tc.appendString(", ");
+					tc.append(", ");
 				tc.append(dyeName(list[i]));
 			}
 			return tc;
@@ -465,7 +465,7 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 			       ? new TranslationTextComponent(
 			         "item.minecraft.firework_star.custom_color")
 			       : new TranslationTextComponent(
-			         "item.minecraft.firework_star." + dyecolor.getTranslationKey());
+			         "item.minecraft.firework_star." + dyecolor.getName());
 		}
 	}
 	
@@ -545,7 +545,7 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 		}
 		
 		public static Upgrade deserialize(JsonObject obj) {
-			final String abilityName = JSONUtils.getString(obj, "type");
+			final String abilityName = JSONUtils.getAsString(obj, "type");
 			final JsonElement expr = obj.get("expression");
 			if (!expr.isJsonPrimitive())
 				throw new JsonSyntaxException("Expected 'expression' to be a primitive JSON value");
@@ -556,10 +556,10 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 			else if (primitive.isBoolean())
 				expression = String.valueOf(primitive.getAsBoolean()? 1F : 0F);
 			else if (primitive.isString())
-				expression = JSONUtils.getString(obj, "expression");
+				expression = JSONUtils.getAsString(obj, "expression");
 			else throw new JsonSyntaxException("'expression' must be either a number, boolean or a string");
-			final float min = JSONUtils.getFloat(obj, "min", Float.NEGATIVE_INFINITY);
-			final float max = JSONUtils.getFloat(obj, "max", Float.POSITIVE_INFINITY);
+			final float min = JSONUtils.getAsFloat(obj, "min", Float.NEGATIVE_INFINITY);
+			final float max = JSONUtils.getAsFloat(obj, "max", Float.POSITIVE_INFINITY);
 			if (min > max)
 				throw new JsonSyntaxException("'min' cannot be greater than 'max'");
 			return new Upgrade(abilityName, expression, min, max);
@@ -574,8 +574,8 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 		}
 		
 		public void write(PacketBuffer buf) {
-			buf.writeString(abilityName);
-			buf.writeString(expression.getExpression());
+			buf.writeUtf(abilityName);
+			buf.writeUtf(expression.getExpression());
 			buf.writeFloat(min);
 			buf.writeFloat(max);
 		}
@@ -607,32 +607,32 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 		public List<ITextComponent> getDisplay() {
 			List<ITextComponent> tt = new ArrayList<>();
 			if (type == null) {
-				tt.add(stc("<Error>").mergeStyle(TextFormatting.RED));
+				tt.add(stc("<Error>").withStyle(TextFormatting.RED));
 				return tt;
 			}
 			String name = type.getName();
 			TextFormatting color = ModRegistries.ABILITY_EXPRESSION_HIGHLIGHTER.getNameColor(name);
 			if (prettyExpression != null) {
-				tt.add(stc(name).mergeStyle(color)
-				         .append(stc(" = ").mergeStyle(TextFormatting.GOLD))
+				tt.add(stc(name).withStyle(color)
+				         .append(stc(" = ").withStyle(TextFormatting.GOLD))
 				         .append(prettyExpression));
 			} else {
 				tt.add(ttc("aerobaticelytra.recipe.upgrade." + (booleanValue? "enable" : "disable"),
-				           stc(name).mergeStyle(color)).mergeStyle(TextFormatting.GRAY));
+				           stc(name).withStyle(color)).withStyle(TextFormatting.GRAY));
 			}
 			if (min != Float.NEGATIVE_INFINITY || max != Float.POSITIVE_INFINITY) {
 				IFormattableTextComponent l = stc("  ");
 				if (min != Float.NEGATIVE_INFINITY) {
 					l.append(stc("min: ")
-					           .append(stc(format("%.2f", min)).mergeStyle(TextFormatting.AQUA))
-					           .mergeStyle(TextFormatting.GRAY));
+					           .append(stc(format("%.2f", min)).withStyle(TextFormatting.AQUA))
+					           .withStyle(TextFormatting.GRAY));
 				}
 				if (max != Float.POSITIVE_INFINITY) {
 					if (min != Float.NEGATIVE_INFINITY)
-						l.append(stc(", ").mergeStyle(TextFormatting.DARK_GRAY));
+						l.append(stc(", ").withStyle(TextFormatting.DARK_GRAY));
 					l.append(stc("max: ")
-					           .append(stc(format("%.2f", max)).mergeStyle(TextFormatting.AQUA))
-					           .mergeStyle(TextFormatting.GRAY));
+					           .append(stc(format("%.2f", max)).withStyle(TextFormatting.AQUA))
+					           .withStyle(TextFormatting.GRAY));
 				}
 				tt.add(l);
 			}

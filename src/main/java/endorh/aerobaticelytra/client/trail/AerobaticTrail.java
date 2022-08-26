@@ -95,7 +95,7 @@ public class AerobaticTrail {
 		float tiltPitch = data.getTiltPitch();
 		float tiltRoll = data.getTiltRoll();
 		
-		pos.set(player.getPositionVec());
+		pos.set(player.position());
 		Vec3d lastPos = data.getLastTrailPos();
 		if (lastPos.normSquared() < 0.2D) {
 			lastPos.set(pos);
@@ -152,7 +152,7 @@ public class AerobaticTrail {
 			getTrailParticle(player, RocketSide.RIGHT, elytra, i, t, ownPlayer, roll).ifPresent(
 			  particle -> {
 			  	float[] off = getTransversalOffset(particle.type);
-			  	player.world.addParticle(
+			  	player.level.addParticle(
 			  	  particle,
 			     rocketRight.x, rocketRight.y, rocketRight.z,
 			     particleMotion.x + base.normal.x * off[0] + base.roll.x * off[1],
@@ -162,7 +162,7 @@ public class AerobaticTrail {
 			getTrailParticle(player, RocketSide.LEFT, elytra, i, t, ownPlayer, roll).ifPresent(
 			  particle -> {
 			  	float[] off = getTransversalOffset(particle.type);
-				player.world.addParticle(
+				player.level.addParticle(
 				  particle,
 				  rocketLeft.x, rocketLeft.y, rocketLeft.z,
 				  particleMotion.x + base.normal.x * off[0] + base.roll.x * off[1],
@@ -172,7 +172,7 @@ public class AerobaticTrail {
 			getTrailParticle(player, RocketSide.CENTER_RIGHT, elytra, i, t, ownPlayer, roll).ifPresent(
 			  particle -> {
 			  	float[] off = getTransversalOffset(particle.type);
-			  	player.world.addParticle(
+			  	player.level.addParticle(
 				  particle,
 				  rocketCenterRight.x, rocketCenterRight.y, rocketCenterRight.z,
 				  particleMotion.x + base.normal.x * off[0] + base.roll.x * off[1],
@@ -182,7 +182,7 @@ public class AerobaticTrail {
 			getTrailParticle(player, RocketSide.CENTER_LEFT, elytra, i, t, ownPlayer, roll).ifPresent(
 			  particle -> {
 			  	float[] off = getTransversalOffset(particle.type);
-				player.world.addParticle(
+				player.level.addParticle(
 				  particle,
 				  rocketCenterLeft.x, rocketCenterLeft.y, rocketCenterLeft.z,
 				  particleMotion.x + base.normal.x * off[0] + base.roll.x * off[1],
@@ -226,8 +226,8 @@ public class AerobaticTrail {
 	public static void addBoostParticles(PlayerEntity player) {
 		IAerobaticData data = AerobaticDataCapability.getAerobaticDataOrDefault(player);
 		IElytraSpec spec = AerobaticElytraLogic.getElytraSpecOrDefault(player);
-		pos.set(player.getPositionVec());
-		motion.set(player.getMotion());
+		pos.set(player.position());
+		motion.set(player.getDeltaMovement());
 		particleMotion.set(motion);
 		particleMotion.mul(0.1F);
 		base.update(data.getRotationYaw(), data.getRotationPitch(), data.getRotationRoll());
@@ -310,7 +310,7 @@ public class AerobaticTrail {
 			off.add(base.normal, (float) random.nextGaussian() * noise * max(0.2F, y));
 			off.add(base.look, (float) random.nextGaussian() * noise * max(0.2F, z));
 		}
-		player.world.addParticle(
+		player.level.addParticle(
 		  data, pos.x, pos.y, pos.z,
 		  motion.x + off.x, motion.y + off.y, motion.z + off.z);
 	}

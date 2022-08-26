@@ -44,10 +44,10 @@ public class CreativeTabAbilitySetRecipe extends SpecialRecipe {
 	@Override public boolean matches(@NotNull CraftingInventory inv, @NotNull World world) {
 		return false;
 	}
-	@Override public @NotNull ItemStack getCraftingResult(@NotNull CraftingInventory inv) {
+	@Override public @NotNull ItemStack assemble(@NotNull CraftingInventory inv) {
 		return ItemStack.EMPTY;
 	}
-	@Override public boolean canFit(int width, int height) {
+	@Override public boolean canCraftInDimensions(int width, int height) {
 		return false;
 	}
 	
@@ -58,17 +58,17 @@ public class CreativeTabAbilitySetRecipe extends SpecialRecipe {
 			setRegistryName(NAME);
 		}
 		
-		@Override public @NotNull CreativeTabAbilitySetRecipe read(
+		@Override public @NotNull CreativeTabAbilitySetRecipe fromJson(
 		  @NotNull ResourceLocation recipeId, @NotNull JsonObject json
 		) {
-			String group = JSONUtils.getString(json, "group");
-			String itemName = JSONUtils.getString(json, "item");
+			String group = JSONUtils.getAsString(json, "group");
+			String itemName = JSONUtils.getAsString(json, "item");
 			//noinspection deprecation
 			ItemStack stack = new ItemStack(
 			  Registry.ITEM.getOptional(new ResourceLocation(itemName)).orElseThrow(
 				 () -> new JsonSyntaxException("Unknown item '" + itemName + "'")));
 			final Pair<Map<IAbility, Float>, Map<String, Float>> pair = AbilityNBTInheritingShapedRecipe.Serializer.abilitiesFromJson(
-			  JSONUtils.getJsonObject(json, "abilities"));
+			  JSONUtils.getAsJsonObject(json, "abilities"));
 			IElytraSpec spec = getElytraSpecOrDefault(stack);
 			final Map<String, Float> specUnknown = spec.getUnknownAbilities();
 			spec.setAbilities(pair.getLeft());
@@ -78,16 +78,16 @@ public class CreativeTabAbilitySetRecipe extends SpecialRecipe {
 		}
 		
 		@Override
-		public CreativeTabAbilitySetRecipe read(@NotNull ResourceLocation recipeId, @NotNull PacketBuffer buf) {
+		public CreativeTabAbilitySetRecipe fromNetwork(@NotNull ResourceLocation recipeId, @NotNull PacketBuffer buf) {
 			String group = PacketBufferUtil.readString(buf);
-			ItemStack stack = buf.readItemStack();
+			ItemStack stack = buf.readItem();
 			return new CreativeTabAbilitySetRecipe(recipeId, group, stack);
 		}
 		
 		@Override
-		public void write(@NotNull PacketBuffer buf, @NotNull CreativeTabAbilitySetRecipe recipe) {
-			buf.writeString(recipe.group);
-			buf.writeItemStack(recipe.stack);
+		public void toNetwork(@NotNull PacketBuffer buf, @NotNull CreativeTabAbilitySetRecipe recipe) {
+			buf.writeUtf(recipe.group);
+			buf.writeItem(recipe.stack);
 		}
 	}
 	

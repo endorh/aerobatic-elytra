@@ -125,8 +125,8 @@ public class ClientConfig {
 	
 	public static void autoEnableDarkTheme() {
 		final boolean dark =
-		  Minecraft.getInstance().getResourcePackList().getEnabledPacks().stream().anyMatch(
-			 p -> dark_theme.auto_detect_pattern.asPredicate().test(p.getName()));
+		  Minecraft.getInstance().getResourcePackRepository().getSelectedPacks().stream().anyMatch(
+			 p -> dark_theme.auto_detect_pattern.asPredicate().test(p.getId()));
 		if (dark && !dark_theme.enabled) {
 			CONFIG.set("style.dark_theme.enabled", true);
 			dark_theme.enabled = true;

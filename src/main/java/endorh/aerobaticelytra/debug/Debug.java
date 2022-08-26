@@ -15,7 +15,7 @@ public class Debug {
 		if (enable && !registered)
 			register();
 		enabled = enable;
-		if (!player.world.isRemote && player instanceof ServerPlayerEntity) {
+		if (!player.level.isClientSide && player instanceof ServerPlayerEntity) {
 			new SToggleDebugPacket(player, enable).sendTo((ServerPlayerEntity) player);
 		}
 	}

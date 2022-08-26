@@ -32,7 +32,7 @@ public class FlightCameraSmoother {
 			if (player == null) return;
 			IAerobaticData data = getAerobaticDataOrDefault(player);
 			if (data.isFlying()) {
-				if (mc.isGamePaused()) {
+				if (mc.isPaused()) {
 					data.setLastRotationTime(currentTimeMillis() / 1000D);
 					LOGGER.debug("Paused");
 				} else AerobaticFlight.applyRotationAcceleration(player);

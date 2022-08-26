@@ -76,8 +76,8 @@ public class BrokenLeavesBlockModel implements IBakedModel {
 		if (!copiedBlock.isPresent()) return ret;
 		
 		Minecraft mc = Minecraft.getInstance();
-		BlockRendererDispatcher dispatcher = mc.getBlockRendererDispatcher();
-		ret = dispatcher.getModelForState(copiedBlock.get());
+		BlockRendererDispatcher dispatcher = mc.getBlockRenderer();
+		ret = dispatcher.getBlockModel(copiedBlock.get());
 		return ret;
 	}
 	
@@ -88,12 +88,12 @@ public class BrokenLeavesBlockModel implements IBakedModel {
 		return fallbackModel.getQuads(state, side, rand);
 	}
 	
-	@Override public @NotNull TextureAtlasSprite getParticleTexture() {
+	@Override public @NotNull TextureAtlasSprite getParticleIcon() {
 		return fallbackModel.getParticleTexture(getEmptyIModelData());
 	}
 	
-	@Override public boolean isAmbientOcclusion() {
-		return fallbackModel.isAmbientOcclusion();
+	@Override public boolean useAmbientOcclusion() {
+		return fallbackModel.useAmbientOcclusion();
 	}
 	
 	@Override
@@ -101,12 +101,12 @@ public class BrokenLeavesBlockModel implements IBakedModel {
 		return fallbackModel.isGui3d();
 	}
 	
-	@Override public boolean isSideLit() {
-		return fallbackModel.isSideLit();
+	@Override public boolean usesBlockLight() {
+		return fallbackModel.usesBlockLight();
 	}
 	
-	@Override public boolean isBuiltInRenderer() {
-		return fallbackModel.isBuiltInRenderer();
+	@Override public boolean isCustomRenderer() {
+		return fallbackModel.isCustomRenderer();
 	}
 	
 	@Override public @NotNull ItemOverrideList getOverrides() {

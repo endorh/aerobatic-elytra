@@ -42,11 +42,11 @@ public class AerobaticRenderData {
 	private AerobaticRenderData() {}
 	
 	public static AerobaticRenderData getAerobaticRenderData(LivingEntity entity) {
-		if (INSTANCES.containsKey(entity.getUniqueID())) {
-			return INSTANCES.get(entity.getUniqueID());
+		if (INSTANCES.containsKey(entity.getUUID())) {
+			return INSTANCES.get(entity.getUUID());
 		} else {
 			AerobaticRenderData data = new AerobaticRenderData();
-			INSTANCES.put(entity.getUniqueID(), data);
+			INSTANCES.put(entity.getUUID(), data);
 			return data;
 		}
 	}
