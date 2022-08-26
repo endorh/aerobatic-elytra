@@ -14,6 +14,7 @@ import net.minecraft.client.settings.PointOfView;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Hand;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3f;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityViewRenderEvent.CameraSetup;
@@ -25,8 +26,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import static endorh.aerobaticelytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
-import static net.minecraft.util.math.MathHelper.abs;
-import static net.minecraft.util.math.MathHelper.lerp;
 
 @EventBusSubscriber(value = Dist.CLIENT, modid = AerobaticElytra.MOD_ID)
 public class CameraHandler {
@@ -79,13 +78,13 @@ public class CameraHandler {
 			cameraOffset = true;
 			if (event.getHand() == Hand.MAIN_HAND) {
 				IAerobaticData data = getAerobaticDataOrDefault(player);
-				lastPitchOffset = lerp(
+				lastPitchOffset = MathHelper.lerp(
 				  0.1F, lastPitchOffset,
 				  data.getTiltPitch() / Config.aerobatic.tilt.range_pitch * 3F);
-				lastRollOffset = lerp(
+				lastRollOffset = MathHelper.lerp(
 				  0.1F, lastRollOffset,
 				  data.getTiltRoll() / Config.aerobatic.tilt.range_roll * 5F);
-				lastYawOffset = lerp(
+				lastYawOffset = MathHelper.lerp(
 				  0.1F, lastYawOffset,
 				  data.getTiltYaw() / Config.aerobatic.tilt.range_yaw * -1.5F);
 			}
@@ -113,7 +112,7 @@ public class CameraHandler {
 			double newFOV = 0D;
 			if (data.isFlying()) {
 				final double f = Math.min(1D, data.ticksFlying() / 4D);
-				final double p = abs(data.getPropulsionStrength()) / Config.aerobatic.propulsion.span * 10;
+				final double p = MathHelper.abs(data.getPropulsionStrength()) / Config.aerobatic.propulsion.span * 10;
 				final double b = data.isBoosted()? 15 : 0;
 				newFOV = f * (p + b) * visual.fov_effect_strength;
 			}

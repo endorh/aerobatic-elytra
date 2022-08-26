@@ -38,7 +38,6 @@ import java.util.stream.IntStream;
 import static endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiHelper.*;
 import static endorh.util.text.TextUtil.optSplitTtc;
 import static endorh.util.text.TextUtil.splitTtc;
-import static net.minecraft.item.ItemStack.EMPTY;
 
 public class TrailRecipeCategory extends BaseCategory<TrailRecipeWrapper> {
 	public static final ResourceLocation UID = AerobaticElytra.prefix("trail");
@@ -118,10 +117,10 @@ public class TrailRecipeCategory extends BaseCategory<TrailRecipeWrapper> {
 		if (rocketSize == 0) return elytras;
 		return IntStream.range(0, mcm(elytras.size(), rocketSize)).mapToObj(
 		  i -> TrailRecipe.apply(elytras.get(i % elytras.size()), new ItemStack[] {
-		    left != null? left.get(i % rocketSize) : EMPTY,
-		    right != null? right.get(i % rocketSize) : EMPTY,
-		    leftCenter != null? leftCenter.get(i % rocketSize) : EMPTY,
-		    rightCenter != null? rightCenter.get(i % rocketSize) : EMPTY
+		    left != null? left.get(i % rocketSize) : ItemStack.EMPTY,
+		    right != null? right.get(i % rocketSize) : ItemStack.EMPTY,
+		    leftCenter != null? leftCenter.get(i % rocketSize) : ItemStack.EMPTY,
+		    rightCenter != null? rightCenter.get(i % rocketSize) : ItemStack.EMPTY
 		  })
 		).collect(Collectors.toList());
 	}

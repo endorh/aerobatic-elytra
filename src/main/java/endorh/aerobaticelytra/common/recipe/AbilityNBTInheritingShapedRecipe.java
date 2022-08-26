@@ -31,8 +31,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static endorh.aerobaticelytra.common.capability.ElytraSpecCapability.getElytraSpecOrDefault;
-import static net.minecraft.util.JSONUtils.getJsonArray;
-import static net.minecraft.util.JSONUtils.getJsonObject;
 
 public class AbilityNBTInheritingShapedRecipe extends NBTInheritingShapedRecipe {
 	public static final Serializer SERIALIZER = new Serializer();
@@ -78,16 +76,17 @@ public class AbilityNBTInheritingShapedRecipe extends NBTInheritingShapedRecipe 
 			String group = JSONUtils.getString(json, "group", "");
 			boolean allowUnknown = JSONUtils.getBoolean(json, "allow_unknown_items", false);
 			Map<String, Ingredient> map = NBTInheritingShapedRecipe.Serializer
-			  .deserializeKey(getJsonObject(json, "key"), allowUnknown);
+			  .deserializeKey(JSONUtils.getJsonObject(json, "key"), allowUnknown);
 			String[] pat = NBTInheritingShapedRecipe.Serializer.shrink(
-			  NBTInheritingShapedRecipe.Serializer.patternFromJson(getJsonArray(json, "pattern")));
+			  NBTInheritingShapedRecipe.Serializer.patternFromJson(
+			    JSONUtils.getJsonArray(json, "pattern")));
 			int w = pat[0].length();
 			int h = pat.length;
 			NonNullList<int[]> nbtSources = NBTInheritingShapedRecipe.Serializer
 			  .nbtSourcesFromPattern(pat);
 			NonNullList<Ingredient> list = NBTInheritingShapedRecipe.Serializer
 			  .deserializeIngredients(pat, map, w, h);
-			ItemStack output = ShapedRecipe.deserializeItem(getJsonObject(json, "result"));
+			ItemStack output = ShapedRecipe.deserializeItem(JSONUtils.getJsonObject(json, "result"));
 			CompoundNBT outputTag = NBTInheritingShapedRecipe.Serializer
 			  .nbtFromJson(json);
 			Pair<Map<IAbility, Float>, Map<String, Float>> abilities = abilitiesFromJson(

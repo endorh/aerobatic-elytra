@@ -16,6 +16,7 @@ import net.minecraft.client.renderer.model.ModelRenderer;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.item.ArmorStandEntity;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Rotations;
 import net.minecraft.util.math.vector.Vector3f;
 import net.minecraftforge.api.distmarker.Dist;
@@ -26,8 +27,6 @@ import java.util.List;
 
 import static endorh.aerobaticelytra.client.render.model.AerobaticElytraModelPose.ModelRotation.*;
 import static endorh.aerobaticelytra.common.capability.FlightDataCapability.getFlightDataOrDefault;
-import static net.minecraft.util.math.MathHelper.abs;
-import static net.minecraft.util.math.MathHelper.lerp;
 
 /**
  * AcrobaticElytraModel - EndorH<br>
@@ -401,33 +400,33 @@ public class AerobaticElytraModel<T extends LivingEntity> extends ElytraModel<T>
     public void interpolate(
       float t, AerobaticElytraModelPose pre, AerobaticElytraModelPose pos
     ) {
-        leftWing.rotateAngleX = lerp(t, pre.leftWing.x, pos.leftWing.x);
-        leftWing.rotateAngleY = lerp(t, pre.leftWing.y, pos.leftWing.y);
-        leftWing.rotateAngleZ = lerp(t, pre.leftWing.z, pos.leftWing.z);
-        leftWing.rotationPointX = lerp(t, pre.leftWing.origin.x, pos.leftWing.origin.x);
-        leftWing.rotationPointY = lerp(t, pre.leftWing.origin.y, pos.leftWing.origin.y);
-        leftWing.rotationPointZ = lerp(t, pre.leftWing.origin.z, pos.leftWing.origin.z);
-        leftTip.rotateAngleX = lerp(t, pre.leftTip, pos.leftTip);
-        leftRoll.rotateAngleY = lerp(t, pre.leftRoll, pos.leftRoll);
-        leftPitch.rotateAngleY = lerp(t, pre.leftPitch, pos.leftPitch);
+        leftWing.rotateAngleX = MathHelper.lerp(t, pre.leftWing.x, pos.leftWing.x);
+        leftWing.rotateAngleY = MathHelper.lerp(t, pre.leftWing.y, pos.leftWing.y);
+        leftWing.rotateAngleZ = MathHelper.lerp(t, pre.leftWing.z, pos.leftWing.z);
+        leftWing.rotationPointX = MathHelper.lerp(t, pre.leftWing.origin.x, pos.leftWing.origin.x);
+        leftWing.rotationPointY = MathHelper.lerp(t, pre.leftWing.origin.y, pos.leftWing.origin.y);
+        leftWing.rotationPointZ = MathHelper.lerp(t, pre.leftWing.origin.z, pos.leftWing.origin.z);
+        leftTip.rotateAngleX = MathHelper.lerp(t, pre.leftTip, pos.leftTip);
+        leftRoll.rotateAngleY = MathHelper.lerp(t, pre.leftRoll, pos.leftRoll);
+        leftPitch.rotateAngleY = MathHelper.lerp(t, pre.leftPitch, pos.leftPitch);
         
-        rightWing.rotateAngleX = lerp(t, pre.rightWing.x, pos.rightWing.x);
-        rightWing.rotateAngleY = lerp(t, pre.rightWing.y, pos.rightWing.y);
-        rightWing.rotateAngleZ = lerp(t, pre.rightWing.z, pos.rightWing.z);
-        rightWing.rotationPointX = lerp(t, pre.rightWing.origin.x, pos.rightWing.origin.x);
-        rightWing.rotationPointY = lerp(t, pre.rightWing.origin.y, pos.rightWing.origin.y);
-        rightWing.rotationPointZ = lerp(t, pre.rightWing.origin.z, pos.rightWing.origin.z);
-        rightTip.rotateAngleX = lerp(t, pre.rightTip, pos.rightTip);
-        rightRoll.rotateAngleY = lerp(t, pre.rightRoll, pos.rightRoll);
-        rightPitch.rotateAngleY = lerp(t, pre.rightPitch, pos.rightPitch);
+        rightWing.rotateAngleX = MathHelper.lerp(t, pre.rightWing.x, pos.rightWing.x);
+        rightWing.rotateAngleY = MathHelper.lerp(t, pre.rightWing.y, pos.rightWing.y);
+        rightWing.rotateAngleZ = MathHelper.lerp(t, pre.rightWing.z, pos.rightWing.z);
+        rightWing.rotationPointX = MathHelper.lerp(t, pre.rightWing.origin.x, pos.rightWing.origin.x);
+        rightWing.rotationPointY = MathHelper.lerp(t, pre.rightWing.origin.y, pos.rightWing.origin.y);
+        rightWing.rotationPointZ = MathHelper.lerp(t, pre.rightWing.origin.z, pos.rightWing.origin.z);
+        rightTip.rotateAngleX = MathHelper.lerp(t, pre.rightTip, pos.rightTip);
+        rightRoll.rotateAngleY = MathHelper.lerp(t, pre.rightRoll, pos.rightRoll);
+        rightPitch.rotateAngleY = MathHelper.lerp(t, pre.rightPitch, pos.rightPitch);
     
         rocketsModel.copyAttributes(this);
-        rocketsModel.leftRocket.rotateAngleX = lerp(t, pre.leftRocket.x, pos.leftRocket.x);
-        rocketsModel.leftRocket.rotateAngleY = lerp(t, pre.leftRocket.y, pos.leftRocket.y);
-        rocketsModel.leftRocket.rotateAngleZ = lerp(t, pre.leftRocket.z, pos.leftRocket.z);
-        rocketsModel.rightRocket.rotateAngleX = lerp(t, pre.rightRocket.x, pos.rightRocket.x);
-        rocketsModel.rightRocket.rotateAngleY = lerp(t, pre.rightRocket.y, pos.rightRocket.y);
-        rocketsModel.rightRocket.rotateAngleZ = lerp(t, pre.rightRocket.z, pos.rightRocket.z);
+        rocketsModel.leftRocket.rotateAngleX = MathHelper.lerp(t, pre.leftRocket.x, pos.leftRocket.x);
+        rocketsModel.leftRocket.rotateAngleY = MathHelper.lerp(t, pre.leftRocket.y, pos.leftRocket.y);
+        rocketsModel.leftRocket.rotateAngleZ = MathHelper.lerp(t, pre.leftRocket.z, pos.leftRocket.z);
+        rocketsModel.rightRocket.rotateAngleX = MathHelper.lerp(t, pre.rightRocket.x, pos.rightRocket.x);
+        rocketsModel.rightRocket.rotateAngleY = MathHelper.lerp(t, pre.rightRocket.y, pos.rightRocket.y);
+        rocketsModel.rightRocket.rotateAngleZ = MathHelper.lerp(t, pre.rightRocket.z, pos.rightRocket.z);
     }
     
     @SuppressWarnings("SuspiciousNameCombination")
@@ -464,15 +463,15 @@ public class AerobaticElytraModel<T extends LivingEntity> extends ElytraModel<T>
     }
     
     public void updateVisibility() {
-        leftPitch.showModel = abs(leftPitch.rotateAngleY) <= DEG_175;
-        rightPitch.showModel = abs(rightPitch.rotateAngleY) <= DEG_175;
+        leftPitch.showModel = MathHelper.abs(leftPitch.rotateAngleY) <= DEG_175;
+        rightPitch.showModel = MathHelper.abs(rightPitch.rotateAngleY) <= DEG_175;
         leftRoll.showModel =
-          (abs(leftTip.rotateAngleX) <= DEG_90 || abs(leftRoll.rotateAngleY) <= DEG_90)
-          && abs(leftRoll.rotateAngleY) <= DEG_175;
+          (MathHelper.abs(leftTip.rotateAngleX) <= DEG_90 || MathHelper.abs(leftRoll.rotateAngleY) <= DEG_90)
+          && MathHelper.abs(leftRoll.rotateAngleY) <= DEG_175;
         rightRoll.showModel =
-          (abs(rightTip.rotateAngleX) <= DEG_90 || abs(rightRoll.rotateAngleY) <= DEG_90)
-          && abs(rightRoll.rotateAngleY) <= DEG_175;
-        leftTip.showModel = abs(leftTip.rotateAngleX) <= DEG_175;
-        rightTip.showModel = abs(rightTip.rotateAngleX) <= DEG_175;
+          (MathHelper.abs(rightTip.rotateAngleX) <= DEG_90 || MathHelper.abs(rightRoll.rotateAngleY) <= DEG_90)
+          && MathHelper.abs(rightRoll.rotateAngleY) <= DEG_175;
+        leftTip.showModel = MathHelper.abs(leftTip.rotateAngleX) <= DEG_175;
+        rightTip.showModel = MathHelper.abs(rightTip.rotateAngleX) <= DEG_175;
     }
 }

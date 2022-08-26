@@ -21,7 +21,6 @@ import static endorh.aerobaticelytra.AerobaticElytra.prefix;
 import static endorh.aerobaticelytra.common.item.IAbility.DisplayType.*;
 import static endorh.util.text.TextUtil.stc;
 import static endorh.util.text.TextUtil.ttc;
-import static net.minecraft.util.text.TextFormatting.*;
 
 @EventBusSubscriber(modid = AerobaticElytra.MOD_ID)
 public interface IAbility extends IForgeRegistryEntry<IAbility> {
@@ -71,12 +70,12 @@ public interface IAbility extends IForgeRegistryEntry<IAbility> {
 	}
 	
 	enum Ability implements IAbility {
-		FUEL(RED, 0F, DEFAULT),
-		MAX_FUEL(LIGHT_PURPLE, 0F, DEFAULT),
-		SPEED(GREEN, 1F, SCALE),
-		LIFT(YELLOW, 0F, NON_ZERO),
-		AQUATIC(BLUE, 1F, SCALE_BOOL),
-		TRAIL(DARK_PURPLE, 1F, SCALE);
+		FUEL(TextFormatting.RED, 0F, DEFAULT),
+		MAX_FUEL(TextFormatting.LIGHT_PURPLE, 0F, DEFAULT),
+		SPEED(TextFormatting.GREEN, 1F, SCALE),
+		LIFT(TextFormatting.YELLOW, 0F, NON_ZERO),
+		AQUATIC(TextFormatting.BLUE, 1F, SCALE_BOOL),
+		TRAIL(TextFormatting.DARK_PURPLE, 1F, SCALE);
 		
 		private final ResourceLocation registryName;
 		private final String jsonName;
@@ -199,7 +198,7 @@ public interface IAbility extends IForgeRegistryEntry<IAbility> {
 		 * Create a simple DisplayType from a function
 		 */
 		public static DisplayType formatValue(Function<Float, String> formatter) {
-			return formatValue(v -> stc(formatter.apply(v)), DARK_AQUA);
+			return formatValue(v -> stc(formatter.apply(v)), TextFormatting.DARK_AQUA);
 		}
 		
 		/**
@@ -231,7 +230,7 @@ public interface IAbility extends IForgeRegistryEntry<IAbility> {
 		 * Create a filtering {@link DisplayType}
 		 * If the filter matches the value, {@code ifTrue} is used to display it.
 		 * Otherwise, {@code ifFalse} is used
-		 * @param bool Whether or not to consider the result as a Bool type
+		 * @param bool Whether to consider the result as a Bool type
 		 */
 		public static DisplayType filter(
 		  Predicate<Float> predicate, DisplayType ifTrue, DisplayType ifFalse, boolean bool

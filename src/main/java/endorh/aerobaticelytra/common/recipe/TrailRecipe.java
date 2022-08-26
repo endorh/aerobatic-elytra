@@ -16,8 +16,6 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 
-import static net.minecraft.item.ItemStack.EMPTY;
-
 /**
  * Modifies the trail of any of the 4 rockets an Aerobatic Elytra
  * has, depending on the relative position of the rocket and
@@ -77,7 +75,7 @@ public class TrailRecipe extends SpecialRecipe {
 	
 	@NotNull @Override
 	public ItemStack getCraftingResult(@NotNull CraftingInventory inv) {
-		ItemStack elytra = EMPTY;
+		ItemStack elytra = ItemStack.EMPTY;
 		int k;
 		for (k = 0; k < inv.getSizeInventory(); k++) {
 			ItemStack item = inv.getStackInSlot(k);
@@ -95,7 +93,7 @@ public class TrailRecipe extends SpecialRecipe {
 		int i = k / w;
 		int j = k % w;
 		
-		ItemStack[] rockets = {EMPTY, EMPTY, EMPTY, EMPTY};
+		ItemStack[] rockets = {ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY};
 		RocketSide[] sides = RocketSide.values();
 		
 		if (j > 0) {

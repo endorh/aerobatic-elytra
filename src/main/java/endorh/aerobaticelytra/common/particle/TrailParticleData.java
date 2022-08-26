@@ -13,6 +13,7 @@ import endorh.util.network.PacketBufferUtil;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.particles.IParticleData;
 import net.minecraft.particles.ParticleType;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.StringTextComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,8 +21,6 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.util.List;
 import java.util.Locale;
-
-import static net.minecraft.util.math.MathHelper.clamp;
 
 public class TrailParticleData implements IParticleData {
 	
@@ -60,7 +59,7 @@ public class TrailParticleData implements IParticleData {
 		trail = trailIn;
 		
 		life = lifeIn;
-		size = clamp(sizeIn, 0F, 1F);
+		size = MathHelper.clamp(sizeIn, 0F, 1F);
 		partialTick = partialTickIn;
 		ownPlayer = ownPlayerIn;
 		rollVec = rollVecIn != null? rollVecIn.copy() : null;
@@ -132,7 +131,7 @@ public class TrailParticleData implements IParticleData {
 			boolean flicker = reader.readBoolean();      reader.expect(' ');
 			boolean trail = reader.readBoolean();        reader.expect(' ');
 			
-			float size = clamp(reader.readFloat(), 0F, 1F); reader.expect(' ');
+			float size = MathHelper.clamp(reader.readFloat(), 0F, 1F); reader.expect(' ');
 			int life = reader.readInt();                 reader.expect(' ');
 			
 			float partialTick = reader.readFloat();      reader.expect(' ');

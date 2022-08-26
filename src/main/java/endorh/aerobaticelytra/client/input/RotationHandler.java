@@ -12,17 +12,14 @@ import net.minecraft.client.GameSettings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.PointOfView;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import static endorh.aerobaticelytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
 import static endorh.util.math.Interpolator.clampedLerp;
 import static java.lang.Math.abs;
-import static net.minecraft.util.math.MathHelper.clamp;
-import static net.minecraft.util.math.MathHelper.signum;
 
 /**
  * Handle Player rotation events
@@ -87,15 +84,15 @@ public class RotationHandler {
 		tiltPitch += scaledY * PITCH_SENS_PRESCALE * ClientConfig.controls.pitch_sens * i_p;
 		
 		// Clamp within limit
-		tiltRoll = clamp(tiltRoll, -Config.aerobatic.tilt.range_roll, Config.aerobatic.tilt.range_roll);
-		tiltPitch = clamp(tiltPitch, -Config.aerobatic.tilt.range_pitch, Config.aerobatic.tilt.range_pitch);
+		tiltRoll = MathHelper.clamp(tiltRoll, -Config.aerobatic.tilt.range_roll, Config.aerobatic.tilt.range_roll);
+		tiltPitch = MathHelper.clamp(tiltPitch, -Config.aerobatic.tilt.range_pitch, Config.aerobatic.tilt.range_pitch);
 		
 		// Update yaw tilt from the moveStrafing field
-		float yawDelta = -0.5F * signum(tiltYaw) + 1.5F * signum(player.moveStrafing);
+		float yawDelta = -0.5F * MathHelper.signum(tiltYaw) + 1.5F * MathHelper.signum(player.moveStrafing);
 		if (player.moveStrafing == 0)
-			yawDelta = signum(yawDelta) * clamp(2 * abs(yawDelta), 0F, abs(tiltYaw));
-		tiltYaw = clamp(tiltYaw + yawDelta * YAW_SENS_PRESCALE * ClientConfig.controls.yaw_sens,
-		                  -Config.aerobatic.tilt.range_yaw, Config.aerobatic.tilt.range_yaw);
+			yawDelta = MathHelper.signum(yawDelta) * MathHelper.clamp(2 * abs(yawDelta), 0F, abs(tiltYaw));
+		tiltYaw = MathHelper.clamp(tiltYaw + yawDelta * YAW_SENS_PRESCALE * ClientConfig.controls.yaw_sens,
+		                           -Config.aerobatic.tilt.range_yaw, Config.aerobatic.tilt.range_yaw);
 		
 		// Update tilt
 		data.setTiltPitch(tiltPitch);
@@ -148,8 +145,8 @@ public class RotationHandler {
 		tiltPitch += scaledY * PITCH_SENS_PRESCALE * ClientConfig.controls.pitch_sens * i_p;
 		
 		// Clamp within limit
-		tiltRoll = clamp(tiltRoll, -Config.aerobatic.tilt.range_roll, Config.aerobatic.tilt.range_roll);
-		tiltPitch = clamp(tiltPitch, -Config.aerobatic.tilt.range_pitch, Config.aerobatic.tilt.range_pitch);
+		tiltRoll = MathHelper.clamp(tiltRoll, -Config.aerobatic.tilt.range_roll, Config.aerobatic.tilt.range_roll);
+		tiltPitch = MathHelper.clamp(tiltPitch, -Config.aerobatic.tilt.range_pitch, Config.aerobatic.tilt.range_pitch);
 		
 		// Apply instantaneous rotation
 		base.look.rotateAlongOrtVecDegrees(base.roll, pitchDelta);
@@ -157,11 +154,11 @@ public class RotationHandler {
 		base.roll.rotateAlongOrtVecDegrees(base.look, rollDelta);
 		base.normal.rotateAlongOrtVecDegrees(base.look, rollDelta);
 		
-		float yawDelta = -0.5F * signum(tiltYaw) + 1.5F * signum(player.moveStrafing);
+		float yawDelta = -0.5F * MathHelper.signum(tiltYaw) + 1.5F * MathHelper.signum(player.moveStrafing);
 		if (player.moveStrafing == 0)
-			yawDelta = signum(yawDelta) * clamp(2 * abs(yawDelta), 0F, abs(tiltYaw));
+			yawDelta = MathHelper.signum(yawDelta) * MathHelper.clamp(2 * abs(yawDelta), 0F, abs(tiltYaw));
 		final float underwaterYawSens = Const.UNDERWATER_YAW_RANGE_MULTIPLIER;
-		tiltYaw = clamp(tiltYaw + yawDelta * YAW_SENS_PRESCALE * ClientConfig.controls.yaw_sens * underwaterYawSens,
+		tiltYaw = MathHelper.clamp(tiltYaw + yawDelta * YAW_SENS_PRESCALE * ClientConfig.controls.yaw_sens * underwaterYawSens,
 		  -Config.aerobatic.tilt.range_yaw * underwaterYawSens, Config.aerobatic.tilt.range_yaw * underwaterYawSens);
 		
 		// Update tilt

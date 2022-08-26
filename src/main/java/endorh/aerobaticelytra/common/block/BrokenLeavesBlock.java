@@ -11,6 +11,7 @@ import net.minecraft.block.LeavesBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.SoundCategory;
@@ -31,7 +32,6 @@ import java.util.Optional;
 import java.util.Random;
 
 import static endorh.aerobaticelytra.AerobaticElytra.prefix;
-import static net.minecraft.tags.BlockTags.LEAVES;
 
 /**
  * A block that replaces temporarily other leaves blocks,
@@ -100,7 +100,7 @@ public class BrokenLeavesBlock extends LeavesBlock {
 			return;
 		}
 		final BlockState prevBlockState = world.getBlockState(pos);
-		if (!prevBlockState.getBlock().isIn(LEAVES))
+		if (!prevBlockState.getBlock().isIn(BlockTags.LEAVES))
 			throw new IllegalArgumentException(
 			  "Attempt to replace non leaves block with broken leaves");
 		final Integer dist = prevBlockState.get(DISTANCE);
@@ -108,7 +108,7 @@ public class BrokenLeavesBlock extends LeavesBlock {
 		for (Direction direction : Direction.values()) {
 			cursor.setAndMove(pos, direction);
 			final BlockState adj = world.getBlockState(cursor);
-			if (adj.getBlock().isIn(LEAVES) && !adj.get(PERSISTENT)
+			if (adj.getBlock().isIn(BlockTags.LEAVES) && !adj.get(PERSISTENT)
 			    && adj.get(DISTANCE) < 7 && adj.get(DISTANCE) > dist)
 				breakLeaves(world, cursor);
 		}

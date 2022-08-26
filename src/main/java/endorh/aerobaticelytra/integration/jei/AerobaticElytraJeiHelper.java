@@ -30,8 +30,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-import static net.minecraft.item.ItemStack.EMPTY;
-
 @SuppressWarnings("SameParameterValue")
 public class AerobaticElytraJeiHelper {
 	public static final Random RANDOM = new Random();
@@ -64,13 +62,13 @@ public class AerobaticElytraJeiHelper {
 			}
 			for (int i = 0; i < l.size(); i++) {
 				if (RANDOM.nextFloat() > 0.5F)
-					l.set(i, TrailRecipe.apply(l.get(i), new ItemStack[]{makeRocket(), EMPTY, EMPTY, EMPTY}));
+					l.set(i, TrailRecipe.apply(l.get(i), new ItemStack[]{makeRocket(), ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY}));
 				if (RANDOM.nextFloat() > 0.5F)
-					l.set(i, TrailRecipe.apply(l.get(i), new ItemStack[]{EMPTY, makeRocket(), EMPTY, EMPTY}));
+					l.set(i, TrailRecipe.apply(l.get(i), new ItemStack[]{ItemStack.EMPTY, makeRocket(), ItemStack.EMPTY, ItemStack.EMPTY}));
 				if (RANDOM.nextFloat() > 0.8F)
-					l.set(i, TrailRecipe.apply(l.get(i), new ItemStack[]{EMPTY, EMPTY, makeRocket(), EMPTY}));
+					l.set(i, TrailRecipe.apply(l.get(i), new ItemStack[]{ItemStack.EMPTY, ItemStack.EMPTY, makeRocket(), ItemStack.EMPTY}));
 				if (RANDOM.nextFloat() > 0.8F)
-					l.set(i, TrailRecipe.apply(l.get(i), new ItemStack[]{EMPTY, EMPTY, EMPTY, makeRocket()}));
+					l.set(i, TrailRecipe.apply(l.get(i), new ItemStack[]{ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY, makeRocket()}));
 				final IElytraSpec spec = ElytraSpecCapability.getElytraSpecOrDefault(l.get(i));
 				spec.setAbility(Ability.MAX_FUEL, 40F);
 				spec.setAbility(Ability.FUEL, 30F);

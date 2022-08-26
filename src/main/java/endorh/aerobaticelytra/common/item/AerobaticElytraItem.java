@@ -60,8 +60,6 @@ import static endorh.util.text.TextUtil.stc;
 import static endorh.util.text.TextUtil.ttc;
 import static endorh.util.text.TooltipUtil.shiftToExpand;
 import static java.lang.Math.*;
-import static net.minecraft.util.math.MathHelper.hsvToRGB;
-import static net.minecraft.util.math.MathHelper.lerp;
 
 public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable, IDyeableArmorItem {
 	public AerobaticElytraItem() {
@@ -168,7 +166,7 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 	@Override
 	public int getRGBDurabilityForDisplay(ItemStack stack) {
 		if (shouldFuelReplaceDurability(stack)) {
-			return hsvToRGB(lerp(
+			return MathHelper.hsvToRGB(MathHelper.lerp(
 			  1F - getFuelFraction(stack), 0.58F, 0.7F), 0.8F, 1F);
 		} else return super.getRGBDurabilityForDisplay(stack);
 	}

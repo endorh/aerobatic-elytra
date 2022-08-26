@@ -15,6 +15,7 @@ import net.minecraft.client.settings.PointOfView;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +27,6 @@ import java.util.Random;
 
 import static endorh.aerobaticelytra.client.trail.AerobaticTrail.RocketSide.*;
 import static java.lang.Math.max;
-import static net.minecraft.util.math.MathHelper.lerp;
 
 public class TrailParticle extends SpriteTexturedParticle {
 	
@@ -144,7 +144,7 @@ public class TrailParticle extends SpriteTexturedParticle {
 		if (age < start_animation)
 			return size * (age / start_animation);
 		if (maxAge - age < end_animation)
-			return lerp((age - maxAge + end_animation) / end_animation, size, size * 1.5F);
+			return MathHelper.lerp((age - maxAge + end_animation) / end_animation, size, size * 1.5F);
 		return size;
 	}
 	
@@ -166,8 +166,8 @@ public class TrailParticle extends SpriteTexturedParticle {
 			}
 		}
 		if (maxAge - age < end_animation)
-			return lerp((age - maxAge + end_animation) / end_animation, 0.8F, 0F);
-		return lerp((age / (maxAge - end_animation)), 1F, 0.8F);
+			return MathHelper.lerp((age - maxAge + end_animation) / end_animation, 0.8F, 0F);
+		return MathHelper.lerp((age / (maxAge - end_animation)), 1F, 0.8F);
 	}
 	
 	@Override public void tick() {

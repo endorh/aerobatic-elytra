@@ -17,7 +17,6 @@ import net.minecraft.util.math.vector.Vector3d;
 import static endorh.aerobaticelytra.common.capability.FlightDataCapability.getFlightDataOrDefault;
 import static endorh.aerobaticelytra.common.item.IAbility.Ability.FUEL;
 import static java.lang.Math.min;
-import static net.minecraft.util.math.MathHelper.cos;
 
 public class ElytraFlight {
 	
@@ -65,7 +64,7 @@ public class ElytraFlight {
 		double look_hor_norm = Math.sqrt(look.x * look.x + look.z * look.z);
 		double motion_hor_norm = Math.sqrt(motionVec.x * motionVec.x + motionVec.z * motionVec.z);
 		double look_norm = look.length();
-		float pitchCos = cos(pitchRad);
+		float pitchCos = MathHelper.cos(pitchRad);
 		pitchCos = (float) ((double) pitchCos * (double) pitchCos *
 		                    min(1.0D, look_norm / 0.4D));
 		motionVec = player.getMotion().add(0.0D, grav * (-1.0D + (double) pitchCos * 0.75D),

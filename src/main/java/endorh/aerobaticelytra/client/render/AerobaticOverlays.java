@@ -16,8 +16,10 @@ import endorh.aerobaticelytra.common.flight.mode.IFlightMode;
 import net.minecraft.client.GameSettings;
 import net.minecraft.client.MainWindow;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.GameType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -29,9 +31,6 @@ import org.lwjgl.opengl.GL11;
 import static endorh.aerobaticelytra.client.ModResources.FLIGHT_GUI_ICONS_LOCATION;
 import static java.lang.Math.round;
 import static java.lang.System.currentTimeMillis;
-import static net.minecraft.client.gui.AbstractGui.blit;
-import static net.minecraft.util.math.MathHelper.clamp;
-import static net.minecraft.util.math.MathHelper.lerp;
 
 @EventBusSubscriber(value = Dist.CLIENT, modid = AerobaticElytra.MOD_ID)
 public class AerobaticOverlays {
@@ -85,7 +84,7 @@ public class AerobaticOverlays {
 		if (u != -1 && v != -1) {
 			int x = round((winW - iW) * visual.mode_toast_x_fraction);
 			int y = round((winH - iH) * visual.mode_toast_y_fraction);
-			blit(mStack, x, y, u, v, iW, iH, tW, tH);
+			AbstractGui.blit(mStack, x, y, u, v, iW, iH, tW, tH);
 		}
 		RenderSystem.color4f(1F, 1F, 1F, 1F);
 		RenderSystem.disableBlend();
@@ -152,24 +151,24 @@ public class AerobaticOverlays {
 		float scaledPitch = data.getTiltPitch() / Config.aerobatic.tilt.range_pitch * Const.CROSSHAIR_PITCH_RANGE_PX;
 		float scaledRoll = data.getTiltRoll() / Config.aerobatic.tilt.range_roll * Const.CROSSHAIR_ROLL_RANGE_DEG;
 		// Underwater yaw tilt can exceed the range
-		float scaledYaw = -clamp(data.getTiltYaw(), -Config.aerobatic.tilt.range_yaw, Config.aerobatic.tilt.range_yaw)
+		float scaledYaw = -MathHelper.clamp(data.getTiltYaw(), -Config.aerobatic.tilt.range_yaw, Config.aerobatic.tilt.range_yaw)
 		                  / Config.aerobatic.tilt.range_yaw * Const.CROSSHAIR_YAW_RANGE_PX;
 		
 		GL11.glPushMatrix(); {
 			// Base
-			blit(mStack, (winW - cS) / 2, (winH - cS) / 2,
+			AbstractGui.blit(mStack, (winW - cS) / 2, (winH - cS) / 2,
 			                 0, 0, cS, cS, tW, tH);
 			// Pitch
 			GL11.glPushMatrix(); {
 				GL11.glTranslatef(0F, scaledPitch, 0F);
-				blit(mStack, (winW - cS) / 2, (winH - cS) / 2,
+				AbstractGui.blit(mStack, (winW - cS) / 2, (winH - cS) / 2,
 				                 cS, 0, cS, cS, tW, tH);
 			} GL11.glPopMatrix();
 			
 			// Yaw
 			GL11.glPushMatrix(); {
 				GL11.glTranslatef(scaledYaw, 0F, 0F);
-				blit(mStack, (winW - cS) / 2, (winH - cS) / 2,
+				AbstractGui.blit(mStack, (winW - cS) / 2, (winH - cS) / 2,
 				                 0, cS, cS, cS, tW, tH);
 			} GL11.glPopMatrix();
 			
@@ -179,7 +178,7 @@ public class AerobaticOverlays {
 				GL11.glRotatef(scaledRoll, 0, 0, 1);
 				GL11.glTranslatef(-(winW / 2F), -(winH / 2F), 0F);
 				// Rotated crosshair
-				blit(mStack, (winW - cS) / 2, (winH - cS) / 2,
+				AbstractGui.blit(mStack, (winW - cS) / 2, (winH - cS) / 2,
 				                 cS, cS, cS, cS, tW, tH);
 			} GL11.glPopMatrix();
 		}
@@ -239,25 +238,25 @@ public class AerobaticOverlays {
 		}
 		lastPartialTicks = partialTicks;
 		
-		prop = round(lerp(partialTicks, lastProp, prop));
-		boost = round(lerp(partialTicks, lastBoost, boost));
+		prop = round(MathHelper.lerp(partialTicks, lastProp, prop));
+		boost = round(MathHelper.lerp(partialTicks, lastBoost, boost));
 		
 		if (cap > 0) {
 			// Base
-			blit(mStack, x, y, 0, 50, (int)barLength - 1, barHeight, tW, tH);
+			AbstractGui.blit(mStack, x, y, 0, 50, (int)barLength - 1, barHeight, tW, tH);
 			// Propulsion
 			if (prop > 0)
-				blit(mStack, x, y, 0, 55, prop, barHeight, tW, tH);
+				AbstractGui.blit(mStack, x, y, 0, 55, prop, barHeight, tW, tH);
 			else if (prop < 0)
-				blit(mStack, x, y, 0, 60, -prop, barHeight, tW, tH);
+				AbstractGui.blit(mStack, x, y, 0, 60, -prop, barHeight, tW, tH);
 			// Boost
 			if (boost > 0)
-				blit(mStack, x, y, 0, 65, boost, barHeight, tW, tH);
+				AbstractGui.blit(mStack, x, y, 0, 65, boost, barHeight, tW, tH);
 			// Brake
 			if (brake_heat > 0)
-				blit(mStack, x, y, 0, brake_cooldown? 75 : 70, brake_heat, barHeight, tW, tH);
+				AbstractGui.blit(mStack, x, y, 0, brake_cooldown? 75 : 70, brake_heat, barHeight, tW, tH);
 			// Overlay
-			blit(mStack, x, y, 0, 80, (int)barLength - 1, barHeight, tW, tH);
+			AbstractGui.blit(mStack, x, y, 0, 80, (int)barLength - 1, barHeight, tW, tH);
 		}
 		
 		RenderSystem.disableBlend();

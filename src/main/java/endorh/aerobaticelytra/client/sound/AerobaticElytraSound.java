@@ -19,6 +19,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.SoundEvents;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.sound.PlaySoundEvent;
@@ -30,8 +31,6 @@ import org.apache.logging.log4j.Logger;
 import static endorh.aerobaticelytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
 import static endorh.util.common.LogUtil.oneTimeLogger;
 import static java.lang.Math.*;
-import static net.minecraft.util.math.MathHelper.clamp;
-import static net.minecraft.util.math.MathHelper.clampedLerp;
 
 @EventBusSubscriber(value = Dist.CLIENT, modid = AerobaticElytra.MOD_ID)
 public class AerobaticElytraSound extends FadingTickableSound {
@@ -177,20 +176,20 @@ public class AerobaticElytraSound extends FadingTickableSound {
 		
 		float angularStrength = 2 * pitchTilt + rollTilt + 0.2F * yawTilt;
 		
-		volume = clamp(speed / 4F, -0.2F, 0.6F)
-		         + clamp(angularStrength / 3F, 0F, 0.1F) * fade_factor;
-		volume = clamp(volume, 0F, 1F);
+		volume = MathHelper.clamp(speed / 4F, -0.2F, 0.6F)
+		         + MathHelper.clamp(angularStrength / 3F, 0F, 0.1F) * fade_factor;
+		volume = MathHelper.clamp(volume, 0F, 1F);
 		pitch = 1.0F;
 		
 		brakeVolume = aerobaticData.getBrakeStrength() * fade_factor;
-		rotatePitch = clamp(angularStrength / 2F, 1F, 1.25F);
-		float wVolume = clamp(angularStrength / 2F, 0.1F, 0.9F) * fade_factor
-		                * (float) clampedLerp(0F, 1F, speed / 2F);
+		rotatePitch = MathHelper.clamp(angularStrength / 2F, 1F, 1.25F);
+		float wVolume = MathHelper.clamp(angularStrength / 2F, 0.1F, 0.9F) * fade_factor
+		                * (float) MathHelper.clampedLerp(0F, 1F, speed / 2F);
 		rotateVolume = (rotateVolume + wVolume) / 2F;
 		
 		float wave = (float) sin(player.ticksExisted / 40F);
-		whistleVolume = (float) clampedLerp(0F, 1F, (speed - 2.8) / 1.2 + wave * 0.2F);
-		whistlePitch = (float) clampedLerp(1F, 1.4F, (speed - 2.8) / 1.8 + wave * 0.3F);
+		whistleVolume = (float) MathHelper.clampedLerp(0F, 1F, (speed - 2.8) / 1.2 + wave * 0.2F);
+		whistlePitch = (float) MathHelper.clampedLerp(1F, 1.4F, (speed - 2.8) / 1.8 + wave * 0.3F);
 		volume *= ClientConfig.sound.wind;
 	}
 	
@@ -203,7 +202,7 @@ public class AerobaticElytraSound extends FadingTickableSound {
 		float speedSquared = (float) player.getMotion().lengthSquared();
 		
 		volume = speedSquared >= 1E-7D
-		         ? clamp(speedSquared / 4F, 0F, 1F) : 0F;
+		         ? MathHelper.clamp(speedSquared / 4F, 0F, 1F) : 0F;
 		volume *= age > ageThreshold
 		          ? min(age - ageThreshold, 20) / 20F * fade_factor : 0F;
 		pitch = max(1F + volume - volumeThreshold, 1F);

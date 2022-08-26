@@ -38,6 +38,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.SoundCategory;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.common.MinecraftForge;
@@ -56,13 +57,9 @@ import static endorh.util.math.Vec3f.PI;
 import static endorh.util.math.Vec3f.PI_HALF;
 import static endorh.util.text.TextUtil.stc;
 import static endorh.util.text.TextUtil.ttc;
-import static java.lang.Math.abs;
 import static java.lang.Math.*;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
-import static net.minecraft.util.math.MathHelper.floor;
-import static net.minecraft.util.math.MathHelper.signum;
-import static net.minecraft.util.math.MathHelper.*;
 
 /**
  * Handle aerobatic physics
@@ -156,7 +153,7 @@ public class AerobaticFlight {
 				AerobaticElytraSound.playSlowDownSound(player);
 		}
 		final float heatStep = data.isBoosted() ? 0.01F : -0.0075F;
-		data.setBoostHeat(clamp(data.getBoostHeat() + heatStep, 0F, 1F));
+		data.setBoostHeat(MathHelper.clamp(data.getBoostHeat() + heatStep, 0F, 1F));
 		final float boostStrength = data.isBoosted() ? 0.04F : 0F;
 		
 		if (data.isSprinting())
@@ -165,11 +162,11 @@ public class AerobaticFlight {
 		// Update acceleration
 		float propAccStrength = propulsion.range_length / 20F; // 1 second
 		float propAcc = data.getPropulsionAcceleration();
-		data.setPropulsionStrength(clamp(
+		data.setPropulsionStrength(MathHelper.clamp(
 		  data.getPropulsionStrength() + propAcc * propAccStrength,
 		  propulsion.range_tick.getFloatMin(), propulsion.range_tick.getFloatMax()));
 		if (travelVector != null) {
-			propAcc = (float) clamp((propAcc + 2 * Math.signum(travelVector.z)) / 3, -1F, 1F);
+			propAcc = (float) MathHelper.clamp((propAcc + 2 * Math.signum(travelVector.z)) / 3, -1F, 1F);
 			data.setPropulsionAcceleration(propAcc);
 		}
 		
@@ -178,7 +175,7 @@ public class AerobaticFlight {
 		data.setBraking(player.isCrouching() && !data.isBrakeCooling());
 		if (braking.max_time_ticks > 0) {
 			data.setBrakeHeat(
-			  clamp(data.getBrakeHeat() + (data.isBraking()? 1F : -1F) / braking.max_time_ticks, 0F, 1F));
+			  MathHelper.clamp(data.getBrakeHeat() + (data.isBraking()? 1F : -1F) / braking.max_time_ticks, 0F, 1F));
 			if (data.getBrakeHeat() >= 1F)
 				data.setBrakeCooling(true);
 			else if (data.getBrakeHeat() <= 0F)
@@ -187,7 +184,7 @@ public class AerobaticFlight {
 			data.setBrakeHeat(0F);
 			data.setBrakeCooling(false);
 		}
-		float brakeStrength = braking.enabled ? clamp(
+		float brakeStrength = braking.enabled ? MathHelper.clamp(
 		  data.getBrakeStrength() + (data.isBraking() ? brakeAcc : - brakeAcc), 0F, 1F) : 0F;
 		data.setBrakeStrength(brakeStrength);
 		
@@ -236,12 +233,12 @@ public class AerobaticFlight {
 		// Friction
 		float friction;
 		if (player.isInWater()) {
-			friction = lerp(
+			friction = MathHelper.lerp(
 			  spec.getAbility(Ability.AQUATIC), physics.friction_water_nerf, physics.friction_water);
-			friction *= lerp(brakeStrength, 1F, braking.friction) * angFriction;
+			friction *= MathHelper.lerp(brakeStrength, 1F, braking.friction) * angFriction;
 		} else {
-			friction = lerp(stasis, physics.friction_base, physics.motorless_friction);
-			friction = lerp(brakeStrength, friction, braking.friction) * angFriction;
+			friction = MathHelper.lerp(stasis, physics.friction_base, physics.motorless_friction);
+			friction = MathHelper.lerp(brakeStrength, friction, braking.friction) * angFriction;
 		}
 		
 		// Glide acceleration
@@ -307,7 +304,7 @@ public class AerobaticFlight {
 		// Collisions
 		if (player.collidedHorizontally || player.collidedVertically)
 			AerobaticCollision.onAerobaticCollision(player, hSpeedPrev, motionVec);
-		else data.setLiftCut(clamp(liftCut - 0.15F, 0F, 1F));
+		else data.setLiftCut(MathHelper.clamp(liftCut - 0.15F, 0F, 1F));
 		
 		// Send update packets to the server
 		if (AerobaticElytraLogic.isClientPlayerEntity(player)) {
@@ -414,7 +411,7 @@ public class AerobaticFlight {
 			float step = player.isOnGround() ? 0.05F : 0.02F;
 			data.setPropulsionStrength(
 			  propulsion.takeoff_tick +
-			  signum(propStrength - propulsion.takeoff_tick) *
+			  MathHelper.signum(propStrength - propulsion.takeoff_tick) *
 			  max(0F, abs(propStrength - propulsion.takeoff_tick) -
 			          step * max(propulsion.range_tick.getFloatMax(), propulsion.range_tick.getFloatMin())));
 		}
@@ -566,7 +563,7 @@ public class AerobaticFlight {
 			}
 			
 			// Catch up;
-			newYaw += floor(prevYaw / 360F) * 360F;
+			newYaw += MathHelper.floor(prevYaw / 360F) * 360F;
 			if (newYaw - prevYaw > 180F)
 				newYaw -= 360F;
 			if (newYaw - prevYaw <= -180F)

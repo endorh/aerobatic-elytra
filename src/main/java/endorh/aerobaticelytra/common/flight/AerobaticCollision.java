@@ -15,10 +15,13 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Direction;
+import net.minecraft.util.Direction.Axis;
+import net.minecraft.util.Direction.AxisDirection;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 
 import java.util.ArrayList;
@@ -28,8 +31,6 @@ import java.util.function.Predicate;
 import static endorh.aerobaticelytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
 import static endorh.util.math.Vec3f.forAxis;
 import static java.lang.Math.max;
-import static net.minecraft.util.Direction.*;
-import static net.minecraft.util.math.MathHelper.*;
 
 /**
  * Aerobatic collisions logic
@@ -118,7 +119,7 @@ public class AerobaticCollision {
 			  damageModifier * collisionStrength * Config.collision.damage);
 		}
 		
-		data.setLiftCut(clamp(data.getLiftCut() + 0.2F, 0F, 1F));
+		data.setLiftCut(MathHelper.clamp(data.getLiftCut() + 0.2F, 0F, 1F));
 		
 		// Stop flying when on ground
 		if (player.isOnGround() && player.isServerWorld() && !preventLanding)
@@ -131,7 +132,7 @@ public class AerobaticCollision {
 		boolean bounced = false;
 		for (int includeCorners = 0; includeCorners < 2; includeCorners++) {
 			for (Axis axis : Axis.values()) {
-				final Direction dir = getFacingFromAxisDirection(axis, AxisDirection.POSITIVE);
+				final Direction dir = Direction.getFacingFromAxisDirection(axis, AxisDirection.POSITIVE);
 				if (shouldBounceDir(player, dir, false) ^
 				    shouldBounceDir(player, dir.getOpposite(), includeCorners != 0)) {
 					bounce(player, base, motionVec, axis);
@@ -154,7 +155,7 @@ public class AerobaticCollision {
 		final Vec3f look = base.look.copy();
 		look.sub(ax, ax.dot(look));
 		if (!look.isZero()) {
-			final float bounceTilt = clamp(
+			final float bounceTilt = MathHelper.clamp(
 			  (1F - Math.abs(base.look.dot(ax)))
 			  * getAerobaticDataOrDefault(player).getTiltRoll()
 			  * Const.SLIME_BOUNCE_ROLLING_TILT_SENS,
@@ -174,7 +175,7 @@ public class AerobaticCollision {
 		}
 		player.world.playSound(
 		  player, player.getPosition(), SoundEvents.BLOCK_SLIME_BLOCK_HIT,
-		  SoundCategory.PLAYERS, (float)clampedLerp(0F, 1F, motionVec.norm() / 1.6F), 1F);
+		  SoundCategory.PLAYERS, (float) MathHelper.clampedLerp(0F, 1F, motionVec.norm() / 1.6F), 1F);
 		player.addStat(FlightStats.AEROBATIC_SLIME_BOUNCES, 1);
 	}
 	
@@ -211,9 +212,9 @@ public class AerobaticCollision {
 	  World world, AxisAlignedBB aaBB, Predicate<BlockState> selector
 	) {
 		List<BlockPos> list = new ArrayList<>();
-		for (int i = floor(aaBB.minX); i < ceil(aaBB.maxX); i++) {
-			for (int j = floor(aaBB.minY); j < ceil(aaBB.maxY); j++) {
-				for (int k = floor(aaBB.minZ); k < ceil(aaBB.maxZ); k++) {
+		for (int i = MathHelper.floor(aaBB.minX); i < MathHelper.ceil(aaBB.maxX); i++) {
+			for (int j = MathHelper.floor(aaBB.minY); j < MathHelper.ceil(aaBB.maxY); j++) {
+				for (int k = MathHelper.floor(aaBB.minZ); k < MathHelper.ceil(aaBB.maxZ); k++) {
 					BlockPos pos = new BlockPos(i, j, k);
 					if (selector.test(world.getBlockState(pos)))
 						list.add(pos);

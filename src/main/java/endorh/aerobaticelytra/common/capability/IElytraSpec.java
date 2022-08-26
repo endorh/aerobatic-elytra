@@ -23,6 +23,7 @@ import net.minecraft.nbt.ListNBT;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.JSONUtils;
 import net.minecraft.util.Util;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
@@ -37,7 +38,6 @@ import static endorh.util.text.TextUtil.ttc;
 import static endorh.util.text.TooltipUtil.altToExpand;
 import static endorh.util.text.TooltipUtil.ctrlToExpand;
 import static java.lang.String.format;
-import static net.minecraft.util.math.MathHelper.clamp;
 
 /**
  * Holds Aerobatic Elytra specifications<br>
@@ -585,7 +585,7 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 			for (IAbility t : ModRegistries.getAbilities().values())
 				namespaceSet.set(t.getName(), (double) spec.getAbility(t));
 			
-			float result = (float) clamp(expression.eval(), min, max);
+			float result = (float) MathHelper.clamp(expression.eval(), min, max);
 			if (spec.getAbility(type) != result) {
 				spec.setAbility(type, result);
 				return true;
