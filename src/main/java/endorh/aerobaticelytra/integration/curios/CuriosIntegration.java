@@ -1,16 +1,9 @@
 package endorh.aerobaticelytra.integration.curios;
 
-import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
 import endorh.aerobaticelytra.common.item.ModItems;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ElytraItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
-import top.theillusivec4.caelus.api.CaelusApi;
-import top.theillusivec4.caelus.api.RenderCapeEvent;
 import top.theillusivec4.curios.api.CuriosApi;
 
 import java.util.Optional;

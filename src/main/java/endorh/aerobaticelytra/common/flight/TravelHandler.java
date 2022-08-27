@@ -7,6 +7,7 @@ import endorh.flightcore.events.PlayerTravelEvent;
 import endorh.flightcore.events.PlayerTravelEvent.RemotePlayerEntityTravelEvent;
 import endorh.util.common.ObfuscationReflectionUtil;
 import endorh.util.common.ObfuscationReflectionUtil.SoftField;
+import net.minecraft.network.protocol.game.ServerGamePacketListener;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.effect.MobEffects;
@@ -44,7 +45,7 @@ public class TravelHandler {
 	 * {@code private int ServerPlayNetHandler#floatingTickCount}<br>
 	 * Accessed by reflection
 	 */
-	public static final SoftField<ServerGamePacketListenerImpl, Integer> ServerPlayNetHandler$floatingTickCount =
+	public static final SoftField<ServerGamePacketListenerImpl, Integer> ServerGamePacketListener$aboveGroundTickCount =
 	  ObfuscationReflectionUtil.getSoftField(
 	    ServerGamePacketListenerImpl.class, "aboveGroundTickCount", "floatingTickCount",
 	    oneTimeLogger(LOGGER::error),
@@ -53,7 +54,7 @@ public class TravelHandler {
 	
 	/**
 	 * Event filter for the player travel tick<br>
-	 * @see PlayerEntity#travel
+	 * @see Player#travel
 	 * @see LivingEntity#travel
 	 */
 	@SubscribeEvent
@@ -123,7 +124,7 @@ public class TravelHandler {
 	
 	/**
 	 * Resets the player's tick count through reflection upon its
-	 * {@link ServerPlayNetHandler}.<br>
+	 * {@link ServerGamePacketListener}.<br>
 	 * Useful for flight modes which keep the player from falling
 	 * without using elytra flight or creative flight.
 	 * @param player Server player instance
@@ -131,6 +132,6 @@ public class TravelHandler {
 	 */
 	@SuppressWarnings("unused")
 	public static boolean resetFloatingTickCount(ServerPlayer player) {
-		return ServerPlayNetHandler$floatingTickCount.set(player.connection, 0);
+		return ServerGamePacketListener$aboveGroundTickCount.set(player.connection, 0);
 	}
 }

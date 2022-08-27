@@ -246,7 +246,7 @@ public class TrailParticle extends TextureSheetParticle {
 		if (trailData == null)
 			return null;
 		Optional<RocketStar> explosionOpt = pickRandom(trailData.get(side));
-		if (!explosionOpt.isPresent()) {
+		if (explosionOpt.isEmpty()) {
 			LogUtil.warnOnce(LOGGER, "No explosions in trailed particle");
 			return null;
 		}

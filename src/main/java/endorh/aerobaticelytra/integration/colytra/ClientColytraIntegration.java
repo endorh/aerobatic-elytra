@@ -51,8 +51,7 @@ public class ClientColytraIntegration {
 			}
 		} else {
 			for (Component component : tooltip) {
-				if (component instanceof TranslatableComponent) {
-					TranslatableComponent tr = (TranslatableComponent) component;
+				if (component instanceof TranslatableComponent tr) {
 					if ("item.minecraft.elytra".equals(tr.getKey())) {
 						found = true;
 						break;

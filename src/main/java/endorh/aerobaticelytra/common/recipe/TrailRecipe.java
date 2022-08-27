@@ -108,25 +108,6 @@ public class TrailRecipe extends CustomRecipe {
 		}
 		
 		return apply(elytra, rockets);
-		
-		// ItemStack result = elytra.copy();
-		// IElytraSpec spec = ElytraSpecCapability.getElytraSpecOrDefault(result);
-		// final TrailData trailData = spec.getTrailData();
-		//
-		// for (int r = 0; r < 4; r++) {
-		// 	if (!rockets[r].isEmpty()) {
-		// 		CompoundNBT rocketTag = rockets[r].getTag();
-		// 		if (rocketTag == null || !rocketTag.contains("Fireworks")
-		// 		    || !rocketTag.getCompound("Fireworks").contains("Explosions")) {
-		// 			trailData.put(sides[r], null);
-		// 		} else {
-		// 			trailData.put(sides[r], RocketStar.listFromNBT(
-		// 			  rocketTag.getCompound("Fireworks").getList("Explosions", 10)));
-		// 		}
-		// 	}
-		// }
-		//
-		// return result;
 	}
 	
 	

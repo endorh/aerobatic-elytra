@@ -3,6 +3,7 @@ package endorh.aerobaticelytra.common.flight.mode;
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.render.model.IElytraPose;
 import endorh.aerobaticelytra.common.registry.ModRegistries;
+import net.minecraft.client.player.RemotePlayer;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
@@ -22,14 +23,14 @@ import java.util.function.Predicate;
  * The player may attempt to change flight mode at any time.<br>
  * Mods may add other key combinations to change flight modes.<br>
  * A flight mode can prevent being left by overriding {@link IFlightMode#canChangeTo(IFlightMode)}
- * or being used by overriding {@link IFlightMode#canBeUsedBy(PlayerEntity)}<br><br>
+ * or being used by overriding {@link IFlightMode#canBeUsedBy(Player)}<br><br>
  * A flight mode is responsible for handling the player movement by overriding
  * {@link IFlightMode#getFlightHandler()} and its variants.<br>
  * Flight modes may also provide their own {@link IElytraPose}s for players.<br>
  */
 public interface IFlightMode extends IForgeRegistryEntry<IFlightMode> {
 	/**
-	 * Whether or not should the mode be used as one of the candidates
+	 * Whether should the mode be used as one of the candidates
 	 * for the "toggle flight mode" key<br>
 	 * Mods may choose to make their flight modes accessible through
 	 * other means, such as a separate key
@@ -78,7 +79,7 @@ public interface IFlightMode extends IForgeRegistryEntry<IFlightMode> {
 	
 	/**
 	 * @return The method used to handle a flight tick for a
-	 * {@link net.minecraft.client.entity.player.RemoteClientPlayerEntity}
+	 * {@link RemotePlayer}
 	 */
 	@Nullable default Consumer<Player> getRemoteFlightHandler() {
 		return null;

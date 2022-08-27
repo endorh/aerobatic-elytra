@@ -27,9 +27,8 @@ public class ModBlockColors {
 			  if (world == null || pos == null)
 				  return defaultColor;
 			  final BlockEntity tile = world.getBlockEntity(pos);
-			  if (!(tile instanceof BrokenLeavesTileEntity))
+			  if (!(tile instanceof BrokenLeavesTileEntity te))
 				  return defaultColor;
-			  BrokenLeavesTileEntity te = (BrokenLeavesTileEntity) tile;
 			  if (te.replacedLeaves == null)
 				  return defaultColor;
 			  return ColorUtil.multiply(

@@ -88,8 +88,6 @@ public class AerobaticElytraWingItem extends Item implements DyeableLeatherItem 
 	 */
 	@Override public @NotNull InteractionResult useOn(UseOnContext context) {
 		Level world = context.getLevel();
-		// if (ElytraDyement.clearDyesWithCauldron(context))
-		// 	return InteractionResult.sidedSuccess(world.isClientSide());
 		final ItemStack stack = context.getItemInHand();
 		final Player player = context.getPlayer();
 		if (isDebugWing(stack) && player != null && canUseDebugWing(player)) {

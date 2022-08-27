@@ -45,9 +45,6 @@ public class UpgradeHandler {
 			  elytra, stack);
 			if (upgrades.size() == 0)
 				return false;
-			/*if (!player.world.isRemote)
-				return false;
-			return player instanceof AbstractClientPlayerEntity;*/
 			if (player.level.isClientSide)
 				new UpgradeRecipePacket(player, upgrades).send();
 			return true;

@@ -419,8 +419,7 @@ public class AerobaticElytraCommand {
 	public static int listPacks(CommandContext<CommandSourceStack> context) {
 		CommandSourceStack source = context.getSource();
 		final List<BundledDatapack> packs = getAvailablePacks(source)
-		  .values().stream().sorted(Comparator.comparing(bd -> bd.name))
-		  .collect(Collectors.toList());
+		  .values().stream().sorted(Comparator.comparing(bd -> bd.name)).toList();
 		if (packs.isEmpty()) {
 			source.sendFailure(ttc("commands.aerobaticelytra.datapack.list.empty"));
 		} else {

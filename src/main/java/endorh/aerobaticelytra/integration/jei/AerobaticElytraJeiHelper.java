@@ -133,9 +133,8 @@ public class AerobaticElytraJeiHelper {
 	}
 	
 	public static Pair<ItemStack, ItemStack> split(ItemStack elytra) {
-		if (!(elytra.getItem() instanceof AerobaticElytraItem))
+		if (!(elytra.getItem() instanceof final AerobaticElytraItem item))
 			throw new IllegalArgumentException("Cannot split non-elytra item");
-		final AerobaticElytraItem item = (AerobaticElytraItem) elytra.getItem();
 		return Pair.of(
 		  item.getWing(elytra, WingSide.LEFT), item.getWing(elytra, WingSide.RIGHT));
 	}

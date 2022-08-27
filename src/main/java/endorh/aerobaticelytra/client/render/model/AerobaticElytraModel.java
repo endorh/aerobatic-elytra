@@ -298,8 +298,7 @@ public class AerobaticElytraModel<T extends LivingEntity> extends ElytraModel<T>
       @NotNull T entity, float limbSwing, float limbSwingAmount,
       float ageInTicks, float netHeadYaw, float headPitch
     ) {
-        if (entity instanceof AbstractClientPlayer) {
-            AbstractClientPlayer player = (AbstractClientPlayer) entity;
+        if (entity instanceof AbstractClientPlayer player) {
             IFlightData fd = getFlightDataOrDefault(player);
             IElytraPose newPose = fd.getFlightMode().getElytraPose(player);
             AerobaticRenderData smoother = AerobaticRenderData.getAerobaticRenderData(player);

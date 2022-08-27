@@ -126,7 +126,7 @@ public interface IElytraSpec
 	
 	/**
 	 * Obtain the map with all the unknown abilities<br>
-	 * This abilities are ignored at runtime, but kept in the
+	 * These abilities are ignored at runtime, but kept in the
 	 * NBT, allowing abilities from unloaded mods/datapacks to be
 	 * preserved.<br>
 	 * Modifying this map is allowed

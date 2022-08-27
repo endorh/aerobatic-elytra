@@ -16,11 +16,11 @@ import java.util.UUID;
  */
 public class AerobaticRenderData {
 	private static final Map<UUID, AerobaticRenderData> INSTANCES =
-	  new LinkedHashMap<UUID, AerobaticRenderData>(256, 0.75F, true) {
-		@Override protected boolean removeEldestEntry(Entry eldest) {
-			return size() > 1024;
-		}
-	};
+	  new LinkedHashMap<>(256, 0.75F, true) {
+		  @Override protected boolean removeEldestEntry(Entry eldest) {
+			  return size() > 1024;
+		  }
+	  };
 	
 	public float animationStart = 0F;
 	public float cancelLimbSwingAmountProgress = 0F;

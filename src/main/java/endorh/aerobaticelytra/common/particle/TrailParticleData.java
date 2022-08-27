@@ -113,33 +113,49 @@ public class TrailParticleData implements ParticleOptions {
 	);
 	
 	@SuppressWarnings("deprecation")
-	public static final Deserializer<TrailParticleData> DESERIALIZER = new Deserializer<TrailParticleData>() {
+	public static final Deserializer<TrailParticleData> DESERIALIZER = new Deserializer<>() {
 		@NotNull @Override public TrailParticleData fromCommand(
 		  @NotNull ParticleType<TrailParticleData> type, @NotNull StringReader reader
 		) throws CommandSyntaxException {
 			reader.expect(' ');
 			
-			int red = reader.readInt() & 0xFF;           reader.expect(' ');
-			int green = reader.readInt() & 0xFF;         reader.expect(' ');
-			int blue = reader.readInt() & 0xFF;          reader.expect(' ');
+			int red = reader.readInt() & 0xFF;
+			reader.expect(' ');
+			int green = reader.readInt() & 0xFF;
+			reader.expect(' ');
+			int blue = reader.readInt() & 0xFF;
+			reader.expect(' ');
 			Color color = new Color(red, green, blue);
-			red = reader.readInt() & 0xFF;               reader.expect(' ');
-			green = reader.readInt() & 0xFF;             reader.expect(' ');
-			blue = reader.readInt() & 0xFF;              reader.expect(' ');
+			red = reader.readInt() & 0xFF;
+			reader.expect(' ');
+			green = reader.readInt() & 0xFF;
+			reader.expect(' ');
+			blue = reader.readInt() & 0xFF;
+			reader.expect(' ');
 			Color fadeColor = new Color(red, green, blue);
-			byte typ = (byte)(reader.readInt() & 0xFF);  reader.expect(' ');
-			boolean flicker = reader.readBoolean();      reader.expect(' ');
-			boolean trail = reader.readBoolean();        reader.expect(' ');
+			byte typ = (byte) (reader.readInt() & 0xFF);
+			reader.expect(' ');
+			boolean flicker = reader.readBoolean();
+			reader.expect(' ');
+			boolean trail = reader.readBoolean();
+			reader.expect(' ');
 			
-			float size = Mth.clamp(reader.readFloat(), 0F, 1F); reader.expect(' ');
-			int life = reader.readInt();                 reader.expect(' ');
+			float size = Mth.clamp(reader.readFloat(), 0F, 1F);
+			reader.expect(' ');
+			int life = reader.readInt();
+			reader.expect(' ');
 			
-			float partialTick = reader.readFloat();      reader.expect(' ');
-			boolean ownPlayer = reader.readBoolean();    reader.expect(' ');
+			float partialTick = reader.readFloat();
+			reader.expect(' ');
+			boolean ownPlayer = reader.readBoolean();
+			reader.expect(' ');
 			
-			final float x = reader.readFloat();          reader.expect(' ');
-			final float y = reader.readFloat();          reader.expect(' ');
-			final float z = reader.readFloat();          reader.expect(' ');
+			final float x = reader.readFloat();
+			reader.expect(' ');
+			final float y = reader.readFloat();
+			reader.expect(' ');
+			final float z = reader.readFloat();
+			reader.expect(' ');
 			final Vec3f rollVec = new Vec3f(x, y, z);
 			
 			final int s = reader.readInt();

@@ -42,14 +42,14 @@ public class UpgradeRecipe extends CustomRecipe {
 	public static final Serializer SERIALIZER = new Serializer();
 	
 	protected static final CachedRecipeProvider<Collection<UpgradeRecipe>> recipeProvider =
-	  new CachedRecipeProvider<Collection<UpgradeRecipe>>() {
+	  new CachedRecipeProvider<>() {
 		  @Override protected Collection<UpgradeRecipe> onReload(RecipeManager manager) {
 			  return manager.getRecipes().stream().filter(
 			    r -> r instanceof UpgradeRecipe && ((UpgradeRecipe) r).isValid()
 			  ).map(r -> (UpgradeRecipe) r).sorted(
 			    Comparator.comparing(
-			      r -> r.getSelectors().stream().map(ItemSelector::toString)
-			        .collect(Collectors.joining(";")))
+				   r -> r.getSelectors().stream().map(ItemSelector::toString)
+					  .collect(Collectors.joining(";")))
 			  ).collect(Collectors.toList());
 		  }
 	  };
@@ -62,11 +62,6 @@ public class UpgradeRecipe extends CustomRecipe {
 	
 	public static Collection<UpgradeRecipe> getUpgradeRecipes() {
 		return recipeProvider.get();
-		// final RecipeManager recipeManager = getCurrentServer().getRecipeManager();
-		// //noinspection unchecked
-		// return (List<UpgradeRecipe>) (List<?>) recipeManager.getRecipes().stream().filter(
-		//   recipe -> (recipe instanceof UpgradeRecipe) && ((UpgradeRecipe) recipe).valid
-		// ).collect(Collectors.toList());
 	}
 	
 	public static Optional<UpgradeRecipe> getUpgradeRecipe(

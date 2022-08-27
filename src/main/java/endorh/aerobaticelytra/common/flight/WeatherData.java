@@ -209,9 +209,8 @@ public class WeatherData {
 		
 		@SubscribeEvent
 		public static void onWorldUnload(WorldEvent.Unload event) {
-			if (!(event.getWorld() instanceof Level))
+			if (!(event.getWorld() instanceof Level world))
 				return;
-			Level world = (Level) event.getWorld();
 			if (weatherRegions.containsKey(world)) {
 				final Map<Pair<Long, Long>, WeatherRegion> worldRegions = weatherRegions.get(world);
 				weatherRegions.remove(world);

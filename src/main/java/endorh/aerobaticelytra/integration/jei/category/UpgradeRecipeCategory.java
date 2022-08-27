@@ -103,7 +103,7 @@ public class UpgradeRecipeCategory extends BaseCategory<UpgradeRecipe> {
 		  Comparator.comparing(
 			 r -> r.getSelectors().stream()
 				.map(ItemSelector::toString).collect(Collectors.joining(";")))
-		).collect(Collectors.toList());
+		).toList();
 		// reg.addRecipes(sorted, UID);
 	}
 }

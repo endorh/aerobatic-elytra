@@ -22,8 +22,7 @@ import static endorh.aerobaticelytra.common.capability.FlightDataCapability.getF
 public class SyncHandler {
 	@SubscribeEvent
 	public static void onStartTracking(StartTracking event) {
-		if (event.getTarget() instanceof Player) {
-			Player tracked = (Player)event.getTarget();
+		if (event.getTarget() instanceof Player tracked) {
 			ServerPlayer player = (ServerPlayer)event.getPlayer();
 			new SFlightDataPacket(tracked).sendTo(player);
 			new SAerobaticDataPacket(tracked).sendTo(player);
