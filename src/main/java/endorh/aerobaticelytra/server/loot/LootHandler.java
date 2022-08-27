@@ -2,11 +2,11 @@ package endorh.aerobaticelytra.server.loot;
 
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.flightcore.events.GenerateEndShipItemFrameEvent;
-import net.minecraft.item.ItemStack;
-import net.minecraft.loot.LootContext;
-import net.minecraft.loot.LootParameterSets;
-import net.minecraft.loot.LootParameters;
-import net.minecraft.loot.LootTable;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraftforge.eventbus.api.Event.Result;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
@@ -29,8 +29,8 @@ public class LootHandler {
 		
 		List<ItemStack> list = table.getRandomItems(
 		  new LootContext.Builder(event.world).withRandom(event.random)
-		    .withParameter(LootParameters.ORIGIN, event.getItemFrame().position())
-		    .create(LootParameterSets.CHEST));
+		    .withParameter(LootContextParams.ORIGIN, event.getItemFrame().position())
+		    .create(LootContextParamSets.CHEST));
 		
 		if (!list.isEmpty()) {
 			event.setElytraStack(list.get(0));

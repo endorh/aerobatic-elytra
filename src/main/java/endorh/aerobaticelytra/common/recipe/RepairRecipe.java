@@ -1,17 +1,17 @@
 package endorh.aerobaticelytra.common.recipe;
 
 import com.google.gson.JsonObject;
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.IRecipeSerializer;
-import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.item.crafting.SpecialRecipe;
-import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.JSONUtils;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.server.ServerLifecycleHooks;
+import net.minecraft.util.GsonHelper;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CustomRecipe;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.fmllegacy.server.ServerLifecycleHooks;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 import static endorh.aerobaticelytra.AerobaticElytra.prefix;
 
-public class RepairRecipe extends SpecialRecipe {
+public class RepairRecipe extends CustomRecipe {
 	public static final Serializer SERIALIZER = new Serializer();
 	
 	public static List<RepairRecipe> getRepairRecipes() {
@@ -48,22 +48,22 @@ public class RepairRecipe extends SpecialRecipe {
 		return ingredient.test(stack);
 	}
 	
-	@Override public boolean matches(@NotNull CraftingInventory inv, @NotNull World world) {
+	@Override public boolean matches(@NotNull CraftingContainer inv, @NotNull Level world) {
 		return false;
 	}
-	@Override public @NotNull ItemStack assemble(@NotNull CraftingInventory inv) {
+	@Override public @NotNull ItemStack assemble(@NotNull CraftingContainer inv) {
 		return ItemStack.EMPTY;
 	}
 	@Override public boolean canCraftInDimensions(int width, int height) {
 		return false;
 	}
 	
-	@Override public @NotNull IRecipeSerializer<?> getSerializer() {
+	@Override public @NotNull RecipeSerializer<?> getSerializer() {
 		return SERIALIZER;
 	}
 	
-	public static class Serializer extends ForgeRegistryEntry<IRecipeSerializer<?>>
-	  implements IRecipeSerializer<RepairRecipe> {
+	public static class Serializer extends ForgeRegistryEntry<RecipeSerializer<?>>
+	  implements RecipeSerializer<RepairRecipe> {
 		public static final ResourceLocation NAME = prefix("repair_recipe");
 		
 		Serializer() {
@@ -74,19 +74,19 @@ public class RepairRecipe extends SpecialRecipe {
 		  @NotNull ResourceLocation recipeId, @NotNull JsonObject json
 		) {
 			final Ingredient ingredient = Ingredient.fromJson(
-			  JSONUtils.getAsJsonObject(json, "ingredient"));
-			final int amount = JSONUtils.getAsInt(json, "amount", 0); // Unused
+			  GsonHelper.getAsJsonObject(json, "ingredient"));
+			final int amount = GsonHelper.getAsInt(json, "amount", 0); // Unused
 			return new RepairRecipe(recipeId, ingredient, amount);
 		}
 		
 		@Nullable @Override public RepairRecipe fromNetwork(
-		  @NotNull ResourceLocation recipeId, @NotNull PacketBuffer buf
+		  @NotNull ResourceLocation recipeId, @NotNull FriendlyByteBuf buf
 		) {
 			return new RepairRecipe(recipeId, Ingredient.fromNetwork(buf), buf.readVarInt());
 		}
 		
 		@Override public void toNetwork(
-		  @NotNull PacketBuffer buf, @NotNull RepairRecipe recipe
+		  @NotNull FriendlyByteBuf buf, @NotNull RepairRecipe recipe
 		) {
 			recipe.ingredient.toNetwork(buf);
 			buf.writeVarInt(recipe.amount);

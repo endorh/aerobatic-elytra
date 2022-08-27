@@ -16,19 +16,21 @@ import endorh.aerobaticelytra.common.recipe.TrailRecipe;
 import endorh.aerobaticelytra.integration.jei.gui.MultiIngredientDrawable;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.recipe.IFocus;
-import net.minecraft.block.BannerBlock;
-import net.minecraft.item.DyeColor;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.BannerPattern;
-import net.minecraft.util.Util;
+import net.minecraft.world.level.block.BannerBlock;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BannerPattern;
+import net.minecraft.Util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
+
+import static net.minecraft.world.item.ItemStack.EMPTY;
 
 @SuppressWarnings("SameParameterValue")
 public class AerobaticElytraJeiHelper {
@@ -62,13 +64,21 @@ public class AerobaticElytraJeiHelper {
 			}
 			for (int i = 0; i < l.size(); i++) {
 				if (RANDOM.nextFloat() > 0.5F)
-					l.set(i, TrailRecipe.apply(l.get(i), new ItemStack[]{makeRocket(), ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY}));
+					l.set(
+					  i, TrailRecipe.apply(l.get(i),
+					                       new ItemStack[]{makeRocket(), EMPTY, EMPTY, EMPTY}));
 				if (RANDOM.nextFloat() > 0.5F)
-					l.set(i, TrailRecipe.apply(l.get(i), new ItemStack[]{ItemStack.EMPTY, makeRocket(), ItemStack.EMPTY, ItemStack.EMPTY}));
+					l.set(
+					  i, TrailRecipe.apply(l.get(i),
+					                       new ItemStack[]{EMPTY, makeRocket(), EMPTY, EMPTY}));
 				if (RANDOM.nextFloat() > 0.8F)
-					l.set(i, TrailRecipe.apply(l.get(i), new ItemStack[]{ItemStack.EMPTY, ItemStack.EMPTY, makeRocket(), ItemStack.EMPTY}));
+					l.set(
+					  i, TrailRecipe.apply(l.get(i),
+					                       new ItemStack[]{EMPTY, EMPTY, makeRocket(), EMPTY}));
 				if (RANDOM.nextFloat() > 0.8F)
-					l.set(i, TrailRecipe.apply(l.get(i), new ItemStack[]{ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY, makeRocket()}));
+					l.set(
+					  i, TrailRecipe.apply(l.get(i),
+					                       new ItemStack[]{EMPTY, EMPTY, EMPTY, makeRocket()}));
 				final IElytraSpec spec = ElytraSpecCapability.getElytraSpecOrDefault(l.get(i));
 				spec.setAbility(Ability.MAX_FUEL, 40F);
 				spec.setAbility(Ability.FUEL, 30F);
@@ -87,7 +97,7 @@ public class AerobaticElytraJeiHelper {
 	public static ItemStack makeElytra(DyeColor color) {
 		final ItemStack e = new ItemStack(ModItems.AEROBATIC_ELYTRA);
 		dyement.read(e);
-		dyement.setColor(color.getColorValue());
+		dyement.setColor(color.getTextColor());
 		dyement.write(e);
 		return e;
 	}
@@ -95,8 +105,8 @@ public class AerobaticElytraJeiHelper {
 	public static ItemStack makeElytra(DyeColor leftColor, DyeColor rightColor) {
 		final ItemStack e = new ItemStack(ModItems.AEROBATIC_ELYTRA);
 		dyement.read(e);
-		dyement.getWing(WingSide.LEFT).setColor(leftColor.getColorValue());
-		dyement.getWing(WingSide.RIGHT).setColor(rightColor.getColorValue());
+		dyement.getWing(WingSide.LEFT).setColor(leftColor.getTextColor());
+		dyement.getWing(WingSide.RIGHT).setColor(rightColor.getTextColor());
 		dyement.write(e);
 		return e;
 	}
@@ -133,7 +143,9 @@ public class AerobaticElytraJeiHelper {
 	public static Pair<List<ItemStack>, List<ItemStack>> split(List<ItemStack> elytras) {
 		final ArrayList<ItemStack> left = new ArrayList<>(), right = new ArrayList<>();
 		elytras.stream().map(AerobaticElytraJeiHelper::split).forEachOrdered(p -> {
-		  left.add(p.getFirst()); right.add(p.getSecond());});
+			left.add(p.getFirst());
+			right.add(p.getSecond());
+		});
 		return Pair.of(left, right);
 	}
 	
@@ -168,7 +180,7 @@ public class AerobaticElytraJeiHelper {
 	
 	public static ItemStack makeRocket(List<RocketStar> stars) {
 		final ItemStack rocket = new ItemStack(Items.FIREWORK_ROCKET);
-		final CompoundNBT fireworks = rocket.getOrCreateTagElement("Fireworks");
+		final CompoundTag fireworks = rocket.getOrCreateTagElement("Fireworks");
 		fireworks.put("Explosions", RocketStar.listAsNBT(stars.toArray(new RocketStar[0])));
 		return rocket;
 	}
@@ -229,8 +241,9 @@ public class AerobaticElytraJeiHelper {
 		return result;
 	}
 	
-	public static int gcd(int a, int b) { return b == 0 ? a : gcd(b, a % b); }
-	public static int mcm(int a, int b) { return a * b / gcd(a, b); }
+	public static int gcd(int a, int b) {return b == 0? a : gcd(b, a % b);}
+	
+	public static int mcm(int a, int b) {return a * b / gcd(a, b);}
 	
 	public static <V> IDrawable createMultiIngredientDrawable(V first, V second) {
 		return new MultiIngredientDrawable<>(

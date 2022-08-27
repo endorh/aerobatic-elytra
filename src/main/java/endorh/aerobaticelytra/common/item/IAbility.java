@@ -3,11 +3,11 @@ package endorh.aerobaticelytra.common.item;
 import com.google.common.base.CaseFormat;
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.common.registry.ModRegistries;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
@@ -34,18 +34,18 @@ public interface IAbility extends IForgeRegistryEntry<IAbility> {
 		return getRegistryName().getNamespace().replace('`', '_') + ':' + getName();
 	}
 	
-	default void write(PacketBuffer buf) {
+	default void write(FriendlyByteBuf buf) {
 		buf.writeResourceLocation(Objects.requireNonNull(getRegistryName()));
 	}
 	
-	static IAbility read(PacketBuffer buf) {
+	static IAbility read(FriendlyByteBuf buf) {
 		return ModRegistries.getAbility(buf.readResourceLocation());
 	}
 	
 	/**
 	 * Name to be displayed in-game
 	 */
-	IFormattableTextComponent getDisplayName();
+	MutableComponent getDisplayName();
 	
 	/**
 	 * Display type, used to show the ability in tooltips
@@ -65,26 +65,26 @@ public interface IAbility extends IForgeRegistryEntry<IAbility> {
 	 * Color used in syntax highlighting
 	 * If null, a random one is chosen by hashing the name
 	 */
-	default @Nullable TextFormatting getColor() {
+	default @Nullable ChatFormatting getColor() {
 		return null;
 	}
 	
 	enum Ability implements IAbility {
-		FUEL(TextFormatting.RED, 0F, DEFAULT),
-		MAX_FUEL(TextFormatting.LIGHT_PURPLE, 0F, DEFAULT),
-		SPEED(TextFormatting.GREEN, 1F, SCALE),
-		LIFT(TextFormatting.YELLOW, 0F, NON_ZERO),
-		AQUATIC(TextFormatting.BLUE, 1F, SCALE_BOOL),
-		TRAIL(TextFormatting.DARK_PURPLE, 1F, SCALE);
+		FUEL(ChatFormatting.RED, 0F, DEFAULT),
+		MAX_FUEL(ChatFormatting.LIGHT_PURPLE, 0F, DEFAULT),
+		SPEED(ChatFormatting.GREEN, 1F, SCALE),
+		LIFT(ChatFormatting.YELLOW, 0F, NON_ZERO),
+		AQUATIC(ChatFormatting.BLUE, 1F, SCALE_BOOL),
+		TRAIL(ChatFormatting.DARK_PURPLE, 1F, SCALE);
 		
 		private final ResourceLocation registryName;
 		private final String jsonName;
 		private final String translationKey;
-		private final TextFormatting color;
+		private final ChatFormatting color;
 		private final float defaultValue;
 		private final DisplayType displayType;
 		
-		Ability(TextFormatting color, float defaultValue, DisplayType type) {
+		Ability(ChatFormatting color, float defaultValue, DisplayType type) {
 			this.registryName = prefix(name().toLowerCase());
 			this.jsonName = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, name());
 			this.translationKey = AerobaticElytra.MOD_ID + ".abilities." + name().toLowerCase();
@@ -94,12 +94,12 @@ public interface IAbility extends IForgeRegistryEntry<IAbility> {
 		}
 		
 		@Override public String getName() { return jsonName; }
-		@Override public IFormattableTextComponent getDisplayName() { return ttc(translationKey); }
+		@Override public MutableComponent getDisplayName() { return ttc(translationKey); }
 		@Override public DisplayType getDisplayType() {
 			return displayType;
 		}
 		
-		@Override public TextFormatting getColor() { return color; }
+		@Override public ChatFormatting getColor() { return color; }
 		@Override public float getDefault() { return defaultValue; }
 		
 		@Override public ResourceLocation getRegistryName() { return registryName; }
@@ -120,7 +120,7 @@ public interface IAbility extends IForgeRegistryEntry<IAbility> {
 		}
 		
 		public boolean bool;
-		public abstract Optional<IFormattableTextComponent> format(IAbility ability, float value);
+		public abstract Optional<MutableComponent> format(IAbility ability, float value);
 		public boolean isBool() { return bool; }
 		
 		/**
@@ -140,7 +140,7 @@ public interface IAbility extends IForgeRegistryEntry<IAbility> {
 		 */
 		public static final DisplayType NAME_ONLY_ALWAYS = new DisplayType() {
 			@Override
-			public Optional<IFormattableTextComponent> format(IAbility ability, float value) {
+			public Optional<MutableComponent> format(IAbility ability, float value) {
 				return Optional.of(ability.getDisplayName());
 			}
 		};
@@ -149,7 +149,7 @@ public interface IAbility extends IForgeRegistryEntry<IAbility> {
 		 * Do not display
 		 */
 		public static DisplayType HIDE = new DisplayType() {
-			@Override public Optional<IFormattableTextComponent> format(IAbility ability, float value) {
+			@Override public Optional<MutableComponent> format(IAbility ability, float value) {
 				return Optional.empty();
 			}
 		};
@@ -198,7 +198,7 @@ public interface IAbility extends IForgeRegistryEntry<IAbility> {
 		 * Create a simple DisplayType from a function
 		 */
 		public static DisplayType formatValue(Function<Float, String> formatter) {
-			return formatValue(v -> stc(formatter.apply(v)), TextFormatting.DARK_AQUA);
+			return formatValue(v -> stc(formatter.apply(v)), ChatFormatting.DARK_AQUA);
 		}
 		
 		/**
@@ -207,9 +207,9 @@ public interface IAbility extends IForgeRegistryEntry<IAbility> {
 		 * @param format Applied to the formatted value
 		 */
 		public static DisplayType formatValue(
-		  Function<Float, ITextComponent> formatter, TextFormatting format) {
+		  Function<Float, Component> formatter, ChatFormatting format) {
 			return new DisplayType() {
-				@Override public Optional<IFormattableTextComponent> format(IAbility ability, float value) {
+				@Override public Optional<MutableComponent> format(IAbility ability, float value) {
 					return Optional.of(
 					  ability.getDisplayName().append(": ")
 						 .append(formatter.apply(value).plainCopy().withStyle(format)));
@@ -236,7 +236,7 @@ public interface IAbility extends IForgeRegistryEntry<IAbility> {
 		  Predicate<Float> predicate, DisplayType ifTrue, DisplayType ifFalse, boolean bool
 		) {
 			return new DisplayType(bool) {
-				@Override public Optional<IFormattableTextComponent> format(IAbility ability, float value) {
+				@Override public Optional<MutableComponent> format(IAbility ability, float value) {
 					return predicate.test(value)? ifTrue.format(ability, value) : ifFalse.format(ability, value);
 				}
 			};

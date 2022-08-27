@@ -1,6 +1,6 @@
 package endorh.aerobaticelytra.common.flight.mode;
 
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 
 import static endorh.aerobaticelytra.AerobaticElytra.prefix;
 

@@ -7,8 +7,8 @@ import endorh.aerobaticelytra.common.flight.WeatherData;
 import endorh.aerobaticelytra.common.flight.WeatherData.WeatherRegion;
 import endorh.aerobaticelytra.common.flight.WeatherData.WindRegion;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -44,7 +44,7 @@ public class DebugOverlay {
 		
 		ret.add("Loaded regions: ");
 		synchronized (WeatherData.weatherRegions) {
-			for (World world : WeatherData.weatherRegions.keySet()) {
+			for (Level world: WeatherData.weatherRegions.keySet()) {
 				final Map<Pair<Long, Long>, WeatherRegion> worldRegions =
 				  WeatherData.weatherRegions.get(world);
 				//noinspection SynchronizationOnLocalVariableOrMethodParameter
@@ -61,14 +61,16 @@ public class DebugOverlay {
 		
 		ret.add("");
 		
-		PlayerEntity player = Minecraft.getInstance().player;
+		Player player = Minecraft.getInstance().player;
 		if (player != null) {
-			ret.add(format("yaw:  %.2f", player.yRot));
+			ret.add(format("yaw:  %.2f", player.getYRot()));
 			ret.add(format("yawh: %.2f", player.getYHeadRot()));
 			
 			ret.add("");
 			
-			ret.add(format("Lift cut: %.2f", AerobaticDataCapability.getAerobaticDataOrDefault(player).getLiftCut()));
+			ret.add(format(
+			  "Lift cut: %.2f",
+			  AerobaticDataCapability.getAerobaticDataOrDefault(player).getLiftCut()));
 		}
 		
 		ret.add("");
@@ -83,7 +85,7 @@ public class DebugOverlay {
 	
 	// Client config
 	public static List<String> getRightInfo() {
-		PlayerEntity player = Minecraft.getInstance().player;
+		Player player = Minecraft.getInstance().player;
 		assert player != null;
 		IAerobaticData data = AerobaticDataCapability.getAerobaticDataOrDefault(player);
 		ArrayList<String> ret = new ArrayList<>();
@@ -102,13 +104,13 @@ public class DebugOverlay {
 		
 		ret.add("");
 		
-		float pitch = player.xRot;
+		float pitch = player.getXRot();
 		
-		ret.add(format("Yaw: %+2.3f", ((player.yRot % 360F) + 360F * 2) % 360F));
+		ret.add(format("Yaw: %+2.3f", ((player.getYRot() % 360F) + 360F * 2) % 360F));
 		if (Math.abs(pitch) >= 89.9F)
-			ret.add(format(">> Pitch: %+2.3f", player.xRot));
+			ret.add(format(">> Pitch: %+2.3f", player.getXRot()));
 		else
-			ret.add(format("Pitch: %+2.3f", player.xRot));
+			ret.add(format("Pitch: %+2.3f", player.getXRot()));
 		ret.add(format("Roll: %+2.3f", data.getRotationRoll()));
 		
 		ret.add("");

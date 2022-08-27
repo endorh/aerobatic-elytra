@@ -14,10 +14,10 @@ import mezz.jei.api.gui.ingredient.IGuiItemStackGroup;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.IFocus;
 import mezz.jei.api.recipe.IFocus.Mode;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -47,7 +47,7 @@ public class SplitRecipeCategory extends BaseCategory<SplitRecipe> {
 	@Override public void setRecipe(
 	  @NotNull IRecipeLayout layout, @NotNull SplitRecipe recipe, @NotNull IIngredients ingredients
 	) {
-		IFocus<?> focus = layout.getFocus();
+		IFocus<?> focus = layout.getFocus(VanillaTypes.ITEM);
 		
 		final IGuiItemStackGroup stacks = layout.getItemStacks();
 		for (int i = 0; i < 3; i++) {
@@ -85,10 +85,10 @@ public class SplitRecipeCategory extends BaseCategory<SplitRecipe> {
 		}).collect(Collectors.toList());
 	}
 	
-	@Override public @NotNull List<ITextComponent> getTooltipStrings(
+	@Override public @NotNull List<Component> getTooltipStrings(
 	  @NotNull SplitRecipe recipe, double mouseX, double mouseY
 	) {
-		final List<ITextComponent> tt = super.getTooltipStrings(recipe, mouseX, mouseY);
+		final List<Component> tt = super.getTooltipStrings(recipe, mouseX, mouseY);
 		if (inRect(mouseX, mouseY, 61, 19, 22, 15))
 			tt.addAll(optSplitTtc("aerobaticelytra.jei.help.category.split"));
 		else if (inRect(mouseX, mouseY, 7, 60, 17, 19))

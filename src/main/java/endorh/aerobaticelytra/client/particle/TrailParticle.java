@@ -1,6 +1,6 @@
 package endorh.aerobaticelytra.client.particle;
 
-import com.mojang.blaze3d.vertex.IVertexBuilder;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import endorh.aerobaticelytra.client.trail.AerobaticTrail.RocketSide;
 import endorh.aerobaticelytra.common.capability.IElytraSpec.RocketStar;
 import endorh.aerobaticelytra.common.capability.IElytraSpec.TrailData;
@@ -8,32 +8,32 @@ import endorh.aerobaticelytra.common.particle.TrailParticleData;
 import endorh.util.common.ColorUtil;
 import endorh.util.common.LogUtil;
 import endorh.util.math.Vec3f;
+import net.minecraft.client.Camera;
+import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
-import net.minecraft.client.renderer.ActiveRenderInfo;
-import net.minecraft.client.settings.PointOfView;
-import net.minecraft.client.world.ClientWorld;
+import net.minecraft.core.BlockPos;
 import net.minecraft.tags.FluidTags;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
+import java.awt.Color;
 import java.util.Optional;
 import java.util.Random;
 
 import static endorh.aerobaticelytra.client.trail.AerobaticTrail.RocketSide.*;
 import static java.lang.Math.max;
 
-public class TrailParticle extends SpriteTexturedParticle {
+public class TrailParticle extends TextureSheetParticle {
 	
 	private static final Random random = new Random();
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	private final IAnimatedSprite sprites;
+	private final SpriteSet sprites;
 	private final float size;
 	private final float partialTick;
 	private final boolean ownPlayer;
@@ -71,12 +71,12 @@ public class TrailParticle extends SpriteTexturedParticle {
 	private boolean flickerState = true;
 	
 	protected TrailParticle(
-	  ClientWorld world, double x, double y, double z,
+	  ClientLevel world, double x, double y, double z,
 	  double speedX, double speedY, double speedZ,
 	  Color color, Color fadeColor, byte type, boolean flicker, boolean trail,
 	  float size, int life, float partialTick, boolean ownPlayer,
 	  @Nullable RocketSide rocketSide, @Nullable Vec3f rollVec,
-	  @Nullable TrailData data, IAnimatedSprite sprites
+	  @Nullable TrailData data, SpriteSet sprites
 	) {
 		super(world, x, y, z, speedX, speedY, speedZ);
 		this.sprites = sprites;
@@ -121,13 +121,13 @@ public class TrailParticle extends SpriteTexturedParticle {
 	}
 	
 	@Override public void render(
-	  @NotNull IVertexBuilder buffer, @NotNull ActiveRenderInfo renderInfo, float partialTicks
+	  @NotNull VertexConsumer buffer, @NotNull Camera renderInfo, float partialTicks
 	) {
 		Minecraft minecraft = Minecraft.getInstance();
 		float lSquared =
 		  (float)minecraft.gameRenderer.getMainCamera().getPosition()
 		    .distanceToSqr(x, y, z);
-		boolean shouldRender = minecraft.options.getCameraType() == PointOfView.FIRST_PERSON
+		boolean shouldRender = minecraft.options.getCameraType() == CameraType.FIRST_PERSON
 		  ? (age > 5 || lSquared > 12F) : (age > 10 || lSquared > 6F);
 		if (shouldRender || !ownPlayer) {
 			quadSize = getScaleForAge(age + partialTicks);
@@ -144,7 +144,7 @@ public class TrailParticle extends SpriteTexturedParticle {
 		if (age < start_animation)
 			return size * (age / start_animation);
 		if (lifetime - age < end_animation)
-			return MathHelper.lerp((age - lifetime + end_animation) / end_animation, size, size * 1.5F);
+			return Mth.lerp((age - lifetime + end_animation) / end_animation, size, size * 1.5F);
 		return size;
 	}
 	
@@ -166,8 +166,8 @@ public class TrailParticle extends SpriteTexturedParticle {
 			}
 		}
 		if (lifetime - age < end_animation)
-			return MathHelper.lerp((age - lifetime + end_animation) / end_animation, 0.8F, 0F);
-		return MathHelper.lerp((age / (lifetime - end_animation)), 1F, 0.8F);
+			return Mth.lerp((age - lifetime + end_animation) / end_animation, 0.8F, 0F);
+		return Mth.lerp((age / (lifetime - end_animation)), 1F, 0.8F);
 	}
 	
 	@Override public void tick() {
@@ -272,13 +272,13 @@ public class TrailParticle extends SpriteTexturedParticle {
 		return Optional.of(array[random.nextInt(array.length)]);
 	}
 	
-	@NotNull @Override public IParticleRenderType getRenderType() {
-		return IParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
+	@NotNull @Override public ParticleRenderType getRenderType() {
+		return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
 	}
 	
-	public static class Factory implements IParticleFactory<TrailParticleData> {
-		private final IAnimatedSprite sprites;
-		public Factory(IAnimatedSprite sprite) {
+	public static class Factory implements ParticleProvider<TrailParticleData> {
+		private final SpriteSet sprites;
+		public Factory(SpriteSet sprite) {
 			sprites = sprite;
 		}
 		@SuppressWarnings("unused")
@@ -288,7 +288,7 @@ public class TrailParticle extends SpriteTexturedParticle {
 		
 		@Nullable @Override
 		public Particle createParticle(
-		  @NotNull TrailParticleData data, @NotNull ClientWorld world,
+		  @NotNull TrailParticleData data, @NotNull ClientLevel world,
 		  double x, double y, double z,
 		  double xSpeed, double ySpeed, double zSpeed
 		) {

@@ -3,10 +3,10 @@ package endorh.aerobaticelytra.common.recipe;
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
 import endorh.aerobaticelytra.network.UpgradeRecipePacket;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ActionResultType;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
@@ -23,13 +23,13 @@ public class UpgradeHandler {
 	 */
 	@SubscribeEvent
 	public static void onPlayerRightClickItem(PlayerInteractEvent.RightClickItem event) {
-		PlayerEntity player = event.getPlayer();
+		Player player = event.getPlayer();
 		if (player.isOnGround()) {
-			ItemStack elytra = player.getItemBySlot(EquipmentSlotType.OFFHAND);
+			ItemStack elytra = player.getItemBySlot(EquipmentSlot.OFFHAND);
 			if (elytra.getItem() instanceof AerobaticElytraItem) {
 				ItemStack itemStack = event.getItemStack();
 				if (onItemUse(player, elytra, itemStack)) {
-					event.setCancellationResult(ActionResultType.sidedSuccess(player.level.isClientSide));
+					event.setCancellationResult(InteractionResult.sidedSuccess(player.level.isClientSide));
 					event.setCanceled(true);
 				}
 			}
@@ -39,7 +39,7 @@ public class UpgradeHandler {
 	/**
 	 * Main item use logic
 	 */
-	public static boolean onItemUse(PlayerEntity player, ItemStack elytra, ItemStack stack) {
+	public static boolean onItemUse(Player player, ItemStack elytra, ItemStack stack) {
 		if (player.isCrouching()) {
 			List<UpgradeRecipe> upgrades = UpgradeRecipe.getUpgradeRecipes(
 			  elytra, stack);

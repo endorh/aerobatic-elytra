@@ -17,16 +17,16 @@ import mezz.jei.api.gui.ingredient.IGuiItemStackGroup;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.IFocus;
 import mezz.jei.api.registration.IRecipeRegistration;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.item.crafting.IRecipe;
-import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.item.crafting.RecipeManager;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.Util;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.Util;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -62,7 +62,7 @@ public class BannerRecipeCategory extends BaseCategory<BannerRecipeWrapper> {
 	  @NotNull IRecipeLayout layout, @NotNull BannerRecipeWrapper recipe,
 	  @NotNull IIngredients ingredients
 	) {
-		IFocus<?> focus = layout.getFocus();
+		IFocus<?> focus = layout.getFocus(VanillaTypes.ITEM);
 		final IGuiItemStackGroup stacks = layout.getItemStacks();
 		stacks.init(0, true, 0, 0);
 		stacks.init(1, true, 18, 0);
@@ -84,7 +84,8 @@ public class BannerRecipeCategory extends BaseCategory<BannerRecipeWrapper> {
 		), banners));
 		stacks.addTooltipCallback((i, input, ingredient, tooltip) -> {
 			if (i == 1)
-				tooltip.add(ttc("jei.tooltip.recipe.tag", ItemTags.BANNERS.getName()).withStyle(TextFormatting.GRAY));
+				tooltip.add(ttc("jei.tooltip.recipe.tag", ItemTags.BANNERS.getName()).withStyle(
+				  ChatFormatting.GRAY));
 		});
 	}
 	
@@ -95,7 +96,7 @@ public class BannerRecipeCategory extends BaseCategory<BannerRecipeWrapper> {
 	@Override public void registerRecipes(
 	  IRecipeRegistration reg, RecipeManager recipeManager
 	) {
-		final Optional<IRecipe<?>> opt = recipeManager.getRecipes().stream()
+		final Optional<Recipe<?>> opt = recipeManager.getRecipes().stream()
 		  .filter(r -> r instanceof BannerRecipe).findAny();
 		if (opt.isPresent()) {
 			final BannerRecipe recipe = (BannerRecipe) opt.get();
@@ -105,10 +106,10 @@ public class BannerRecipeCategory extends BaseCategory<BannerRecipeWrapper> {
 		}
 	}
 	
-	@Override public @NotNull List<ITextComponent> getTooltipStrings(
+	@Override public @NotNull List<Component> getTooltipStrings(
 	  @NotNull BannerRecipeWrapper recipe, double mouseX, double mouseY
 	) {
-		final List<ITextComponent> tt = super.getTooltipStrings(recipe, mouseX, mouseY);
+		final List<Component> tt = super.getTooltipStrings(recipe, mouseX, mouseY);
 		if (inRect(mouseX, mouseY, 61, 19, 22, 15))
 			tt.addAll(optSplitTtc("aerobaticelytra.jei.help.category.banner"));
 		return tt;

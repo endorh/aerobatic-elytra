@@ -4,9 +4,9 @@ import endorh.aerobaticelytra.common.flight.WeatherData;
 import endorh.aerobaticelytra.common.flight.WeatherData.WindRegion;
 import endorh.util.math.Vec3f;
 import endorh.util.network.ServerWorldPacket;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkEvent.Context;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.fmllegacy.network.NetworkEvent.Context;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -27,6 +27,7 @@ public class WeatherPackets {
 		public Vec3f angularWind;
 		
 		private SWindNodePacket() {}
+		
 		public SWindNodePacket(WindRegion node) {
 			super(node.region.world);
 			this.node = node;
@@ -36,19 +37,19 @@ public class WeatherPackets {
 			angularWind = node.angularWind;
 		}
 		
-		@Override public void onClient(World world, Context ctx) {
+		@Override public void onClient(Level world, Context ctx) {
 			WindRegion node = WindRegion.of(world, x, z);
 			node.update(this);
 		}
 		
-		@Override public void serialize(PacketBuffer buf) {
+		@Override public void serialize(FriendlyByteBuf buf) {
 			buf.writeLong(x);
 			buf.writeLong(z);
 			wind.write(buf);
 			angularWind.write(buf);
 		}
 		
-		@Override public void deserialize(PacketBuffer buf) {
+		@Override public void deserialize(FriendlyByteBuf buf) {
 			x = buf.readLong();
 			z = buf.readLong();
 			wind = Vec3f.read(buf);

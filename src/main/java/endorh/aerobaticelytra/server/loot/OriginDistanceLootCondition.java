@@ -1,15 +1,15 @@
 package endorh.aerobaticelytra.server.loot;
 
 import com.google.gson.*;
-import net.minecraft.loot.ILootSerializer;
-import net.minecraft.loot.LootConditionType;
-import net.minecraft.loot.LootContext;
-import net.minecraft.loot.LootParameters;
-import net.minecraft.loot.conditions.ILootCondition;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.level.storage.loot.Serializer;
+import net.minecraft.world.level.storage.loot.predicates.LootItemConditionType;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
-public class OriginDistanceLootCondition implements ILootCondition {
+public class OriginDistanceLootCondition implements LootItemCondition {
 	protected final double minDistance;
 	protected final double maxDistance;
 	
@@ -18,21 +18,21 @@ public class OriginDistanceLootCondition implements ILootCondition {
 		this.maxDistance = maxDistance;
 	}
 	
-	@Override public @NotNull LootConditionType getType() {
+	@Override public @NotNull LootItemConditionType getType() {
 		return ModLootConditions.ORIGIN_DISTANCE;
 	}
 	
 	@Override public boolean test(LootContext lootContext) {
-		Vector3d position = lootContext.getParamOrNull(LootParameters.ORIGIN);
+		Vec3 position = lootContext.getParamOrNull(LootContextParams.ORIGIN);
 		if (position == null)
 			throw new IllegalStateException(
 			  "Cannot use 'origin_distance' loot condition in this loot table type");
-		final Vector3d flatPosition = position.subtract(0D, position.y, 0D);
-		final double distance = flatPosition.distanceTo(Vector3d.ZERO);
+		final Vec3 flatPosition = position.subtract(0D, position.y, 0D);
+		final double distance = flatPosition.distanceTo(Vec3.ZERO);
 		return minDistance < distance && distance < maxDistance;
 	}
 	
-	public static class Serializer implements ILootSerializer<OriginDistanceLootCondition> {
+	public static class ConditionSerializer implements Serializer<OriginDistanceLootCondition> {
 		@Override public void serialize(
 		  @NotNull JsonObject json, @NotNull OriginDistanceLootCondition condition,
 		  @NotNull JsonSerializationContext serializationContext

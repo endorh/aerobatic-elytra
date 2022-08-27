@@ -6,9 +6,9 @@ import endorh.aerobaticelytra.common.config.Const;
 import endorh.aerobaticelytra.common.flight.AerobaticFlight;
 import endorh.aerobaticelytra.common.flight.ElytraFlight;
 import endorh.aerobaticelytra.common.flight.mode.IFlightMode.IEnumFlightMode;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -40,17 +40,17 @@ public enum FlightModes implements IEnumFlightMode {
 	
 	private final Set<ResourceLocation> tags = new HashSet<>();
 	
-	private final BiPredicate<PlayerEntity, Vector3d> flightHandler;
-	private final BiConsumer<PlayerEntity, Vector3d> nonFlightHandler;
-	private final Consumer<PlayerEntity> remoteFlightHandler;
-	private final Consumer<PlayerEntity> remoteNonFlightHandler;
+	private final BiPredicate<Player, Vec3> flightHandler;
+	private final BiConsumer<Player, Vec3> nonFlightHandler;
+	private final Consumer<Player> remoteFlightHandler;
+	private final Consumer<Player> remoteNonFlightHandler;
 	
 	FlightModes(
 	  Supplier<Boolean> shouldCycle, int order, int u, int v,
-	  BiPredicate<PlayerEntity, Vector3d> flightHandler,
-	  @Nullable BiConsumer<PlayerEntity, Vector3d> nonFlightHandler,
-	  @Nullable Consumer<PlayerEntity> remoteFlightHandler,
-	  @Nullable Consumer<PlayerEntity> remoteNonFlightHandler,
+	  BiPredicate<Player, Vec3> flightHandler,
+	  @Nullable BiConsumer<Player, Vec3> nonFlightHandler,
+	  @Nullable Consumer<Player> remoteFlightHandler,
+	  @Nullable Consumer<Player> remoteNonFlightHandler,
 	  ResourceLocation... tags
 	) {
 		this.shouldCycle = shouldCycle;
@@ -76,17 +76,17 @@ public enum FlightModes implements IEnumFlightMode {
 		return order;
 	}
 	
-	@Override public BiPredicate<PlayerEntity, Vector3d> getFlightHandler() {
+	@Override public BiPredicate<Player, Vec3> getFlightHandler() {
 		return flightHandler;
 	}
 	@Nullable
-	@Override public BiConsumer<PlayerEntity, Vector3d> getNonFlightHandler() {
+	@Override public BiConsumer<Player, Vec3> getNonFlightHandler() {
 		return nonFlightHandler;
 	}
-	@Override public @Nullable Consumer<PlayerEntity> getRemoteFlightHandler() {
+	@Override public @Nullable Consumer<Player> getRemoteFlightHandler() {
 		return remoteFlightHandler;
 	}
-	@Override public @Nullable Consumer<PlayerEntity> getRemoteNonFlightHandler() {
+	@Override public @Nullable Consumer<Player> getRemoteNonFlightHandler() {
 		return remoteNonFlightHandler;
 	}
 	

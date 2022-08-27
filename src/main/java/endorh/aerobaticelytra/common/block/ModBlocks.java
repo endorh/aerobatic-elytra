@@ -2,14 +2,14 @@ package endorh.aerobaticelytra.common.block;
 
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.block.BrokenLeavesBlockModel;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.renderer.BlockModelShapes;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.RenderTypeLookup;
-import net.minecraft.client.renderer.model.IBakedModel;
-import net.minecraft.client.renderer.model.ModelResourceLocation;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.client.renderer.block.BlockModelShaper;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.ModelBakeEvent;
@@ -27,7 +27,7 @@ import java.util.Map;
 
 import static endorh.util.common.ForgeUtil.futureNotNull;
 
-@EventBusSubscriber(bus = Bus.MOD, modid = AerobaticElytra.MOD_ID)
+@EventBusSubscriber(bus=Bus.MOD, modid=AerobaticElytra.MOD_ID)
 public class ModBlocks {
 	/**
 	 * @see BrokenLeavesBlock
@@ -47,10 +47,10 @@ public class ModBlocks {
 	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent
 	public static void onModelBake(ModelBakeEvent event) {
-		final Map<ResourceLocation, IBakedModel> reg = event.getModelRegistry();
-		for (BlockState bs : BROKEN_LEAVES.getStateDefinition().getPossibleStates()) {
-			ModelResourceLocation variantMRL = BlockModelShapes.stateToModelLocation(bs);
-			IBakedModel existingModel = reg.get(variantMRL);
+		final Map<ResourceLocation, BakedModel> reg = event.getModelRegistry();
+		for (BlockState bs: BROKEN_LEAVES.getStateDefinition().getPossibleStates()) {
+			ModelResourceLocation variantMRL = BlockModelShaper.stateToModelLocation(bs);
+			BakedModel existingModel = reg.get(variantMRL);
 			if (existingModel == null)
 				throw new IllegalStateException("Missing fallback model for Broken Leaves block");
 			if (existingModel instanceof BrokenLeavesBlockModel) {
@@ -64,6 +64,6 @@ public class ModBlocks {
 	
 	@SubscribeEvent
 	public static void onClientSetup(FMLClientSetupEvent event) {
-		RenderTypeLookup.setRenderLayer(BROKEN_LEAVES, RenderType.cutoutMipped());
+		ItemBlockRenderTypes.setRenderLayer(BROKEN_LEAVES, RenderType.cutoutMipped());
 	}
 }

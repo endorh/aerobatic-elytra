@@ -9,16 +9,16 @@ import endorh.aerobaticelytra.common.capability.IElytraSpec;
 import endorh.aerobaticelytra.common.item.IAbility;
 import endorh.util.network.PacketBufferUtil;
 import endorh.util.recipe.NBTInheritingShapedRecipe;
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.IRecipeSerializer;
-import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.item.crafting.ShapedRecipe;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.JSONUtils;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.util.GsonHelper;
+import net.minecraft.core.NonNullList;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
@@ -31,6 +31,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static endorh.aerobaticelytra.common.capability.ElytraSpecCapability.getElytraSpecOrDefault;
+import static net.minecraft.util.GsonHelper.getAsJsonArray;
+import static net.minecraft.util.GsonHelper.getAsJsonObject;
 
 public class AbilityNBTInheritingShapedRecipe extends NBTInheritingShapedRecipe {
 	public static final Serializer SERIALIZER = new Serializer();
@@ -41,7 +43,7 @@ public class AbilityNBTInheritingShapedRecipe extends NBTInheritingShapedRecipe 
 	public AbilityNBTInheritingShapedRecipe(
 	  ResourceLocation id, String group, int width, int height,
 	  NonNullList<int[]> nbtSourcesIn, NonNullList<Ingredient> items,
-	  ItemStack output, CompoundNBT outputTagIn,
+	  ItemStack output, CompoundTag outputTagIn,
 	  Map<IAbility, Float> upgradesIn, Map<String, Float> unknownIn
 	) {
 		super(id, group, width, height, nbtSourcesIn, items, output, outputTagIn);
@@ -50,7 +52,7 @@ public class AbilityNBTInheritingShapedRecipe extends NBTInheritingShapedRecipe 
 	}
 	
 	@NotNull @Override
-	public ItemStack assemble(@NotNull CraftingInventory inv) {
+	public ItemStack assemble(@NotNull CraftingContainer inv) {
 		ItemStack result = super.assemble(inv);
 		final IElytraSpec spec = getElytraSpecOrDefault(result);
 		spec.setAbilities(abilities);
@@ -59,8 +61,8 @@ public class AbilityNBTInheritingShapedRecipe extends NBTInheritingShapedRecipe 
 		return result;
 	}
 	
-	public static class Serializer extends ForgeRegistryEntry<IRecipeSerializer<?>>
-	  implements IRecipeSerializer<AbilityNBTInheritingShapedRecipe> {
+	public static class Serializer extends ForgeRegistryEntry<RecipeSerializer<?>>
+	  implements RecipeSerializer<AbilityNBTInheritingShapedRecipe> {
 		
 		private static final ResourceLocation NAME = new ResourceLocation(
 		  AerobaticElytra.MOD_ID, "ability_nbt_inheriting_shaped_recipe");
@@ -73,25 +75,24 @@ public class AbilityNBTInheritingShapedRecipe extends NBTInheritingShapedRecipe 
 		@NotNull @Override public AbilityNBTInheritingShapedRecipe fromJson(
 		  @NotNull ResourceLocation recipeId, @NotNull JsonObject json
 		) {
-			String group = JSONUtils.getAsString(json, "group", "");
-			boolean allowUnknown = JSONUtils.getAsBoolean(json, "allow_unknown_items", false);
+			String group = GsonHelper.getAsString(json, "group", "");
+			boolean allowUnknown = GsonHelper.getAsBoolean(json, "allow_unknown_items", false);
 			Map<String, Ingredient> map = NBTInheritingShapedRecipe.Serializer
-			  .deserializeKey(JSONUtils.getAsJsonObject(json, "key"), allowUnknown);
+			  .deserializeKey(getAsJsonObject(json, "key"), allowUnknown);
 			String[] pat = NBTInheritingShapedRecipe.Serializer.shrink(
-			  NBTInheritingShapedRecipe.Serializer.patternFromJson(
-			    JSONUtils.getAsJsonArray(json, "pattern")));
+			  NBTInheritingShapedRecipe.Serializer.patternFromJson(getAsJsonArray(json, "pattern")));
 			int w = pat[0].length();
 			int h = pat.length;
 			NonNullList<int[]> nbtSources = NBTInheritingShapedRecipe.Serializer
 			  .nbtSourcesFromPattern(pat);
 			NonNullList<Ingredient> list = NBTInheritingShapedRecipe.Serializer
 			  .deserializeIngredients(pat, map, w, h);
-			ItemStack output = ShapedRecipe.itemFromJson(JSONUtils.getAsJsonObject(json, "result"));
-			CompoundNBT outputTag = NBTInheritingShapedRecipe.Serializer
+			ItemStack output = ShapedRecipe.itemStackFromJson(getAsJsonObject(json, "result"));
+			CompoundTag outputTag = NBTInheritingShapedRecipe.Serializer
 			  .nbtFromJson(json);
 			Pair<Map<IAbility, Float>, Map<String, Float>> abilities = abilitiesFromJson(
-			  JSONUtils.getAsJsonObject(
-			    JSONUtils.getAsJsonObject(json, "result"), "abilities")
+			  getAsJsonObject(
+				 getAsJsonObject(json, "result"), "abilities")
 			);
 			
 			return new AbilityNBTInheritingShapedRecipe(
@@ -100,7 +101,7 @@ public class AbilityNBTInheritingShapedRecipe extends NBTInheritingShapedRecipe 
 		}
 		
 		@Nullable @Override public AbilityNBTInheritingShapedRecipe fromNetwork(
-		  @NotNull ResourceLocation id, @NotNull PacketBuffer buf
+		  @NotNull ResourceLocation id, @NotNull FriendlyByteBuf buf
 		) {
 			int w = buf.readVarInt();
 			int h = buf.readVarInt();
@@ -112,43 +113,43 @@ public class AbilityNBTInheritingShapedRecipe extends NBTInheritingShapedRecipe 
 			ItemStack output = buf.readItem();
 			
 			int l = buf.readVarInt();
-			NonNullList<int[]> nbtSources = NonNullList.withSize(l, new int[] {0, 0});
+			NonNullList<int[]> nbtSources = NonNullList.withSize(l, new int[]{0, 0});
 			for (int i = 0; i < l; i++)
 				nbtSources.set(i, buf.readVarIntArray());
 			
-			CompoundNBT outputTag = buf.readNbt();
+			CompoundTag outputTag = buf.readNbt();
 			
 			Map<IAbility, Float> upgrades = PacketBufferUtil.readMap(
-			  buf, IAbility::read, PacketBuffer::readFloat);
+			  buf, IAbility::read, FriendlyByteBuf::readFloat);
 			Map<String, Float> unknown = PacketBufferUtil.readMap(
-			  buf, PacketBufferUtil::readString, PacketBuffer::readFloat);
+			  buf, FriendlyByteBuf::readUtf, FriendlyByteBuf::readFloat);
 			
 			return new AbilityNBTInheritingShapedRecipe(
 			  id, group, w, h, nbtSources, list, output, outputTag, upgrades, unknown);
 		}
 		
 		@Override public void toNetwork(
-		  @NotNull PacketBuffer buf, @NotNull AbilityNBTInheritingShapedRecipe recipe
+		  @NotNull FriendlyByteBuf buf, @NotNull AbilityNBTInheritingShapedRecipe recipe
 		) {
-			buf.writeVarInt(recipe.getRecipeWidth());
-			buf.writeVarInt(recipe.getRecipeHeight());
+			buf.writeVarInt(recipe.recipeWidth);
+			buf.writeVarInt(recipe.recipeHeight);
 			buf.writeUtf(recipe.getGroup());
 			
-			for (Ingredient ing : recipe.recipeItems)
+			for (Ingredient ing: recipe.recipeItems)
 				ing.toNetwork(buf);
 			
 			buf.writeItem(recipe.getResultItem());
 			
 			buf.writeVarInt(recipe.nbtSources.size());
-			for (int[] nbtSource : recipe.nbtSources)
+			for (int[] nbtSource: recipe.nbtSources)
 				buf.writeVarIntArray(nbtSource);
 			
 			buf.writeNbt(recipe.outputTag);
 			
 			PacketBufferUtil.writeMap2(
-			  buf, recipe.abilities, IAbility::write, PacketBuffer::writeFloat);
+			  buf, recipe.abilities, IAbility::write, FriendlyByteBuf::writeFloat);
 			PacketBufferUtil.writeMap(
-			  buf, recipe.unknown, PacketBuffer::writeUtf, PacketBuffer::writeFloat);
+			  buf, recipe.unknown, FriendlyByteBuf::writeUtf, FriendlyByteBuf::writeFloat);
 		}
 		
 		public static Pair<Map<IAbility, Float>, Map<String, Float>> abilitiesFromJson(
@@ -157,7 +158,7 @@ public class AbilityNBTInheritingShapedRecipe extends NBTInheritingShapedRecipe 
 			Map<IAbility, Float> map = new HashMap<>();
 			Map<String, Float> unknown = new HashMap<>();
 			
-			for (Map.Entry<String, JsonElement> entry : abilities.entrySet()) {
+			for (Map.Entry<String, JsonElement> entry: abilities.entrySet()) {
 				final String typeError = "Ability values must be numbers";
 				if (!entry.getValue().isJsonPrimitive())
 					throw new JsonSyntaxException(typeError);

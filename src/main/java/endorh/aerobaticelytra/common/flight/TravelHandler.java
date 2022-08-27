@@ -7,14 +7,14 @@ import endorh.flightcore.events.PlayerTravelEvent;
 import endorh.flightcore.events.PlayerTravelEvent.RemotePlayerEntityTravelEvent;
 import endorh.util.common.ObfuscationReflectionUtil;
 import endorh.util.common.ObfuscationReflectionUtil.SoftField;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.entity.ai.attributes.ModifiableAttributeInstance;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.network.play.ServerPlayNetHandler;
-import net.minecraft.potion.Effects;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
@@ -44,9 +44,9 @@ public class TravelHandler {
 	 * {@code private int ServerPlayNetHandler#floatingTickCount}<br>
 	 * Accessed by reflection
 	 */
-	public static final SoftField<ServerPlayNetHandler, Integer> ServerPlayNetHandler$floatingTickCount =
+	public static final SoftField<ServerGamePacketListenerImpl, Integer> ServerPlayNetHandler$floatingTickCount =
 	  ObfuscationReflectionUtil.getSoftField(
-	    ServerPlayNetHandler.class, "aboveGroundTickCount", "floatingTickCount",
+	    ServerGamePacketListenerImpl.class, "aboveGroundTickCount", "floatingTickCount",
 	    oneTimeLogger(LOGGER::error),
 	    "Some flight modes may kick players for flying",
 	    "A flight mode tried to prevent a player from being kicked for flying, but reflection failed.");
@@ -58,13 +58,13 @@ public class TravelHandler {
 	 */
 	@SubscribeEvent
 	public static void onPlayerEntityTravelEvent(PlayerTravelEvent event) {
-		PlayerEntity player = event.player;
+		Player player = event.player;
 		getFlightData(player).ifPresent(fd -> {
 			final IFlightMode mode = fd.getFlightMode();
 			boolean cancel = mode.getFlightHandler().test(player, event.travelVector);
 			for (IFlightMode m : ModRegistries.FLIGHT_MODE_REGISTRY) {
 				if (mode != m) {
-					final BiConsumer<PlayerEntity, Vector3d> handler = m.getNonFlightHandler();
+					final BiConsumer<Player, Vec3> handler = m.getNonFlightHandler();
 					if (handler != null)
 						handler.accept(player, event.travelVector);
 				}
@@ -75,15 +75,15 @@ public class TravelHandler {
 	
 	@SubscribeEvent
 	public static void onRemotePlayerEntityTravelEvent(RemotePlayerEntityTravelEvent event) {
-		PlayerEntity player = event.player;
+		Player player = event.player;
 		getFlightData(player).ifPresent(fd -> {
 			final IFlightMode mode = fd.getFlightMode();
-			final Consumer<PlayerEntity> flightHandler = mode.getRemoteFlightHandler();
+			final Consumer<Player> flightHandler = mode.getRemoteFlightHandler();
 			if (flightHandler != null)
 				flightHandler.accept(player);
 			for (IFlightMode m : ModRegistries.FLIGHT_MODE_REGISTRY) {
 				if (mode != m) {
-					final Consumer<PlayerEntity> handler = m.getRemoteNonFlightHandler();
+					final Consumer<Player> handler = m.getRemoteNonFlightHandler();
 					if (handler != null)
 						handler.accept(player);
 				}
@@ -98,14 +98,14 @@ public class TravelHandler {
 	 * @param player Player travelling
 	 * @return The default gravity applied to the player on this tick
 	 */
-	public static double travelGravity(PlayerEntity player) {
+	public static double travelGravity(Player player) {
 		double grav = 0.08D;
-		ModifiableAttributeInstance gravity = player.getAttribute(ForgeMod.ENTITY_GRAVITY.get());
+		AttributeInstance gravity = player.getAttribute(ForgeMod.ENTITY_GRAVITY.get());
 		boolean flag = player.getDeltaMovement().y <= 0.0D;
 		if (SLOW_FALLING != null) {
 			assert gravity != null;
 			// Directly extracted from LivingEntity#travel
-			if (flag && player.hasEffect(Effects.SLOW_FALLING)) {
+			if (flag && player.hasEffect(MobEffects.SLOW_FALLING)) {
 				if (!gravity.hasModifier(SLOW_FALLING))
 					gravity.addTransientModifier(SLOW_FALLING);
 				player.fallDistance = 0.0F;
@@ -113,7 +113,7 @@ public class TravelHandler {
 				gravity.removeModifier(SLOW_FALLING);
 			}
 			grav = gravity.getValue();
-		} else if (flag && player.hasEffect(Effects.SLOW_FALLING)) {
+		} else if (flag && player.hasEffect(MobEffects.SLOW_FALLING)) {
 			// Reflection failed, defaulting to direct computation ignoring AttributeModifier
 			grav = 0.01F;
 			player.fallDistance = 0.0F;
@@ -130,7 +130,7 @@ public class TravelHandler {
 	 * @return False if there was a reflection exception.
 	 */
 	@SuppressWarnings("unused")
-	public static boolean resetFloatingTickCount(ServerPlayerEntity player) {
+	public static boolean resetFloatingTickCount(ServerPlayer player) {
 		return ServerPlayNetHandler$floatingTickCount.set(player.connection, 0);
 	}
 }

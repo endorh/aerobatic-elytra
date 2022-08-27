@@ -1,20 +1,17 @@
 package endorh.aerobaticelytra.common.capability;
 
-import endorh.aerobaticelytra.common.capability.IElytraSpec.TrailData;
 import endorh.aerobaticelytra.common.config.Config;
 import endorh.aerobaticelytra.common.item.IAbility;
 import endorh.aerobaticelytra.common.item.IEffectAbility;
 import endorh.aerobaticelytra.common.registry.ModRegistries;
-import endorh.util.capability.CapabilityProviderSerializable;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.INBT;
-import net.minecraft.util.Direction;
+import endorh.util.capability.SerializableCapabilityWrapperProvider;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.Capability.IStorage;
-import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.CapabilityManager;
+import net.minecraftforge.common.capabilities.CapabilityToken;
 import net.minecraftforge.common.capabilities.ICapabilitySerializable;
 import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.Nullable;
@@ -34,23 +31,17 @@ public class ElytraSpecCapability {
 	/**
 	 * The {@link Capability} instance
 	 */
-	@CapabilityInject(IElytraSpec.class)
-	public static Capability<IElytraSpec> CAPABILITY = null;
-	private static final Storage storage = new Storage();
+	public static Capability<IElytraSpec> CAPABILITY =
+	  CapabilityManager.get(new CapabilityToken<>() {});
 	
-	public static void register() {
-		CapabilityManager.INSTANCE.register(
-		  IElytraSpec.class, storage, ElytraSpec::new);
-	}
-	
-	public static IElytraSpec fromNBT(CompoundNBT nbt) {
+	public static IElytraSpec fromNBT(CompoundTag nbt) {
 		IElytraSpec spec = new ElytraSpec();
-		storage.readNBT(CAPABILITY, spec, null, nbt);
+		spec.deserializeCapability(nbt);
 		return spec;
 	}
 	
-	public static CompoundNBT asNBT(IElytraSpec spec) {
-		return (CompoundNBT) storage.writeNBT(CAPABILITY, spec, null);
+	public static CompoundTag asNBT(IElytraSpec spec) {
+		return spec.serializeCapability();
 	}
 	
 	public static LazyOptional<IElytraSpec> getElytraSpec(ItemStack stack) {
@@ -63,23 +54,27 @@ public class ElytraSpecCapability {
 		return stack.getCapability(CAPABILITY).orElse(new ElytraSpec());
 	}
 	
-	public static ICapabilitySerializable<INBT> createProvider() {
+	public static ICapabilitySerializable<Tag> createProvider() {
 		if (CAPABILITY == null)
 			return null;
-		return new CapabilityProviderSerializable<>(CAPABILITY, null);
+		return new SerializableCapabilityWrapperProvider<>(CAPABILITY, null, new ElytraSpec());
 	}
 	
-	public static ICapabilitySerializable<INBT> createProvider(IElytraSpec spec) {
+	public static ICapabilitySerializable<Tag> createProvider(IElytraSpec spec) {
 		if (CAPABILITY == null)
 			return null;
-		return new CapabilityProviderSerializable<>(CAPABILITY, null, spec);
+		return new SerializableCapabilityWrapperProvider<>(CAPABILITY, null, spec);
 	}
 	
 	/**
 	 * Default implementation of {@link IElytraSpec}
 	 */
 	public static class ElytraSpec implements IElytraSpec {
-		protected WeakReference<ServerPlayerEntity> player;
+		public static final String TAG_BASE = "aerobaticelytra:spec";
+		public static final String TAG_ABILITIES = "Ability";
+		public static final String TAG_TRAIL = "Trail";
+		
+		protected WeakReference<ServerPlayer> player;
 		protected final Map<IAbility, Float> properties = new HashMap<>();
 		protected final Map<IEffectAbility, Boolean> effectAbilities = new HashMap<>();
 		protected final TrailData trailData = new TrailData();
@@ -89,17 +84,18 @@ public class ElytraSpecCapability {
 			registerAerobaticElytraDatapackAbilityReloadListener(); // Must call this on every instance
 		}
 		
-		@Override public void updatePlayerEntity(ServerPlayerEntity player) {
+		@Override public void updatePlayerEntity(ServerPlayer player) {
 			this.player = new WeakReference<>(player);
 		}
 		
-		@Override public @Nullable ServerPlayerEntity getPlayerEntity() {
+		@Override public @Nullable ServerPlayer getPlayerEntity() {
 			return player.get();
 		}
 		
 		@Override public float getAbility(IAbility prop) {
 			return properties.getOrDefault(prop, prop.getDefault());
 		}
+		
 		@Override public void setAbility(IAbility prop, float value) {
 			properties.put(prop, value);
 			if (prop instanceof IEffectAbility && !effectAbilities.containsKey(prop))
@@ -108,7 +104,7 @@ public class ElytraSpecCapability {
 		
 		@Override public Float removeAbility(IAbility ability) {
 			if (ability instanceof IEffectAbility && effectAbilities.remove(ability)) {
-				final ServerPlayerEntity player = this.player.get();
+				final ServerPlayer player = this.player.get();
 				if (player != null)
 					((IEffectAbility) ability).undoEffect(player);
 			}
@@ -121,7 +117,7 @@ public class ElytraSpecCapability {
 		
 		@Override public void putAbilities(Map<IAbility, Float> abilities) {
 			properties.putAll(abilities);
-			for (IAbility ability : abilities.keySet())
+			for (IAbility ability: abilities.keySet())
 				if (ability instanceof IEffectAbility && !effectAbilities.containsKey(ability))
 					effectAbilities.put((IEffectAbility) ability, false);
 		}
@@ -148,44 +144,15 @@ public class ElytraSpecCapability {
 			return trailData;
 		}
 		
-		@Override public String toString() {
-			return String.format(
-			  "FlightSpec: {%s, TrailData: %s}",
-			  properties.entrySet().stream().map(
-			    entry -> String.format("%s: %2.2f", entry.getKey(), entry.getValue())
-			  ).collect(Collectors.joining(", ")), trailData);
-		}
-	}
-	
-	public static boolean compareNoTrail(CompoundNBT leftCapNBT, CompoundNBT rightCapNBT) {
-		if (leftCapNBT == null && rightCapNBT == null)
-			return true;
-		else if (leftCapNBT == null || rightCapNBT == null)
-			return false;
-		CompoundNBT left = leftCapNBT.copy();
-		CompoundNBT right = rightCapNBT.copy();
-		left.getCompound("Parent").getCompound(Storage.TAG_BASE).remove(Storage.TAG_TRAIL);
-		right.getCompound("Parent").getCompound(Storage.TAG_BASE).remove(Storage.TAG_TRAIL);
-		return left.equals(right);
-	}
-	
-	/** Default Storage implementation */
-	public static class Storage implements IStorage<IElytraSpec> {
-		public static final String TAG_BASE = "aerobaticelytra:spec";
-		public static final String TAG_ABILITIES = "Ability";
-		public static final String TAG_TRAIL = "Trail";
-		
-		@Nullable
-		@Override
-		public INBT writeNBT(Capability<IElytraSpec> cap, IElytraSpec inst, Direction side) {
-			CompoundNBT nbt = new CompoundNBT();
-			CompoundNBT data = new CompoundNBT();
-			CompoundNBT ability = new CompoundNBT();
+		@Override public CompoundTag serializeCapability() {
+			CompoundTag nbt = new CompoundTag();
+			CompoundTag data = new CompoundTag();
+			CompoundTag ability = new CompoundTag();
 			
-			for (Map.Entry<String, Float> unknown : inst.getUnknownAbilities().entrySet())
+			for (Map.Entry<String, Float> unknown: getUnknownAbilities().entrySet())
 				ability.putFloat(unknown.getKey(), unknown.getValue());
 			
-			for (Entry<IAbility, Float> entry : inst.getAbilities().entrySet()) {
+			for (Entry<IAbility, Float> entry: getAbilities().entrySet()) {
 				final IAbility type = entry.getKey();
 				final float val = entry.getValue();
 				if (val != type.getDefault())
@@ -194,39 +161,58 @@ public class ElytraSpecCapability {
 			
 			data.put(TAG_ABILITIES, ability);
 			
-			CompoundNBT trailNBT = inst.getTrailData().write();
+			CompoundTag trailNBT = getTrailData().write();
 			if (!trailNBT.isEmpty())
 				data.put(TAG_TRAIL, trailNBT);
 			
 			nbt.put(TAG_BASE, data);
 			return nbt;
 		}
-		@Override
-		public void readNBT(Capability<IElytraSpec> cap, IElytraSpec inst, Direction side, INBT nbt) {
-			CompoundNBT dat = (CompoundNBT) nbt;
-			CompoundNBT data = dat.getCompound(TAG_BASE);
-			CompoundNBT ability = data.getCompound(TAG_ABILITIES);
+		
+		@Override public void deserializeCapability(CompoundTag nbt) {
+			CompoundTag data = nbt.getCompound(TAG_BASE);
+			CompoundTag ability = data.getCompound(TAG_ABILITIES);
 			
-			for (IAbility type : ModRegistries.getAbilities().values()) {
+			for (IAbility type: ModRegistries.getAbilities().values()) {
 				if (ability.contains(type.fullName())) {
 					float value = ability.getFloat(type.fullName());
 					if (Config.item.fix_nan_elytra_abilities && Float.isNaN(value))
 						value = type.getDefault();
-					inst.setAbility(type, value);
-				} else inst.setAbility(type, type.getDefault());
+					setAbility(type, value);
+				} else setAbility(type, type.getDefault());
 			}
 			
-			Map<String, Float> unknown = inst.getUnknownAbilities();
+			Map<String, Float> unknown = getUnknownAbilities();
 			unknown.clear();
-			for (String name : ability.getAllKeys()) {
+			for (String name: ability.getAllKeys()) {
 				if (!IAbility.isDefined(name))
 					unknown.put(name, ability.getFloat(name));
 			}
 			
-			TrailData trail = inst.getTrailData();
+			TrailData trail = getTrailData();
 			if (data.contains(TAG_TRAIL)) {
 				trail.read(data.getCompound(TAG_TRAIL));
 			}
 		}
+		
+		@Override public String toString() {
+			return String.format(
+			  "FlightSpec: {%s, TrailData: %s}",
+			  properties.entrySet().stream().map(
+				 entry -> String.format("%s: %2.2f", entry.getKey(), entry.getValue())
+			  ).collect(Collectors.joining(", ")), trailData);
+		}
+	}
+	
+	public static boolean compareNoTrail(CompoundTag leftCapNBT, CompoundTag rightCapNBT) {
+		if (leftCapNBT == null && rightCapNBT == null)
+			return true;
+		else if (leftCapNBT == null || rightCapNBT == null)
+			return false;
+		CompoundTag left = leftCapNBT.copy();
+		CompoundTag right = rightCapNBT.copy();
+		left.getCompound("Parent").getCompound(ElytraSpec.TAG_BASE).remove(ElytraSpec.TAG_TRAIL);
+		right.getCompound("Parent").getCompound(ElytraSpec.TAG_BASE).remove(ElytraSpec.TAG_TRAIL);
+		return left.equals(right);
 	}
 }

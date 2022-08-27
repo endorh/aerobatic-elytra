@@ -4,8 +4,8 @@ import endorh.aerobaticelytra.common.capability.IElytraSpec.RocketStar;
 import endorh.aerobaticelytra.common.flight.AerobaticFlight.VectorBase;
 import endorh.util.math.Vec3d;
 import endorh.util.math.Vec3f;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.LivingEntity;
 
 import static endorh.util.math.Vec3f.PI;
 
@@ -35,8 +35,8 @@ public abstract class BoostShape {
 			float rad = this.radius * radius;
 			for (int i = 0; i < passes; i++) {
 				for (int j = 0; j < points; j++) {
-					float x = MathHelper.cos(j * PI * 2 / points) * rad;
-					float y = MathHelper.sin(j * PI * 2 / points) * rad;
+					float x = Mth.cos(j * PI * 2 / points) * rad;
+					float y = Mth.sin(j * PI * 2 / points) * rad;
 					AerobaticTrail.createBoostParticle(
 					  player, explosion, pos, base, motion, x, y, 0F, noise, trailMod);
 				}
@@ -84,8 +84,8 @@ public abstract class BoostShape {
 					
 					for (int k = 1; k < points; k++) {
 						p = (float) k / points;
-						x = MathHelper.lerp(p, x_e, x_s);
-						y = MathHelper.lerp(p, y_e, y_s);
+						x = Mth.lerp(p, x_e, x_s);
+						y = Mth.lerp(p, y_e, y_s);
 						
 						AerobaticTrail.createBoostParticle(
 						  player, explosion, pos, base, motion, x, y, 0F, noise, trailMod);

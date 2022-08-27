@@ -2,67 +2,79 @@ package endorh.aerobaticelytra.common.capability;
 
 import endorh.aerobaticelytra.client.sound.AerobaticElytraSound;
 import endorh.aerobaticelytra.common.flight.AerobaticFlight.VectorBase;
+import endorh.util.capability.ISerializableCapability;
 import endorh.util.math.Vec3d;
-import net.minecraft.client.audio.ElytraSound;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.client.resources.sounds.ElytraOnPlayerSoundInstance;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.capabilities.Capability;
 
 import javax.annotation.Nullable;
 
 /**
- * {@link PlayerEntity} {@link Capability} containing flight data
+ * {@link Player} {@link Capability} containing flight data
  * such as rotation, inclination and acceleration
  */
-public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
+public interface IAerobaticData
+  extends ILocalPlayerCapability<IAerobaticData>, ISerializableCapability<CompoundTag> {
 	/**
 	 * Player of the capability<br>
 	 * Used to access the pitch and yaw
 	 */
-	PlayerEntity getPlayer();
+	Player getPlayer();
 	
 	/**
 	 * Player pitch, in degrees
-	 * @return {@link PlayerEntity#rotationPitch}
+	 *
+	 * @return {@link Player#getXRot()}
 	 */
 	default float getRotationPitch() {
-		return getPlayer().xRot;
+		return getPlayer().getXRot();
 	}
+	
 	/**
 	 * Player roll, in degrees
 	 */
 	float getRotationRoll();
+	
 	/**
 	 * Player yaw, in degrees
-	 * @return {@link PlayerEntity#rotationYaw}
+	 *
+	 * @return {@link Player#getYRot()}
 	 */
 	default float getRotationYaw() {
-		return getPlayer().yRot;
+		return getPlayer().getYRot();
 	}
 	
 	/**
 	 * Set player pitch
+	 *
 	 * @param pitch Pitch in degrees
 	 */
 	default void setRotationPitch(float pitch) {
-		PlayerEntity player = getPlayer();
-		player.xRotO = player.xRot;
-		player.xRot = pitch;
+		Player player = getPlayer();
+		player.xRotO = player.getXRot();
+		player.setXRot(pitch);
 	}
+	
 	/**
 	 * Set player roll
+	 *
 	 * @param roll Roll in degrees, 0 means no roll
 	 */
 	void setRotationRoll(float roll);
+	
 	/**
 	 * Set player yaw
+	 *
 	 * @param yaw Yaw in degrees, not bound to -180~180, as Minecraft
-	 *            doesn't bound
+	 *   doesn't bound
 	 */
 	default void setRotationYaw(float yaw) {
-		PlayerEntity player = getPlayer();
-		player.yRotO = player.yRot;
-		player.yRot = yaw;
+		Player player = getPlayer();
+		player.yRotO = player.getYRot();
+		player.setYRot(yaw);
 	}
 	
 	/**
@@ -108,34 +120,44 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	
 	/**
 	 * Previous player pitch, in degrees, used for rendering interpolation
-	 * @return {@link PlayerEntity#prevRotationPitch}
+	 *
+	 * @return {@link Player#xRotO}
 	 */
 	default float getPrevTickRotationPitch() {
 		return getPlayer().xRotO;
 	}
+	
 	/**
 	 * Previous player roll, used for rendering interpolation
 	 */
 	float getPrevTickRotationRoll();
+	
 	/**
 	 * Previous player yaw, in degrees, used for rendering interpolation
-	 * @return {@link PlayerEntity#prevRotationYaw}
+	 *
+	 * @return {@link Player#yRotO}
 	 */
 	default float getPrevTickRotationYaw() {
 		return getPlayer().yRotO;
 	}
+	
 	/**
 	 * Set previous player pitch
+	 *
 	 * @param pitch Pitch in degrees
 	 */
 	void setPrevTickRotationPitch(float pitch);
+	
 	/**
 	 * Set previous player roll
+	 *
 	 * @param roll Roll in degrees
 	 */
 	void setPrevTickRotationRoll(float roll);
+	
 	/**
 	 * Set previous player yaw
+	 *
 	 * @param yaw Yaw in degrees
 	 */
 	void setPrevTickRotationYaw(float yaw);
@@ -154,18 +176,23 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	/**
 	 * Player tilt in the pitch axis.<br>
 	 * Makes the player rotate in pitch every tick.
+	 *
 	 * @return Pitch tilt, in degrees per tick
 	 */
 	float getTiltPitch();
+	
 	/**
 	 * Player tilt in the roll axis.<br>
 	 * Makes the player rotate in roll every tick.
+	 *
 	 * @return Roll tilt, in degrees per tick
 	 */
 	float getTiltRoll();
+	
 	/**
 	 * Player tilt in the yaw axis.<br>
 	 * Makes the player rotate in yaw every tick
+	 *
 	 * @return Yaw tilt, in degrees per tick
 	 */
 	float getTiltYaw();
@@ -173,18 +200,23 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	/**
 	 * Set player tilt in the pitch axis.<br>
 	 * Makes the player rotate in pitch every tick
+	 *
 	 * @param tiltPitch Pitch tilt, in degrees per tick
 	 */
 	void setTiltPitch(float tiltPitch);
+	
 	/**
 	 * Set player tilt in the roll axis.<br>
 	 * Makes the player rotate in roll every tick
+	 *
 	 * @param tiltRoll Roll tilt, in degrees per tick
 	 */
 	void setTiltRoll(float tiltRoll);
+	
 	/**
 	 * Set player tilt in yaw axis.<br>
 	 * Makes the player rotate in yaw every tick
+	 *
 	 * @param tiltYaw Yaw tilt, in degrees per tick
 	 */
 	void setTiltYaw(float tiltYaw);
@@ -193,12 +225,15 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	 * Internal flying state
 	 */
 	boolean isFlying();
+	
 	/**
 	 * Set internal flying state
 	 */
 	void setFlying(boolean flying);
+	
 	/**
 	 * Update internal flying state
+	 *
 	 * @return True if the state changed as a result of the call
 	 */
 	default boolean updateFlying(boolean flying) {
@@ -212,7 +247,8 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	/**
 	 * Number of ticks using Aerobatic Flight.<br>
 	 * Reset to 0 when landing or switching flight mode
-	 * @see PlayerEntity#getTicksElytraFlying()
+	 *
+	 * @see Player#getFallFlyingTicks()
 	 */
 	int ticksFlying();
 	
@@ -221,12 +257,14 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	 * Updated every tick the player is flying to prevent useless re-computation
 	 */
 	boolean isAffectedByWeather();
+	
 	void setAffectedByWeather(boolean affected);
 	
 	/**
 	 * Propulsion delta per tick
 	 */
 	float getPropulsionAcceleration();
+	
 	/**
 	 * Set propulsion delta per tick
 	 */
@@ -236,8 +274,10 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	 * @return Player propulsion, in motion/tick
 	 */
 	float getPropulsionStrength();
+	
 	/**
 	 * Set player propulsion
+	 *
 	 * @param strength Propulsion, in motion/tick
 	 */
 	void setPropulsionStrength(float strength);
@@ -246,12 +286,15 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	 * Boost state
 	 */
 	boolean isBoosted();
+	
 	/**
 	 * Set boost state
 	 */
 	void setBoosted(boolean boosted);
+	
 	/**
 	 * Update boost state
+	 *
 	 * @return True if the boost state changed as a result of the call
 	 */
 	default boolean updateBoosted(boolean boosted) {
@@ -266,8 +309,10 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	 * @return Boost heat, between 0~1
 	 */
 	float getBoostHeat();
+	
 	/**
 	 * Set boost heat
+	 *
 	 * @param heat Boost heat, between 0~1
 	 */
 	void setBoostHeat(float heat);
@@ -276,8 +321,10 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	 * @return Braking state
 	 */
 	boolean isBraking();
+	
 	/**
 	 * Set braking state
+	 *
 	 * @param braking True if braking
 	 */
 	void setBraking(boolean braking);
@@ -286,8 +333,10 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	 * @return Brake strength, between 0~1
 	 */
 	float getBrakeStrength();
+	
 	/**
 	 * Set brake strength
+	 *
 	 * @param strength Brake strength, between 0~1
 	 */
 	void setBrakeStrength(float strength);
@@ -316,22 +365,25 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	 * Get the lift cut applied when colliding
 	 */
 	float getLiftCut();
+	
 	/**
 	 * Set the lift cut applied when colliding
 	 */
 	void setLiftCut(float cut);
 	
 	/**
-	 * Internal sneaking state, different from {@link PlayerEntity#isSneaking()}
+	 * Internal sneaking state, different from {@link Player#isCrouching()}
 	 */
 	boolean isSneaking();
+	
 	/**
-	 * Internal jumping state, different from the {@link PlayerEntity}'s
+	 * Internal jumping state, different from the {@link Player}'s
 	 * {@code isJumping} field
 	 */
 	boolean isJumping();
+	
 	/**
-	 * Internal sprinting state, different from {@link PlayerEntity#isSprinting()}
+	 * Internal sprinting state, different from {@link Player#isSprinting()}
 	 */
 	boolean isSprinting();
 	
@@ -339,16 +391,20 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	 * Set internal sneaking state
 	 */
 	void setSneaking(boolean sneaking);
+	
 	/**
 	 * Set internal jumping state
 	 */
 	void setJumping(boolean jumping);
+	
 	/**
 	 * Set internal sprinting state
 	 */
 	void setSprinting(boolean sprinting);
+	
 	/**
 	 * Update internal sneaking state
+	 *
 	 * @return True if the state changed
 	 */
 	default boolean updateSneaking(boolean sneaking) {
@@ -358,8 +414,10 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 		}
 		return false;
 	}
+	
 	/**
 	 * Update internal jumping state
+	 *
 	 * @return True if the state changed
 	 */
 	default boolean updateJumping(boolean jumping) {
@@ -369,8 +427,10 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 		}
 		return false;
 	}
+	
 	/**
 	 * Update internal sprinting state
+	 *
 	 * @return True if the state changed
 	 */
 	default boolean updateSprinting(boolean sprinting) {
@@ -386,7 +446,9 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	 * sound event state
 	 */
 	boolean isPlayingSound();
+	
 	void setPlayingSound(boolean playing);
+	
 	default boolean updatePlayingSound(boolean playing) {
 		if (isPlayingSound() != playing) {
 			setPlayingSound(playing);
@@ -400,8 +462,10 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	 * Used to interpolate camera angles smoothly on clients.
 	 */
 	double getLastRotationTime();
+	
 	/**
 	 * Set last rotation time
+	 *
 	 * @param time Last rotation time, in seconds
 	 */
 	void setLastRotationTime(double time);
@@ -409,18 +473,20 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	Vec3d getLastTrailPos();
 	
 	/**
-	 * Get the {@link ElytraSound} playing for the current player.<br>
+	 * Get the {@link ElytraOnPlayerSoundInstance} playing for the current player.<br>
 	 * Stored to swap it by an {@link AerobaticElytraSound}
 	 * if the player switches to use an aerobatic elytra mid-flight
 	 */
-	@Nullable ElytraSound getElytraSound();
+	@Nullable ElytraOnPlayerSoundInstance getElytraSound();
+	
 	/**
-	 * Set the {@link ElytraSound} playing for the current player.
+	 * Set the {@link ElytraOnPlayerSoundInstance} playing for the current player.
 	 * Stored to swap it by an {@link AerobaticElytraSound}
 	 * if the player switches to use an aerobatic elytra mid-flight
+	 *
 	 * @param sound Elytra sound event, null to remove it
 	 */
-	void setElytraSound(@Nullable ElytraSound sound);
+	void setElytraSound(@Nullable ElytraOnPlayerSoundInstance sound);
 	
 	/**
 	 * Copy save/login-persistent flight data
@@ -448,7 +514,7 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 		setLastRotationTime(0D);
 		setPropulsionStrength(0F);
 		getRotationBase().valid = false;
-		getLastTrailPos().set(Vector3d.ZERO);
+		getLastTrailPos().set(Vec3.ZERO);
 		setLiftCut(0F);
 	}
 	
@@ -467,7 +533,7 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 		setBrakeCooling(false);
 		setBrakeHeat(0F);
 		getRotationBase().valid = false;
-		getLastTrailPos().set(Vector3d.ZERO);
+		getLastTrailPos().set(Vec3.ZERO);
 		setLiftCut(0F);
 	}
 }

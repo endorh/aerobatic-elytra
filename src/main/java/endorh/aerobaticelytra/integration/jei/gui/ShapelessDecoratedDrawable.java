@@ -1,6 +1,6 @@
 package endorh.aerobaticelytra.integration.jei.gui;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import endorh.aerobaticelytra.client.ModResources;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.helpers.IGuiHelper;
@@ -38,7 +38,7 @@ public class ShapelessDecoratedDrawable implements IDrawable {
 		return decorated.getHeight();
 	}
 	
-	@Override public void draw(@NotNull MatrixStack mStack, int xOffset, int yOffset) {
+	@Override public void draw(@NotNull PoseStack mStack, int xOffset, int yOffset) {
 		decorated.draw(mStack, xOffset, yOffset);
 		final int shapelessIconX = getWidth() - (shapelessIcon.getWidth() / scale);
 		

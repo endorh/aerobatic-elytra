@@ -5,13 +5,13 @@ import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
 import endorh.aerobaticelytra.common.item.AerobaticElytraWingItem;
 import endorh.aerobaticelytra.common.item.ElytraDyement;
 import endorh.aerobaticelytra.common.item.ElytraDyement.WingSide;
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.IRecipeSerializer;
-import net.minecraft.item.crafting.SpecialRecipe;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CustomRecipe;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -23,7 +23,7 @@ import static endorh.aerobaticelytra.common.capability.ElytraSpecCapability.getE
  * {@link AerobaticElytraItem}, the wings must share
  * capabilities NBT, except for the trail.<br>
  */
-public class JoinRecipe extends SpecialRecipe {
+public class JoinRecipe extends CustomRecipe {
 	
 	private static final ElytraDyement leftDyement = new ElytraDyement();
 	private static final ElytraDyement rightDyement = new ElytraDyement();
@@ -33,7 +33,7 @@ public class JoinRecipe extends SpecialRecipe {
 	}
 	
 	@Override
-	public boolean matches(@NotNull CraftingInventory inv, @NotNull World world) {
+	public boolean matches(@NotNull CraftingContainer inv, @NotNull Level world) {
 		ItemStack left = ItemStack.EMPTY, right = ItemStack.EMPTY;
 		boolean found = false;
 		for (int i = 0; i < inv.getContainerSize(); i++) {
@@ -58,7 +58,7 @@ public class JoinRecipe extends SpecialRecipe {
 	}
 	
 	@Override
-	public @NotNull ItemStack assemble(@NotNull CraftingInventory inv) {
+	public @NotNull ItemStack assemble(@NotNull CraftingContainer inv) {
 		ItemStack left = ItemStack.EMPTY, right = ItemStack.EMPTY;
 		for (int i = 0; i < inv.getContainerSize(); i++) {
 			ItemStack current = inv.getItem(i);
@@ -92,8 +92,8 @@ public class JoinRecipe extends SpecialRecipe {
 	 * {@link JoinRecipe#matches(ItemStack, ItemStack)} returns true
 	 */
 	public static ItemStack join(ItemStack left, ItemStack right) {
-		final CompoundNBT caps = left.getOrCreateTagElement(SplitRecipe.TAG_SPLIT_ELYTRA_CAPS);
-		final CompoundNBT tag = left.getOrCreateTagElement(SplitRecipe.TAG_SPLIT_ELYTRA);
+		final CompoundTag caps = left.getOrCreateTagElement(SplitRecipe.TAG_SPLIT_ELYTRA_CAPS);
+		final CompoundTag tag = left.getOrCreateTagElement(SplitRecipe.TAG_SPLIT_ELYTRA);
 		ItemStack elytra = new ItemStack(((AerobaticElytraWingItem) left.getItem()).getElytraItem(), 1, caps.copy());
 		elytra.setTag(tag.copy());
 		leftDyement.read(left);
@@ -120,7 +120,7 @@ public class JoinRecipe extends SpecialRecipe {
 	}
 	
 	@Override
-	public @NotNull IRecipeSerializer<?> getSerializer() {
+	public @NotNull RecipeSerializer<?> getSerializer() {
 		return ModRecipes.JOIN_RECIPE.get();
 	}
 }

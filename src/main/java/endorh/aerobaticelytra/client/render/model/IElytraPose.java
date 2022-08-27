@@ -4,14 +4,15 @@ import endorh.aerobaticelytra.common.capability.AerobaticDataCapability;
 import endorh.aerobaticelytra.common.capability.IAerobaticData;
 import endorh.aerobaticelytra.common.config.Config;
 import endorh.util.math.Vec3f;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.item.ArmorStandEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.decoration.ArmorStand;
+import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static endorh.aerobaticelytra.client.render.model.AerobaticElytraModelPose.ModelRotation.*;
+import static net.minecraft.util.Mth.lerp;
+import static net.minecraft.util.Mth.wrapDegrees;
 
 /**
  * Describes a pose for the {@link AerobaticElytraModel}
@@ -77,14 +78,13 @@ public interface IElytraPose {
 		AerobaticElytraModelPose pose = getPose(
 		  entity, limbSwing, limbSwingAmount, netHeadYaw, headPitch,
 		  ageInTicks);
-		return pose == null ? DEFAULT_POSE : pose;
+		return pose == null? DEFAULT_POSE : pose;
 	}
 	
-	// I don't feel like declaring so many singleton classes
 	abstract class ElytraPose implements IElytraPose {
 		protected final AerobaticElytraModelPose pose = new AerobaticElytraModelPose();
 		
-		protected ElytraPose() { build(); }
+		protected ElytraPose() {build();}
 		
 		/**
 		 * Called on construction
@@ -93,7 +93,8 @@ public interface IElytraPose {
 		
 		@Override public @Nullable AerobaticElytraModelPose getPose(
 		  LivingEntity entity, float limbSwing, float limbSwingAmount,
-		  float netHeadYaw, float headPitch, float ageInTicks) {
+		  float netHeadYaw, float headPitch, float ageInTicks
+		) {
 			return pose;
 		}
 	}
@@ -114,7 +115,8 @@ public interface IElytraPose {
 		  
 		  @Override public AerobaticElytraModelPose getPose(
 			 LivingEntity entity, float limbSwing, float limbSwingAmount,
-			 float netHeadYaw, float headPitch, float ageInTicks) {
+			 float netHeadYaw, float headPitch, float ageInTicks
+		  ) {
 			  pose.leftWing.x = DEG_15 + DEG_20 * limbSwingAmount;
 			  pose.leftWing.z = -DEG_15 - DEG_10 * limbSwingAmount;
 			  pose.rightWing.x = pose.leftWing.x;
@@ -172,8 +174,7 @@ public interface IElytraPose {
 			float rightTipExtra = 0F;
 			
 			float yTilt = 1F;
-			if (entity instanceof PlayerEntity) {
-				PlayerEntity player = (PlayerEntity) entity;
+			if (entity instanceof Player player) {
 				IAerobaticData data = AerobaticDataCapability.getAerobaticDataOrDefault(player);
 				scaledPitch = data.getTiltPitch() / Config.aerobatic.tilt.range_pitch;
 				scaledRoll = data.getTiltRoll() / Config.aerobatic.tilt.range_roll;
@@ -185,8 +186,7 @@ public interface IElytraPose {
 				Vec3f motionVec = new Vec3f(player.getDeltaMovement());
 				if (motionVec.y < 0D)
 					yTilt = 1F - (float) Math.pow(-motionVec.y / motionVec.norm(), 1.5D);
-			} else if (entity instanceof ArmorStandEntity) {
-				ArmorStandEntity stand = (ArmorStandEntity) entity;
+			} else if (entity instanceof ArmorStand stand) {
 				scaledPitch = DEG_5;
 				scaledRoll = 0;
 				
@@ -196,18 +196,18 @@ public interface IElytraPose {
 				
 				yTilt = Math.min(1F - stand.getHeadPose().getZ() / 180F, 1F);
 				
-				leftTipExtra = MathHelper.wrapDegrees(stand.getLeftArmPose().getZ() + 10F) * TO_RAD;
-				rightTipExtra = MathHelper.wrapDegrees(stand.getRightArmPose().getZ() - 10F) * TO_RAD;
+				leftTipExtra = wrapDegrees(stand.getLeftArmPose().getZ() + 10F) * TO_RAD;
+				rightTipExtra = wrapDegrees(stand.getRightArmPose().getZ() - 10F) * TO_RAD;
 			} else return pose;
 			
 			yTilt = Math.max(yTilt, 0.3F);
 			yTilt = 1F - (1F - yTilt) * (1F - yTilt);
 			float pitchSens = 0.8F;
 			float rollSens = 0.8F;
-			float targetX = MathHelper.lerp(yTilt, DEG_15, DEG_20);
-			float targetZ = MathHelper.lerp(yTilt, -DEG_15, -DEG_90);
-			pose.leftWing.x = MathHelper.lerp(0.1F, pose.leftWing.x, targetX);
-			pose.leftWing.z = MathHelper.lerp(0.1F, pose.leftWing.z, targetZ);
+			float targetX = lerp(yTilt, DEG_15, DEG_20);
+			float targetZ = lerp(yTilt, -DEG_15, -DEG_90);
+			pose.leftWing.x = lerp(0.1F, pose.leftWing.x, targetX);
+			pose.leftWing.z = lerp(0.1F, pose.leftWing.z, targetZ);
 			pose.rightWing.x = pose.leftWing.x;
 			pose.rightWing.z = -pose.leftWing.z;
 			

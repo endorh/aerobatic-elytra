@@ -3,8 +3,8 @@ package endorh.aerobaticelytra.server;
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.network.AerobaticPackets.SAerobaticDataPacket;
 import endorh.aerobaticelytra.network.AerobaticPackets.SFlightDataPacket;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.entity.player.PlayerEvent.PlayerChangedDimensionEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent.PlayerRespawnEvent;
@@ -22,9 +22,9 @@ import static endorh.aerobaticelytra.common.capability.FlightDataCapability.getF
 public class SyncHandler {
 	@SubscribeEvent
 	public static void onStartTracking(StartTracking event) {
-		if (event.getTarget() instanceof PlayerEntity) {
-			PlayerEntity tracked = (PlayerEntity)event.getTarget();
-			ServerPlayerEntity player = (ServerPlayerEntity)event.getPlayer();
+		if (event.getTarget() instanceof Player) {
+			Player tracked = (Player)event.getTarget();
+			ServerPlayer player = (ServerPlayer)event.getPlayer();
 			new SFlightDataPacket(tracked).sendTo(player);
 			new SAerobaticDataPacket(tracked).sendTo(player);
 		}
@@ -32,12 +32,12 @@ public class SyncHandler {
 	
 	@SubscribeEvent
 	public static void onPlayerLogin(PlayerLoggedInEvent event) {
-		update((ServerPlayerEntity)event.getPlayer());
+		update((ServerPlayer)event.getPlayer());
 	}
 	
 	@SubscribeEvent
 	public static void onPlayerRespawn(PlayerRespawnEvent event) {
-		reset((ServerPlayerEntity)event.getPlayer());
+		reset((ServerPlayer)event.getPlayer());
 	}
 	
 	@SubscribeEvent
@@ -45,11 +45,11 @@ public class SyncHandler {
 		// reset((ServerPlayerEntity)event.getPlayer());
 	}
 	
-	private static void update(ServerPlayerEntity player) {
+	private static void update(ServerPlayer player) {
 		new SFlightDataPacket(player).sendTo(player);
 		new SAerobaticDataPacket(player).sendTo(player);
 	}
-	private static void reset(ServerPlayerEntity player) {
+	private static void reset(ServerPlayer player) {
 		getFlightDataOrDefault(player).reset();
 		getAerobaticDataOrDefault(player).reset();
 		new SFlightDataPacket(player).sendTo(player);

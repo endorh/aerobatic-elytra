@@ -1,9 +1,9 @@
 package endorh.aerobaticelytra.client.render.model;
 
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.util.Mth;
 
 public class AerobaticElytraModelPose {
-	
 	public ModelMovableRotation leftWing = new ModelMovableRotation();
 	public float leftTip = 0F;
 	public float leftRoll = 0F;
@@ -34,7 +34,7 @@ public class AerobaticElytraModelPose {
 	}
 	
 	public static class ModelRotation {
-		public static final float TO_RAD = (float)(Math.PI / 180D);
+		public static final float TO_RAD = (float) (Math.PI / 180D);
 		public static final float DEG_360 = 360F * TO_RAD;
 		public static final float DEG_5 = 5F * TO_RAD;
 		public static final float DEG_10 = 10F * TO_RAD;
@@ -54,13 +54,13 @@ public class AerobaticElytraModelPose {
 		
 		public static float lerpAngle(float t, float a, float b) {
 			if (a < b && b - a > a - b + DEG_360) {
-				final float r = MathHelper.lerp(t, a, b - DEG_360);
+				final float r = Mth.lerp(t, a, b - DEG_360);
 				return r <= -DEG_180? r + DEG_360 : r;
 			} else if (a > b && a - b > b - a + DEG_360) {
-				final float r = MathHelper.lerp(t, a, b + DEG_360);
+				final float r = Mth.lerp(t, a, b + DEG_360);
 				return r > DEG_180? r - DEG_360 : r;
 			} else {
-				return MathHelper.lerp(t, a, b);
+				return Mth.lerp(t, a, b);
 			}
 		}
 		
@@ -84,6 +84,16 @@ public class AerobaticElytraModelPose {
 			this.x = source.x;
 			this.y = mirror? -source.y : source.y;
 			this.z = mirror? -source.z : source.z;
+		}
+		
+		public void copyRotation(ModelPart part) {
+			x = part.xRot;
+			y = part.yRot;
+			z = part.zRot;
+		}
+		
+		public void applyRotation(ModelPart part) {
+			part.setRotation(x, y, z);
 		}
 	}
 	
@@ -124,6 +134,24 @@ public class AerobaticElytraModelPose {
 		public void copyOrigin(ModelMovableRotation source, boolean mirror) {
 			origin.copy(source.origin, mirror);
 		}
+		
+		public void applyOffset(ModelPart part) {
+			origin.applyOffset(part);
+		}
+		
+		public void applyOffsetAndRotation(ModelPart part) {
+			applyRotation(part);
+			applyOffset(part);
+		}
+		
+		public void copyOffset(ModelPart part) {
+			origin.copyOffset(part);
+		}
+		
+		public void copyOffsetAndRotation(ModelPart part) {
+			copyRotation(part);
+			copyOffset(part);
+		}
 	}
 	
 	public static class RotationPoint {
@@ -147,6 +175,16 @@ public class AerobaticElytraModelPose {
 			x = mirror? -source.x : source.x;
 			y = source.y;
 			z = source.z;
+		}
+		
+		public void applyOffset(ModelPart part) {
+			part.setPos(x, y, z);
+		}
+		
+		public void copyOffset(ModelPart part) {
+			x = part.x;
+			y = part.y;
+			z = part.z;
 		}
 	}
 }

@@ -4,16 +4,16 @@ import com.google.gson.*;
 import endorh.util.common.LogUtil;
 import endorh.util.common.ObfuscationReflectionUtil;
 import endorh.util.common.ObfuscationReflectionUtil.SoftField;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.loot.LootContext;
-import net.minecraft.loot.conditions.ILootCondition;
-import net.minecraft.potion.Effect;
-import net.minecraft.potion.EffectInstance;
-import net.minecraft.util.JSONUtils;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.GsonHelper;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -35,43 +35,49 @@ import static endorh.util.text.TextUtil.ttc;
 
 public interface IEffectAbility extends IDatapackAbility {
 	boolean testConditions(LootContext context);
-	void applyEffect(ServerPlayerEntity player);
-	void reapplyEffect(ServerPlayerEntity player);
-	void undoEffect(ServerPlayerEntity player);
+	
+	void applyEffect(ServerPlayer player);
+	
+	void reapplyEffect(ServerPlayer player);
+	
+	void undoEffect(ServerPlayer player);
+	
 	float getConsumption();
 	
 	class EffectAbility implements IEffectAbility {
-		private static final String REFLECTION_ERROR_MESSAGE = "Aerobatic Elytra Effect Abilities (if provided by datapacks) may not apply correctly";
+		private static final String REFLECTION_ERROR_MESSAGE =
+		  "Aerobatic Elytra Effect Abilities (if provided by datapacks) may not apply correctly";
 		private static final Logger LOGGER = LogManager.getLogger();
 		
-		private static final SoftField<EffectInstance, Integer> EffectInstance$duration =
+		private static final SoftField<MobEffectInstance, Integer> EffectInstance$duration =
 		  ObfuscationReflectionUtil.getSoftField(
-		    EffectInstance.class, "duration", "duration",
-		    LOGGER::error, REFLECTION_ERROR_MESSAGE);
+			 MobEffectInstance.class, "duration", "duration",
+			 LOGGER::error, REFLECTION_ERROR_MESSAGE);
 		
-		private static final SoftField<EffectInstance, EffectInstance> EffectInstance$hiddenEffects =
+		private static final SoftField<MobEffectInstance, MobEffectInstance>
+		  EffectInstance$hiddenEffects =
 		  ObfuscationReflectionUtil.getSoftField(
-		    EffectInstance.class, "hiddenEffect", "hiddenEffects",
-		    LOGGER::error, REFLECTION_ERROR_MESSAGE);
+			 MobEffectInstance.class, "hiddenEffect", "hiddenEffects",
+			 LOGGER::error, REFLECTION_ERROR_MESSAGE);
 		
 		public final String jsonName;
-		public final TextFormatting color;
+		public final ChatFormatting color;
 		public final float defValue;
 		public final float consumption;
-		public final Map<Effect, Integer> effects;
+		public final Map<MobEffect, Integer> effects;
 		public final Predicate<LootContext> condition;
 		
 		protected String translationKey;
 		protected ResourceLocation registryName = null;
 		
 		public EffectAbility(
-		  String jsonName, TextFormatting color, float defValue,
-		  Map<Effect, Integer> effects,
+		  String jsonName, ChatFormatting color, float defValue,
+		  Map<MobEffect, Integer> effects,
 		  Predicate<LootContext> condition,
 		  float consumption
 		) {
 			this.jsonName = Objects.requireNonNull(jsonName);
-			this.color = color != null? color : TextFormatting.GRAY;
+			this.color = color != null? color : ChatFormatting.GRAY;
 			this.defValue = defValue;
 			this.effects = effects != null? effects : new HashMap<>();
 			this.condition = condition != null? condition : c -> true;
@@ -82,13 +88,13 @@ public interface IEffectAbility extends IDatapackAbility {
 			return condition.test(context);
 		}
 		
-		@Override public void reapplyEffect(ServerPlayerEntity player) {
+		@Override public void reapplyEffect(ServerPlayer player) {
 			applyEffect(player);
 		}
 		
-		@Override public void applyEffect(ServerPlayerEntity player) {
-			for (Effect effect : effects.keySet()) {
-				final EffectInstance active = player.getEffect(effect);
+		@Override public void applyEffect(ServerPlayer player) {
+			for (MobEffect effect: effects.keySet()) {
+				final MobEffectInstance active = player.getEffect(effect);
 				final Integer level = effects.get(effect);
 				if (active != null) {
 					if (level <= active.getAmplifier()) {
@@ -96,29 +102,34 @@ public interface IEffectAbility extends IDatapackAbility {
 							EffectInstance$duration.set(active, Integer.MAX_VALUE);
 						return;
 					}
-					final EffectInstance instance = new EffectInstance(effect, 0, level, true, false, false);
+					final MobEffectInstance instance =
+					  new MobEffectInstance(effect, 0, level, true, false, false);
 					instance.setNoCounter(true);
-					player.addEffect(instance); // This updates `active` with `instance`s values and queues a copy of `active` in its hiddenEffects values, thus, the next line
+					player.addEffect(
+					  instance); // This updates `active` with `instance`s values and queues a copy of `active` in its hiddenEffects values, thus, the next line
 					EffectInstance$duration.set(active, Integer.MAX_VALUE);
 				} else {
-					final EffectInstance instance = new EffectInstance(effect, Integer.MAX_VALUE, level, true, false, false);
+					final MobEffectInstance instance =
+					  new MobEffectInstance(effect, Integer.MAX_VALUE, level, true, false, false);
 					instance.setNoCounter(true);
 					player.addEffect(instance);
 				}
 			}
 		}
 		
-		@Override public void undoEffect(ServerPlayerEntity player) {
-			final Map<Effect, EffectInstance> potionMap = player.getActiveEffectsMap();
-			effects:for (Effect effect : effects.keySet()) {
-				EffectInstance instance = potionMap.get(effect);
+		@Override public void undoEffect(ServerPlayer player) {
+			final Map<MobEffect, MobEffectInstance> potionMap = player.getActiveEffectsMap();
+			effects:
+			for (MobEffect effect: effects.keySet()) {
+				MobEffectInstance instance = potionMap.get(effect);
 				if (instance.getAmplifier() == effects.get(effect)
 				    && instance.getDuration() > Integer.MAX_VALUE / 2
-				    && instance.isAmbient() && !instance.isVisible()) { // && instance.getIsPotionDurationMax()) {
+				    && instance.isAmbient() &&
+				    !instance.isVisible()) { // && instance.getIsPotionDurationMax()) {
 					EffectInstance$duration.set(instance, 1);
 					continue;
 				}
-				EffectInstance prev;
+				MobEffectInstance prev;
 				for (int i = 0xFF; i >= 0; i--) { // I can't sleep leaving this uncapped
 					prev = instance;
 					instance = EffectInstance$hiddenEffects.get(prev);
@@ -126,13 +137,17 @@ public interface IEffectAbility extends IDatapackAbility {
 						continue effects;
 					if (instance.getAmplifier() == effects.get(effect)
 					    && instance.getDuration() > Integer.MAX_VALUE / 2
-					    && instance.isAmbient() && !instance.isVisible()) { // && instance.getIsPotionDurationMax()) {
+					    && instance.isAmbient() &&
+					    !instance.isVisible()) { // && instance.getIsPotionDurationMax()) {
 						// Remove instance from the linked array
-						EffectInstance$hiddenEffects.set(prev, EffectInstance$hiddenEffects.get(instance));
+						EffectInstance$hiddenEffects.set(
+						  prev, EffectInstance$hiddenEffects.get(instance));
 						continue effects;
 					}
 				}
-				LogUtil.errorOnce(LOGGER, "Aborted infinite (?) recursion in effect linked array\nSomeone messed up potions");
+				LogUtil.errorOnce(
+				  LOGGER,
+				  "Aborted infinite (?) recursion in effect linked array\nSomeone messed up potions");
 			}
 		}
 		
@@ -145,9 +160,10 @@ public interface IEffectAbility extends IDatapackAbility {
 		}
 		
 		@OnlyIn(Dist.CLIENT) @Override
-		public IFormattableTextComponent getDisplayName() {
+		public MutableComponent getDisplayName() {
 			if (registryName == null)
-				throw new IllegalStateException("Cannot get display name of unregistered IEffectAbility");
+				throw new IllegalStateException(
+				  "Cannot get display name of unregistered IEffectAbility");
 			if (translationKey == null)
 				translationKey = "aerobaticelytra.effect-abilities." + fullName().replace(':', '.');
 			return I18n.exists(translationKey)? ttc(translationKey) : stc(jsonName);
@@ -183,34 +199,41 @@ public interface IEffectAbility extends IDatapackAbility {
 			  JsonElement json, Type typeOfT, JsonDeserializationContext context
 			) {
 				if (!json.isJsonObject())
-					throw new JsonParseException("Aerobatic elytra effect abilities must be JSON objects");
+					throw new JsonParseException(
+					  "Aerobatic elytra effect abilities must be JSON objects");
 				final JsonObject obj = json.getAsJsonObject();
-				final String type = JSONUtils.getAsString(obj, "type");
+				final String type = GsonHelper.getAsString(obj, "type");
 				if (!type.equals(EFFECT_ABILITY_TYPE))
-					throw new JsonParseException("Unknown aerobatic elytra effect ability: '" + type + "'. Only known value is '" + EFFECT_ABILITY_TYPE + "'");
-				final String jsonName = JSONUtils.getAsString(obj, "id");
-				final String colorName = JSONUtils.getAsString(obj, "color", "GRAY");
-				final TextFormatting color = TextFormatting.getByName(colorName);
+					throw new JsonParseException(
+					  "Unknown aerobatic elytra effect ability: '" + type + "'. Only known value is '" +
+					  EFFECT_ABILITY_TYPE + "'");
+				final String jsonName = GsonHelper.getAsString(obj, "id");
+				final String colorName = GsonHelper.getAsString(obj, "color", "GRAY");
+				final ChatFormatting color = ChatFormatting.getByName(colorName);
 				if (color == null || !color.isColor())
-					throw new JsonParseException("Invalid aerobatic elytra effect ability: '" + colorName + "'");
-				final float defValue = JSONUtils.getAsFloat(obj, "default", 0F);
+					throw new JsonParseException(
+					  "Invalid aerobatic elytra effect ability: '" + colorName + "'");
+				final float defValue = GsonHelper.getAsFloat(obj, "default", 0F);
 				
-				final JsonObject effectsObj = JSONUtils.getAsJsonObject(obj, "effects", new JsonObject());
-				final Map<Effect, Integer> effects = new HashMap<>();
-				for (Entry<String, JsonElement> entry : effectsObj.entrySet()) {
-					final Effect effect = ForgeRegistries.POTIONS.getValue(new ResourceLocation(entry.getKey()));
+				final JsonObject effectsObj =
+				  GsonHelper.getAsJsonObject(obj, "effects", new JsonObject());
+				final Map<MobEffect, Integer> effects = new HashMap<>();
+				for (Entry<String, JsonElement> entry: effectsObj.entrySet()) {
+					final MobEffect effect = ForgeRegistries.MOB_EFFECTS.getValue(new ResourceLocation(entry.getKey()));
 					final JsonObject effectData = entry.getValue().getAsJsonObject();
-					effects.put(effect, JSONUtils.getAsInt(effectData, "amplifier", 1) - 1);
+					effects.put(effect, GsonHelper.getAsInt(effectData, "amplifier", 1) - 1);
 				}
 				
-				final JsonArray conditionsArr = JSONUtils.getAsJsonArray(obj, "conditions", new JsonArray());
+				final JsonArray conditionsArr =
+				  GsonHelper.getAsJsonArray(obj, "conditions", new JsonArray());
 				// This makes re-serialization impossible
 				//noinspection unchecked
 				final Predicate<LootContext> condition = ((Stream<Predicate<LootContext>>) (Stream<?>)
-				  Arrays.stream(context.<ILootCondition[]>deserialize(conditionsArr, ILootCondition[].class))
+				  Arrays.stream(
+				    context.<LootItemCondition[]>deserialize(conditionsArr, LootItemCondition[].class))
 				).reduce(Predicate::and).orElse(c -> true);
 				
-				final float consumption = JSONUtils.getAsFloat(obj, "consumption", 0F);
+				final float consumption = GsonHelper.getAsFloat(obj, "consumption", 0F);
 				
 				return new EffectAbility(jsonName, color, defValue, effects, condition, consumption);
 			}

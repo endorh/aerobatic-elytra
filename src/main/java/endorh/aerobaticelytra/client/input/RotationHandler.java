@@ -8,11 +8,11 @@ import endorh.aerobaticelytra.common.config.Const;
 import endorh.aerobaticelytra.common.flight.AerobaticFlight;
 import endorh.aerobaticelytra.common.flight.AerobaticFlight.VectorBase;
 import endorh.flightcore.events.PlayerTurnEvent;
-import net.minecraft.client.GameSettings;
+import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.settings.PointOfView;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.Options;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
@@ -38,7 +38,7 @@ public class RotationHandler {
 	 */
 	@SubscribeEvent
 	public static void onPlayerEntityRotateEvent(PlayerTurnEvent event) {
-		PlayerEntity player = event.player;
+		Player player = event.player;
 		if (AerobaticFlight.isAerobaticFlying(player)) {
 			flying = true;
 			event.setCanceled(true); // Prevent default rotation
@@ -55,7 +55,7 @@ public class RotationHandler {
 	/**
 	 * Handle the rotation of the player
 	 */
-	public static void onPlayerRotate(PlayerEntity player, float x, float y) {
+	public static void onPlayerRotate(Player player, float x, float y) {
 		IAerobaticData data = getAerobaticDataOrDefault(player);
 		
 		// Hardcoded mouse scaling from Minecraft code (Entity#rotateTowards())
@@ -63,12 +63,12 @@ public class RotationHandler {
 		double scaledX = x * 0.15D;
 		
 		// Inverted controls
-		final GameSettings settings = Minecraft.getInstance().options;
+		final Options settings = Minecraft.getInstance().options;
 		int i_p = settings.invertYMouse ? -1 : 1;
 		int i_r = 1;
 		if (ClientConfig.controls.invert_pitch)
 			i_p *= -1;
-		if (settings.getCameraType() == PointOfView.THIRD_PERSON_FRONT
+		if (settings.getCameraType() == CameraType.THIRD_PERSON_FRONT
 		    && ClientConfig.controls.invert_front_third_person) {
 			i_p *= -1;
 			i_r *= -1;
@@ -84,14 +84,14 @@ public class RotationHandler {
 		tiltPitch += scaledY * PITCH_SENS_PRESCALE * ClientConfig.controls.pitch_sens * i_p;
 		
 		// Clamp within limit
-		tiltRoll = MathHelper.clamp(tiltRoll, -Config.aerobatic.tilt.range_roll, Config.aerobatic.tilt.range_roll);
-		tiltPitch = MathHelper.clamp(tiltPitch, -Config.aerobatic.tilt.range_pitch, Config.aerobatic.tilt.range_pitch);
+		tiltRoll = Mth.clamp(tiltRoll, -Config.aerobatic.tilt.range_roll, Config.aerobatic.tilt.range_roll);
+		tiltPitch = Mth.clamp(tiltPitch, -Config.aerobatic.tilt.range_pitch, Config.aerobatic.tilt.range_pitch);
 		
 		// Update yaw tilt from the moveStrafing field
-		float yawDelta = -0.5F * MathHelper.sign(tiltYaw) + 1.5F * MathHelper.sign(player.xxa);
+		float yawDelta = -0.5F * Mth.sign(tiltYaw) + 1.5F * Mth.sign(player.xxa);
 		if (player.xxa == 0)
-			yawDelta = MathHelper.sign(yawDelta) * MathHelper.clamp(2 * abs(yawDelta), 0F, abs(tiltYaw));
-		tiltYaw = MathHelper.clamp(tiltYaw + yawDelta * YAW_SENS_PRESCALE * ClientConfig.controls.yaw_sens,
+			yawDelta = Mth.sign(yawDelta) * Mth.clamp(2 * abs(yawDelta), 0F, abs(tiltYaw));
+		tiltYaw = Mth.clamp(tiltYaw + yawDelta * YAW_SENS_PRESCALE * ClientConfig.controls.yaw_sens,
 		                           -Config.aerobatic.tilt.range_yaw, Config.aerobatic.tilt.range_yaw);
 		
 		// Update tilt
@@ -100,7 +100,7 @@ public class RotationHandler {
 		data.setTiltYaw(tiltYaw);
 	}
 	
-	public static void onUnderwaterPlayerRotate(PlayerEntity player, float x, float y) {
+	public static void onUnderwaterPlayerRotate(Player player, float x, float y) {
 		IAerobaticData data = getAerobaticDataOrDefault(player);
 		
 		// Hardcoded mouse scaling from Minecraft code (Entity#rotateTowards())
@@ -108,12 +108,12 @@ public class RotationHandler {
 		double scaledX = x * 0.15D;
 		
 		// Inverted controls
-		final GameSettings settings = Minecraft.getInstance().options;
+		final Options settings = Minecraft.getInstance().options;
 		int i_p = settings.invertYMouse ? -1 : 1;
 		int i_r = 1;
 		if (ClientConfig.controls.invert_pitch)
 			i_p *= -1;
-		if (settings.getCameraType() == PointOfView.THIRD_PERSON_FRONT
+		if (settings.getCameraType() == CameraType.THIRD_PERSON_FRONT
 		    && ClientConfig.controls.invert_front_third_person) {
 			i_p *= -1;
 			i_r *= -1;
@@ -145,8 +145,8 @@ public class RotationHandler {
 		tiltPitch += scaledY * PITCH_SENS_PRESCALE * ClientConfig.controls.pitch_sens * i_p;
 		
 		// Clamp within limit
-		tiltRoll = MathHelper.clamp(tiltRoll, -Config.aerobatic.tilt.range_roll, Config.aerobatic.tilt.range_roll);
-		tiltPitch = MathHelper.clamp(tiltPitch, -Config.aerobatic.tilt.range_pitch, Config.aerobatic.tilt.range_pitch);
+		tiltRoll = Mth.clamp(tiltRoll, -Config.aerobatic.tilt.range_roll, Config.aerobatic.tilt.range_roll);
+		tiltPitch = Mth.clamp(tiltPitch, -Config.aerobatic.tilt.range_pitch, Config.aerobatic.tilt.range_pitch);
 		
 		// Apply instantaneous rotation
 		base.look.rotateAlongOrtVecDegrees(base.roll, pitchDelta);
@@ -154,11 +154,11 @@ public class RotationHandler {
 		base.roll.rotateAlongOrtVecDegrees(base.look, rollDelta);
 		base.normal.rotateAlongOrtVecDegrees(base.look, rollDelta);
 		
-		float yawDelta = -0.5F * MathHelper.sign(tiltYaw) + 1.5F * MathHelper.sign(player.xxa);
+		float yawDelta = -0.5F * Mth.sign(tiltYaw) + 1.5F * Mth.sign(player.xxa);
 		if (player.xxa == 0)
-			yawDelta = MathHelper.sign(yawDelta) * MathHelper.clamp(2 * abs(yawDelta), 0F, abs(tiltYaw));
+			yawDelta = Mth.sign(yawDelta) * Mth.clamp(2 * abs(yawDelta), 0F, abs(tiltYaw));
 		final float underwaterYawSens = Const.UNDERWATER_YAW_RANGE_MULTIPLIER;
-		tiltYaw = MathHelper.clamp(tiltYaw + yawDelta * YAW_SENS_PRESCALE * ClientConfig.controls.yaw_sens * underwaterYawSens,
+		tiltYaw = Mth.clamp(tiltYaw + yawDelta * YAW_SENS_PRESCALE * ClientConfig.controls.yaw_sens * underwaterYawSens,
 		  -Config.aerobatic.tilt.range_yaw * underwaterYawSens, Config.aerobatic.tilt.range_yaw * underwaterYawSens);
 		
 		// Update tilt

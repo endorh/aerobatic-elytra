@@ -1,7 +1,7 @@
 package endorh.aerobaticelytra.debug;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.TickEvent.Phase;
 import net.minecraftforge.event.TickEvent.WorldTickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -17,9 +17,9 @@ public class DebugTicker {
 	public static void onTick(WorldTickEvent event) {
 		if (!Debug.isEnabled())
 			return;
-		final List<? extends PlayerEntity> players = event.world.players();
+		final List<? extends Player> players = event.world.players();
 		if (!players.isEmpty()) {
-			ServerPlayerEntity player = (ServerPlayerEntity) players.get(0);
+			ServerPlayer player = (ServerPlayer) players.get(0);
 			if (event.phase == Phase.START) {
 				onPreTick(player);
 			}
@@ -29,7 +29,7 @@ public class DebugTicker {
 		}
 	}
 	
-	public static void onPreTick(ServerPlayerEntity player) {
+	public static void onPreTick(ServerPlayer player) {
 		/*int floatingTickCount = -1;
 		if (TravelHandler.ServerPlayNetHandler$floatingTickCount != null) {
 			try {
@@ -46,7 +46,7 @@ public class DebugTicker {
 		}*/
 	}
 	
-	public static void onPosTick(ServerPlayerEntity player) {
+	public static void onPosTick(ServerPlayer player) {
 	
 	}
 }

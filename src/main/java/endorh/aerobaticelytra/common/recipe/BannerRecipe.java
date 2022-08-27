@@ -2,28 +2,28 @@ package endorh.aerobaticelytra.common.recipe;
 
 import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
 import endorh.aerobaticelytra.common.item.AerobaticElytraWingItem;
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.item.BannerItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.IRecipeSerializer;
-import net.minecraft.item.crafting.SpecialRecipe;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.item.BannerItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CustomRecipe;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Applies a banner to an Aerobatic Elytra, or a single wing
  */
-public class BannerRecipe extends SpecialRecipe {
+public class BannerRecipe extends CustomRecipe {
 	
 	public BannerRecipe(ResourceLocation id) {
 		super(id);
 	}
 	
 	@Override
-	public boolean matches(CraftingInventory inv, @NotNull World world) {
+	public boolean matches(CraftingContainer inv, @NotNull Level world) {
 		boolean foundElytra = false;
 		boolean foundBanner = false;
 		
@@ -47,7 +47,7 @@ public class BannerRecipe extends SpecialRecipe {
 	}
 	
 	@NotNull @Override
-	public ItemStack assemble(CraftingInventory inv) {
+	public ItemStack assemble(CraftingContainer inv) {
 		ItemStack elytra = ItemStack.EMPTY;
 		ItemStack banner = ItemStack.EMPTY;
 		
@@ -72,8 +72,8 @@ public class BannerRecipe extends SpecialRecipe {
 	public static ItemStack apply(ItemStack elytra, ItemStack banner) {
 		ItemStack result = elytra.copy();
 		result.setCount(1);
-		CompoundNBT source = banner.getTagElement("BlockEntityTag");
-		CompoundNBT tag = source == null ? new CompoundNBT() : source.copy();
+		CompoundTag source = banner.getTagElement("BlockEntityTag");
+		CompoundTag tag = source == null ? new CompoundTag() : source.copy();
 		
 		tag.putInt("Base", ((BannerItem) banner.getItem()).getColor().getId());
 		result.addTagElement("BlockEntityTag", tag);
@@ -89,7 +89,7 @@ public class BannerRecipe extends SpecialRecipe {
 	}
 	
 	@NotNull @Override
-	public IRecipeSerializer<?> getSerializer() {
+	public RecipeSerializer<?> getSerializer() {
 		return ModRecipes.BANNER_RECIPE.get();
 	}
 }

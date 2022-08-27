@@ -12,10 +12,10 @@ import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.gui.ingredient.IGuiItemStackGroup;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.IFocus;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -44,7 +44,7 @@ public class JoinRecipeCategory extends BaseCategory<JoinRecipe> {
 	@Override public void setRecipe(
 	  @NotNull IRecipeLayout layout, @NotNull JoinRecipe recipe, @NotNull IIngredients ingredients
 	) {
-		IFocus<?> focus = layout.getFocus();
+		IFocus<?> focus = layout.getFocus(VanillaTypes.ITEM);
 		
 		final IGuiItemStackGroup stacks = layout.getItemStacks();
 		stacks.init(0, true, 0, 0);
@@ -62,10 +62,10 @@ public class JoinRecipeCategory extends BaseCategory<JoinRecipe> {
 		stacks.set(2, elytras);
 	}
 	
-	@Override public @NotNull List<ITextComponent> getTooltipStrings(
+	@Override public @NotNull List<Component> getTooltipStrings(
 	  @NotNull JoinRecipe recipe, double mouseX, double mouseY
 	) {
-		final List<ITextComponent> tt = super.getTooltipStrings(recipe, mouseX, mouseY);
+		final List<Component> tt = super.getTooltipStrings(recipe, mouseX, mouseY);
 		if (inRect(mouseX, mouseY, 61, 19, 22, 15))
 			tt.addAll(optSplitTtc("aerobaticelytra.jei.help.category.join"));
 		return tt;

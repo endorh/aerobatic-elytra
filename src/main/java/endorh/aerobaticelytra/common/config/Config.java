@@ -6,9 +6,9 @@ import endorh.simpleconfig.api.SimpleConfig;
 import endorh.simpleconfig.api.SimpleConfig.Type;
 import endorh.simpleconfig.api.annotation.Bind;
 import endorh.simpleconfig.api.entry.FloatEntryBuilder;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.event.ClickEvent;
-import net.minecraft.util.text.event.HoverEvent;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.HoverEvent;
 
 import static endorh.simpleconfig.api.ConfigBuilderFactoryProxy.*;
 import static endorh.util.text.TextUtil.stc;
@@ -99,7 +99,7 @@ public class Config {
 			 "aerobaticelytra.config.text.datapack_tip",
 			 stc(datapack_command)
 			   .withStyle(style -> style
-			     .withColor(TextFormatting.GOLD)
+			     .withColor(ChatFormatting.GOLD)
 				  .withHoverEvent(new HoverEvent(
 				    HoverEvent.Action.SHOW_TEXT, ttc("chat.copy.click")))
 				  // The SUGGEST_COMMAND action requires the chat to be open

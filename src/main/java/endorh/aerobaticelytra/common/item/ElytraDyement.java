@@ -1,28 +1,40 @@
 package endorh.aerobaticelytra.common.item;
 
 import com.mojang.datafixers.util.Pair;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.CauldronBlock;
-import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.DyeColor;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemStack.TooltipDisplayFlags;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.tileentity.BannerPattern;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.world.World;
+import endorh.aerobaticelytra.AerobaticElytra;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.cauldron.CauldronInteraction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.stats.Stats;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStack.TooltipPart;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.CauldronBlock;
+import net.minecraft.world.level.block.LayeredCauldronBlock;
+import net.minecraft.world.level.block.entity.BannerPattern;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.ref.WeakReference;
 import java.util.*;
 
+import static endorh.util.common.ColorUtil.getTextureDiffuseColor;
 import static endorh.util.text.TextUtil.ttc;
+import static net.minecraft.world.level.block.state.properties.BlockStateProperties.LEVEL_CAULDRON;
 
 /**
  * Helper for reading/writing dye info from/to NBT<br>
@@ -58,6 +70,7 @@ import static endorh.util.text.TextUtil.ttc;
  * From the bottommost layer to the topmost. Only 16 layers are rendered
  * at most.
  */
+@EventBusSubscriber(bus=Bus.MOD, modid=AerobaticElytra.MOD_ID)
 public class ElytraDyement {
 	protected static ElytraDyement dyement = new ElytraDyement();
 	public Map<WingSide, WingDyement> sides = new HashMap<>();
@@ -70,12 +83,13 @@ public class ElytraDyement {
 	
 	public ElytraDyement(int defaultColor) {
 		this.defaultColor = defaultColor;
-		for (WingSide side : WingSide.values())
+		for (WingSide side: WingSide.values())
 			sides.put(side, new WingDyement(this));
 	}
 	
 	/**
 	 * Read from NBT
+	 *
 	 * @param elytra Elytra stack
 	 */
 	public void read(ItemStack elytra) {
@@ -84,6 +98,7 @@ public class ElytraDyement {
 	
 	/**
 	 * Read from NBT
+	 *
 	 * @param elytra Elytra stack
 	 * @param readWings False to only read hasWingDyement
 	 */
@@ -93,6 +108,7 @@ public class ElytraDyement {
 	
 	/**
 	 * Read from NBT
+	 *
 	 * @param elytra Elytra stack
 	 * @param defaultColor False to only read hasWingDyement
 	 */
@@ -102,6 +118,7 @@ public class ElytraDyement {
 	
 	/**
 	 * Read from NBT
+	 *
 	 * @param elytra Elytra stack
 	 * @param defaultColor Default color used when no color is present
 	 * @param readWings False to only read hasWingDyement
@@ -110,11 +127,11 @@ public class ElytraDyement {
 		hasWingDyement = elytra.getTagElement("WingInfo") != null;
 		if (readWings) {
 			if (hasWingDyement) {
-				for (WingSide side : sides.keySet())
+				for (WingSide side: sides.keySet())
 					sides.get(side).read(elytra, side, defaultColor);
 			} else {
 				sides.get(WingSide.LEFT).read(elytra, WingSide.LEFT, defaultColor);
-				for (WingSide side : WingSide.values()) {
+				for (WingSide side: WingSide.values()) {
 					if (side != WingSide.LEFT)
 						sides.get(side).read(elytra, side, defaultColor);
 				}
@@ -140,7 +157,7 @@ public class ElytraDyement {
 	
 	public void setPattern(
 	  DyeColor base, List<Pair<BannerPattern, DyeColor>> bannerData
-	) { setPattern(base, bannerData, true); }
+	) {setPattern(base, bannerData, true);}
 	
 	public void setPattern(
 	  DyeColor base, List<Pair<BannerPattern, DyeColor>> bannerData, boolean addBase
@@ -171,12 +188,13 @@ public class ElytraDyement {
 	
 	/**
 	 * Writes to an item stack
+	 *
 	 * @param stack Stack to write
 	 */
 	public void write(ItemStack stack) {
 		if (hasWingDyement) {
 			stack.removeTagKey("BlockEntityTag");
-			for (WingSide side : WingSide.values())
+			for (WingSide side: WingSide.values())
 				sides.get(side).write(stack, side);
 		} else {
 			stack.removeTagKey("WingInfo");
@@ -214,7 +232,7 @@ public class ElytraDyement {
 		
 		public void setPattern(
 		  DyeColor base, List<Pair<BannerPattern, DyeColor>> patternData
-		) { setPattern(base, patternData, true); }
+		) {setPattern(base, patternData, true);}
 		
 		public void setPattern(
 		  DyeColor base, List<Pair<BannerPattern, DyeColor>> patternData, boolean addBase
@@ -226,7 +244,7 @@ public class ElytraDyement {
 			hasPattern = true;
 			basePatternColor = base;
 			patternColorData = patternData;
-			color = base.getColorValue();
+			color = getTextureDiffuseColor(base);
 			final ElytraDyement parent = this.parent.get();
 			if (parent != null)
 				parent.hasWingDyement = true;
@@ -243,19 +261,20 @@ public class ElytraDyement {
 		
 		/**
 		 * Read from NBT
+		 *
 		 * @param elytra Elytra stack
 		 * @param side Wing side
 		 * @param defaultColor Default color used when no color is present
 		 */
 		public void read(ItemStack elytra, WingSide side, int defaultColor) {
-			CompoundNBT wingInfo = elytra.getTagElement("WingInfo");
-			CompoundNBT data;
+			CompoundTag wingInfo = elytra.getTagElement("WingInfo");
+			CompoundTag data;
 			if (wingInfo == null) {
 				data = elytra.getTagElement("BlockEntityTag");
 				if (data == null) {
 					hasPattern = false;
 					patternColorData = null;
-					CompoundNBT display = elytra.getTagElement("display");
+					CompoundTag display = elytra.getTagElement("display");
 					if (display == null) {
 						hasColor = false;
 						color = defaultColor;
@@ -277,7 +296,7 @@ public class ElytraDyement {
 				hasColor = false;
 				hasPattern = true;
 				basePatternColor = DyeColor.byId(data.getInt("Base"));
-				color = basePatternColor.getColorValue();
+				color = getTextureDiffuseColor(basePatternColor);
 				patternColorData = getPatternColorData(
 				  basePatternColor, data.getList("Patterns", 10).copy());
 			} else {
@@ -287,7 +306,7 @@ public class ElytraDyement {
 					hasColor = true;
 					color = data.getInt("color");
 				} else if (data.contains("display")) {
-					CompoundNBT display = data.getCompound("display");
+					CompoundTag display = data.getCompound("display");
 					if (display.contains("color")) {
 						hasColor = true;
 						color = display.getInt("color");
@@ -304,13 +323,13 @@ public class ElytraDyement {
 		
 		// Mimic BannerTileEntity#getPatternColorData, which is only present on the client
 		public static List<Pair<BannerPattern, DyeColor>> getPatternColorData(
-		  DyeColor color, @Nullable ListNBT nbtList
+		  DyeColor color, @Nullable ListTag nbtList
 		) {
 			List<Pair<BannerPattern, DyeColor>> list = new ArrayList<>();
 			list.add(Pair.of(BannerPattern.BASE, color));
 			if (nbtList != null) {
-				for(int i = 0; i < nbtList.size(); ++i) {
-					CompoundNBT compoundnbt = nbtList.getCompound(i);
+				for (int i = 0; i < nbtList.size(); ++i) {
+					CompoundTag compoundnbt = nbtList.getCompound(i);
 					BannerPattern bannerpattern = BannerPattern.byHash(compoundnbt.getString("Pattern"));
 					if (bannerpattern != null) {
 						int j = compoundnbt.getInt("Color");
@@ -343,30 +362,30 @@ public class ElytraDyement {
 		 */
 		public void write(ItemStack stack, @Nullable WingSide side) {
 			if (hasPattern) {
-				CompoundNBT nbt;
+				CompoundTag nbt;
 				if (side != null) {
 					nbt = stack.getOrCreateTagElement("WingInfo");
-					nbt.put(side.tag, new CompoundNBT());
+					nbt.put(side.tag, new CompoundTag());
 					nbt = nbt.getCompound(side.tag);
 				} else {
 					nbt = stack.getOrCreateTagElement("BlockEntityTag");
 				}
 				nbt.putInt("Base", basePatternColor.getId());
-				ListNBT list = new ListNBT();
+				ListTag list = new ListTag();
 				for (int i = 1; i < patternColorData.size(); i++) {
 					BannerPattern pattern = patternColorData.get(i).getFirst();
 					DyeColor color = patternColorData.get(i).getSecond();
-					CompoundNBT item = new CompoundNBT();
+					CompoundTag item = new CompoundTag();
 					item.putString("Pattern", pattern.getHashname());
 					item.putInt("Color", color.getId());
 					list.add(item);
 				}
 				nbt.put("Patterns", list);
 			} else if (hasColor) {
-				CompoundNBT nbt;
+				CompoundTag nbt;
 				if (side != null) {
 					nbt = stack.getOrCreateTagElement("WingInfo");
-					nbt.put(side.tag, new CompoundNBT());
+					nbt.put(side.tag, new CompoundTag());
 					nbt = nbt.getCompound(side.tag);
 					nbt.remove("Base");
 					nbt.remove("Patterns");
@@ -377,11 +396,11 @@ public class ElytraDyement {
 				nbt.putInt("color", color);
 			} else {
 				stack.removeTagKey("BlockEntityTag");
-				final CompoundNBT display = stack.getTagElement("display");
+				final CompoundTag display = stack.getTagElement("display");
 				if (display != null)
 					display.remove("color");
 				if (side != null) {
-					final CompoundNBT nbt = stack.getTagElement("WingInfo");
+					final CompoundTag nbt = stack.getTagElement("WingInfo");
 					if (nbt != null) {
 						nbt.remove(side.tag);
 						if (nbt.isEmpty())
@@ -408,51 +427,31 @@ public class ElytraDyement {
 	}
 	
 	public static void hideDyedFlag(ItemStack stack) {
-		CompoundNBT tag = stack.getOrCreateTag();
+		CompoundTag tag = stack.getOrCreateTag();
 		int flags = tag.getInt("HideFlags");
-		flags |= TooltipDisplayFlags.DYE.getMask();
+		flags |= TooltipPart.DYE.getMask();
 		tag.putInt("HideFlags", flags);
 	}
 	
-	public static boolean clearDyesWithCauldron(ItemUseContext context) {
-		final World world = context.getLevel();
-		final BlockPos pos = context.getClickedPos();
-		final BlockState state = world.getBlockState(pos);
-		final Block block = state.getBlock();
-		
-		if (block instanceof CauldronBlock) {
-			final PlayerEntity player = context.getPlayer();
-			final ItemStack stack = context.getItemInHand();
-			
-			int i = state.getValue(CauldronBlock.LEVEL);
-			dyement.read(stack);
-			if (i > 0 && !dyement.isClear()) {
-				final CauldronBlock cauldron = (CauldronBlock) block;
-				final ItemStack result = stack.copy();
-				result.setCount(1);
+	public static CauldronInteraction CLEAR_AEROBATIC_ELYTRA_DYE = (state, level, pos, player, hand, stack) -> {
+		dyement.read(stack);
+		if (dyement.isClear()) {
+			return InteractionResult.PASS;
+		} else {
+			if (!level.isClientSide) {
 				dyement.clear();
-				dyement.write(result);
-				
-				if (player != null && !player.abilities.instabuild) {
-					stack.shrink(1);
-					cauldron.setWaterLevel(world, pos, state, i - 1);
-				}
-				
-				if (player != null) {
-					if (stack.isEmpty()) {
-						player.setItemInHand(context.getHand(), result);
-					} else if (!player.inventory.add(result)) {
-						player.drop(result, false);
-					} else if (player instanceof ServerPlayerEntity) {
-						((ServerPlayerEntity) player).refreshContainer(player.inventoryMenu);
-					}
-				} else {
-					world.addFreshEntity(new ItemEntity(world, pos.getX(), pos.getY(), pos.getZ(), result));
-				}
-				return true;
+				dyement.write(stack);
+				player.awardStat(Stats.CLEAN_ARMOR);
+				LayeredCauldronBlock.lowerFillLevel(state, level, pos);
 			}
+			return InteractionResult.sidedSuccess(level.isClientSide);
 		}
-		return false;
+	};
+	
+	@SubscribeEvent
+	public static void registerCauldronInteractions(FMLCommonSetupEvent event) {
+		CauldronInteraction.WATER.put(ModItems.AEROBATIC_ELYTRA, CLEAR_AEROBATIC_ELYTRA_DYE);
+		CauldronInteraction.WATER.put(ModItems.AEROBATIC_ELYTRA_WING, CLEAR_AEROBATIC_ELYTRA_DYE);
 	}
 	
 	public static ItemStack clearDyes(ItemStack elytra) {
@@ -468,12 +467,13 @@ public class ElytraDyement {
 		RIGHT("right", "aerobaticelytra.sides.right");
 		public final String tag;
 		public final String key;
+		
 		WingSide(String tag, String key) {
 			this.tag = tag;
 			this.key = key;
 		}
 		
-		public IFormattableTextComponent getTranslation() {
+		public MutableComponent getTranslation() {
 			return ttc(key);
 		}
 	}

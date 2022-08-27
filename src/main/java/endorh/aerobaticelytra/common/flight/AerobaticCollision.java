@@ -7,22 +7,19 @@ import endorh.aerobaticelytra.common.config.Config.collision.slime_bounce;
 import endorh.aerobaticelytra.common.config.Const;
 import endorh.aerobaticelytra.common.flight.AerobaticFlight.VectorBase;
 import endorh.util.math.Vec3f;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.SlimeBlock;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SlimeBlock;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.util.DamageSource;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Direction.Axis;
-import net.minecraft.util.Direction.AxisDirection;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +28,11 @@ import java.util.function.Predicate;
 import static endorh.aerobaticelytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
 import static endorh.util.math.Vec3f.forAxis;
 import static java.lang.Math.max;
+import static net.minecraft.core.Direction.fromAxisAndDirection;
+import static net.minecraft.util.Mth.*;
+
+import net.minecraft.core.Direction.Axis;
+import net.minecraft.core.Direction.AxisDirection;
 
 /**
  * Aerobatic collisions logic
@@ -39,11 +41,12 @@ public class AerobaticCollision {
 	
 	/**
 	 * Handle aerobatic collisions, both vertically and horizontally
+	 *
 	 * @param player The player colliding
 	 * @param hSpeedPrev Previous speed
 	 */
 	public static void onAerobaticCollision(
-	  PlayerEntity player, double hSpeedPrev, Vec3f motionVec
+	  Player player, double hSpeedPrev, Vec3f motionVec
 	) {
 		IAerobaticData data = getAerobaticDataOrDefault(player);
 		float propStrength = data.getPropulsionStrength();
@@ -51,9 +54,9 @@ public class AerobaticCollision {
 		// Apply collision damage
 		double hSpeedNew = new Vec3f(player.getDeltaMovement()).hNorm();
 		double reaction = hSpeedPrev - hSpeedNew;
-		float collisionStrength = (float)(reaction * 10D - 3D);
+		float collisionStrength = (float) (reaction * 10D - 3D);
 		float damageModifier = 0F;
-		final AxisAlignedBB aaBB = player.getBoundingBox();
+		final AABB aaBB = player.getBoundingBox();
 		List<BlockPos> collided = null;
 		double d;
 		for (d = 0.005D; d <= 0.5D; d *= 2D) {
@@ -71,12 +74,12 @@ public class AerobaticCollision {
 		     < Config.collision.leave_breaking.chance
 		       + Config.collision.leave_breaking.chance_linear * speed;
 		boolean preventLanding = false;
-		for (BlockPos pos : collided) {
+		for (BlockPos pos: collided) {
 			final BlockState bs = player.level.getBlockState(pos);
 			Block block = bs.getBlock();
 			if (block == Blocks.HAY_BLOCK) {
 				damageModifier = max(damageModifier, Config.collision.hay_bale_multiplier);
-			} else if (block.is(BlockTags.LEAVES)) {
+			} else if (block.getTags().contains(BlockTags.LEAVES.getName())) {
 				if (shouldBreakLeaves) {
 					BrokenLeavesBlock.breakLeaves(player.level, pos);
 					propStrength *= 0.8F;
@@ -119,7 +122,7 @@ public class AerobaticCollision {
 			  damageModifier * collisionStrength * Config.collision.damage);
 		}
 		
-		data.setLiftCut(MathHelper.clamp(data.getLiftCut() + 0.2F, 0F, 1F));
+		data.setLiftCut(clamp(data.getLiftCut() + 0.2F, 0F, 1F));
 		
 		// Stop flying when on ground
 		if (player.isOnGround() && player.isEffectiveAi() && !preventLanding)
@@ -128,11 +131,11 @@ public class AerobaticCollision {
 			player.setOnGround(false);
 	}
 	
-	public static boolean tryBounce(PlayerEntity player, VectorBase base, Vec3f motionVec) {
+	public static boolean tryBounce(Player player, VectorBase base, Vec3f motionVec) {
 		boolean bounced = false;
 		for (int includeCorners = 0; includeCorners < 2; includeCorners++) {
-			for (Axis axis : Axis.values()) {
-				final Direction dir = Direction.fromAxisAndDirection(axis, AxisDirection.POSITIVE);
+			for (Axis axis: Axis.values()) {
+				final Direction dir = fromAxisAndDirection(axis, AxisDirection.POSITIVE);
 				if (shouldBounceDir(player, dir, false) ^
 				    shouldBounceDir(player, dir.getOpposite(), includeCorners != 0)) {
 					bounce(player, base, motionVec, axis);
@@ -147,7 +150,7 @@ public class AerobaticCollision {
 	}
 	
 	public static void bounce(
-	  PlayerEntity player, VectorBase base, Vec3f motionVec, Axis axis
+	  Player player, VectorBase base, Vec3f motionVec, Axis axis
 	) {
 		// The bounce axis is slightly tilted based on the player's roll tilt,
 		// depending on how parallel is the bounce against the plane
@@ -155,7 +158,7 @@ public class AerobaticCollision {
 		final Vec3f look = base.look.copy();
 		look.sub(ax, ax.dot(look));
 		if (!look.isZero()) {
-			final float bounceTilt = MathHelper.clamp(
+			final float bounceTilt = clamp(
 			  (1F - Math.abs(base.look.dot(ax)))
 			  * getAerobaticDataOrDefault(player).getTiltRoll()
 			  * Const.SLIME_BOUNCE_ROLLING_TILT_SENS,
@@ -175,12 +178,12 @@ public class AerobaticCollision {
 		}
 		player.level.playSound(
 		  player, player.blockPosition(), SoundEvents.SLIME_BLOCK_HIT,
-		  SoundCategory.PLAYERS, (float) MathHelper.clampedLerp(0F, 1F, motionVec.norm() / 1.6F), 1F);
+		  SoundSource.PLAYERS, clampedLerp(0F, 1F, motionVec.norm() / 1.6F), 1F);
 		player.awardStat(FlightStats.AEROBATIC_SLIME_BOUNCES, 1);
 	}
 	
 	public static boolean shouldBounceDir(
-	  PlayerEntity player, Direction dir, boolean includeCorners
+	  Player player, Direction dir, boolean includeCorners
 	) {
 		return !getCollidedBlocksInAABB(
 		  player.level, sideAABB(player.getBoundingBox(), dir, includeCorners),
@@ -188,33 +191,32 @@ public class AerobaticCollision {
 		).isEmpty();
 	}
 	
-	public static AxisAlignedBB sideAABB(AxisAlignedBB b, Direction dir, boolean includeCorners) {
+	public static AABB sideAABB(AABB b, Direction dir, boolean includeCorners) {
 		double e = 0.5D; // Grow epsilon
 		double c = includeCorners? e : 0D;
-		switch (dir) {
-			case EAST: return new AxisAlignedBB(b.maxX, b.minY - c, b.minZ - c, b.maxX + e, b.maxY + c, b.maxZ + c);
-			case WEST: return new AxisAlignedBB(b.minX - e, b.minY - c, b.minZ - c, b.minX, b.maxY + c, b.maxZ + c);
-			case SOUTH: return new AxisAlignedBB(b.minX - c, b.minY - c, b.maxZ, b.maxX + c, b.maxY + c, b.maxZ + e);
-			case NORTH: return new AxisAlignedBB(b.minX - c, b.minY - c, b.minZ - e, b.maxX + c, b.maxY + c, b.minZ);
-			case UP: return new AxisAlignedBB(b.minX - c, b.maxY, b.minZ - c, b.maxX + c, b.maxY + e, b.maxZ + c);
-			case DOWN: return new AxisAlignedBB(b.minX - c, b.minY - e, b.minZ - c, b.maxX + c, b.minY, b.maxZ + c);
-			default: throw new IllegalArgumentException("Unknown direction: " + dir);
-		}
+		return switch (dir) {
+			case EAST -> new AABB(b.maxX, b.minY - c, b.minZ - c, b.maxX + e, b.maxY + c, b.maxZ + c);
+			case WEST -> new AABB(b.minX - e, b.minY - c, b.minZ - c, b.minX, b.maxY + c, b.maxZ + c);
+			case SOUTH -> new AABB(b.minX - c, b.minY - c, b.maxZ, b.maxX + c, b.maxY + c, b.maxZ + e);
+			case NORTH -> new AABB(b.minX - c, b.minY - c, b.minZ - e, b.maxX + c, b.maxY + c, b.minZ);
+			case UP -> new AABB(b.minX - c, b.maxY, b.minZ - c, b.maxX + c, b.maxY + e, b.maxZ + c);
+			case DOWN -> new AABB(b.minX - c, b.minY - e, b.minZ - c, b.maxX + c, b.minY, b.maxZ + c);
+		};
 	}
 	
 	public static List<BlockPos> getCollidedBlocksInAABB(
-	  World world, AxisAlignedBB aaBB
+	  Level world, AABB aaBB
 	) {
 		return getCollidedBlocksInAABB(world, aaBB, bs -> bs.getMaterial().blocksMotion());
 	}
 	
 	public static List<BlockPos> getCollidedBlocksInAABB(
-	  World world, AxisAlignedBB aaBB, Predicate<BlockState> selector
+	  Level world, AABB aaBB, Predicate<BlockState> selector
 	) {
 		List<BlockPos> list = new ArrayList<>();
-		for (int i = MathHelper.floor(aaBB.minX); i < MathHelper.ceil(aaBB.maxX); i++) {
-			for (int j = MathHelper.floor(aaBB.minY); j < MathHelper.ceil(aaBB.maxY); j++) {
-				for (int k = MathHelper.floor(aaBB.minZ); k < MathHelper.ceil(aaBB.maxZ); k++) {
+		for (int i = floor(aaBB.minX); i < ceil(aaBB.maxX); i++) {
+			for (int j = floor(aaBB.minY); j < ceil(aaBB.maxY); j++) {
+				for (int k = floor(aaBB.minZ); k < ceil(aaBB.maxZ); k++) {
 					BlockPos pos = new BlockPos(i, j, k);
 					if (selector.test(world.getBlockState(pos)))
 						list.add(pos);

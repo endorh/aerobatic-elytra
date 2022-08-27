@@ -4,18 +4,18 @@ import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.common.config.Config.weather;
 import endorh.aerobaticelytra.network.WeatherPackets.SWindNodePacket;
 import endorh.util.math.Vec3f;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.EntityPredicates;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.IChunk;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.EntitySelector;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraftforge.event.TickEvent.WorldTickEvent;
 import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
-import net.minecraftforge.fml.network.NetworkDirection;
-import net.minecraftforge.fml.network.PacketDistributor;
+import net.minecraftforge.fmllegacy.network.NetworkDirection;
+import net.minecraftforge.fmllegacy.network.PacketDistributor;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.*;
@@ -32,27 +32,27 @@ public class WeatherData {
 	
 	// Because synchronizedMap keeps crashing without reason or locks the world
 	protected static class ChunkUpdateTask {
-		protected final World world;
+		protected final Level world;
 		protected final int x;
 		protected final int z;
 		protected final boolean unload;
 		
-		private ChunkUpdateTask(IChunk chunk, boolean unload) {
-			world = (World) chunk.getWorldForge();
+		private ChunkUpdateTask(ChunkAccess chunk, boolean unload) {
+			world = (Level) chunk.getWorldForge();
 			x = chunk.getPos().getMinBlockX();
 			z = chunk.getPos().getMinBlockZ();
 			this.unload = unload;
 		}
 		
-		protected static ChunkUpdateTask load(IChunk chunk) {
+		protected static ChunkUpdateTask load(ChunkAccess chunk) {
 			return new ChunkUpdateTask(chunk, false);
 		}
-		protected static ChunkUpdateTask unload(IChunk chunk) {
+		protected static ChunkUpdateTask unload(ChunkAccess chunk) {
 			return new ChunkUpdateTask(chunk, true);
 		}
 	}
 	
-	public final static Map<World, Map<Pair<Long, Long>, WeatherRegion>> weatherRegions = synchronizedMap(new HashMap<>());
+	public final static Map<Level, Map<Pair<Long, Long>, WeatherRegion>> weatherRegions = synchronizedMap(new HashMap<>());
 	public final static Map<WeatherRegion, WindRegion> windRegions = synchronizedMap(new HashMap<>());
 	
 	/**
@@ -62,7 +62,7 @@ public class WeatherData {
 	@SuppressWarnings({"RedundantCast", "unchecked"})
 	public static final PacketDistributor<WeatherRegion> TRACKING_WEATHER_REGION = new PacketDistributor<>(
 	  (dist, regionSupplier) -> p ->
-		  ((Set<? extends ServerPlayerEntity>)regionSupplier.get().affectedPlayers()).forEach(
+		  ((Set<? extends ServerPlayer>)regionSupplier.get().affectedPlayers()).forEach(
 		    pl -> pl.connection.connection.send(p)),
 	  NetworkDirection.PLAY_TO_CLIENT
 	);
@@ -85,12 +85,12 @@ public class WeatherData {
 		public static final int TEMP_TICKET_TICKS = 80;
 		public final long x, z;
 		public final double centerX, centerZ;
-		public final World world;
+		public final Level world;
 		
 		private int tempTicket = 0;
 		private final long[] chunks = new long[] {0L, 0L, 0L, 0L};
 		
-		private WeatherRegion(World world, long x, long z) {
+		private WeatherRegion(Level world, long x, long z) {
 			this.world = world;
 			this.x = x;
 			this.z = z;
@@ -106,11 +106,11 @@ public class WeatherData {
 			return (int) (c - (scale(c) << DIAMETER_SHIFT));
 		}
 		
-		public static Set<WeatherRegion> of(PlayerEntity player) {
+		public static Set<WeatherRegion> of(Player player) {
 			return of(player.level, player.getX(), player.getZ());
 		}
 		
-		public static Set<WeatherRegion> of(World world, double x, double z) {
+		public static Set<WeatherRegion> of(Level world, double x, double z) {
 			long dX = scale(x), dZ = scale(z);
 			double rX = x - (dX << DIAMETER_SHIFT), rZ = z - (dZ << DIAMETER_SHIFT);
 			Set<WeatherRegion> adj = new HashSet<>();
@@ -141,7 +141,7 @@ public class WeatherData {
 			return adj;
 		}
 		
-		public static WeatherRegion of(World world, long x, long z) {
+		public static WeatherRegion of(Level world, long x, long z) {
 			Pair<Long, Long> xz = Pair.of(x, z);
 			if (weatherRegions.containsKey(world)) {
 				if (weatherRegions.get(world).containsKey(xz))
@@ -195,23 +195,23 @@ public class WeatherData {
 		
 		@SubscribeEvent
 		public static void onChunkLoad(ChunkEvent.Load event) {
-			if (!(event.getWorld() instanceof World))
+			if (!(event.getWorld() instanceof Level))
 				return;
 			CHUNK_UPDATE_TASKS.add(ChunkUpdateTask.load(event.getChunk()));
 		}
 		
 		@SubscribeEvent
 		public static void onChunkUnload(ChunkEvent.Unload event) {
-			if (!(event.getWorld() instanceof World))
+			if (!(event.getWorld() instanceof Level))
 				return;
 			CHUNK_UPDATE_TASKS.add(ChunkUpdateTask.unload(event.getChunk()));
 		}
 		
 		@SubscribeEvent
 		public static void onWorldUnload(WorldEvent.Unload event) {
-			if (!(event.getWorld() instanceof World))
+			if (!(event.getWorld() instanceof Level))
 				return;
-			World world = (World) event.getWorld();
+			Level world = (Level) event.getWorld();
 			if (weatherRegions.containsKey(world)) {
 				final Map<Pair<Long, Long>, WeatherRegion> worldRegions = weatherRegions.get(world);
 				weatherRegions.remove(world);
@@ -246,25 +246,25 @@ public class WeatherData {
 				weatherRegions.remove(world);
 		}
 		
-		public boolean contains(PlayerEntity player) {
+		public boolean contains(Player player) {
 			if (player.level != world)
 				return false;
 			return containsNoWorldCheck(player);
 		}
 		
-		public boolean containsNoWorldCheck(PlayerEntity player) {
+		public boolean containsNoWorldCheck(Player player) {
 			return contains(player.getX(), player.getZ());
 		}
 		
 		@SuppressWarnings("unused")
-		public boolean affects(PlayerEntity player) {
+		public boolean affects(Player player) {
 			if (world != player.level)
 				return false;
 			return affectsNoWorldCheck(player);
 		}
 		
-		public boolean affectsNoWorldCheck(PlayerEntity player) {
-			return EntityPredicates.NO_SPECTATORS.test(player)
+		public boolean affectsNoWorldCheck(Player player) {
+			return EntitySelector.NO_SPECTATORS.test(player)
 			       && abs(player.getX() - centerX) < RADIUS + BORDER
 			       && abs(player.getZ() - centerZ) < RADIUS + BORDER;
 		}
@@ -277,7 +277,7 @@ public class WeatherData {
 			return x == this.x && z == this.z;
 		}
 		
-		public Set<? extends PlayerEntity> affectedPlayers() {
+		public Set<? extends Player> affectedPlayers() {
 			return world.players().stream().filter(
 			  this::affectsNoWorldCheck).collect(Collectors.toSet());
 		}
@@ -323,15 +323,15 @@ public class WeatherData {
 			this.region = region;
 		}
 		
-		public static Set<WindRegion> of(PlayerEntity player) {
+		public static Set<WindRegion> of(Player player) {
 			return of(player.level, player.getX(), player.getZ());
 		}
 		
-		public static Set<WindRegion> of(World world, double x, double z) {
+		public static Set<WindRegion> of(Level world, double x, double z) {
 			return WeatherRegion.of(world, x, z).stream().map(WindRegion::of).collect(Collectors.toSet());
 		}
 		
-		public static WindRegion of(World world, long x, long z) {
+		public static WindRegion of(Level world, long x, long z) {
 			return of(WeatherRegion.of(world, x, z));
 		}
 		
@@ -410,7 +410,7 @@ public class WeatherData {
 	public static void tick(WorldTickEvent event) {
 		WeatherRegion.handleChunkTasks();
 		if (event.side.isServer()) {
-			World world = event.world;
+			Level world = event.world;
 			if (weatherRegions.containsKey(world)) {
 				final Map<Pair<Long, Long>, WeatherRegion> worldRegions = weatherRegions.get(world);
 				//noinspection SynchronizationOnLocalVariableOrMethodParameter
@@ -423,20 +423,20 @@ public class WeatherData {
 		}
 	}
 	
-	public static float getBiomePrecipitationStrength(PlayerEntity player) {
-		switch (player.level.getBiome(player.blockPosition()).getPrecipitation()) {
-			case NONE: return 0F;
-			case SNOW: return 1.2F;
-			default: return 1F;
-		}
+	public static float getBiomePrecipitationStrength(Player player) {
+		return switch (player.level.getBiome(player.blockPosition()).getPrecipitation()) {
+			case NONE -> 0F;
+			case SNOW -> 1.2F;
+			case RAIN -> 1F;
+		};
 	}
 	
-	public static Vec3f getWindVector(PlayerEntity player) {
+	public static Vec3f getWindVector(Player player) {
 		return Vec3f.average(
 		  WindRegion.of(player).stream().map(WindRegion::getWind).collect(Collectors.toSet()));
 	}
 	
-	public static Vec3f getAngularWindVector(PlayerEntity player) {
+	public static Vec3f getAngularWindVector(Player player) {
 		return Vec3f.average(
 		  WindRegion.of(player).stream().map(WindRegion::getAngularWind).collect(Collectors.toSet()));
 	}

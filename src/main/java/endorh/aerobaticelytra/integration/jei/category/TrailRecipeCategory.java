@@ -16,16 +16,16 @@ import mezz.jei.api.gui.ingredient.IGuiItemStackGroup;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.IFocus;
 import mezz.jei.api.registration.IRecipeRegistration;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.item.crafting.IRecipe;
-import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.item.crafting.RecipeManager;
+import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.Util;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,7 +61,7 @@ public class TrailRecipeCategory extends BaseCategory<TrailRecipeWrapper> {
 	  @NotNull IRecipeLayout layout, @NotNull TrailRecipeWrapper recipe,
 	  @NotNull IIngredients ingredients
 	) {
-		IFocus<?> focus = layout.getFocus();
+		IFocus<?> focus = layout.getFocus(VanillaTypes.ITEM);
 		final IGuiItemStackGroup stacks = layout.getItemStacks();
 		stacks.init(0, true, 18, 18);
 		stacks.init(1, true, 0, 18);
@@ -96,12 +96,12 @@ public class TrailRecipeCategory extends BaseCategory<TrailRecipeWrapper> {
 			if (1 <= i && i <= 4) {
 				tooltip.addAll(TextUtil.splitTtc(
 				  "aerobaticelytra.recipe.trail.applies_to_side",
-				  RocketSide.values()[i - 1].getDisplayName().withStyle(TextFormatting.GRAY)
-				).withStyle(TextFormatting.DARK_GRAY));
+				  RocketSide.values()[i - 1].getDisplayName().withStyle(ChatFormatting.GRAY)
+				).withStyle(ChatFormatting.DARK_GRAY));
 				if (recipe.clear)
 					tooltip.addAll(
 					  splitTtc("aerobaticelytra.recipe.trail.clears_trail")
-					    .withStyle(TextFormatting.DARK_GRAY));
+					    .withStyle(ChatFormatting.DARK_GRAY));
 			}
 		});
 	}
@@ -111,8 +111,8 @@ public class TrailRecipeCategory extends BaseCategory<TrailRecipeWrapper> {
 	  @Nullable List<ItemStack> leftCenter, @Nullable List<ItemStack> rightCenter
 	) {
 		int rocketSize = left != null? left.size() :
-		                 right != null ? right.size() :
-		                 leftCenter != null ? leftCenter.size() :
+		                 right != null? right.size() :
+		                 leftCenter != null? leftCenter.size() :
 		                 rightCenter != null? rightCenter.size() : 0;
 		if (rocketSize == 0) return elytras;
 		return IntStream.range(0, mcm(elytras.size(), rocketSize)).mapToObj(
@@ -125,10 +125,10 @@ public class TrailRecipeCategory extends BaseCategory<TrailRecipeWrapper> {
 		).collect(Collectors.toList());
 	}
 	
-	@Override public @NotNull List<ITextComponent> getTooltipStrings(
+	@Override public @NotNull List<Component> getTooltipStrings(
 	  @NotNull TrailRecipeWrapper recipe, double mouseX, double mouseY
 	) {
-		final List<ITextComponent> tt = super.getTooltipStrings(recipe, mouseX, mouseY);
+		final List<Component> tt = super.getTooltipStrings(recipe, mouseX, mouseY);
 		if (inRect(mouseX, mouseY, 61, 19, 22, 15))
 			tt.addAll(optSplitTtc("aerobaticelytra.jei.help.category.trail"));
 		return tt;
@@ -137,7 +137,7 @@ public class TrailRecipeCategory extends BaseCategory<TrailRecipeWrapper> {
 	@Override public void registerRecipes(
 	  IRecipeRegistration reg, RecipeManager recipeManager
 	) {
-		final Optional<IRecipe<?>> opt = recipeManager.getRecipes().stream()
+		final Optional<Recipe<?>> opt = recipeManager.getRecipes().stream()
 		  .filter(r -> r instanceof TrailRecipe).findAny();
 		if (opt.isPresent()) {
 			final TrailRecipe recipe = (TrailRecipe) opt.get();

@@ -1,11 +1,11 @@
 package endorh.aerobaticelytra.common.recipe;
 
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.IRecipeSerializer;
-import net.minecraft.item.crafting.SpecialRecipe;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CustomRecipe;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -18,7 +18,7 @@ import static endorh.aerobaticelytra.common.AerobaticElytraLogic.isAerobaticElyt
  * Allows applying upgrade recipes on crafting table interfaces,
  * which makes automation possible through other mods
  */
-public class CraftedUpgradeRecipe extends SpecialRecipe {
+public class CraftedUpgradeRecipe extends CustomRecipe {
 	private Collection<UpgradeRecipe> recipes = new ArrayList<>();
 	
 	public CraftedUpgradeRecipe(ResourceLocation idIn) {
@@ -29,7 +29,7 @@ public class CraftedUpgradeRecipe extends SpecialRecipe {
 	 * Match a single item above an aerobatic elytra item
 	 */
 	@Override public boolean matches(
-	  @NotNull CraftingInventory inv, @NotNull World world
+	  @NotNull CraftingContainer inv, @NotNull Level world
 	) {
 		ItemStack upgrade = ItemStack.EMPTY, elytra = ItemStack.EMPTY;
 		for (int i = 0; i < inv.getContainerSize(); i++) {
@@ -58,7 +58,7 @@ public class CraftedUpgradeRecipe extends SpecialRecipe {
 	}
 	
 	@Override public @NotNull ItemStack assemble(
-	  @NotNull CraftingInventory inv
+	  @NotNull CraftingContainer inv
 	) {
 		ItemStack upgrade = ItemStack.EMPTY, elytra = ItemStack.EMPTY;
 		for (int i = 0; i < inv.getContainerSize(); i++) {
@@ -81,7 +81,7 @@ public class CraftedUpgradeRecipe extends SpecialRecipe {
 		return width >= 1 && height >= 2;
 	}
 	
-	@Override public @NotNull IRecipeSerializer<?> getSerializer() {
+	@Override public @NotNull RecipeSerializer<?> getSerializer() {
 		return ModRecipes.CRAFTED_UPGRADE_RECIPE.get();
 	}
 }

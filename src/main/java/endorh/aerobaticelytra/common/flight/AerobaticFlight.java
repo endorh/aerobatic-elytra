@@ -30,17 +30,17 @@ import endorh.aerobaticelytra.network.AerobaticPackets.DTiltPacket;
 import endorh.util.math.Interpolator;
 import endorh.util.math.Vec3d;
 import endorh.util.math.Vec3f;
-import net.minecraft.entity.MoverType;
-import net.minecraft.entity.passive.IFlyingAnimal;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.entity.animal.FlyingAnimal;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import org.apache.logging.log4j.LogManager;
@@ -84,7 +84,7 @@ public class AerobaticFlight {
 	 * Is called consistently every tick (20Hz)
 	 */
 	public static boolean onAerobaticTravel(
-	  PlayerEntity player, Vector3d travelVector
+	  Player player, Vec3 travelVector
 	) {
 		if (!shouldAerobaticFly(player)) {
 			onNonFlightTravel(player, travelVector);
@@ -153,7 +153,7 @@ public class AerobaticFlight {
 				AerobaticElytraSound.playSlowDownSound(player);
 		}
 		final float heatStep = data.isBoosted() ? 0.01F : -0.0075F;
-		data.setBoostHeat(MathHelper.clamp(data.getBoostHeat() + heatStep, 0F, 1F));
+		data.setBoostHeat(Mth.clamp(data.getBoostHeat() + heatStep, 0F, 1F));
 		final float boostStrength = data.isBoosted() ? 0.04F : 0F;
 		
 		if (data.isSprinting())
@@ -162,11 +162,11 @@ public class AerobaticFlight {
 		// Update acceleration
 		float propAccStrength = propulsion.range_length / 20F; // 1 second
 		float propAcc = data.getPropulsionAcceleration();
-		data.setPropulsionStrength(MathHelper.clamp(
+		data.setPropulsionStrength(Mth.clamp(
 		  data.getPropulsionStrength() + propAcc * propAccStrength,
 		  propulsion.range_tick.getFloatMin(), propulsion.range_tick.getFloatMax()));
 		if (travelVector != null) {
-			propAcc = (float) MathHelper.clamp((propAcc + 2 * Math.signum(travelVector.z)) / 3, -1F, 1F);
+			propAcc = (float) Mth.clamp((propAcc + 2 * Math.signum(travelVector.z)) / 3, -1F, 1F);
 			data.setPropulsionAcceleration(propAcc);
 		}
 		
@@ -175,7 +175,7 @@ public class AerobaticFlight {
 		data.setBraking(player.isCrouching() && !data.isBrakeCooling());
 		if (braking.max_time_ticks > 0) {
 			data.setBrakeHeat(
-			  MathHelper.clamp(data.getBrakeHeat() + (data.isBraking()? 1F : -1F) / braking.max_time_ticks, 0F, 1F));
+			  Mth.clamp(data.getBrakeHeat() + (data.isBraking()? 1F : -1F) / braking.max_time_ticks, 0F, 1F));
 			if (data.getBrakeHeat() >= 1F)
 				data.setBrakeCooling(true);
 			else if (data.getBrakeHeat() <= 0F)
@@ -184,7 +184,7 @@ public class AerobaticFlight {
 			data.setBrakeHeat(0F);
 			data.setBrakeCooling(false);
 		}
-		float brakeStrength = braking.enabled ? MathHelper.clamp(
+		float brakeStrength = braking.enabled ? Mth.clamp(
 		  data.getBrakeStrength() + (data.isBraking() ? brakeAcc : - brakeAcc), 0F, 1F) : 0F;
 		data.setBrakeStrength(brakeStrength);
 		
@@ -233,12 +233,12 @@ public class AerobaticFlight {
 		// Friction
 		float friction;
 		if (player.isInWater()) {
-			friction = MathHelper.lerp(
+			friction = Mth.lerp(
 			  spec.getAbility(Ability.AQUATIC), physics.friction_water_nerf, physics.friction_water);
-			friction *= MathHelper.lerp(brakeStrength, 1F, braking.friction) * angFriction;
+			friction *= Mth.lerp(brakeStrength, 1F, braking.friction) * angFriction;
 		} else {
-			friction = MathHelper.lerp(stasis, physics.friction_base, physics.motorless_friction);
-			friction = MathHelper.lerp(brakeStrength, friction, braking.friction) * angFriction;
+			friction = Mth.lerp(stasis, physics.friction_base, physics.motorless_friction);
+			friction = Mth.lerp(brakeStrength, friction, braking.friction) * angFriction;
 		}
 		
 		// Glide acceleration
@@ -274,11 +274,11 @@ public class AerobaticFlight {
 		}
 		
 		// Speed cap
-		if (player instanceof ServerPlayerEntity) {
+		if (player instanceof ServerPlayer) {
 			float speed_cap = network.speed_cap_tick;
 			if (speed_cap > 0
 			    && (motionVec.x > speed_cap || motionVec.y > speed_cap || motionVec.z > speed_cap)) {
-				ITextComponent chatWarning =
+				Component chatWarning =
 				  ttc("aerobaticelytra.config.warning.speed_cap_broken",
 				      stc(format("%.1f", max(max(motionVec.x, motionVec.y), motionVec.z))));
 				String warning = format(
@@ -304,7 +304,7 @@ public class AerobaticFlight {
 		// Collisions
 		if (player.horizontalCollision || player.verticalCollision)
 			AerobaticCollision.onAerobaticCollision(player, hSpeedPrev, motionVec);
-		else data.setLiftCut(MathHelper.clamp(liftCut - 0.15F, 0F, 1F));
+		else data.setLiftCut(Mth.clamp(liftCut - 0.15F, 0F, 1F));
 		
 		// Send update packets to the server
 		if (AerobaticElytraLogic.isClientPlayerEntity(player)) {
@@ -318,7 +318,7 @@ public class AerobaticFlight {
 			data.land();
 		
 		// Update player limb swing
-		player.calculateEntityAnimation(player, player instanceof IFlyingAnimal);
+		player.calculateEntityAnimation(player, player instanceof FlyingAnimal);
 		
 		// Add movement stat
 		player.awardStat(FlightStats.AEROBATIC_FLIGHT_ONE_CM,
@@ -359,13 +359,13 @@ public class AerobaticFlight {
 	}
 	
 	public static void onNonFlightTravel(
-	  PlayerEntity player, @SuppressWarnings("unused") Vector3d travelVector
+	  Player player, @SuppressWarnings("unused") Vec3 travelVector
 	) {
 		IAerobaticData data = getAerobaticDataOrDefault(player);
 		if (data.updateBoosted(false)) {
 			player.level.playSound(
 			  player, player.blockPosition(), ModSounds.AEROBATIC_ELYTRA_SLOWDOWN,
-			  SoundCategory.PLAYERS, 1F, 1F);
+			  SoundSource.PLAYERS, 1F, 1F);
 		}
 		if (data.updateFlying(false))
 			doLand(player, data);
@@ -377,20 +377,20 @@ public class AerobaticFlight {
 	 * takeoff propulsion
 	 */
 	public static void onOtherModeTravel(
-	  PlayerEntity player, @SuppressWarnings("unused") Vector3d travelVector
+	  Player player, @SuppressWarnings("unused") Vec3 travelVector
 	) {
 		IAerobaticData data = getAerobaticDataOrDefault(player);
 		if (data.updateBoosted(false)) {
 			player.level.playSound(
 			  player, player.blockPosition(), ModSounds.AEROBATIC_ELYTRA_SLOWDOWN,
-			  SoundCategory.PLAYERS, 1F, 1F);
+			  SoundSource.PLAYERS, 1F, 1F);
 		}
 		if (data.getRotationBase().valid)
 			doLand(player, data);
 		cooldown(player, data);
 	}
 	
-	public static void doLand(PlayerEntity player, IAerobaticData data) {
+	public static void doLand(Player player, IAerobaticData data) {
 		data.land();
 		MinecraftForge.EVENT_BUS.post(
 		  AerobaticElytraLogic.isRemoteClientPlayerEntity(player)
@@ -400,18 +400,18 @@ public class AerobaticFlight {
 	}
 	
 	public static void onRemoteFlightTravel(
-	  PlayerEntity player
+	  Player player
 	) {
 		onAerobaticTravel(player, null);
 	}
 	
-	public static void cooldown(PlayerEntity player, IAerobaticData data) {
+	public static void cooldown(Player player, IAerobaticData data) {
 		float propStrength = data.getPropulsionStrength();
 		if (propStrength != propulsion.takeoff_tick) {
 			float step = player.isOnGround() ? 0.05F : 0.02F;
 			data.setPropulsionStrength(
 			  propulsion.takeoff_tick +
-			  MathHelper.sign(propStrength - propulsion.takeoff_tick) *
+			  Mth.sign(propStrength - propulsion.takeoff_tick) *
 			  max(0F, abs(propStrength - propulsion.takeoff_tick) -
 			          step * max(propulsion.range_tick.getFloatMax(), propulsion.range_tick.getFloatMin())));
 		}
@@ -424,12 +424,12 @@ public class AerobaticFlight {
 	/**
 	 * Shorthand for {@code getAerobaticDataOrDefault(player).isFlying()}
 	 */
-	public static boolean isAerobaticFlying(PlayerEntity player) {
+	public static boolean isAerobaticFlying(Player player) {
 		return getAerobaticDataOrDefault(player).isFlying();
 	}
 	
-	private static boolean shouldAerobaticFly(PlayerEntity player) {
-		if (!player.isFallFlying() || player.abilities.flying
+	private static boolean shouldAerobaticFly(Player player) {
+		if (!player.isFallFlying() || player.getAbilities().flying
 		    || !getFlightDataOrDefault(player).getFlightMode().is(FlightModeTags.AEROBATIC))
 			return false;
 		final ItemStack elytra = AerobaticElytraLogic.getAerobaticElytra(player);
@@ -447,9 +447,9 @@ public class AerobaticFlight {
 	 * camera angles must be interpolated per frame to avoid jittery
 	 * visuals.
 	 */
-	public static void applyRotationAcceleration(PlayerEntity player) {
+	public static void applyRotationAcceleration(Player player) {
 		Optional<IAerobaticData> opt = getAerobaticData(player);
-		if (!opt.isPresent())
+		if (opt.isEmpty())
 			return;
 		IAerobaticData data = opt.get();
 		
@@ -563,7 +563,7 @@ public class AerobaticFlight {
 			}
 			
 			// Catch up;
-			newYaw += MathHelper.floor(prevYaw / 360F) * 360F;
+			newYaw += Mth.floor(prevYaw / 360F) * 360F;
 			if (newYaw - prevYaw > 180F)
 				newYaw -= 360F;
 			if (newYaw - prevYaw <= -180F)
@@ -773,13 +773,13 @@ public class AerobaticFlight {
 			normal.set(base.normal);
 		}
 		
-		public void write(PacketBuffer buf) {
+		public void write(FriendlyByteBuf buf) {
 			look.write(buf);
 			roll.write(buf);
 			normal.write(buf);
 		}
 		
-		public static VectorBase read(PacketBuffer buf) {
+		public static VectorBase read(FriendlyByteBuf buf) {
 			VectorBase base = new VectorBase();
 			base.look.set(Vec3f.read(buf));
 			base.roll.set(Vec3f.read(buf));
@@ -787,8 +787,8 @@ public class AerobaticFlight {
 			return base;
 		}
 		
-		public CompoundNBT toNBT() {
-			CompoundNBT nbt = new CompoundNBT();
+		public CompoundTag toNBT() {
+			CompoundTag nbt = new CompoundTag();
 			nbt.put("Look", look.toNBT());
 			nbt.put("Roll", roll.toNBT());
 			nbt.put("Normal", normal.toNBT());
@@ -796,7 +796,7 @@ public class AerobaticFlight {
 		}
 		
 		@SuppressWarnings("unused")
-		public static VectorBase fromNBT(CompoundNBT nbt) {
+		public static VectorBase fromNBT(CompoundTag nbt) {
 			VectorBase base = new VectorBase();
 			base.look.readNBT(nbt.getCompound("Look"));
 			base.roll.readNBT(nbt.getCompound("Roll"));
@@ -804,7 +804,7 @@ public class AerobaticFlight {
 			return base;
 		}
 		
-		public void readNBT(CompoundNBT nbt) {
+		public void readNBT(CompoundTag nbt) {
 			look.readNBT(nbt.getCompound("Look"));
 			roll.readNBT(nbt.getCompound("Roll"));
 			normal.readNBT(nbt.getCompound("Normal"));

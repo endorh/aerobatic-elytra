@@ -4,21 +4,21 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonSyntaxException;
 import endorh.util.nbt.NBTPredicate;
 import endorh.util.nbt.NBTPredicate.NBTPredicateParseException;
-import endorh.util.network.PacketBufferUtil;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.tags.ITag;
-import net.minecraft.tags.ITagCollection;
-import net.minecraft.tags.TagCollectionManager;
-import net.minecraft.util.JSONUtils;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.Registry;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.SerializationTags;
+import net.minecraft.tags.Tag;
+import net.minecraft.tags.TagCollection;
+import net.minecraft.util.GsonHelper;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraftforge.registries.ForgeRegistries.Keys;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,7 +51,7 @@ import static endorh.util.text.TextUtil.stc;
 public class ItemSelector implements Predicate<ItemStack> {
 	private final @Nullable Item item;
 	// The tags' names are stored for serialization
-	private final @Nullable Map<ITag<Item>, ResourceLocation> tags;
+	private final @Nullable Map<Tag<Item>, ResourceLocation> tags;
 	private final @Nullable NBTPredicate nbtPredicate;
 	
 	private static final Pattern item_selector_pattern = Pattern.compile(
@@ -87,7 +87,8 @@ public class ItemSelector implements Predicate<ItemStack> {
 			} else {
 				String itemName = m.group("name");
 				final Item item = Registry.ITEM.getOptional(new ResourceLocation(itemName))
-				  .orElseThrow(() -> new IllegalArgumentException("Unknown item: \"" + itemName + "\""));
+				  .orElseThrow(
+				    () -> new IllegalArgumentException("Unknown item: \"" + itemName + "\""));
 				return new ItemSelector(item, nbtPredicate);
 			}
 		} else throw new IllegalArgumentException("Malformed item selector: \"" + str + "\"");
@@ -95,9 +96,11 @@ public class ItemSelector implements Predicate<ItemStack> {
 	
 	public ItemSelector(List<ResourceLocation> tags, @Nullable NBTPredicate nbtPredicate) {
 		this.item = null;
-		final ITagCollection<Item> itemTags = TagCollectionManager.getInstance().getItems();
+		//noinspection unchecked
+		final TagCollection<Item> itemTags =
+		  (TagCollection<Item>) SerializationTags.getInstance().collections.get(Keys.ITEMS);
 		this.tags = tags.stream().collect(Collectors.toMap(r -> {
-			final ITag<Item> tag = itemTags.getTag(r);
+			final Tag<Item> tag = itemTags.getTag(r);
 			if (tag == null)
 				throw new IllegalArgumentException("Unknown item tag name: \"" + r + "\"");
 			return tag;
@@ -129,7 +132,7 @@ public class ItemSelector implements Predicate<ItemStack> {
 		List<ItemSelector> result = new ArrayList<>();
 		try {
 			for (int i = 0; i < arr.size(); i++) {
-				String sel = JSONUtils.convertToString(arr.get(i), "ingredients[" + i + "]");
+				String sel = GsonHelper.convertToString(arr.get(i), "ingredients[" + i + "]");
 				result.add(ItemSelector.fromString(sel));
 			}
 		} catch (IllegalArgumentException e) {
@@ -138,35 +141,40 @@ public class ItemSelector implements Predicate<ItemStack> {
 		return result;
 	}
 	
-	public static ItemSelector read(PacketBuffer buf) {
+	public static ItemSelector read(FriendlyByteBuf buf) {
 		if (buf.readBoolean()) {
 			final ResourceLocation itemName = buf.readResourceLocation();
 			Item item = Registry.ITEM.getOptional(itemName).orElseThrow(
-			  () -> new IllegalStateException("Unknown item name found in packet: \"" + itemName + "\""));
+			  () -> new IllegalStateException(
+			    "Unknown item name found in packet: \"" + itemName + "\""));
 			NBTPredicate nbtPredicate =
-			  buf.readBoolean() ? NBTPredicate.parse(PacketBufferUtil.readString(buf)).orElse(null) : null;
+			  buf.readBoolean()? NBTPredicate.parse(buf.readUtf()).orElse(null) : null;
 			return new ItemSelector(item, nbtPredicate);
 		} else {
-			final List<ResourceLocation> tagNames = readList(buf, PacketBuffer::readResourceLocation);
-			final ITagCollection<Item> itemTags = TagCollectionManager.getInstance().getItems();
-			for (ResourceLocation tagName : tagNames) {
+			final List<ResourceLocation> tagNames =
+			  readList(buf, FriendlyByteBuf::readResourceLocation);
+			//noinspection unchecked
+			final TagCollection<Item> itemTags =
+			  (TagCollection<Item>) SerializationTags.getInstance().collections.get(Keys.ITEMS);
+			for (ResourceLocation tagName: tagNames) {
 				if (itemTags.getTag(tagName) == null)
-					throw new IllegalStateException("Unknown item tag name found in packet: \"" + tagName + "\"");
+					throw new IllegalStateException(
+					  "Unknown item tag name found in packet: \"" + tagName + "\"");
 			}
 			NBTPredicate nbtPredicate =
-			  buf.readBoolean() ? NBTPredicate.parse(PacketBufferUtil.readString(buf)).orElse(null) : null;
+			  buf.readBoolean()? NBTPredicate.parse(buf.readUtf()).orElse(null) : null;
 			return new ItemSelector(tagNames, nbtPredicate);
 		}
 	}
 	
-	public void write(PacketBuffer buf) {
+	public void write(FriendlyByteBuf buf) {
 		if (item != null) {
 			buf.writeBoolean(true);
 			//noinspection ConstantConditions
 			buf.writeResourceLocation(item.getRegistryName());
 		} else if (tags != null) {
 			buf.writeBoolean(false);
-			writeList(buf, tags.values(), PacketBuffer::writeResourceLocation);
+			writeList(buf, tags.values(), FriendlyByteBuf::writeResourceLocation);
 		}
 		buf.writeBoolean(nbtPredicate != null);
 		if (nbtPredicate != null)
@@ -174,7 +182,7 @@ public class ItemSelector implements Predicate<ItemStack> {
 	}
 	
 	public static boolean any(List<ItemSelector> selectors, ItemStack stack) {
-		for (ItemSelector sel : selectors) {
+		for (ItemSelector sel: selectors) {
 			if (sel.test(stack))
 				return true;
 		}
@@ -183,33 +191,35 @@ public class ItemSelector implements Predicate<ItemStack> {
 	
 	/**
 	 * Used to display in JEI
+	 *
 	 * @return An {@link Ingredient} close to this.
 	 */
 	public Ingredient similarIngredient() {
 		if (tags != null && !tags.isEmpty()) {
-			return Ingredient.of(tags.keySet().stream().flatMap(t -> t.getValues().stream()).toArray(Item[]::new));
+			return Ingredient.of(
+			  tags.keySet().stream().flatMap(t -> t.getValues().stream()).toArray(Item[]::new));
 		} else if (item != null) {
 			return Ingredient.of(item);
 		}
 		return Ingredient.EMPTY;
 	}
 	
-	public Optional<CompoundNBT> matchingNBT() {
+	public Optional<CompoundTag> matchingNBT() {
 		if (nbtPredicate != null)
 			//noinspection unchecked
-			return (Optional<CompoundNBT>) (Optional<?>) nbtPredicate.generateValid();
+			return (Optional<CompoundTag>) (Optional<?>) nbtPredicate.generateValid();
 		return Optional.empty();
 	}
 	
-	public ITextComponent getDisplay() {
-		IFormattableTextComponent d = stc("");
+	public Component getDisplay() {
+		MutableComponent d = stc("");
 		if (tags != null) {
-			for (ResourceLocation tagName : tags.values())
+			for (ResourceLocation tagName: tags.values())
 				d = d.append(
 				  stc("{")
-					 .append(stc(tagName).withStyle(TextFormatting.GRAY))
+					 .append(stc(tagName).withStyle(ChatFormatting.GRAY))
 					 .append(stc("}"))
-					 .withStyle(TextFormatting.DARK_GREEN));
+					 .withStyle(ChatFormatting.DARK_GREEN));
 		}
 		if (item != null)
 			d = d.append(new ItemStack(item).getHoverName());
@@ -221,7 +231,7 @@ public class ItemSelector implements Predicate<ItemStack> {
 	@Override public String toString() {
 		StringBuilder res = new StringBuilder();
 		if (tags != null) {
-			for (ResourceLocation tagName : tags.values())
+			for (ResourceLocation tagName: tags.values())
 				res.append('{').append(tagName).append('}');
 		}
 		if (item != null)

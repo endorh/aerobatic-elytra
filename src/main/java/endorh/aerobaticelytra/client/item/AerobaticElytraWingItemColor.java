@@ -5,11 +5,11 @@ import endorh.aerobaticelytra.common.item.ElytraDyement;
 import endorh.aerobaticelytra.common.item.ElytraDyement.WingDyement;
 import endorh.aerobaticelytra.common.item.ElytraDyement.WingSide;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.color.IItemColor;
-import net.minecraft.item.DyeColor;
-import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.BannerPattern;
-import net.minecraft.util.IItemProvider;
+import net.minecraft.client.color.item.ItemColor;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BannerPattern;
+import net.minecraft.world.level.ItemLike;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -18,14 +18,13 @@ import java.util.List;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
-public class AerobaticElytraWingItemColor implements IItemColor {
-	public static void register(IItemProvider item) {
+public class AerobaticElytraWingItemColor implements ItemColor {
+	public static void register(ItemLike item) {
 		Minecraft.getInstance().getItemColors().register(
 		  new AerobaticElytraWingItemColor(), item);
 	}
 	
 	private static final ElytraDyement dyement = new ElytraDyement();
-	
 	
 	
 	@Override
@@ -40,12 +39,12 @@ public class AerobaticElytraWingItemColor implements IItemColor {
 			final List<Pair<BannerPattern, DyeColor>> list = wingDye.patternColorData;
 			int n = list.size();
 			assert n >= 1;
-			switch (tintLayer) {
-				case 3: return list.get(n-1).getSecond().getColorValue();
-				case 2: return list.get(max(0, n-2)).getSecond().getColorValue();
-				case 1: return list.get(min(n-1, 1)).getSecond().getColorValue();
-				default: return list.get(0).getSecond().getColorValue();
-			}
+			return switch (tintLayer) {
+				case 3 -> list.get(n - 1).getSecond().getTextColor();
+				case 2 -> list.get(max(0, n - 2)).getSecond().getTextColor();
+				case 1 -> list.get(min(n - 1, 1)).getSecond().getTextColor();
+				default -> list.get(0).getSecond().getTextColor();
+			};
 		} else {
 			return wingDye.color;
 		}

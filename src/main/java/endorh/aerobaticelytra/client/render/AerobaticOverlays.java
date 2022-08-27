@@ -1,45 +1,53 @@
 package endorh.aerobaticelytra.client.render;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Quaternion;
+import com.mojang.math.Vector3f;
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.config.ClientConfig;
+import endorh.aerobaticelytra.client.config.ClientConfig.FlightBarDisplay;
 import endorh.aerobaticelytra.client.config.ClientConfig.style.visual;
+import endorh.aerobaticelytra.client.render.overlay.AerobaticCrosshairOverlay;
+import endorh.aerobaticelytra.client.render.overlay.FlightBarOverlay;
 import endorh.aerobaticelytra.common.AerobaticElytraLogic;
-import endorh.aerobaticelytra.common.capability.AerobaticDataCapability;
-import endorh.aerobaticelytra.common.capability.IAerobaticData;
-import endorh.aerobaticelytra.common.config.Config;
 import endorh.aerobaticelytra.common.config.Const;
 import endorh.aerobaticelytra.common.flight.AerobaticFlight;
 import endorh.aerobaticelytra.common.flight.mode.IFlightMode;
-import net.minecraft.client.GameSettings;
-import net.minecraft.client.MainWindow;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.AbstractGui;
-import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.GameType;
+import net.minecraft.client.Options;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.GameType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
+import net.minecraftforge.client.gui.ForgeIngameGui;
+import net.minecraftforge.client.gui.IIngameOverlay;
+import net.minecraftforge.client.gui.OverlayRegistry;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
-import org.lwjgl.opengl.GL11;
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 
-import static endorh.aerobaticelytra.client.ModResources.FLIGHT_GUI_ICONS_LOCATION;
 import static java.lang.Math.round;
 import static java.lang.System.currentTimeMillis;
+import static net.minecraft.client.gui.GuiComponent.blit;
 
 @EventBusSubscriber(value = Dist.CLIENT, modid = AerobaticElytra.MOD_ID)
 public class AerobaticOverlays {
+	public static final IIngameOverlay AEROBATIC_CROSSHAIR = new AerobaticCrosshairOverlay();
+	public static final IIngameOverlay FLIGHT_BAR = new FlightBarOverlay();
+	
 	private static long toastEnd = 0L;
 	private static long remainingToastTime = 0L;
 	private static IFlightMode mode = null;
+	private static boolean rotatingDebugCrosshair = false;
 	private static boolean awaitingDebugCrosshair = false;
+	private static boolean showingCrosshair = true;
+	private static boolean showingFlightBar = true;
 	
-	public static void showModeToastIfRelevant(PlayerEntity player, IFlightMode mode) {
+	public static void showModeToastIfRelevant(Player player, IFlightMode mode) {
 		if (AerobaticElytraLogic.hasAerobaticElytra(player))
 			showModeToast(mode);
 	}
@@ -54,28 +62,21 @@ public class AerobaticOverlays {
 	public static void onRenderGameOverlayPost(RenderGameOverlayEvent.Post event) {
 		if (event.getType() == ElementType.ALL && remainingToastTime > 0) {
 			Minecraft mc = Minecraft.getInstance();
-			PlayerEntity pl = mc.player;
+			Player pl = mc.player;
 			assert pl != null;
 			float alpha = remainingToastTime / (float) visual.mode_toast_length_ms;
-			renderToast(mode, alpha, event.getMatrixStack(),
-			            mc.getTextureManager(), event.getWindow());
+			renderToast(mode, alpha, event.getMatrixStack(), event.getWindow());
 			final long t = currentTimeMillis();
 			remainingToastTime = toastEnd - t;
-		} else if (event.getType() == ElementType.CROSSHAIRS && awaitingDebugCrosshair) {
-			awaitingDebugCrosshair = false;
-			PlayerEntity pl = Minecraft.getInstance().player;
-			assert pl != null;
-			onPostDebugCrosshair();
 		}
 	}
 	
 	public static void renderToast(
-	  IFlightMode mode, float alpha, MatrixStack mStack,
-	  TextureManager tManager, MainWindow win
+	  IFlightMode mode, float alpha, PoseStack mStack, Window win
 	) {
-		tManager.bind(mode.getToastIconLocation());
+		RenderSystem.setShaderTexture(0, mode.getToastIconLocation());
 		RenderSystem.enableBlend();
-		RenderSystem.color4f(1F, 1F, 1F, alpha);
+		RenderSystem.setShaderColor(1F, 1F, 1F, alpha);
 		int winW = win.getGuiScaledWidth();
 		int winH = win.getGuiScaledHeight();
 		int tW = Const.FLIGHT_GUI_TEXTURE_WIDTH, tH = Const.FLIGHT_GUI_TEXTURE_HEIGHT;
@@ -84,204 +85,105 @@ public class AerobaticOverlays {
 		if (u != -1 && v != -1) {
 			int x = round((winW - iW) * visual.mode_toast_x_fraction);
 			int y = round((winH - iH) * visual.mode_toast_y_fraction);
-			AbstractGui.blit(mStack, x, y, u, v, iW, iH, tW, tH);
+			blit(mStack, x, y, u, v, iW, iH, tW, tH);
 		}
-		RenderSystem.color4f(1F, 1F, 1F, 1F);
+		RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
 		RenderSystem.disableBlend();
 	}
 	
+	/**
+	 * Enable and disable overlays.
+	 */
 	@SubscribeEvent
 	public static void onRenderGameOverlayPre(RenderGameOverlayEvent.Pre event) {
-		if (event.getType() == ElementType.CROSSHAIRS && visual.flight_crosshair) {
-			Minecraft mc = Minecraft.getInstance();
-			PlayerEntity pl = mc.player;
-			assert pl != null;
-			if (AerobaticFlight.isAerobaticFlying(pl)) {
-				GameSettings st = mc.options;
-				assert mc.gameMode != null;
-				// Mimic logic from IngameGui#renderCrosshair
-				if (st.getCameraType().isFirstPerson()
-				    && mc.gameMode.getPlayerMode() != GameType.SPECTATOR
-				    && !st.hideGui) {
-					if (st.renderDebug && !pl.isReducedDebugInfo() && !st.reducedDebugInfo) {
-						awaitingDebugCrosshair = true;
-						onPreDebugCrosshair(pl, event.getWindow());
-					} else {
-						awaitingDebugCrosshair = false;
-						event.setCanceled(renderCrosshair(
-						  pl, event.getMatrixStack(),
-						  mc.getTextureManager(), event.getWindow()));
+		if (event.getType() == ElementType.ALL) {
+			rotatingDebugCrosshair = false;
+			boolean showCrosshair = false;
+			if (visual.flight_crosshair) {
+				Minecraft mc = Minecraft.getInstance();
+				Player pl = mc.player;
+				assert pl != null;
+				if (AerobaticFlight.isAerobaticFlying(pl)) {
+					Options opt = mc.options;
+					assert mc.gameMode != null;
+					if (opt.getCameraType().isFirstPerson()
+					    && mc.gameMode.getPlayerMode() != GameType.SPECTATOR
+					    && !opt.hideGui) {
+						if (opt.renderDebug && !pl.isReducedDebugInfo() && !opt.reducedDebugInfo) {
+							rotatingDebugCrosshair = true;
+						} else {
+							showCrosshair = true;
+						}
 					}
 				}
 			}
-		} else if (event.getType() == ElementType.EXPERIENCE
-		           && visual.flight_bar != ClientConfig.FlightBarDisplay.HIDE) {
-			Minecraft mc = Minecraft.getInstance();
-			PlayerEntity player = mc.player;
-			assert player != null;
-			if (AerobaticFlight.isAerobaticFlying(player)) {
-				event.setCanceled(renderFlightBar(
-				  player, event.getMatrixStack(),
-				  mc.getTextureManager(), event.getWindow(), event.getPartialTicks()));
+			if (showCrosshair != showingCrosshair || showCrosshair) {
+				OverlayRegistry.enableOverlay(AEROBATIC_CROSSHAIR, showCrosshair);
+				OverlayRegistry.enableOverlay(ForgeIngameGui.CROSSHAIR_ELEMENT, !showCrosshair);
+				showingCrosshair = showCrosshair;
+			}
+			boolean showFlightBar = false;
+			boolean suppressExperienceBar = false;
+			if (visual.flight_bar != FlightBarDisplay.HIDE) {
+				Minecraft mc = Minecraft.getInstance();
+				Player player = mc.player;
+				assert player != null;
+				if (AerobaticFlight.isAerobaticFlying(player)) {
+					showFlightBar = true;
+					if (visual.flight_bar == ClientConfig.FlightBarDisplay.REPLACE_XP) {
+						suppressExperienceBar = true;
+					}
+				}
+			}
+			if (suppressExperienceBar) {
+				OverlayRegistry.enableOverlay(ForgeIngameGui.EXPERIENCE_BAR_ELEMENT, false);
+			} else if (showFlightBar != showingFlightBar) {
+				OverlayRegistry.enableOverlay(ForgeIngameGui.EXPERIENCE_BAR_ELEMENT, false);
+			}
+			if (showFlightBar != showingFlightBar) {
+				showingFlightBar = showFlightBar;
+				OverlayRegistry.enableOverlay(FLIGHT_BAR, showFlightBar);
 			}
 		}
-	}
-	
-	public static boolean renderCrosshair(
-	  PlayerEntity player, MatrixStack mStack,
-	  TextureManager tManager, MainWindow win
-	) {
-		tManager.bind(FLIGHT_GUI_ICONS_LOCATION);
-		RenderSystem.enableBlend();
-		RenderSystem.enableAlphaTest();
-		RenderSystem.blendFuncSeparate(
-		  GlStateManager.SourceFactor.ONE_MINUS_DST_COLOR,
-		  GlStateManager.DestFactor.ONE_MINUS_SRC_COLOR,
-		  GlStateManager.SourceFactor.ONE,
-		  GlStateManager.DestFactor.ZERO);
-		
-		int winW = win.getGuiScaledWidth();
-		int winH = win.getGuiScaledHeight();
-		
-		int tW = Const.FLIGHT_GUI_TEXTURE_WIDTH; int tH = Const.FLIGHT_GUI_TEXTURE_HEIGHT;
-		int cS = Const.FLIGHT_GUI_CROSSHAIR_SIZE;
-		
-		IAerobaticData data = AerobaticDataCapability.getAerobaticDataOrDefault(player);
-		
-		float scaledPitch = data.getTiltPitch() / Config.aerobatic.tilt.range_pitch * Const.CROSSHAIR_PITCH_RANGE_PX;
-		float scaledRoll = data.getTiltRoll() / Config.aerobatic.tilt.range_roll * Const.CROSSHAIR_ROLL_RANGE_DEG;
-		// Underwater yaw tilt can exceed the range
-		float scaledYaw = -MathHelper.clamp(data.getTiltYaw(), -Config.aerobatic.tilt.range_yaw, Config.aerobatic.tilt.range_yaw)
-		                  / Config.aerobatic.tilt.range_yaw * Const.CROSSHAIR_YAW_RANGE_PX;
-		
-		GL11.glPushMatrix(); {
-			// Base
-			AbstractGui.blit(mStack, (winW - cS) / 2, (winH - cS) / 2,
-			                 0, 0, cS, cS, tW, tH);
-			// Pitch
-			GL11.glPushMatrix(); {
-				GL11.glTranslatef(0F, scaledPitch, 0F);
-				AbstractGui.blit(mStack, (winW - cS) / 2, (winH - cS) / 2,
-				                 cS, 0, cS, cS, tW, tH);
-			} GL11.glPopMatrix();
-			
-			// Yaw
-			GL11.glPushMatrix(); {
-				GL11.glTranslatef(scaledYaw, 0F, 0F);
-				AbstractGui.blit(mStack, (winW - cS) / 2, (winH - cS) / 2,
-				                 0, cS, cS, cS, tW, tH);
-			} GL11.glPopMatrix();
-			
-			// Roll
-			GL11.glPushMatrix(); {
-				GL11.glTranslatef(winW / 2F, winH / 2F, 0F);
-				GL11.glRotatef(scaledRoll, 0, 0, 1);
-				GL11.glTranslatef(-(winW / 2F), -(winH / 2F), 0F);
-				// Rotated crosshair
-				AbstractGui.blit(mStack, (winW - cS) / 2, (winH - cS) / 2,
-				                 cS, cS, cS, cS, tW, tH);
-			} GL11.glPopMatrix();
-		}
-		GL11.glPopMatrix();
-		// No attack indicator when flying
-		return true;
-	}
-	
-	private static float lastBoost = 0F;
-	private static float lastProp = 0F;
-	private static float prevBoost = 0F;
-	private static float prevProp = 0F;
-	private static float lastPartialTicks = 0F;
-	
-	public static boolean renderFlightBar(
-	  PlayerEntity player, MatrixStack mStack,
-	  TextureManager tManager, MainWindow win, float partialTicks
-	) {
-		boolean replace = visual.flight_bar == ClientConfig.FlightBarDisplay.REPLACE_XP
-		                  || player.isCreative();
-		
-		// RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-		RenderSystem.enableBlend();
-		
-		tManager.bind(FLIGHT_GUI_ICONS_LOCATION);
-		
-		int winW = win.getGuiScaledWidth();
-		int winH = win.getGuiScaledHeight();
-		
-		int cap = player.getXpNeededForNextLevel();
-		
-		int x = winW / 2 - 91; // from ForgeIngameGui#renderIngameGui
-		int y = winH - 32 + 3; // from IngameGui#renderExperienceBar
-		float barLength = 183F; // from IngameGui#renderExperienceBar
-		int barHeight = 5;
-		if (!replace) { // OVER_XP
-			y -= 3;
-			barHeight = 3;
-		}
-		
-		int tW = Const.FLIGHT_GUI_TEXTURE_WIDTH; int tH = Const.FLIGHT_GUI_TEXTURE_HEIGHT;
-		IAerobaticData data = AerobaticDataCapability.getAerobaticDataOrDefault(player);
-		float pr = data.getPropulsionStrength();
-		int prop = (int)(
-		  (pr >= 0F? pr / Config.aerobatic.propulsion.positive_span
-		           : pr / Config.aerobatic.propulsion.negative_span
-		  ) * barLength);
-		int boost = (int)(data.getBoostHeat() * barLength);
-		int brake_heat = (int)((1.0 - Math.pow(1F - data.getBrakeHeat(), 1.4)) * barLength);
-		boolean brake_cooldown = data.isBrakeCooling();
-		
-		if (partialTicks < lastPartialTicks) {
-			lastBoost = prevBoost;
-			lastProp = prevProp;
-			prevBoost = boost;
-			prevProp = prop;
-		}
-		lastPartialTicks = partialTicks;
-		
-		prop = round(MathHelper.lerp(partialTicks, lastProp, prop));
-		boost = round(MathHelper.lerp(partialTicks, lastBoost, boost));
-		
-		if (cap > 0) {
-			// Base
-			AbstractGui.blit(mStack, x, y, 0, 50, (int)barLength - 1, barHeight, tW, tH);
-			// Propulsion
-			if (prop > 0)
-				AbstractGui.blit(mStack, x, y, 0, 55, prop, barHeight, tW, tH);
-			else if (prop < 0)
-				AbstractGui.blit(mStack, x, y, 0, 60, -prop, barHeight, tW, tH);
-			// Boost
-			if (boost > 0)
-				AbstractGui.blit(mStack, x, y, 0, 65, boost, barHeight, tW, tH);
-			// Brake
-			if (brake_heat > 0)
-				AbstractGui.blit(mStack, x, y, 0, brake_cooldown? 75 : 70, brake_heat, barHeight, tW, tH);
-			// Overlay
-			AbstractGui.blit(mStack, x, y, 0, 80, (int)barLength - 1, barHeight, tW, tH);
-		}
-		
-		RenderSystem.disableBlend();
-		// RenderSystem.color4f(1F, 1F, 1F, 1F);
-		return replace;
 	}
 	
 	/**
 	 * Pushes the matrix stack to rotate the crosshair<br>
-	 * {@link AerobaticOverlays#onPostDebugCrosshair()} must be called after this on the same frame.
+	 * {@link AerobaticOverlays#onPostDebugCrosshair} must be called after this on the same frame.
 	 */
-	private static void onPreDebugCrosshair(PlayerEntity player, MainWindow win) {
-		int winW = win.getGuiScaledWidth();
-		int winH = win.getGuiScaledHeight();
-		IAerobaticData data = AerobaticDataCapability.getAerobaticDataOrDefault(player);
-		
-		GL11.glPushMatrix();
-			GL11.glTranslatef(winW / 2F, winH / 2F, 0F);
-			GL11.glRotatef(-CameraHandler.lastRoll, 0, 0, 1);
-			GL11.glTranslatef(-(winW / 2F), -(winH / 2F), 0F);
-		// Warning! Ensure onPostDebugCrosshair gets called,
-		//          or the matrix stack will break
+	@SubscribeEvent
+	public static void onPreDebugCrosshair(RenderGameOverlayEvent.PreLayer event) {
+		if (rotatingDebugCrosshair && event.getOverlay() == ForgeIngameGui.CROSSHAIR_ELEMENT) {
+			Window win = Minecraft.getInstance().getWindow();
+			int winW = win.getGuiScaledWidth();
+			int winH = win.getGuiScaledHeight();
+			
+			PoseStack pStack = RenderSystem.getModelViewStack();
+			pStack.pushPose(); {
+				pStack.translate(winW / 2F, winH / 2F, 0F);
+				pStack.mulPose(Quaternion.fromXYZDegrees(new Vector3f(0F, 0F, -CameraHandler.lastRoll)));
+				pStack.translate(-(winW / 2F), -(winH / 2F), 0F);
+			}
+			// Warning! Ensure onPostDebugCrosshair gets called,
+			//          or the matrix stack will break
+			awaitingDebugCrosshair = true;
+		}
 	}
 	
-	private static void onPostDebugCrosshair() {
-		GL11.glPopMatrix();
+	@SubscribeEvent
+	public static void onPostDebugCrosshair(RenderGameOverlayEvent.PostLayer event) {
+		if (awaitingDebugCrosshair && event.getOverlay() == ForgeIngameGui.CROSSHAIR_ELEMENT) {
+			RenderSystem.getModelViewStack().popPose();
+			awaitingDebugCrosshair = false;
+		}
+	}
+	
+	@EventBusSubscriber(value = Dist.CLIENT, bus = Bus.MOD, modid = AerobaticElytra.MOD_ID)
+	public static class Registrar {
+		@SubscribeEvent
+		public static void onClientSetup(FMLClientSetupEvent event) {
+			OverlayRegistry.registerOverlayAbove(ForgeIngameGui.CROSSHAIR_ELEMENT, AerobaticCrosshairOverlay.NAME, AEROBATIC_CROSSHAIR);
+			OverlayRegistry.registerOverlayAbove(ForgeIngameGui.EXPERIENCE_BAR_ELEMENT, FlightBarOverlay.NAME, FLIGHT_BAR);
+		}
 	}
 }

@@ -9,19 +9,19 @@ import endorh.aerobaticelytra.common.capability.IElytraSpec.Upgrade;
 import endorh.aerobaticelytra.common.item.ModItems;
 import endorh.aerobaticelytra.common.registry.ModRegistries;
 import endorh.util.recipe.RecipeManagerHelper.CachedRecipeProvider;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.IRecipeSerializer;
-import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.item.crafting.RecipeManager;
-import net.minecraft.item.crafting.SpecialRecipe;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.JSONUtils;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
+import net.minecraft.core.NonNullList;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.GsonHelper;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CustomRecipe;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 import static endorh.util.network.PacketBufferUtil.readList;
 import static endorh.util.network.PacketBufferUtil.writeList;
 
-public class UpgradeRecipe extends SpecialRecipe {
+public class UpgradeRecipe extends CustomRecipe {
 	public static final Serializer SERIALIZER = new Serializer();
 	
 	protected static final CachedRecipeProvider<Collection<UpgradeRecipe>> recipeProvider =
@@ -199,13 +199,13 @@ public class UpgradeRecipe extends SpecialRecipe {
 	 * which accepts a collection of upgrades to be applied concurrently.
 	 * @param player Player holding the ingredients
 	 */
-	public void apply(PlayerEntity player) {
-		ItemStack elytra = player.getItemBySlot(EquipmentSlotType.OFFHAND);
-		ItemStack stack = player.getItemBySlot(EquipmentSlotType.MAINHAND);
+	public void apply(Player player) {
+		ItemStack elytra = player.getItemBySlot(EquipmentSlot.OFFHAND);
+		ItemStack stack = player.getItemBySlot(EquipmentSlot.MAINHAND);
 		if (!matches(elytra, stack))
 			return;
 		final Pair<ItemStack, Integer> result = getResult(elytra, stack.getCount());
-		player.setItemSlot(EquipmentSlotType.OFFHAND, result.getLeft());
+		player.setItemSlot(EquipmentSlot.OFFHAND, result.getLeft());
 		if (!player.isCreative()) {
 			stack.shrink(result.getRight());
 		}
@@ -242,17 +242,17 @@ public class UpgradeRecipe extends SpecialRecipe {
 	 * @param player Player holding the ingredients
 	 * @param recipes Recipe collection
 	 */
-	public static void apply(PlayerEntity player, Collection<UpgradeRecipe> recipes) {
-		ItemStack elytra = player.getItemBySlot(EquipmentSlotType.OFFHAND);
-		final ItemStack stack = player.getItemBySlot(EquipmentSlotType.MAINHAND);
+	public static void apply(Player player, Collection<UpgradeRecipe> recipes) {
+		ItemStack elytra = player.getItemBySlot(EquipmentSlot.OFFHAND);
+		final ItemStack stack = player.getItemBySlot(EquipmentSlot.MAINHAND);
 		int n = stack.getCount();
 		final ItemStack result = apply(elytra, stack, recipes);
-		player.setItemSlot(EquipmentSlotType.OFFHAND, result);
+		player.setItemSlot(EquipmentSlot.OFFHAND, result);
 		if (player.isCreative())
 			stack.setCount(n);
 	}
 	
-	@NotNull @Override public IRecipeSerializer<?> getSerializer() {
+	@NotNull @Override public RecipeSerializer<?> getSerializer() {
 		return SERIALIZER;
 	}
 	
@@ -260,10 +260,10 @@ public class UpgradeRecipe extends SpecialRecipe {
 	@Deprecated @Override public boolean canCraftInDimensions(int width, int height) {
 		return false;
 	}
-	@Deprecated @Override public boolean matches(@NotNull CraftingInventory inv, @NotNull World worldIn) {
+	@Deprecated @Override public boolean matches(@NotNull CraftingContainer inv, @NotNull Level worldIn) {
 		return false;
 	}
-	@Deprecated @NotNull @Override public ItemStack assemble(@NotNull CraftingInventory inv) {
+	@Deprecated @NotNull @Override public ItemStack assemble(@NotNull CraftingContainer inv) {
 		return ItemStack.EMPTY;
 	}
 	
@@ -295,8 +295,8 @@ public class UpgradeRecipe extends SpecialRecipe {
 		return valid;
 	}
 	
-	public static class Serializer extends ForgeRegistryEntry<IRecipeSerializer<?>>
-	  implements IRecipeSerializer<UpgradeRecipe> {
+	public static class Serializer extends ForgeRegistryEntry<RecipeSerializer<?>>
+	  implements RecipeSerializer<UpgradeRecipe> {
 		
 		public static final ResourceLocation NAME = new ResourceLocation(
 		  AerobaticElytra.MOD_ID, "upgrade_recipe");
@@ -309,19 +309,19 @@ public class UpgradeRecipe extends SpecialRecipe {
 		  @NotNull ResourceLocation recipeId, @NotNull JsonObject json
 		) {
 			final List<ItemSelector> ing = ItemSelector.deserialize(
-			  JSONUtils.getAsJsonArray(json, "ingredients"));
+			  GsonHelper.getAsJsonArray(json, "ingredients"));
 			final List<Upgrade> upgrades = IElytraSpec.Upgrade.deserialize(
-			  JSONUtils.getAsJsonArray(json, "upgrades"));
+			  GsonHelper.getAsJsonArray(json, "upgrades"));
 			final ElytraRequirement req =
-			  JSONUtils.isValidNode(json, "requirement")
-			  ? ElytraRequirement.deserialize(JSONUtils.getAsJsonObject(json, "requirement"))
+			  GsonHelper.isValidNode(json, "requirement")
+			  ? ElytraRequirement.deserialize(GsonHelper.getAsJsonObject(json, "requirement"))
 			  : ElytraRequirement.NONE;
-			final boolean lenient = JSONUtils.getAsBoolean(json, "lenient", true);
+			final boolean lenient = GsonHelper.getAsBoolean(json, "lenient", true);
 			return new UpgradeRecipe(recipeId, ing, upgrades, req, lenient);
 		}
 		
 		@Nullable @Override public UpgradeRecipe fromNetwork(
-		  @NotNull ResourceLocation id, @NotNull PacketBuffer buf
+		  @NotNull ResourceLocation id, @NotNull FriendlyByteBuf buf
 		) {
 			return new UpgradeRecipe(id,
 			  readList(buf, ItemSelector::read),
@@ -331,7 +331,7 @@ public class UpgradeRecipe extends SpecialRecipe {
 		}
 		
 		@Override public void toNetwork(
-		  @NotNull PacketBuffer buf, @NotNull UpgradeRecipe recipe
+		  @NotNull FriendlyByteBuf buf, @NotNull UpgradeRecipe recipe
 		) {
 			writeList(recipe.ingredients, buf, ItemSelector::write);
 			writeList(recipe.upgrades, buf, Upgrade::write);
@@ -353,8 +353,8 @@ public class UpgradeRecipe extends SpecialRecipe {
 		public static ElytraRequirement deserialize(JsonObject json) {
 			return new ElytraRequirement();
 		}
-		public void write(PacketBuffer buf) {}
-		public static ElytraRequirement read(PacketBuffer buf) {
+		public void write(FriendlyByteBuf buf) {}
+		public static ElytraRequirement read(FriendlyByteBuf buf) {
 			return new ElytraRequirement();
 		}
 	}

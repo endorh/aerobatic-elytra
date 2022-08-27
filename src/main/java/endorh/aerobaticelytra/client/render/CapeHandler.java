@@ -7,7 +7,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 
-@EventBusSubscriber(value = Dist.CLIENT, modid = AerobaticElytra.MOD_ID)
+@EventBusSubscriber(value=Dist.CLIENT, modid=AerobaticElytra.MOD_ID)
 public class CapeHandler {
 	@SubscribeEvent
 	public static void onCancelCapeRenderEvent(CancelCapeRenderEvent event) {

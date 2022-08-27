@@ -3,10 +3,10 @@ package endorh.aerobaticelytra.common.flight.mode;
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.render.model.IElytraPose;
 import endorh.aerobaticelytra.common.registry.ModRegistries;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,7 +48,7 @@ public interface IFlightMode extends IForgeRegistryEntry<IFlightMode> {
 	/**
 	 * Restrict which players can use a certain flight mode
 	 */
-	default boolean canBeUsedBy(PlayerEntity player) {
+	default boolean canBeUsedBy(Player player) {
 		return true;
 	}
 	
@@ -67,12 +67,12 @@ public interface IFlightMode extends IForgeRegistryEntry<IFlightMode> {
 	/**
 	 * @return The method used to handle a flight tick for a player
 	 */
-	BiPredicate<PlayerEntity, Vector3d> getFlightHandler();
+	BiPredicate<Player, Vec3> getFlightHandler();
 	
 	/**
 	 * @return The method used to handle a non-flight tick for a player
 	 */
-	@Nullable default BiConsumer<PlayerEntity, Vector3d> getNonFlightHandler() {
+	@Nullable default BiConsumer<Player, Vec3> getNonFlightHandler() {
 		return null;
 	}
 	
@@ -80,7 +80,7 @@ public interface IFlightMode extends IForgeRegistryEntry<IFlightMode> {
 	 * @return The method used to handle a flight tick for a
 	 * {@link net.minecraft.client.entity.player.RemoteClientPlayerEntity}
 	 */
-	@Nullable default Consumer<PlayerEntity> getRemoteFlightHandler() {
+	@Nullable default Consumer<Player> getRemoteFlightHandler() {
 		return null;
 	}
 	
@@ -88,7 +88,7 @@ public interface IFlightMode extends IForgeRegistryEntry<IFlightMode> {
 	 * @return The method used to handle a non-flight tick for a
 	 * {@link net.minecraft.client.entity.player.RemoteClientPlayerEntity}
 	 */
-	@Nullable default Consumer<PlayerEntity> getRemoteNonFlightHandler() {
+	@Nullable default Consumer<Player> getRemoteNonFlightHandler() {
 		return null;
 	}
 	
@@ -154,14 +154,14 @@ public interface IFlightMode extends IForgeRegistryEntry<IFlightMode> {
 	/**
 	 * Serialize to packet
 	 */
-	default void write(PacketBuffer buf) {
+	default void write(FriendlyByteBuf buf) {
 		buf.writeResourceLocation(getRegistryName());
 	}
 	
 	/**
 	 * Read froom packet
 	 */
-	static IFlightMode read(PacketBuffer buf) {
+	static IFlightMode read(FriendlyByteBuf buf) {
 		final ResourceLocation regName = buf.readResourceLocation();
 		if (!ModRegistries.FLIGHT_MODE_REGISTRY.containsKey(regName))
 			throw new IllegalArgumentException(
@@ -172,7 +172,7 @@ public interface IFlightMode extends IForgeRegistryEntry<IFlightMode> {
 	/**
 	 * Get the {@link IElytraPose} for a player in the current state.
 	 */
-	default @Nullable IElytraPose getElytraPose(PlayerEntity player) {
+	default @Nullable IElytraPose getElytraPose(Player player) {
 		return null;
 	}
 	

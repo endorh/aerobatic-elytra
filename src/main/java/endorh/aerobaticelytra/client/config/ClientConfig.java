@@ -6,7 +6,7 @@ import endorh.simpleconfig.api.SimpleConfig;
 import endorh.simpleconfig.api.SimpleConfig.Type;
 import endorh.simpleconfig.api.annotation.Bind;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -36,7 +36,7 @@ public class ClientConfig {
 		            .add("flight_crosshair", yesNo(true))
 		            .add("flight_bar", option(FlightBarDisplay.OVER_XP))
 		            .add("mode_toast_length_seconds", number(2.0).min(0)
-		              .field("mode_toast_length_ms", s -> (long) (s * 1000), Long.class))
+		              .field("mode_toast_length_ms", s -> /*(Long)*/ (long) (s * 1000), Long.class))
 		            .add("mode_toast_x_percentage", number(50F, 100).slider()
 		              .fieldScale("mode_toast_x_fraction", 0.01F))
 		            .add("mode_toast_y_percentage", number(70F, 100).slider()

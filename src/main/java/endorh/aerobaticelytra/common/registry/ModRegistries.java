@@ -13,9 +13,9 @@ import endorh.util.math.MathHighlighter.UnicodeMathSyntaxHighlightParser;
 import endorh.util.math.MathParser.ExpressionParser;
 import endorh.util.math.MathParser.FixedNamespaceSet;
 import endorh.util.math.MathParser.UnicodeMathDoubleExpressionParser;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -139,8 +139,8 @@ public class ModRegistries {
 			} else ABILITIES.put(entry.getKey(), entry.getValue());
 		}
 		// final Map<String, Map<String, IAbility>> namespaceSet = new HashMap<>();
-		final Map<String, TextFormatting> abilityColors = new HashMap<>();
-		final Map<String, IFormattableTextComponent> abilityTranslations = new HashMap<>();
+		final Map<String, ChatFormatting> abilityColors = new HashMap<>();
+		final Map<String, MutableComponent> abilityTranslations = new HashMap<>();
 		for (ResourceLocation id : ABILITIES.keySet()) {
 			final String namespace = id.getNamespace();
 			final IAbility ability = ABILITIES.get(id);

@@ -17,19 +17,18 @@ import endorh.aerobaticelytra.common.particle.TrailParticleData;
 import endorh.util.math.Vec3d;
 import endorh.util.math.Vec3f;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 
-import java.awt.*;
-import java.util.List;
+import java.awt.Color;
 import java.util.*;
 
 import static endorh.aerobaticelytra.common.capability.IElytraSpec.RocketStar.*;
 import static java.lang.Math.max;
 import static java.lang.Math.round;
+import static net.minecraft.util.Mth.clampedLerp;
 
 public class AerobaticTrail {
 	public static final Map<Byte, BoostShape> SHAPES = new HashMap<>();
@@ -42,14 +41,14 @@ public class AerobaticTrail {
 		SHAPES.put(
 		  SHAPE_STAR,
 		  new ShapedBoostShape(
-			 new float[][] {
+			 new float[][]{
 				{0.0F, 1.0F}, {0.3455F, 0.309F}, {0.9511F, 0.309F},
 				{0.3795918F, -0.1265306F}, {0.6122449F, -0.8040816F}, {0.0F, -0.3591837F}
 			 }, 5, 3, 0.35F, true, 0.03F));
 		SHAPES.put(
 		  SHAPE_CREEPER,
 		  new ShapedBoostShape(
-			 new float[][] {
+			 new float[][]{
 				{0.0F, 0.2F}, {0.2F, 0.2F}, {0.2F, 0.6F}, {0.6F, 0.6F},
 				{0.6F, 0.2F}, {0.2F, 0.2F}, {0.2F, 0.0F}, {0.4F, 0.0F},
 				{0.4F, -0.6F}, {0.2F, -0.6F}, {0.2F, -0.4F}, {0.0F, -0.4F}
@@ -78,18 +77,20 @@ public class AerobaticTrail {
 	
 	/**
 	 * Adds particles tailing a flying player<br>
+	 *
 	 * @param player Player flying
 	 * @param motionVec Player motion
 	 * @param prevMotionVec Previous player motion
 	 */
 	public static void addParticles(
-	  PlayerEntity player, Vec3f motionVec, Vec3f prevMotionVec
+	  Player player, Vec3f motionVec, Vec3f prevMotionVec
 	) {
 		IAerobaticData data = AerobaticDataCapability.getAerobaticDataOrDefault(player);
 		base.set(data.getCameraBase());
-		prevBase.update(data.getPrevTickRotationYaw(),
-		                data.getPrevTickRotationPitch(),
-		                data.getPrevTickRotationRoll());
+		prevBase.update(
+		  data.getPrevTickRotationYaw(),
+		  data.getPrevTickRotationPitch(),
+		  data.getPrevTickRotationRoll());
 		
 		float tiltYaw = data.getTiltYaw();
 		float tiltPitch = data.getTiltPitch();
@@ -151,63 +152,63 @@ public class AerobaticTrail {
 			
 			getTrailParticle(player, RocketSide.RIGHT, elytra, i, t, ownPlayer, roll).ifPresent(
 			  particle -> {
-			  	float[] off = getTransversalOffset(particle.type);
-			  	player.level.addParticle(
-			  	  particle,
-			     rocketRight.x, rocketRight.y, rocketRight.z,
-			     particleMotion.x + base.normal.x * off[0] + base.roll.x * off[1],
-			     particleMotion.y + base.normal.y * off[0] + base.roll.y * off[1],
-			     particleMotion.z + base.normal.z * off[0] + base.roll.z * off[1]);
+				  float[] off = getTransversalOffset(particle.type);
+				  player.level.addParticle(
+					 particle,
+					 rocketRight.x, rocketRight.y, rocketRight.z,
+					 particleMotion.x + base.normal.x * off[0] + base.roll.x * off[1],
+					 particleMotion.y + base.normal.y * off[0] + base.roll.y * off[1],
+					 particleMotion.z + base.normal.z * off[0] + base.roll.z * off[1]);
 			  });
 			getTrailParticle(player, RocketSide.LEFT, elytra, i, t, ownPlayer, roll).ifPresent(
 			  particle -> {
-			  	float[] off = getTransversalOffset(particle.type);
-				player.level.addParticle(
-				  particle,
-				  rocketLeft.x, rocketLeft.y, rocketLeft.z,
-				  particleMotion.x + base.normal.x * off[0] + base.roll.x * off[1],
-				  particleMotion.y + base.normal.y * off[0] + base.roll.y * off[1],
-				  particleMotion.z + base.normal.z * off[0] + base.roll.z * off[1]);
+				  float[] off = getTransversalOffset(particle.type);
+				  player.level.addParticle(
+					 particle,
+					 rocketLeft.x, rocketLeft.y, rocketLeft.z,
+					 particleMotion.x + base.normal.x * off[0] + base.roll.x * off[1],
+					 particleMotion.y + base.normal.y * off[0] + base.roll.y * off[1],
+					 particleMotion.z + base.normal.z * off[0] + base.roll.z * off[1]);
 			  });
 			getTrailParticle(player, RocketSide.CENTER_RIGHT, elytra, i, t, ownPlayer, roll).ifPresent(
 			  particle -> {
-			  	float[] off = getTransversalOffset(particle.type);
-			  	player.level.addParticle(
-				  particle,
-				  rocketCenterRight.x, rocketCenterRight.y, rocketCenterRight.z,
-				  particleMotion.x + base.normal.x * off[0] + base.roll.x * off[1],
-				  particleMotion.y + base.normal.y * off[0] + base.roll.y * off[1],
-				  particleMotion.z + base.normal.z * off[0] + base.roll.z * off[1]);
+				  float[] off = getTransversalOffset(particle.type);
+				  player.level.addParticle(
+					 particle,
+					 rocketCenterRight.x, rocketCenterRight.y, rocketCenterRight.z,
+					 particleMotion.x + base.normal.x * off[0] + base.roll.x * off[1],
+					 particleMotion.y + base.normal.y * off[0] + base.roll.y * off[1],
+					 particleMotion.z + base.normal.z * off[0] + base.roll.z * off[1]);
 			  });
 			getTrailParticle(player, RocketSide.CENTER_LEFT, elytra, i, t, ownPlayer, roll).ifPresent(
 			  particle -> {
-			  	float[] off = getTransversalOffset(particle.type);
-				player.level.addParticle(
-				  particle,
-				  rocketCenterLeft.x, rocketCenterLeft.y, rocketCenterLeft.z,
-				  particleMotion.x + base.normal.x * off[0] + base.roll.x * off[1],
-				  particleMotion.y + base.normal.y * off[0] + base.roll.y * off[1],
-				  particleMotion.z + base.normal.z * off[0] + base.roll.z * off[1]);
+				  float[] off = getTransversalOffset(particle.type);
+				  player.level.addParticle(
+					 particle,
+					 rocketCenterLeft.x, rocketCenterLeft.y, rocketCenterLeft.z,
+					 particleMotion.x + base.normal.x * off[0] + base.roll.x * off[1],
+					 particleMotion.y + base.normal.y * off[0] + base.roll.y * off[1],
+					 particleMotion.z + base.normal.z * off[0] + base.roll.z * off[1]);
 			  });
 		}
 	}
 	
 	public static Optional<TrailParticleData> getTrailParticle(
-	  PlayerEntity player, RocketSide side, ItemStack elytra,
+	  Player player, RocketSide side, ItemStack elytra,
 	  int partial, float partialTick, boolean ownPlayer, Vec3f rollVec
 	) {
 		IElytraSpec spec = ElytraSpecCapability.getElytraSpecOrDefault(elytra);
 		TrailData data = spec.getTrailData();
 		if (player.isInWater()) {
-			return shouldGenerate((byte)5, partial) ? Optional.of(new TrailParticleData(
-			  Color.WHITE, Color.LIGHT_GRAY, (byte)5, false, false,
+			return shouldGenerate((byte) 5, partial)? Optional.of(new TrailParticleData(
+			  Color.WHITE, Color.LIGHT_GRAY, (byte) 5, false, false,
 			  35, 0.16F, partialTick, ownPlayer, rollVec, side, data
 			)) : Optional.empty();
 		}
 		Optional<RocketStar> explosionOpt = pickRandom(data.get(side));
-		if (!explosionOpt.isPresent()) // Default
-			return shouldGenerate((byte)0, partial) ? Optional.of(new TrailParticleData(
-			  Color.WHITE, Color.WHITE, (byte)0, false, false,
+		if (explosionOpt.isEmpty()) // Default
+			return shouldGenerate((byte) 0, partial)? Optional.of(new TrailParticleData(
+			  Color.WHITE, Color.WHITE, (byte) 0, false, false,
 			  25, 0.2F, partialTick, ownPlayer, rollVec, side, data)) : Optional.empty();
 		RocketStar explosion = explosionOpt.get();
 		
@@ -215,15 +216,15 @@ public class AerobaticTrail {
 		final Color fadeColor = new Color(pickRandom(explosion.fadeColors).orElse(color.getRGB()));
 		final int life = round(getLife(explosion.type, explosion.trail) * spec.getAbility(
 		  Ability.TRAIL));
-		final float size = (float) MathHelper.clampedLerp(0.4F, 0.5F, spec.getAbility(Ability.TRAIL));
+		final float size = clampedLerp(0.4F, 0.5F, spec.getAbility(Ability.TRAIL));
 		
-		return shouldGenerate(explosion.type, partial) ? Optional
+		return shouldGenerate(explosion.type, partial)? Optional
 		  .of(new TrailParticleData(
 			 color, fadeColor, explosion.type, explosion.flicker, explosion.trail, life, size,
 			 partialTick, ownPlayer, rollVec, side, data)) : Optional.empty();
 	}
 	
-	public static void addBoostParticles(PlayerEntity player) {
+	public static void addBoostParticles(Player player) {
 		IAerobaticData data = AerobaticDataCapability.getAerobaticDataOrDefault(player);
 		IElytraSpec spec = AerobaticElytraLogic.getElytraSpecOrDefault(player);
 		pos.set(player.position());
@@ -266,12 +267,12 @@ public class AerobaticTrail {
 	
 	public static final TrailParticleData DEFAULT_BOOST_PARTICLE =
 	  new TrailParticleData(
-		 Color.WHITE, Color.WHITE, (byte)0, false, false,
+		 Color.WHITE, Color.WHITE, (byte) 0, false, false,
 		 35, 0.3F, 0F, false, null,
 		 null, null);
 	public static final TrailParticleData UNDERWATER_BOOST_PARTICLE =
 	  new TrailParticleData(
-		 Color.WHITE, Color.LIGHT_GRAY, (byte)5, false, false,
+		 Color.WHITE, Color.LIGHT_GRAY, (byte) 5, false, false,
 		 35, 0.16F, 0F, false, null,
 		 null, null);
 	
@@ -285,7 +286,7 @@ public class AerobaticTrail {
 		final Color color = new Color(pickRandom(explosion.colors).orElse(Color.WHITE.getRGB()));
 		final Color fadeColor = new Color(pickRandom(explosion.fadeColors).orElse(color.getRGB()));
 		final int life = round(getLife(explosion.type, explosion.trail) * trailMod * 0.6F);
-		final float size = (float) MathHelper.clampedLerp(0.4F, 0.5F, trailMod);
+		final float size = clampedLerp(0.4F, 0.5F, trailMod);
 		
 		return new TrailParticleData(
 		  color, fadeColor, explosion.type, explosion.flicker, false, life, size,
@@ -293,6 +294,7 @@ public class AerobaticTrail {
 	}
 	
 	private static final Vec3f off = Vec3f.ZERO.get();
+	
 	public static void createBoostParticle(
 	  LivingEntity player, RocketStar explosion,
 	  Vec3d pos, VectorBase base, Vec3f motion,
@@ -320,30 +322,25 @@ public class AerobaticTrail {
 	}
 	
 	public static int getLife(byte type, boolean trail) {
-		int life = type == SHAPE_LARGE_BALL ? 180 : 120;
+		int life = type == SHAPE_LARGE_BALL? 180 : 120;
 		if (trail)
 			life = round(life * 0.6F);
 		return life;
 	}
 	
 	public static float[] getTransversalOffset(byte type) {
-		switch (type) {
-			case SHAPE_BUBBLE:
-				return new float[] {
-				  (float)random.nextGaussian() * 0.025F,
-				  (float)random.nextGaussian() * 0.025F};
-			case SHAPE_BURST:
-				return new float[] {
-				  (float)random.nextGaussian() * 0.05F,
-				  (float)random.nextGaussian() * 0.05F};
-			case SHAPE_STAR:
-			case SHAPE_CREEPER:
-				return new float[] {
-				  (float)random.nextGaussian() * 0.002F,
-				  (float)random.nextGaussian() * 0.002F};
-			default:
-				return new float[] {0F, 0F};
-		}
+		return switch (type) {
+			case SHAPE_BUBBLE -> new float[]{
+			  (float) random.nextGaussian() * 0.025F,
+			  (float) random.nextGaussian() * 0.025F};
+			case SHAPE_BURST -> new float[]{
+			  (float) random.nextGaussian() * 0.05F,
+			  (float) random.nextGaussian() * 0.05F};
+			case SHAPE_STAR, SHAPE_CREEPER -> new float[]{
+			  (float) random.nextGaussian() * 0.002F,
+			  (float) random.nextGaussian() * 0.002F};
+			default -> new float[]{0F, 0F};
+		};
 	}
 	
 	// Utils
@@ -352,7 +349,8 @@ public class AerobaticTrail {
 			return Optional.empty();
 		return Optional.of(array[random.nextInt(array.length)]);
 	}
-	private static<T> Optional<T> pickRandom(T[] array) {
+	
+	private static <T> Optional<T> pickRandom(T[] array) {
 		if (array == null || array.length == 0)
 			return Optional.empty();
 		return Optional.of(array[random.nextInt(array.length)]);
@@ -375,13 +373,13 @@ public class AerobaticTrail {
 		
 		static {
 			Map<WingSide, List<RocketSide>> listMap = new HashMap<>();
-			for (RocketSide side : values()) {
+			for (RocketSide side: values()) {
 				if (!listMap.containsKey(side.wingSide))
 					listMap.put(side.wingSide, new ArrayList<>());
 				listMap.get(side.wingSide).add(side);
 			}
-			for (Map.Entry<WingSide, List<RocketSide>> entry : listMap.entrySet()) {
-				//noinspection SimplifyStreamApiCallChains
+			for (Map.Entry<WingSide, List<RocketSide>> entry: listMap.entrySet()) {
+				// noinspection SimplifyStreamApiCallChains
 				wingSideMap.put(entry.getKey(), entry.getValue().stream().toArray(RocketSide[]::new));
 			}
 		}
@@ -391,18 +389,18 @@ public class AerobaticTrail {
 			this.translationKey = translationKey;
 			this.wingSide = wingSide;
 		}
-		public TranslationTextComponent getDisplayName() {
-			return new TranslationTextComponent(translationKey);
+		
+		public TranslatableComponent getDisplayName() {
+			return new TranslatableComponent(translationKey);
 		}
 		
 		public RocketSide opposite() {
-			switch (this) {
-				case LEFT: return RIGHT;
-				case RIGHT: return LEFT;
-				case CENTER_LEFT: return CENTER_RIGHT;
-				case CENTER_RIGHT: return CENTER_LEFT;
-				default: return null;
-			}
+			return switch (this) {
+				case LEFT -> RIGHT;
+				case RIGHT -> LEFT;
+				case CENTER_LEFT -> CENTER_RIGHT;
+				case CENTER_RIGHT -> CENTER_LEFT;
+			};
 		}
 		
 		public static RocketSide[] forWingSide(WingSide side) {

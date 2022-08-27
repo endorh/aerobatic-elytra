@@ -1,6 +1,6 @@
 package endorh.aerobaticelytra.integration.jei.gui;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.ingredients.IIngredientRenderer;
@@ -27,11 +27,10 @@ public class MultiIngredientDrawable<V> implements IDrawable {
 		return 16;
 	}
 	
-	@Override public void draw(@NotNull MatrixStack matrixStack, int xOffset, int yOffset) {
+	@Override public void draw(@NotNull PoseStack matrixStack, int xOffset, int yOffset) {
 		RenderSystem.enableDepthTest();
 		this.ingredientRenderer.render(matrixStack, xOffset - 2, yOffset - 2, first);
 		this.ingredientRenderer.render(matrixStack, xOffset + 4, yOffset + 4, second);
-		RenderSystem.enableAlphaTest();
 		RenderSystem.disableDepthTest();
 	}
 }

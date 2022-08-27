@@ -1,41 +1,42 @@
 package endorh.aerobaticelytra.common.recipe;
 
 import endorh.aerobaticelytra.AerobaticElytra;
-import net.minecraft.item.crafting.IRecipeSerializer;
-import net.minecraft.item.crafting.SpecialRecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.SimpleRecipeSerializer;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
+import net.minecraftforge.fmllegacy.RegistryObject;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 
-@EventBusSubscriber(bus = Bus.MOD, modid = AerobaticElytra.MOD_ID)
+@EventBusSubscriber(bus=Bus.MOD, modid=AerobaticElytra.MOD_ID)
 public class ModRecipes {
-	public static final DeferredRegister<IRecipeSerializer<?>> RECIPE_SERIALIZERS =
+	public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS =
 	  DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, AerobaticElytra.MOD_ID);
 	
 	// Special recipes with default Serializer (no parameters)
-	public static final RegistryObject<SpecialRecipeSerializer<DyeRecipe>> DYE_RECIPE =
+	public static final RegistryObject<SimpleRecipeSerializer<DyeRecipe>> DYE_RECIPE =
 	  RECIPE_SERIALIZERS.register(
-	    "dye_recipe", () -> new SpecialRecipeSerializer<>(DyeRecipe::new));
-	public static final RegistryObject<SpecialRecipeSerializer<BannerRecipe>> BANNER_RECIPE =
+		 "dye_recipe", () -> new SimpleRecipeSerializer<>(DyeRecipe::new));
+	public static final RegistryObject<SimpleRecipeSerializer<BannerRecipe>> BANNER_RECIPE =
 	  RECIPE_SERIALIZERS.register(
-	    "banner_recipe", () -> new SpecialRecipeSerializer<>(BannerRecipe::new));
-	public static final RegistryObject<SpecialRecipeSerializer<TrailRecipe>> TRAIL_RECIPE =
+		 "banner_recipe", () -> new SimpleRecipeSerializer<>(BannerRecipe::new));
+	public static final RegistryObject<SimpleRecipeSerializer<TrailRecipe>> TRAIL_RECIPE =
 	  RECIPE_SERIALIZERS.register(
-	    "trail_recipe", () -> new SpecialRecipeSerializer<>(TrailRecipe::new));
-	public static final RegistryObject<SpecialRecipeSerializer<JoinRecipe>> JOIN_RECIPE =
+		 "trail_recipe", () -> new SimpleRecipeSerializer<>(TrailRecipe::new));
+	public static final RegistryObject<SimpleRecipeSerializer<JoinRecipe>> JOIN_RECIPE =
 	  RECIPE_SERIALIZERS.register(
-	    "join_recipe", () -> new SpecialRecipeSerializer<>(JoinRecipe::new));
-	public static final RegistryObject<SpecialRecipeSerializer<CraftedUpgradeRecipe>> CRAFTED_UPGRADE_RECIPE =
+		 "join_recipe", () -> new SimpleRecipeSerializer<>(JoinRecipe::new));
+	public static final RegistryObject<SimpleRecipeSerializer<CraftedUpgradeRecipe>>
+	  CRAFTED_UPGRADE_RECIPE =
 	  RECIPE_SERIALIZERS.register(
-	    "crafted_upgrade_recipe", () -> new SpecialRecipeSerializer<>(CraftedUpgradeRecipe::new));
+		 "crafted_upgrade_recipe", () -> new SimpleRecipeSerializer<>(CraftedUpgradeRecipe::new));
 	
 	// Recipes with custom Serializer
 	@SubscribeEvent
-	public static void onRegister(RegistryEvent.Register<IRecipeSerializer<?>> event) {
+	public static void onRegister(RegistryEvent.Register<RecipeSerializer<?>> event) {
 		event.getRegistry().registerAll(
 		  AbilityNBTInheritingShapedRecipe.SERIALIZER,
 		  UpgradeRecipe.SERIALIZER,

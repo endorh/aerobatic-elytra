@@ -7,27 +7,32 @@ import endorh.aerobaticelytra.common.item.ElytraDyement;
 import endorh.aerobaticelytra.common.item.ElytraDyement.WingDyement;
 import endorh.aerobaticelytra.common.item.ElytraDyement.WingSide;
 import endorh.util.common.ColorUtil;
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.item.*;
-import net.minecraft.item.crafting.IRecipeSerializer;
-import net.minecraft.item.crafting.SpecialRecipe;
-import net.minecraft.tileentity.BannerPattern;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.CustomRecipe;
+import net.minecraft.world.level.block.entity.BannerPattern;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class DyeRecipe extends SpecialRecipe {
-	public DyeRecipe(ResourceLocation id)
-	{
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.DyeItem;
+import net.minecraft.world.item.DyeableLeatherItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+
+public class DyeRecipe extends CustomRecipe {
+	public DyeRecipe(ResourceLocation id) {
 		super(id);
 	}
+	
 	private static final ElytraDyement dyement = new ElytraDyement();
 	
 	@Override
-	public boolean matches(CraftingInventory inv, @NotNull World worldIn) {
+	public boolean matches(CraftingContainer inv, @NotNull Level worldIn) {
 		boolean found = false;
 		int tints = 0;
 		
@@ -52,7 +57,7 @@ public class DyeRecipe extends SpecialRecipe {
 	}
 	
 	@NotNull @Override
-	public ItemStack assemble(CraftingInventory inv) {
+	public ItemStack assemble(CraftingContainer inv) {
 		ItemStack elytra = ItemStack.EMPTY;
 		List<DyeItem> dyeList = new ArrayList<>();
 		
@@ -86,19 +91,19 @@ public class DyeRecipe extends SpecialRecipe {
 		
 		List<Integer> colors = new ArrayList<>();
 		if (dyement.hasWingDyement) {
-			for (WingSide side : WingSide.values()) {
+			for (WingSide side: WingSide.values()) {
 				WingDyement wing = dyement.getWing(side);
 				if (wing.hasPattern) {
-					for (Pair<BannerPattern, DyeColor> pair : wing.patternColorData)
-						colors.add(pair.getSecond().getColorValue());
+					for (Pair<BannerPattern, DyeColor> pair: wing.patternColorData)
+						colors.add(pair.getSecond().getTextColor());
 				} else if (wing.hasColor)
 					colors.add(wing.color);
 			}
 		} else {
 			WingDyement wing = dyement.getFirst();
 			if (wing.hasPattern) {
-				for (Pair<BannerPattern, DyeColor> pair : wing.patternColorData)
-					colors.add(pair.getSecond().getColorValue());
+				for (Pair<BannerPattern, DyeColor> pair: wing.patternColorData)
+					colors.add(pair.getSecond().getTextColor());
 			} else if (wing.hasColor)
 				colors.add(wing.color);
 		}
@@ -108,7 +113,7 @@ public class DyeRecipe extends SpecialRecipe {
 		} else {
 			res.getOrCreateTagElement("display").remove("color");
 		}
-		res = IDyeableArmorItem.dyeArmor(res, dyes);
+		res = DyeableLeatherItem.dyeArmor(res, dyes);
 		
 		ElytraDyement.hideDyedFlag(res);
 		return res;
@@ -119,7 +124,7 @@ public class DyeRecipe extends SpecialRecipe {
 	}
 	
 	@NotNull @Override
-	public IRecipeSerializer<?> getSerializer() {
+	public RecipeSerializer<?> getSerializer() {
 		return ModRecipes.DYE_RECIPE.get();
 	}
 }

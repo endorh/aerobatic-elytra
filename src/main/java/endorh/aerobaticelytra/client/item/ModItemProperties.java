@@ -6,15 +6,15 @@ import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
 import endorh.aerobaticelytra.common.item.ElytraDyement;
 import endorh.aerobaticelytra.common.item.IAbility.Ability;
 import endorh.aerobaticelytra.common.item.ModItems;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.item.IItemPropertyGetter;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemModelsProperties;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.item.ClampedItemPropertyFunction;
+import net.minecraft.client.renderer.item.ItemProperties;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -40,12 +40,14 @@ public class ModItemProperties {
 	}
 	
 	private static void reg(
-	  Item item, ResourceLocation property, IItemPropertyGetter getter
+	  Item item, ResourceLocation property, ClampedItemPropertyFunction getter
 	) {
-		ItemModelsProperties.register(item, property, getter);
+		ItemProperties.register(item, property, getter);
 	}
 	
-	public static float getFuelProperty(ItemStack stack, ClientWorld world, LivingEntity holder) {
+	public static float getFuelProperty(
+	  ItemStack stack, ClientLevel world, LivingEntity holder, int seed
+	) {
 		return getFuelProperty(stack, world, holder, getElytraSpecOrDefault(stack));
 	}
 	
@@ -53,7 +55,7 @@ public class ModItemProperties {
 	 * How much fuel has the elytra
 	 */
 	public static float getFuelProperty(
-	  ItemStack stack, ClientWorld world, LivingEntity holder, IElytraSpec spec
+	  ItemStack stack, ClientLevel world, LivingEntity holder, IElytraSpec spec
 	) {
 		return spec.getAbility(Ability.MAX_FUEL) == 0 ? 0F : spec.getAbility(Ability.FUEL) / spec.getAbility(
 		  Ability.MAX_FUEL);
@@ -62,14 +64,14 @@ public class ModItemProperties {
 	/**
 	 * How broken is the elytra
 	 */
-	public static float getBrokenProperty(ItemStack stack, ClientWorld world, LivingEntity holder) {
-		return MathHelper.clamp(
+	public static float getBrokenProperty(ItemStack stack, ClientLevel world, LivingEntity holder, int seed) {
+		return Mth.clamp(
 		  (float)stack.getDamageValue() / (float)(stack.getMaxDamage() - 1),
 		  0F, 1F);
 	}
 	
 	public static float getHideFuelProperty(
-	  ItemStack stack, ClientWorld world, LivingEntity holder
+	  ItemStack stack, ClientLevel world, LivingEntity holder, int seed
 	) {
 		if (!(stack.getItem() instanceof AerobaticElytraItem))
 			return 0F;
@@ -77,14 +79,14 @@ public class ModItemProperties {
 			return 1F;
 		if (holder == null)
 			return visibility.fuel_visibility.test() ? 0F : 1F;
-		ItemStack chest = holder.getItemBySlot(EquipmentSlotType.CHEST);
+		ItemStack chest = holder.getItemBySlot(EquipmentSlot.CHEST);
 		if (chest == stack)
 			return 0F;
 		return visibility.fuel_visibility.test() ? 0F : 1F;
 	}
 	
 	public static float getEqualWingsProperty(
-	  ItemStack stack, ClientWorld world, LivingEntity holder
+	  ItemStack stack, ClientLevel world, LivingEntity holder, int seed
 	) {
 		if (!(stack.getItem() instanceof AerobaticElytraItem))
 			return 0F;

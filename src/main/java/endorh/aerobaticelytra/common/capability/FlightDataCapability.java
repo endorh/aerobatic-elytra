@@ -5,17 +5,15 @@ import endorh.aerobaticelytra.client.sound.FadingTickableSound;
 import endorh.aerobaticelytra.common.flight.mode.FlightModes;
 import endorh.aerobaticelytra.common.flight.mode.IFlightMode;
 import endorh.aerobaticelytra.common.registry.ModRegistries;
-import endorh.util.capability.CapabilityProviderSerializable;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.INBT;
-import net.minecraft.util.Direction;
-import net.minecraft.util.ResourceLocation;
+import endorh.util.capability.SerializableCapabilityWrapperProvider;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.Capability.IStorage;
-import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.CapabilityManager;
+import net.minecraftforge.common.capabilities.CapabilityToken;
 import net.minecraftforge.common.capabilities.ICapabilitySerializable;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -24,40 +22,31 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-@EventBusSubscriber(modid = AerobaticElytra.MOD_ID)
+@EventBusSubscriber(modid=AerobaticElytra.MOD_ID)
 public class FlightDataCapability {
 	/** The {@link Capability} instance */
-	@CapabilityInject(IFlightData.class)
-	public static Capability<IFlightData> CAPABILITY = null;
-	
-	private static final Storage storage = new Storage();
+	public static Capability<IFlightData> CAPABILITY =
+	  CapabilityManager.get(new CapabilityToken<>() {});
 	public static final ResourceLocation ID = AerobaticElytra.prefix("flight_data");
-	
-	/** Registers the capability */
-	public static void register() {
-		CapabilityManager.INSTANCE.register(
-		  IFlightData.class, storage, () -> new FlightData(null));
-	}
 	
 	/**
 	 * Deserialize an {@link IFlightData} from NBT
 	 */
-	public static IFlightData fromNBT(CompoundNBT nbt) {
+	public static IFlightData fromNBT(CompoundTag nbt) {
 		IFlightData data = new FlightData(null);
-		storage.readNBT(CAPABILITY, data, null, nbt);
+		data.deserializeCapability(nbt);
 		return data;
 	}
 	
 	/**
 	 * Serialize an {@link IFlightData} to NBT
 	 */
-	public static CompoundNBT asNBT(IFlightData data) {
-		return (CompoundNBT) storage.writeNBT(CAPABILITY, data, null);
+	public static CompoundTag asNBT(IFlightData data) {
+		return data.serializeCapability();
 	}
 	
 	/**
@@ -66,7 +55,7 @@ public class FlightDataCapability {
 	 * @see FlightDataCapability#getFlightDataOrDefault
 	 * @see FlightDataCapability#getFlightData
 	 */
-	public static IFlightData demandFlightData(PlayerEntity player) {
+	public static IFlightData requireFlightData(Player player) {
 		return player.getCapability(CAPABILITY).orElseThrow(
 		  () -> new IllegalStateException("Missing IFlightData capability on player: " + player));
 	}
@@ -75,28 +64,28 @@ public class FlightDataCapability {
 	 * Return the {@link IFlightData} from the player or a
 	 * default one if for some reason the player's one is
 	 * invalid right now
-	 * @see FlightDataCapability#demandFlightData
+	 *
+	 * @see FlightDataCapability#requireFlightData
 	 * @see FlightDataCapability#getFlightData
 	 */
-	public static IFlightData getFlightDataOrDefault(PlayerEntity player) {
-		return player.getCapability(CAPABILITY).orElse(new FlightData(null));
+	public static IFlightData getFlightDataOrDefault(Player player) {
+		return player.getCapability(CAPABILITY).orElse(new FlightData(player));
 	}
 	
 	/**
 	 * @return The optional {@link IFlightData} from the player
-	 * @see FlightDataCapability#demandFlightData
+	 * @see FlightDataCapability#requireFlightData
 	 * @see FlightDataCapability#getFlightDataOrDefault
 	 */
-	public static Optional<IFlightData> getFlightData(PlayerEntity player) {
+	public static Optional<IFlightData> getFlightData(Player player) {
 		assert CAPABILITY != null;
 		return player.getCapability(CAPABILITY).resolve();
 	}
 	
 	/** Create a serializable provider for a player */
-	public static ICapabilitySerializable<INBT> createProvider(PlayerEntity player) {
-		if (CAPABILITY == null)
-			return null;
-		return new CapabilityProviderSerializable<>(CAPABILITY, null, new FlightData(player));
+	public static ICapabilitySerializable<Tag> createProvider(Player player) {
+		if (CAPABILITY == null) return null;
+		return new SerializableCapabilityWrapperProvider<>(CAPABILITY, null, new FlightData(player));
 	}
 	
 	/**
@@ -104,8 +93,8 @@ public class FlightDataCapability {
 	 */
 	@SubscribeEvent
 	public static void onAttachCapability(AttachCapabilitiesEvent<Entity> event) {
-		if (event.getObject() instanceof PlayerEntity) {
-			event.addCapability(ID, createProvider((PlayerEntity)event.getObject()));
+		if (event.getObject() instanceof Player player) {
+			event.addCapability(ID, createProvider(player));
 		}
 	}
 	
@@ -114,8 +103,8 @@ public class FlightDataCapability {
 	 */
 	@SubscribeEvent
 	public static void onClonePlayer(PlayerEvent.Clone event) {
-		IFlightData playerData = demandFlightData(event.getPlayer());
-		playerData.copy(demandFlightData(event.getOriginal()));
+		IFlightData playerData = requireFlightData(event.getPlayer());
+		playerData.copy(requireFlightData(event.getOriginal()));
 		playerData.reset();
 	}
 	
@@ -123,19 +112,25 @@ public class FlightDataCapability {
 	 * Default implementation for {@link IFlightData}
 	 */
 	public static class FlightData implements IFlightData {
-		@SuppressWarnings({"unused"})
-		protected final WeakReference<PlayerEntity> player;
+		public static final String TAG_FLIGHT_MODE = "FlightMode";
+		
+		protected final Player player;
 		protected @Nonnull IFlightMode mode = FlightModes.ELYTRA_FLIGHT;
 		
 		protected final Map<ResourceLocation, FadingTickableSound> flightSounds = new HashMap<>();
 		
-		@Override public PlayerEntity getPlayer() {
-			return player.get();
+		public FlightData(Player player) {
+			this.player = player;
+		}
+		
+		@Override public Player getPlayer() {
+			return player;
 		}
 		
 		@Override public @Nonnull IFlightMode getFlightMode() {
 			return mode;
 		}
+		
 		@Override public void setFlightMode(@Nonnull IFlightMode mode) {
 			this.mode = mode;
 		}
@@ -143,42 +138,29 @@ public class FlightDataCapability {
 		@Override public @Nullable FadingTickableSound getFlightSound(ResourceLocation type) {
 			return flightSounds.get(type);
 		}
+		
 		@Override public void putFlightSound(ResourceLocation type, FadingTickableSound sound) {
 			flightSounds.put(type, sound);
 		}
 		
-		public FlightData(PlayerEntity player) {
-			this.player = new WeakReference<>(player);
-		}
-	}
-	
-	/**
-	 * Default Storage implementation
-	 */
-	public static class Storage implements IStorage<IFlightData> {
-		public static final String TAG_FLIGHT_MODE = "FlightMode";
-		
-		@Nullable @Override
-		public INBT writeNBT(Capability<IFlightData> cap, IFlightData inst, Direction side) {
-			CompoundNBT nbt = new CompoundNBT();
-			nbt.putString(TAG_FLIGHT_MODE, inst.getFlightMode().getRegistryName().toString());
+		@Override public CompoundTag serializeCapability() {
+			CompoundTag nbt = new CompoundTag();
+			nbt.putString(TAG_FLIGHT_MODE, getFlightMode().getRegistryName().toString());
 			return nbt;
 		}
 		
-		@Override
-		public void readNBT(Capability<IFlightData> cap, IFlightData inst, Direction side, INBT nbt) {
-			CompoundNBT data = (CompoundNBT) nbt;
+		@Override public void deserializeCapability(CompoundTag nbt) {
 			
-			ResourceLocation regName = new ResourceLocation(data.getString(TAG_FLIGHT_MODE));
+			ResourceLocation regName = new ResourceLocation(nbt.getString(TAG_FLIGHT_MODE));
 			// Registry entries may vary between world loads
 			
-			if (!ModRegistries.FLIGHT_MODE_REGISTRY.containsKey(regName))
-				inst.setFlightMode(FlightModes.ELYTRA_FLIGHT);
-			else {
+			if (!ModRegistries.FLIGHT_MODE_REGISTRY.containsKey(regName)) {
+				setFlightMode(FlightModes.ELYTRA_FLIGHT);
+			} else {
 				IFlightMode mode = ModRegistries.FLIGHT_MODE_REGISTRY.getValue(regName);
 				if (mode == null)
 					mode = FlightModes.ELYTRA_FLIGHT;
-				inst.setFlightMode(mode);
+				setFlightMode(mode);
 			}
 		}
 	}

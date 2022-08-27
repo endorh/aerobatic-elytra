@@ -1,16 +1,14 @@
 package endorh.aerobaticelytra.integration.colytra;
 
 import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.item.ArmorItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import top.theillusivec4.caelus.api.RenderElytraEvent;
 
 import java.util.List;
 
@@ -35,16 +33,16 @@ public class ClientColytraIntegration {
 		if (elytra.isEmpty())
 			return;
 		final AerobaticElytraItem item = (AerobaticElytraItem) elytra.getItem();
-		final List<ITextComponent> tooltip = event.getToolTip();
+		final List<Component> tooltip = event.getToolTip();
 		
 		// Undo colytra tooltip
 		int index = 0;
 		boolean found = false;
 		// Try to find the colytra tooltip in the list
 		if (elytra.hasCustomHoverName()) {
-			ITextComponent display = elytra.getHoverName();
+			Component display = elytra.getHoverName();
 			final String name = display.getString();
-			for (ITextComponent component : tooltip) {
+			for (Component component : tooltip) {
 				if (name.equals(component.getString())) {
 					found = true;
 					break;
@@ -52,9 +50,9 @@ public class ClientColytraIntegration {
 				index++;
 			}
 		} else {
-			for (ITextComponent component : tooltip) {
-				if (component instanceof TranslationTextComponent) {
-					TranslationTextComponent tr = (TranslationTextComponent) component;
+			for (Component component : tooltip) {
+				if (component instanceof TranslatableComponent) {
+					TranslatableComponent tr = (TranslatableComponent) component;
 					if ("item.minecraft.elytra".equals(tr.getKey())) {
 						found = true;
 						break;
@@ -68,21 +66,24 @@ public class ClientColytraIntegration {
 			tooltip.remove(index);
 			if (elytra.hasCustomHoverName())
 				tooltip.add(index++, elytra.getHoverName().plainCopy()
-				  .withStyle(TextFormatting.AQUA).withStyle(TextFormatting.ITALIC));
+				  .withStyle(ChatFormatting.AQUA).withStyle(ChatFormatting.ITALIC));
 			else tooltip.add(index++, item.getName(elytra));
 			tooltip.addAll(index, item.getTooltipInfo(elytra, event.getFlags(), "  "));
 		}
 	}
 	
-	/**
-	 * Hide the default elytra render layer in colytra armors when
-	 * their subitem is an Aerobatic Elytra
-	 */
-	@SubscribeEvent(priority = EventPriority.LOW)
-	public static void onRenderElytraEvent(RenderElytraEvent event) {
-		ItemStack elytra = getColytraSubItem(
-		  event.getPlayer().getItemBySlot(EquipmentSlotType.CHEST));
-		if ((elytra.getItem() instanceof AerobaticElytraItem))
-			event.setRender(false);
-	}
+	// Colytra no longer uses the RenderElytraEvent from Caelus, so we
+	// can't hide its vanilla wings unless we render all ourselves.
+	// /**
+	//  * Hide the default elytra render layer in colytra armors when
+	//  * their subitem is an Aerobatic Elytra
+	//  */
+	// @SubscribeEvent(priority = EventPriority.LOW)
+	// public static void onRenderElytraEvent(RenderElytraEvent event) {
+	// 	//
+	// 	ItemStack elytra = getColytraSubItem(
+	// 	  event.getPlayer().getItemBySlot(EquipmentSlot.CHEST));
+	// 	if ((elytra.getItem() instanceof AerobaticElytraItem))
+	// 		event.setCanceled(true);
+	// }
 }

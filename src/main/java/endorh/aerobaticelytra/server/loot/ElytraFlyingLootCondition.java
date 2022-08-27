@@ -3,28 +3,28 @@ package endorh.aerobaticelytra.server.loot;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializationContext;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.loot.ILootSerializer;
-import net.minecraft.loot.LootConditionType;
-import net.minecraft.loot.LootContext;
-import net.minecraft.loot.LootParameters;
-import net.minecraft.loot.conditions.ILootCondition;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.storage.loot.Serializer;
+import net.minecraft.world.level.storage.loot.predicates.LootItemConditionType;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import org.jetbrains.annotations.NotNull;
 
-public class ElytraFlyingLootCondition implements ILootCondition {
+public class ElytraFlyingLootCondition implements LootItemCondition {
 	public ElytraFlyingLootCondition() {}
 	
-	@Override public @NotNull LootConditionType getType() {
+	@Override public @NotNull LootItemConditionType getType() {
 		return ModLootConditions.ELYTRA_FLYING;
 	}
 	
 	@Override public boolean test(LootContext lootContext) {
-		final Entity entity = lootContext.getParamOrNull(LootParameters.THIS_ENTITY);
+		final Entity entity = lootContext.getParamOrNull(LootContextParams.THIS_ENTITY);
 		return entity instanceof LivingEntity && ((LivingEntity) entity).isFallFlying();
 	}
 	
-	public static class Serializer implements ILootSerializer<ElytraFlyingLootCondition> {
+	public static class ConditionSerializer implements Serializer<ElytraFlyingLootCondition> {
 		@Override public void serialize(
 		  @NotNull JsonObject json,
 		  @NotNull ElytraFlyingLootCondition condition,

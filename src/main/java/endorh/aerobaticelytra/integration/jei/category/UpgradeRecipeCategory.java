@@ -15,11 +15,11 @@ import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.IFocus;
 import mezz.jei.api.recipe.IFocus.Mode;
 import mezz.jei.api.registration.IRecipeRegistration;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.item.crafting.RecipeManager;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -51,7 +51,7 @@ public class UpgradeRecipeCategory extends BaseCategory<UpgradeRecipe> {
 	) {
 		List<List<ItemStack>> inputs = ingredients.getInputs(VanillaTypes.ITEM);
 		List<List<ItemStack>> outputs = ingredients.getOutputs(VanillaTypes.ITEM);
-		IFocus<?> focus = layout.getFocus();
+		IFocus<?> focus = layout.getFocus(VanillaTypes.ITEM);
 		
 		final IGuiItemStackGroup stacks = layout.getItemStacks();
 		stacks.init(0, true, 20, 0);
@@ -80,10 +80,10 @@ public class UpgradeRecipeCategory extends BaseCategory<UpgradeRecipe> {
 		}).collect(Collectors.toList());
 	}
 	
-	@Override public @NotNull List<ITextComponent> getTooltipStrings(
+	@Override public @NotNull List<Component> getTooltipStrings(
 	  @NotNull UpgradeRecipe recipe, double x, double y
 	) {
-		List<ITextComponent> tt = super.getTooltipStrings(recipe, x, y);
+		List<Component> tt = super.getTooltipStrings(recipe, x, y);
 		if (inRect(x, y, 3, 2, 14, 14)) {
 			tt.addAll(splitTtc("aerobaticelytra.jei.help.category.upgrade"));
 		} else if (inRect(x, y, 46, 1, 15, 15)) {

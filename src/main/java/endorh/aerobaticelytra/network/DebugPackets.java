@@ -2,10 +2,10 @@ package endorh.aerobaticelytra.network;
 
 import endorh.aerobaticelytra.debug.Debug;
 import endorh.util.network.ServerPlayerPacket;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent.Context;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.fmllegacy.network.NetworkEvent.Context;
 
 public class DebugPackets {
 	public static void registerAll() {
@@ -17,21 +17,21 @@ public class DebugPackets {
 		private boolean enable;
 		
 		private SToggleDebugPacket() {}
-		public SToggleDebugPacket(PlayerEntity player, boolean enable) {
+		public SToggleDebugPacket(Player player, boolean enable) {
 			super(player);
 			this.enable = enable;
 		}
 		
-		@Override protected void onClient(PlayerEntity player, Context ctx) {
-			if (player instanceof ClientPlayerEntity) {
+		@Override protected void onClient(Player player, Context ctx) {
+			if (player instanceof LocalPlayer) {
 				Debug.toggleDebug(player, enable);
 			}
 		}
 		
-		@Override protected void serialize(PacketBuffer buf) {
+		@Override protected void serialize(FriendlyByteBuf buf) {
 			buf.writeBoolean(enable);
 		}
-		@Override protected void deserialize(PacketBuffer buf) {
+		@Override protected void deserialize(FriendlyByteBuf buf) {
 			enable = buf.readBoolean();
 		}
 		

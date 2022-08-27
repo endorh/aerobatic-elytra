@@ -3,7 +3,7 @@ package endorh.aerobaticelytra;
 import endorh.aerobaticelytra.client.item.AerobaticElytraBannerTextureManager;
 import endorh.aerobaticelytra.common.ModInit;
 import endorh.aerobaticelytra.common.registry.JsonAbilityManager;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 import org.apache.logging.log4j.LogManager;

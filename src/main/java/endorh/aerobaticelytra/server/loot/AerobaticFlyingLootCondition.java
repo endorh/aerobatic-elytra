@@ -4,33 +4,33 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializationContext;
 import endorh.aerobaticelytra.common.capability.IAerobaticData;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.loot.ILootSerializer;
-import net.minecraft.loot.LootConditionType;
-import net.minecraft.loot.LootContext;
-import net.minecraft.loot.LootParameters;
-import net.minecraft.loot.conditions.ILootCondition;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.storage.loot.Serializer;
+import net.minecraft.world.level.storage.loot.predicates.LootItemConditionType;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import org.jetbrains.annotations.NotNull;
 
 import static endorh.aerobaticelytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
 
-public class AerobaticFlyingLootCondition implements ILootCondition {
+public class AerobaticFlyingLootCondition implements LootItemCondition {
 	public AerobaticFlyingLootCondition() {}
 	
-	@Override public @NotNull LootConditionType getType() {
+	@Override public @NotNull LootItemConditionType getType() {
 		return ModLootConditions.AEROBATIC_FLYING;
 	}
 	
 	@Override public boolean test(LootContext lootContext) {
-		final Entity entity = lootContext.getParamOrNull(LootParameters.THIS_ENTITY);
-		if (!(entity instanceof PlayerEntity))
+		final Entity entity = lootContext.getParamOrNull(LootContextParams.THIS_ENTITY);
+		if (!(entity instanceof Player))
 			return false;
-		final IAerobaticData data = getAerobaticDataOrDefault((PlayerEntity) entity);
+		final IAerobaticData data = getAerobaticDataOrDefault((Player) entity);
 		return data.isFlying();
 	}
 	
-	public static class Serializer implements ILootSerializer<AerobaticFlyingLootCondition> {
+	public static class ConditionSerializer implements Serializer<AerobaticFlyingLootCondition> {
 		@Override public void serialize(
 		  @NotNull JsonObject json,
 		  @NotNull AerobaticFlyingLootCondition condition,

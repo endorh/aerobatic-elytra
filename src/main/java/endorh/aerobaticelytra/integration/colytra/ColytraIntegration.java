@@ -1,14 +1,14 @@
 package endorh.aerobaticelytra.integration.colytra;
 
 import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.entity.ai.attributes.ModifiableAttributeInstance;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.item.ArmorItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.TickEvent.Phase;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -34,7 +34,7 @@ public class ColytraIntegration {
 	 * Get the Colytra subitem from an armor, only if it's an aerobatic elytra
 	 */
 	public static ItemStack getColytraSubItem(ItemStack chest) {
-		CompoundNBT colytraTag = chest.getTagElement("colytra:ElytraUpgrade");
+		CompoundTag colytraTag = chest.getTagElement("colytra:ElytraUpgrade");
 		if (colytraTag != null) {
 			ItemStack elytra = ItemStack.of(colytraTag);
 			if (elytra.getItem() instanceof AerobaticElytraItem)
@@ -47,20 +47,20 @@ public class ColytraIntegration {
 	 * Get the Colytra subitem from an armor, only if it's an aerobatic elytra
 	 */
 	public static ItemStack getColytraSubItem(LivingEntity entity) {
-		return getColytraSubItem(entity.getItemBySlot(EquipmentSlotType.CHEST));
+		return getColytraSubItem(entity.getItemBySlot(EquipmentSlot.CHEST));
 	}
 	
 	/**
 	 * Apply our own Caelus flight modifier when the aerobatic elytra
 	 * subitem can provide flight
 	 */
-	@SubscribeEvent(priority = EventPriority.LOW)
+	@SubscribeEvent(priority=EventPriority.LOW)
 	public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
 		if (event.side != LogicalSide.SERVER || event.phase != Phase.END)
 			return;
 		
-		PlayerEntity player = event.player;
-		ItemStack chest = player.getItemBySlot(EquipmentSlotType.CHEST);
+		Player player = event.player;
+		ItemStack chest = player.getItemBySlot(EquipmentSlot.CHEST);
 		if (!(chest.getItem() instanceof ArmorItem))
 			return;
 		ItemStack elytra = getColytraSubItem(chest);
@@ -68,8 +68,8 @@ public class ColytraIntegration {
 			return;
 		assert elytra.getItem() instanceof AerobaticElytraItem;
 		
-		ModifiableAttributeInstance flightAttribute = player
-		  .getAttribute(CaelusApi.ELYTRA_FLIGHT.get());
+		AttributeInstance flightAttribute = player
+		  .getAttribute(CaelusApi.getInstance().getFlightAttribute());
 		
 		assert flightAttribute != null;
 		flightAttribute.removeModifier(COLYTRA_CAELUS_FLIGHT_MODIFIER);

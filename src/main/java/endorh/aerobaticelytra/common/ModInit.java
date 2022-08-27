@@ -14,8 +14,8 @@ import endorh.aerobaticelytra.integration.colytra.ClientColytraIntegration;
 import endorh.aerobaticelytra.integration.colytra.ColytraIntegration;
 import endorh.aerobaticelytra.integration.curios.CuriosIntegration;
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.IReloadableResourceManager;
-import net.minecraft.resources.IResourceManager;
+import net.minecraft.server.packs.resources.ReloadableResourceManager;
+import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ParticleFactoryRegisterEvent;
 import net.minecraftforge.common.MinecraftForge;
@@ -56,9 +56,9 @@ public class ModInit {
 	 */
 	@SubscribeEvent
 	public static void onMinecraftConstructed(ParticleFactoryRegisterEvent event) {
-		final IResourceManager resourceManager = Minecraft.getInstance().getResourceManager();
-		if (resourceManager instanceof IReloadableResourceManager)
-			AerobaticElytra.BANNER_TEXTURE_MANAGER = new AerobaticElytraBannerTextureManager((IReloadableResourceManager) resourceManager);
+		final ResourceManager resourceManager = Minecraft.getInstance().getResourceManager();
+		if (resourceManager instanceof ReloadableResourceManager)
+			AerobaticElytra.BANNER_TEXTURE_MANAGER = new AerobaticElytraBannerTextureManager((ReloadableResourceManager) resourceManager);
 	}
 	
 	@SubscribeEvent

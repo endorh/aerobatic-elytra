@@ -20,15 +20,15 @@ import mezz.jei.api.recipe.category.IRecipeCategory;
 import mezz.jei.api.registration.*;
 import mezz.jei.api.runtime.IIngredientManager;
 import mezz.jei.api.runtime.IJeiRuntime;
+import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.item.crafting.IRecipe;
-import net.minecraft.item.crafting.RecipeManager;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.Util;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -39,6 +39,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static endorh.aerobaticelytra.common.capability.ElytraSpecCapability.getElytraSpecOrDefault;
+import static endorh.util.text.TextUtil.ttc;
 
 /**
  * Expose the mod recipe categories to the JEI mod
@@ -52,14 +53,15 @@ public class AerobaticElytraJeiPlugin implements IModPlugin {
 	public static IRecipeManager recipeManager = null;
 	public static IGuiHelper guiHelper = null;
 	
-	protected static final List<Supplier<BaseCategory<?>>> categoryConstructors = Util.make(new ArrayList<>(), l -> {
-		l.add(UpgradeRecipeCategory::new);
-		l.add(TrailRecipeCategory::new);
-		l.add(DyeRecipeCategory::new);
-		l.add(BannerRecipeCategory::new);
-		l.add(SplitRecipeCategory::new);
-		l.add(JoinRecipeCategory::new);
-	});
+	protected static final List<Supplier<BaseCategory<?>>> categoryConstructors =
+	  Util.make(new ArrayList<>(), l -> {
+		  l.add(UpgradeRecipeCategory::new);
+		  l.add(TrailRecipeCategory::new);
+		  l.add(DyeRecipeCategory::new);
+		  l.add(BannerRecipeCategory::new);
+		  l.add(SplitRecipeCategory::new);
+		  l.add(JoinRecipeCategory::new);
+	  });
 	protected static final List<BaseCategory<?>> categories = new ArrayList<>();
 	
 	@NotNull @Override public ResourceLocation getPluginUid() {
@@ -70,7 +72,7 @@ public class AerobaticElytraJeiPlugin implements IModPlugin {
 		IJeiHelpers jeiHelpers = reg.getJeiHelpers();
 		guiHelper = jeiHelpers.getGuiHelper();
 		categories.clear();
-		for (Supplier<BaseCategory<?>> c : categoryConstructors) {
+		for (Supplier<BaseCategory<?>> c: categoryConstructors) {
 			final BaseCategory<?> cat = c.get();
 			categories.add(cat);
 			reg.addRecipeCategories(cat);
@@ -81,7 +83,7 @@ public class AerobaticElytraJeiPlugin implements IModPlugin {
 		// Differentiate aerobatic elytras by their abilities
 		reg.registerSubtypeInterpreter(
 		  ModItems.AEROBATIC_ELYTRA,
-		  stack -> getElytraSpecOrDefault(stack).getAbilities().entrySet().stream().map(
+		  (stack, context) -> getElytraSpecOrDefault(stack).getAbilities().entrySet().stream().map(
 			 entry -> entry.getKey().toString() + ":" + entry.getValue()
 		  ).collect(Collectors.joining()));
 	}
@@ -94,15 +96,15 @@ public class AerobaticElytraJeiPlugin implements IModPlugin {
 			keyName = keyName.replaceFirst("key\\.keyboard\\.", "");
 		reg.addIngredientInfo(
 		  new ItemStack(ModItems.AEROBATIC_ELYTRA), VanillaTypes.ITEM,
-		  I18n.get("aerobaticelytra.jei.info.aerobatic_elytra", keyName));
+		  ttc("aerobaticelytra.jei.info.aerobatic_elytra", keyName));
 		
 		// Get recipe list
-		final ClientWorld world = Minecraft.getInstance().level;
+		final ClientLevel world = Minecraft.getInstance().level;
 		assert world != null;
 		RecipeManager recipeManager = world.getRecipeManager();
-		final Collection<IRecipe<?>> recipeList = recipeManager.getRecipes();
+		final Collection<Recipe<?>> recipeList = recipeManager.getRecipes();
 		
-		for (BaseCategory<?> cat : categories)
+		for (BaseCategory<?> cat: categories)
 			registerRecipes(reg, recipeManager, cat);
 	}
 	

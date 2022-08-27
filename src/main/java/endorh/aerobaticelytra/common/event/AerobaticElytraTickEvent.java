@@ -2,23 +2,21 @@ package endorh.aerobaticelytra.common.event;
 
 import endorh.aerobaticelytra.common.capability.IAerobaticData;
 import endorh.aerobaticelytra.common.capability.IElytraSpec;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.eventbus.api.Cancelable;
 import net.minecraftforge.eventbus.api.Event;
-
-import net.minecraftforge.eventbus.api.Event.HasResult;
 
 /**
  * @see Pre
  * @see Post
  */
 public abstract class AerobaticElytraTickEvent extends Event {
-	public final PlayerEntity player;
+	public final Player player;
 	public final IElytraSpec elytraSpec;
 	public final IAerobaticData aerobaticData;
 	
 	protected AerobaticElytraTickEvent(
-	  PlayerEntity player, IElytraSpec elytraSpec, IAerobaticData aerobaticData
+	  Player player, IElytraSpec elytraSpec, IAerobaticData aerobaticData
 	) {
 		this.player = player;
 		this.elytraSpec = elytraSpec;
@@ -49,7 +47,7 @@ public abstract class AerobaticElytraTickEvent extends Event {
 		public boolean preventDefault = false;
 		
 		public Pre(
-		  PlayerEntity player, IElytraSpec elytraSpec, IAerobaticData aerobaticData
+		  Player player, IElytraSpec elytraSpec, IAerobaticData aerobaticData
 		) { super(player, elytraSpec, aerobaticData); }
 		
 		/**
@@ -61,7 +59,7 @@ public abstract class AerobaticElytraTickEvent extends Event {
 		 */
 		public static class Remote extends Pre {
 			public Remote(
-			  PlayerEntity player, IElytraSpec elytraSpec, IAerobaticData aerobaticData
+			  Player player, IElytraSpec elytraSpec, IAerobaticData aerobaticData
 			) { super(player, elytraSpec, aerobaticData); }
 		}
 	}
@@ -75,7 +73,7 @@ public abstract class AerobaticElytraTickEvent extends Event {
 	 */
 	public static class Post extends AerobaticElytraTickEvent {
 		public Post(
-		  PlayerEntity player, IElytraSpec elytraSpec, IAerobaticData aerobaticData
+		  Player player, IElytraSpec elytraSpec, IAerobaticData aerobaticData
 		) { super(player, elytraSpec, aerobaticData); }
 		
 		/**
@@ -85,7 +83,7 @@ public abstract class AerobaticElytraTickEvent extends Event {
 		 */
 		public static class Remote extends Post {
 			public Remote(
-			  PlayerEntity player, IElytraSpec elytraSpec, IAerobaticData aerobaticData
+			  Player player, IElytraSpec elytraSpec, IAerobaticData aerobaticData
 			) { super(player, elytraSpec, aerobaticData); }
 		}
 	}

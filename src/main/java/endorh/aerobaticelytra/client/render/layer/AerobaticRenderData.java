@@ -3,7 +3,7 @@ package endorh.aerobaticelytra.client.render.layer;
 import endorh.aerobaticelytra.client.render.model.AerobaticElytraModel;
 import endorh.aerobaticelytra.client.render.model.AerobaticElytraModelPose;
 import endorh.aerobaticelytra.client.render.model.IElytraPose;
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.world.entity.LivingEntity;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

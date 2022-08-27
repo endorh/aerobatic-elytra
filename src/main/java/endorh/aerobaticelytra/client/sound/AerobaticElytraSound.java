@@ -11,16 +11,15 @@ import endorh.util.common.ObfuscationReflectionUtil;
 import endorh.util.common.ObfuscationReflectionUtil.SoftField;
 import endorh.util.common.ObfuscationReflectionUtil.SoftMethod;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.ElytraSound;
-import net.minecraft.client.audio.ISound;
-import net.minecraft.client.audio.TickableSound;
-import net.minecraft.client.entity.player.RemoteClientPlayerEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.client.player.RemotePlayer;
+import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
+import net.minecraft.client.resources.sounds.ElytraOnPlayerSoundInstance;
+import net.minecraft.client.resources.sounds.SoundInstance;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.sound.PlaySoundEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -31,11 +30,10 @@ import org.apache.logging.log4j.Logger;
 import static endorh.aerobaticelytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
 import static endorh.util.common.LogUtil.oneTimeLogger;
 import static java.lang.Math.*;
+import static net.minecraft.util.Mth.clamp;
+import static net.minecraft.util.Mth.clampedLerp;
 
-import endorh.util.sound.PlayerTickableSound.IAttenuation;
-import endorh.util.sound.PlayerTickableSound.PlayerTickableSubSound;
-
-@EventBusSubscriber(value = Dist.CLIENT, modid = AerobaticElytra.MOD_ID)
+@EventBusSubscriber(value=Dist.CLIENT, modid=AerobaticElytra.MOD_ID)
 public class AerobaticElytraSound extends FadingTickableSound {
 	
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -46,19 +44,20 @@ public class AerobaticElytraSound extends FadingTickableSound {
 	protected static final int MIN_LEN = 20;
 	protected static final IAttenuation ATTENUATION = IAttenuation.linear(64F);
 	
-	private static final SoundCategory CATEGORY = SoundCategory.PLAYERS;
+	private static final SoundSource CATEGORY = SoundSource.PLAYERS;
 	
 	private static final String REFLECTION_ERROR_MESSAGE =
 	  "Aerobatic Elytra sound may not play properly";
-	private static final SoftField<ElytraSound, PlayerEntity> elytraSound$player =
+	private static final SoftField<ElytraOnPlayerSoundInstance, Player> elytraSound$player =
 	  ObfuscationReflectionUtil.getSoftField(
-		 ElytraSound.class, "player", "player",
+		 ElytraOnPlayerSoundInstance.class, "player", "player",
 		 oneTimeLogger(LOGGER::error), REFLECTION_ERROR_MESSAGE);
 	
-	private static final SoftMethod<TickableSound, Void> tickableSound$finishPlaying =
+	private static final SoftMethod<AbstractTickableSoundInstance, Void>
+	  tickableSound$finishPlaying =
 	  ObfuscationReflectionUtil.getSoftMethod(
-	    TickableSound.class, "stop", "finishPlaying",
-	    oneTimeLogger(LOGGER::error), REFLECTION_ERROR_MESSAGE);
+		 AbstractTickableSoundInstance.class, "stop", "finishPlaying",
+		 oneTimeLogger(LOGGER::error), REFLECTION_ERROR_MESSAGE);
 	
 	protected float brakeVolume = 0F;
 	protected float brakePitch = 1F;
@@ -73,33 +72,33 @@ public class AerobaticElytraSound extends FadingTickableSound {
 	private final PlayerTickableSubSound rotateSound;
 	private final PlayerTickableSubSound whistleSound;
 	
-	public static void playBoostSound(PlayerEntity player) {
+	public static void playBoostSound(Player player) {
 		playPlayerSound(player, ModSounds.AEROBATIC_ELYTRA_BOOST,
-		                SoundCategory.PLAYERS, ClientConfig.sound.boost, 1F);
+		                SoundSource.PLAYERS, ClientConfig.sound.boost, 1F);
 	}
 	
-	public static void playSlowDownSound(PlayerEntity player) {
+	public static void playSlowDownSound(Player player) {
 		playPlayerSound(player, ModSounds.AEROBATIC_ELYTRA_SLOWDOWN,
-		                SoundCategory.PLAYERS, ClientConfig.sound.boost, 1F);
+		                SoundSource.PLAYERS, ClientConfig.sound.boost, 1F);
 	}
 	
 	/**
 	 * On the server does nothing, on the client plays the sound attenuated
 	 * by the distance to the client player.<br>
-	 * Intended to be called from client code that runs for {@link RemoteClientPlayerEntity}s too
+	 * Intended to be called from client code that runs for {@link RemotePlayer}s too
 	 */
 	public static void playPlayerSound(
-	  PlayerEntity player, SoundEvent sound, SoundCategory category,
+	  Player player, SoundEvent sound, SoundSource category,
 	  float volume, float pitch
 	) {
 		if (!player.level.isClientSide)
 			return;
-		Vector3d position = player.position();
-		if (player instanceof RemoteClientPlayerEntity) {
-			PlayerEntity client = Minecraft.getInstance().player;
+		Vec3 position = player.position();
+		if (player instanceof RemotePlayer) {
+			Player client = Minecraft.getInstance().player;
 			if (client == null)
 				return;
-			Vector3d clientPos = client.position();
+			Vec3 clientPos = client.position();
 			volume = ATTENUATION.attenuate(
 			  volume, (float) position.distanceTo(clientPos));
 			position = clientPos;
@@ -109,7 +108,7 @@ public class AerobaticElytraSound extends FadingTickableSound {
 		  category, volume, pitch, false);
 	}
 	
-	public AerobaticElytraSound(PlayerEntity player) {
+	public AerobaticElytraSound(Player player) {
 		super(player, ModSounds.AEROBATIC_ELYTRA_FLIGHT, CATEGORY,
 		      FADE_IN, FADE_OUT, MIN_LEN, ATTENUATION);
 		aerobaticData = getAerobaticDataOrDefault(player);
@@ -126,7 +125,7 @@ public class AerobaticElytraSound extends FadingTickableSound {
 	}
 	
 	@Override protected void onStart() {
-		ElytraSound elytraSound = aerobaticData.getElytraSound();
+		ElytraOnPlayerSoundInstance elytraSound = aerobaticData.getElytraSound();
 		if (elytraSound != null && !elytraSound.isStopped()) {
 			if (tickableSound$finishPlaying.testInvoke(elytraSound)) {
 				aerobaticData.setElytraSound(null);
@@ -172,32 +171,32 @@ public class AerobaticElytraSound extends FadingTickableSound {
 	 * Adjust volume and pitch according to aerobatic flight
 	 */
 	public void aerobaticElytraTick(float fade_factor) {
-		float speed = (float)player.getDeltaMovement().length();
+		float speed = (float) player.getDeltaMovement().length();
 		float pitchTilt = abs(aerobaticData.getTiltPitch() / Config.aerobatic.tilt.range_pitch);
 		float rollTilt = abs(aerobaticData.getTiltRoll() / Config.aerobatic.tilt.range_roll);
 		float yawTilt = abs(aerobaticData.getTiltYaw() / Config.aerobatic.tilt.range_yaw);
 		
 		float angularStrength = 2 * pitchTilt + rollTilt + 0.2F * yawTilt;
 		
-		volume = MathHelper.clamp(speed / 4F, -0.2F, 0.6F)
-		         + MathHelper.clamp(angularStrength / 3F, 0F, 0.1F) * fade_factor;
-		volume = MathHelper.clamp(volume, 0F, 1F);
+		volume = clamp(speed / 4F, -0.2F, 0.6F)
+		         + clamp(angularStrength / 3F, 0F, 0.1F) * fade_factor;
+		volume = clamp(volume, 0F, 1F);
 		pitch = 1.0F;
 		
 		brakeVolume = aerobaticData.getBrakeStrength() * fade_factor;
-		rotatePitch = MathHelper.clamp(angularStrength / 2F, 1F, 1.25F);
-		float wVolume = MathHelper.clamp(angularStrength / 2F, 0.1F, 0.9F) * fade_factor
-		                * (float) MathHelper.clampedLerp(0F, 1F, speed / 2F);
+		rotatePitch = clamp(angularStrength / 2F, 1F, 1.25F);
+		float wVolume = clamp(angularStrength / 2F, 0.1F, 0.9F) * fade_factor
+		                * clampedLerp(0F, 1F, speed / 2F);
 		rotateVolume = (rotateVolume + wVolume) / 2F;
 		
 		float wave = (float) sin(player.tickCount / 40F);
-		whistleVolume = (float) MathHelper.clampedLerp(0F, 1F, (speed - 2.8) / 1.2 + wave * 0.2F);
-		whistlePitch = (float) MathHelper.clampedLerp(1F, 1.4F, (speed - 2.8) / 1.8 + wave * 0.3F);
+		whistleVolume = (float) clampedLerp(0F, 1F, (speed - 2.8) / 1.2 + wave * 0.2F);
+		whistlePitch = (float) clampedLerp(1F, 1.4F, (speed - 2.8) / 1.8 + wave * 0.3F);
 		volume *= ClientConfig.sound.wind;
 	}
 	
 	/**
-	 * Mimic logic from {@link ElytraSound#tick}
+	 * Mimic logic from {@link ElytraOnPlayerSoundInstance#tick}
 	 */
 	public void elytraTick(float fade_factor) {
 		final int ageThreshold = 20;
@@ -205,7 +204,7 @@ public class AerobaticElytraSound extends FadingTickableSound {
 		float speedSquared = (float) player.getDeltaMovement().lengthSqr();
 		
 		volume = speedSquared >= 1E-7D
-		         ? MathHelper.clamp(speedSquared / 4F, 0F, 1F) : 0F;
+		         ? clamp(speedSquared / 4F, 0F, 1F) : 0F;
 		volume *= age > ageThreshold
 		          ? min(age - ageThreshold, 20) / 20F * fade_factor : 0F;
 		pitch = max(1F + volume - volumeThreshold, 1F);
@@ -222,19 +221,19 @@ public class AerobaticElytraSound extends FadingTickableSound {
 	}
 	
 	/**
-	 * Intercept {@link ElytraSound}s and replace them if appropriate
+	 * Intercept {@link ElytraOnPlayerSoundInstance}s and replace them if appropriate
 	 */
 	@SubscribeEvent public static void onSoundEvent(PlaySoundEvent event) {
-		if (SoundEvents.ELYTRA_FLYING.getLocation().toString().equals("minecraft:" + event.getName())) {
-			ISound sound = event.getSound();
-			if (!(sound instanceof ElytraSound)) {
+		if (SoundEvents.ELYTRA_FLYING.getLocation().toString()
+		  .equals("minecraft:" + event.getName())) {
+			SoundInstance sound = event.getSound();
+			if (!(sound instanceof final ElytraOnPlayerSoundInstance elytraSound)) {
 				LogUtil.errorOnce(
 				  LOGGER, "Non-ElytraSound elytra sound detected, aerobatic elytra " +
 				          "sound may not play properly");
 				return;
 			}
-			final ElytraSound elytraSound = (ElytraSound)sound;
-			final PlayerEntity player = elytraSound$player.get(elytraSound);
+			final Player player = elytraSound$player.get(elytraSound);
 			if (player != null) {
 				getAerobaticDataOrDefault(player).setElytraSound(elytraSound);
 				if (AerobaticElytraLogic.hasAerobaticElytra(player)) {

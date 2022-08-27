@@ -6,13 +6,13 @@ import endorh.aerobaticelytra.common.capability.IElytraSpec;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
 import endorh.aerobaticelytra.integration.colytra.ColytraIntegration;
 import endorh.aerobaticelytra.integration.curios.CuriosIntegration;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.client.entity.player.RemoteClientPlayerEntity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.item.ArmorItem;
-import net.minecraft.item.ItemStack;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.player.RemotePlayer;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.util.LazyOptional;
 
 public class AerobaticElytraLogic {
@@ -20,7 +20,7 @@ public class AerobaticElytraLogic {
 	/**
 	 * Shorthand for {@code !getAerobaticElytra(player).isEmpty()}
 	 */
-	public static boolean hasAerobaticElytra(PlayerEntity player) {
+	public static boolean hasAerobaticElytra(Player player) {
 		return !getAerobaticElytra(player).isEmpty();
 	}
 	
@@ -38,23 +38,23 @@ public class AerobaticElytraLogic {
 		           || !ColytraIntegration.getColytraSubItem(stack).isEmpty());
 	}
 	
-	public static boolean isRemoteClientPlayerEntity(PlayerEntity player) {
+	public static boolean isRemoteClientPlayerEntity(Player player) {
 		if (!player.level.isClientSide)
 			return false;
-		return (player instanceof RemoteClientPlayerEntity);
+		return (player instanceof RemotePlayer);
 	}
 	
-	public static boolean isClientPlayerEntity(PlayerEntity player) {
+	public static boolean isClientPlayerEntity(Player player) {
 		if (!player.level.isClientSide)
 			return false;
-		return (player instanceof ClientPlayerEntity);
+		return (player instanceof LocalPlayer);
 	}
 	
 	/**
 	 * Get the elytra itemStack, or empty if the entity doesn't have one equipped
 	 */
 	public static ItemStack getAerobaticElytra(LivingEntity entity) {
-		ItemStack chest = entity.getItemBySlot(EquipmentSlotType.CHEST);
+		ItemStack chest = entity.getItemBySlot(EquipmentSlot.CHEST);
 		ItemStack elytra = ItemStack.EMPTY;
 		if (chest.getItem() instanceof AerobaticElytraItem)
 			return chest;

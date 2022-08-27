@@ -11,13 +11,14 @@ import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocus;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import mezz.jei.api.registration.IRecipeRegistration;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.item.crafting.RecipeManager;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -46,7 +47,7 @@ public abstract class BaseCategory<T> implements IRecipeCategory<T> {
 	  ResourceLocation UID, Class<? extends T> recipeClass,
 	  Function<IGuiHelper, IDrawable[]> backgroundProvider,
 	  Item icon, boolean shapeless
-	) { this(UID, recipeClass, backgroundProvider, icon, null, shapeless); }
+	) {this(UID, recipeClass, backgroundProvider, icon, null, shapeless);}
 	
 	public BaseCategory(
 	  ResourceLocation UID, Class<? extends T> recipeClass,
@@ -75,12 +76,12 @@ public abstract class BaseCategory<T> implements IRecipeCategory<T> {
 		return recipeClass;
 	}
 	
-	@Override public @NotNull String getTitle() {
-		return I18n.get(localizedNameKey);
+	@Override public @NotNull Component getTitle() {
+		return new TranslatableComponent(localizedNameKey);
 	}
 	
 	@Override public @NotNull IDrawable getBackground() {
-		return dark_theme.enabled ? background_dark : background;
+		return dark_theme.enabled? background_dark : background;
 	}
 	
 	@Override public @NotNull IDrawable getIcon() {
@@ -90,7 +91,7 @@ public abstract class BaseCategory<T> implements IRecipeCategory<T> {
 			final Item second = iconItems.getSecond();
 			this.icon = second != null
 			            ? AerobaticElytraJeiHelper.createMultiIngredientDrawable(
-			              new ItemStack(first), new ItemStack(second))
+			  new ItemStack(first), new ItemStack(second))
 			            : guiHelper.createDrawableIngredient(new ItemStack(first));
 		}
 		return icon;
@@ -103,8 +104,8 @@ public abstract class BaseCategory<T> implements IRecipeCategory<T> {
 		registerRecipes(reg, recipeManager, recipeManager.getRecipes().stream()
 		  .filter(getRecipeClass()::isInstance)
 		  .sorted(Comparator.comparing(
-		    r -> r.getIngredients().stream().map(Ingredient::toString)
-		      .collect(Collectors.joining(";"))
+			 r -> r.getIngredients().stream().map(Ingredient::toString)
+				.collect(Collectors.joining(";"))
 		  )).map(r -> (T) r).collect(Collectors.toList()));
 	}
 	
@@ -128,13 +129,14 @@ public abstract class BaseCategory<T> implements IRecipeCategory<T> {
 		return other;
 	}
 	
-	@Override public @NotNull List<ITextComponent> getTooltipStrings(
+	@Override public @NotNull List<Component> getTooltipStrings(
 	  @NotNull T recipe, double mouseX, double mouseY
 	) {
-		List<ITextComponent> list = new ArrayList<>();
+		List<Component> list = new ArrayList<>();
 		if (shapeless && inRect(
 		  mouseX, mouseY, background.getWidth() - ShapelessDecoratedDrawable.shapelessIconWidth(),
-		  0, ShapelessDecoratedDrawable.shapelessIconWidth(), ShapelessDecoratedDrawable.shapelessIconHeight()))
+		  0, ShapelessDecoratedDrawable.shapelessIconWidth(),
+		  ShapelessDecoratedDrawable.shapelessIconHeight()))
 			list.add(ttc("jei.tooltip.shapeless.recipe"));
 		return list;
 	}

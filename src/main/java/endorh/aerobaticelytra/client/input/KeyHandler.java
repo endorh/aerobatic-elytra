@@ -1,5 +1,6 @@
 package endorh.aerobaticelytra.client.input;
 
+import com.mojang.blaze3d.platform.InputConstants.Type;
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.render.AerobaticOverlays;
 import endorh.aerobaticelytra.common.capability.IAerobaticData;
@@ -9,18 +10,17 @@ import endorh.aerobaticelytra.common.flight.mode.IFlightMode;
 import endorh.aerobaticelytra.network.AerobaticPackets.DFlightModePacket;
 import endorh.aerobaticelytra.network.AerobaticPackets.DJumpingPacket;
 import endorh.aerobaticelytra.network.AerobaticPackets.DSprintingPacket;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.client.util.InputMappings.Type;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.MovementInput;
+import net.minecraft.client.player.Input;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent.KeyInputEvent;
 import net.minecraftforge.client.event.InputUpdateEvent;
 import net.minecraftforge.client.settings.IKeyConflictContext;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+import net.minecraftforge.fmlclient.registry.ClientRegistry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -30,7 +30,7 @@ import static net.minecraftforge.client.settings.KeyConflictContext.IN_GAME;
 
 @EventBusSubscriber(value = Dist.CLIENT, modid = AerobaticElytra.MOD_ID)
 public class KeyHandler {
-	public static KeyBinding FLIGHT_MODE_KEYBINDING;
+	public static KeyMapping FLIGHT_MODE_KEYBINDING;
 	public static final String AEROBATIC_ELYTRA_CATEGORY = "key.aerobaticelytra.category";
 	
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -40,17 +40,17 @@ public class KeyHandler {
 	}
 	
 	@SuppressWarnings("SameParameterValue")
-	private static KeyBinding reg(
+	private static KeyMapping reg(
 	  String translation, IKeyConflictContext context, int keyCode, String category
 	) {
-		final KeyBinding binding = new KeyBinding(translation, context, Type.KEYSYM, keyCode, category);
+		final KeyMapping binding = new KeyMapping(translation, context, Type.KEYSYM, keyCode, category);
 		ClientRegistry.registerKeyBinding(binding);
 		return binding;
 	}
 	
 	@SubscribeEvent
 	public static void onKey(KeyInputEvent event) {
-		final PlayerEntity player = Minecraft.getInstance().player;
+		final Player player = Minecraft.getInstance().player;
 		if (player == null)
 			return;
 		final IFlightData fd = getFlightDataOrDefault(player);
@@ -65,9 +65,9 @@ public class KeyHandler {
 	
 	@SubscribeEvent
 	public static void onInputUpdateEvent(InputUpdateEvent event) {
-		final PlayerEntity player = event.getPlayer();
+		final Player player = event.getPlayer();
 		final IAerobaticData data = getAerobaticDataOrDefault(player);
-		final MovementInput movementInput = event.getMovementInput();
+		final Input movementInput = event.getMovementInput();
 		final IFlightMode mode = getFlightDataOrDefault(player).getFlightMode();
 		
 		if (mode.is(FlightModeTags.AEROBATIC) && player.isFallFlying()) {

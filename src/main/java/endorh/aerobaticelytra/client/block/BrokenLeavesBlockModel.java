@@ -1,19 +1,19 @@
 package endorh.aerobaticelytra.client.block;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import endorh.aerobaticelytra.common.block.BrokenLeavesBlock;
 import endorh.aerobaticelytra.common.tile.BrokenLeavesTileEntity;
-import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BlockRendererDispatcher;
-import net.minecraft.client.renderer.model.BakedQuad;
-import net.minecraft.client.renderer.model.IBakedModel;
-import net.minecraft.client.renderer.model.ItemCameraTransforms.TransformType;
-import net.minecraft.client.renderer.model.ItemOverrideList;
+import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.block.model.ItemOverrides;
+import net.minecraft.client.renderer.block.model.ItemTransforms.TransformType;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockDisplayReader;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.model.data.IModelData;
 import net.minecraftforge.client.model.data.ModelDataMap;
 import net.minecraftforge.client.model.data.ModelProperty;
@@ -30,11 +30,11 @@ import java.util.Random;
  * {@link BrokenLeavesTileEntity}
  * attached to the block.
  */
-public class BrokenLeavesBlockModel implements IBakedModel {
-	private final IBakedModel fallbackModel;
+public class BrokenLeavesBlockModel implements BakedModel {
+	private final BakedModel fallbackModel;
 	public static ModelProperty<Optional<BlockState>> COPIED_LEAVE_BLOCK = new ModelProperty<>();
 	
-	public BrokenLeavesBlockModel(IBakedModel model) {
+	public BrokenLeavesBlockModel(BakedModel model) {
 		fallbackModel = model;
 	}
 	
@@ -52,7 +52,7 @@ public class BrokenLeavesBlockModel implements IBakedModel {
 	}
 	
 	@Override public @NotNull IModelData getModelData(
-	  @NotNull IBlockDisplayReader world, @NotNull BlockPos pos,
+	  @NotNull BlockAndTintGetter world, @NotNull BlockPos pos,
 	  @NotNull BlockState state, @NotNull IModelData tileData
 	) {
 		Optional<BlockState> bestAdjacentBlock = BrokenLeavesBlock.getStoredBlockState(world, pos);
@@ -61,35 +61,35 @@ public class BrokenLeavesBlockModel implements IBakedModel {
 		return modelDataMap;
 	}
 	
-	@Override
-	public TextureAtlasSprite getParticleTexture(@NotNull IModelData data) {
-		return getActualBakedModelFromIModelData(data).getParticleTexture(data);
+	@Override public TextureAtlasSprite getParticleIcon(@NotNull IModelData data) {
+		return getActualBakedModelFromIModelData(data).getParticleIcon(data);
 	}
 	
-	private IBakedModel getActualBakedModelFromIModelData(@NotNull IModelData data) {
-		IBakedModel ret = fallbackModel;
+	private BakedModel getActualBakedModelFromIModelData(@NotNull IModelData data) {
+		BakedModel ret = fallbackModel;
 		if (!data.hasProperty(COPIED_LEAVE_BLOCK))
 			return ret; // Happens on getParticleTexture
 		Optional<BlockState> copiedBlock = data.getData(COPIED_LEAVE_BLOCK);
 		//noinspection OptionalAssignedToNull
 		assert copiedBlock != null;
-		if (!copiedBlock.isPresent()) return ret;
+		if (copiedBlock.isEmpty()) return ret;
 		
 		Minecraft mc = Minecraft.getInstance();
-		BlockRendererDispatcher dispatcher = mc.getBlockRenderer();
+		BlockRenderDispatcher dispatcher = mc.getBlockRenderer();
 		ret = dispatcher.getBlockModel(copiedBlock.get());
 		return ret;
 	}
 	
 	
-	
-	@Override public @NotNull List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, @NotNull Random rand) {
+	@Override public @NotNull List<BakedQuad> getQuads(
+	  @Nullable BlockState state, @Nullable Direction side, @NotNull Random rand
+	) {
 		//noinspection deprecation
 		return fallbackModel.getQuads(state, side, rand);
 	}
 	
 	@Override public @NotNull TextureAtlasSprite getParticleIcon() {
-		return fallbackModel.getParticleTexture(getEmptyIModelData());
+		return fallbackModel.getParticleIcon(getEmptyIModelData());
 	}
 	
 	@Override public boolean useAmbientOcclusion() {
@@ -109,12 +109,12 @@ public class BrokenLeavesBlockModel implements IBakedModel {
 		return fallbackModel.isCustomRenderer();
 	}
 	
-	@Override public @NotNull ItemOverrideList getOverrides() {
+	@Override public @NotNull ItemOverrides getOverrides() {
 		return fallbackModel.getOverrides();
 	}
 	
-	@Override public IBakedModel handlePerspective(
-	  TransformType transformType, MatrixStack mStack
+	@Override public BakedModel handlePerspective(
+	  TransformType transformType, PoseStack mStack
 	) {
 		return fallbackModel.handlePerspective(transformType, mStack);
 	}

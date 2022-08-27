@@ -4,7 +4,7 @@ import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.common.config.Config;
 import endorh.aerobaticelytra.common.flight.AerobaticFlight;
 import endorh.flightcore.events.DisableElytraCheckEvent;
-import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import org.apache.logging.log4j.LogManager;
@@ -24,7 +24,7 @@ public class KickHandler {
 	private static final Logger LOGGER = LogManager.getLogger();
 	public static final Map<UUID, Integer> INVALID_PACKET_COUNT = new HashMap<>();
 	
-	public static void incrementInvalidPacketCount(ServerPlayerEntity player) {
+	public static void incrementInvalidPacketCount(ServerPlayer player) {
 		UUID id = player.getUUID();
 		int count = INVALID_PACKET_COUNT.containsKey(id)?
 		            INVALID_PACKET_COUNT.get(id) + 1 : 1;

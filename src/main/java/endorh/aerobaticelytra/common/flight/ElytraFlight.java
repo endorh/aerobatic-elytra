@@ -5,31 +5,34 @@ import endorh.aerobaticelytra.common.capability.ElytraSpecCapability;
 import endorh.aerobaticelytra.common.capability.IElytraSpec;
 import endorh.aerobaticelytra.common.flight.mode.FlightModeTags;
 import endorh.util.math.Vec3f;
-import net.minecraft.entity.MoverType;
-import net.minecraft.entity.passive.IFlyingAnimal;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.DamageSource;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.entity.animal.FlyingAnimal;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
 
 import static endorh.aerobaticelytra.common.capability.FlightDataCapability.getFlightDataOrDefault;
 import static endorh.aerobaticelytra.common.item.IAbility.Ability.FUEL;
 import static java.lang.Math.min;
+import static net.minecraft.util.Mth.cos;
 
 public class ElytraFlight {
 	
 	/**
-	 * Elytra physics, from {@link net.minecraft.entity.player.PlayerEntity#travel}
+	 * Elytra physics, from {@link Player#travel}
+	 *
 	 * @param player Player flying
-	 * @param travelVector Travel vector from {@link net.minecraft.entity.LivingEntity#travel}
+	 * @param travelVector Travel vector from
+	 *   {@link net.minecraft.world.entity.LivingEntity#travel}
 	 */
 	public static boolean onElytraTravel(
-	  PlayerEntity player, @SuppressWarnings("unused") Vector3d travelVector
+	  Player player, @SuppressWarnings("unused") Vec3 travelVector
 	) {
 		// Stop conditions
-		if (!player.isFallFlying() || player.abilities.flying
+		if (!player.isFallFlying() || player.getAbilities().flying
 		    || !getFlightDataOrDefault(player).getFlightMode().is(FlightModeTags.ELYTRA))
 			return false;
 		final ItemStack elytra = AerobaticElytraLogic.getAerobaticElytra(player);
@@ -49,7 +52,7 @@ public class ElytraFlight {
 		// Get gravity and apply SLOW_FALLING potion effect as needed
 		double grav = TravelHandler.travelGravity(player);
 		
-		Vector3d motionVec = player.getDeltaMovement();
+		Vec3 motionVec = player.getDeltaMovement();
 		
 		double hSpeedPrev = new Vec3f(motionVec).hNorm();
 		
@@ -59,24 +62,25 @@ public class ElytraFlight {
 		}
 		
 		// Compute motion
-		Vector3d look = player.getLookAngle();
-		float pitchRad = player.xRot * (float)Math.PI / 180F;
+		Vec3 look = player.getLookAngle();
+		float pitchRad = player.getXRot() * (float) Math.PI / 180F;
 		double look_hor_norm = Math.sqrt(look.x * look.x + look.z * look.z);
 		double motion_hor_norm = Math.sqrt(motionVec.x * motionVec.x + motionVec.z * motionVec.z);
 		double look_norm = look.length();
-		float pitchCos = MathHelper.cos(pitchRad);
+		float pitchCos = cos(pitchRad);
 		pitchCos = (float) ((double) pitchCos * (double) pitchCos *
 		                    min(1.0D, look_norm / 0.4D));
 		motionVec = player.getDeltaMovement().add(0.0D, grav * (-1.0D + (double) pitchCos * 0.75D),
-		                                   0.0D);
+		                                          0.0D);
 		if (motionVec.y < 0.0D && look_hor_norm > 0.0D) {
 			double y_friction = motionVec.y * -0.1D * (double) pitchCos;
 			motionVec = motionVec
-			  .add(look.x * y_friction / look_hor_norm, y_friction, look.z * y_friction / look_hor_norm);
+			  .add(
+			    look.x * y_friction / look_hor_norm, y_friction, look.z * y_friction / look_hor_norm);
 		}
 		
 		if (pitchRad < 0.0F && look_hor_norm > 0.0D) {
-			double y_acc = motion_hor_norm * (double) (-MathHelper.sin(pitchRad)) * 0.04D;
+			double y_acc = motion_hor_norm * (double) (-Mth.sin(pitchRad)) * 0.04D;
 			motionVec = motionVec.add(-look.x * y_acc / look_hor_norm, y_acc * 3.2D,
 			                          -look.z * y_acc / look_hor_norm);
 		}
@@ -95,7 +99,7 @@ public class ElytraFlight {
 		if (player.horizontalCollision && !player.level.isClientSide) {
 			double hSpeedNew = new Vec3f(player.getDeltaMovement()).hNorm();
 			double reaction = hSpeedPrev - hSpeedNew;
-			float collisionStrength = (float)(reaction * 10.0D - 3.0D);
+			float collisionStrength = (float) (reaction * 10.0D - 3.0D);
 			if (collisionStrength > 0.0F) {
 				player.playSound(
 				  collisionStrength > 4
@@ -114,7 +118,7 @@ public class ElytraFlight {
 		}
 		
 		// Update player limbSwingAmount
-		player.calculateEntityAnimation(player, player instanceof IFlyingAnimal);
+		player.calculateEntityAnimation(player, player instanceof FlyingAnimal);
 		
 		// Add movement stat
 		player.checkMovementStatistics(

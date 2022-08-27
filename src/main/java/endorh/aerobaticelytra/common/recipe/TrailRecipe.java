@@ -6,14 +6,14 @@ import endorh.aerobaticelytra.common.capability.ElytraSpecCapability;
 import endorh.aerobaticelytra.common.capability.IElytraSpec;
 import endorh.aerobaticelytra.common.capability.IElytraSpec.RocketStar;
 import endorh.aerobaticelytra.common.capability.IElytraSpec.TrailData;
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.item.crafting.IRecipeSerializer;
-import net.minecraft.item.crafting.SpecialRecipe;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.CustomRecipe;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -24,13 +24,13 @@ import org.jetbrains.annotations.NotNull;
  * rocket.<br>
  * All rockets may be modified at the same time.
  */
-public class TrailRecipe extends SpecialRecipe {
+public class TrailRecipe extends CustomRecipe {
 	public TrailRecipe(ResourceLocation id) {
 		super(id);
 	}
 	
 	@Override
-	public boolean matches(@NotNull CraftingInventory inv, @NotNull World worldIn) {
+	public boolean matches(@NotNull CraftingContainer inv, @NotNull Level worldIn) {
 		ItemStack elytra = null;
 		int e = 0;
 		int rockets = 0;
@@ -74,7 +74,7 @@ public class TrailRecipe extends SpecialRecipe {
 	}
 	
 	@NotNull @Override
-	public ItemStack assemble(@NotNull CraftingInventory inv) {
+	public ItemStack assemble(@NotNull CraftingContainer inv) {
 		ItemStack elytra = ItemStack.EMPTY;
 		int k;
 		for (k = 0; k < inv.getContainerSize(); k++) {
@@ -137,7 +137,7 @@ public class TrailRecipe extends SpecialRecipe {
 		
 		for (int r = 0; r < 4; r++) {
 			if (!rockets[r].isEmpty()) {
-				CompoundNBT rocketTag = rockets[r].getTag();
+				CompoundTag rocketTag = rockets[r].getTag();
 				if (rocketTag == null || !rocketTag.contains("Fireworks")
 				    || !rocketTag.getCompound("Fireworks").contains("Explosions")) {
 					trailData.put(RocketSide.values()[r], null);
@@ -157,7 +157,7 @@ public class TrailRecipe extends SpecialRecipe {
 	}
 	
 	@NotNull @Override
-	public IRecipeSerializer<?> getSerializer() {
+	public RecipeSerializer<?> getSerializer() {
 		return ModRecipes.TRAIL_RECIPE.get();
 	}
 }

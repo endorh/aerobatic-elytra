@@ -4,24 +4,24 @@ import com.google.gson.*;
 import endorh.aerobaticelytra.common.capability.ElytraSpecCapability;
 import endorh.aerobaticelytra.common.capability.IElytraSpec;
 import endorh.aerobaticelytra.common.item.IAbility;
-import net.minecraft.item.ItemStack;
-import net.minecraft.loot.LootContext;
-import net.minecraft.loot.LootFunction;
-import net.minecraft.loot.LootFunctionType;
-import net.minecraft.loot.conditions.ILootCondition;
-import net.minecraft.loot.functions.ILootFunction;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.functions.LootItemConditionalFunction;
+import net.minecraft.world.level.storage.loot.functions.LootItemFunction;
+import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType;
+import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-public class SetAbilitiesLootFunction extends LootFunction {
+public class SetAbilitiesLootFunction extends LootItemConditionalFunction {
 	private final Map<IAbility, Float> abilities;
 	private final Map<String, Float> unknown;
 	
 	protected SetAbilitiesLootFunction(
-	  ILootCondition[] conditionsIn, Map<IAbility, Float> abilities, Map<String, Float> unknown
+	  LootItemCondition[] conditionsIn, Map<IAbility, Float> abilities, Map<String, Float> unknown
 	) {
 		super(conditionsIn);
 		this.abilities = abilities;
@@ -36,7 +36,7 @@ public class SetAbilitiesLootFunction extends LootFunction {
 		return stack;
 	}
 	
-	@Override public @NotNull LootFunctionType getType() {
+	@Override public @NotNull LootItemFunctionType getType() {
 		return ModLootFunctions.SET_ABILITIES;
 	}
 	
@@ -44,7 +44,7 @@ public class SetAbilitiesLootFunction extends LootFunction {
 		return new Builder();
 	}
 	
-	public static class Builder extends LootFunction.Builder<SetAbilitiesLootFunction.Builder> {
+	public static class Builder extends LootItemConditionalFunction.Builder<SetAbilitiesLootFunction.Builder> {
 		private final Map<IAbility, Float> abilities = new HashMap<>();
 		private final Map<String, Float> unknown = new HashMap<>();
 		
@@ -59,17 +59,17 @@ public class SetAbilitiesLootFunction extends LootFunction {
 			} else unknown.put(name, (float) value);
 		}
 		
-		public @NotNull ILootFunction build() {
+		public @NotNull LootItemFunction build() {
 			return new SetAbilitiesLootFunction(getConditions(), abilities, unknown);
 		}
 	}
 	
-	public static class Serializer extends LootFunction.Serializer<SetAbilitiesLootFunction> {
+	public static class Serializer extends LootItemConditionalFunction.Serializer<SetAbilitiesLootFunction> {
 		
 		@Override public @NotNull SetAbilitiesLootFunction deserialize(
 		  @NotNull JsonObject json,
 		  @NotNull JsonDeserializationContext deserializationContext,
-		  ILootCondition @NotNull [] conditionsIn
+		  LootItemCondition @NotNull [] conditionsIn
 		) {
 			final Map<IAbility, Float> abilities = new HashMap<>();
 			final Map<String, Float> unknown = new HashMap<>();

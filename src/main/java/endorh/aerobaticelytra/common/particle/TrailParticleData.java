@@ -10,21 +10,19 @@ import endorh.aerobaticelytra.client.trail.AerobaticTrail.RocketSide;
 import endorh.aerobaticelytra.common.capability.IElytraSpec.TrailData;
 import endorh.util.math.Vec3f;
 import endorh.util.network.PacketBufferUtil;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.particles.IParticleData;
-import net.minecraft.particles.ParticleType;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleType;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
+import java.awt.Color;
 import java.util.List;
 import java.util.Locale;
 
-import net.minecraft.particles.IParticleData.IDeserializer;
-
-public class TrailParticleData implements IParticleData {
+public class TrailParticleData implements ParticleOptions {
 	
 	public final float size;
 	public final int life;
@@ -61,7 +59,7 @@ public class TrailParticleData implements IParticleData {
 		trail = trailIn;
 		
 		life = lifeIn;
-		size = MathHelper.clamp(sizeIn, 0F, 1F);
+		size = Mth.clamp(sizeIn, 0F, 1F);
 		partialTick = partialTickIn;
 		ownPlayer = ownPlayerIn;
 		rollVec = rollVecIn != null? rollVecIn.copy() : null;
@@ -74,7 +72,7 @@ public class TrailParticleData implements IParticleData {
 		return ModParticles.TRAIL_PARTICLES.get(type);
 	}
 	
-	@Override public void writeToNetwork(@NotNull PacketBuffer buf) {
+	@Override public void writeToNetwork(@NotNull FriendlyByteBuf buf) {
 		buf.writeInt(color.getRGB());
 		buf.writeInt(fadeColor.getRGB());
 		buf.writeByte(type);
@@ -115,7 +113,7 @@ public class TrailParticleData implements IParticleData {
 	);
 	
 	@SuppressWarnings("deprecation")
-	public static final IDeserializer<TrailParticleData> DESERIALIZER = new IDeserializer<TrailParticleData>() {
+	public static final Deserializer<TrailParticleData> DESERIALIZER = new Deserializer<TrailParticleData>() {
 		@NotNull @Override public TrailParticleData fromCommand(
 		  @NotNull ParticleType<TrailParticleData> type, @NotNull StringReader reader
 		) throws CommandSyntaxException {
@@ -133,7 +131,7 @@ public class TrailParticleData implements IParticleData {
 			boolean flicker = reader.readBoolean();      reader.expect(' ');
 			boolean trail = reader.readBoolean();        reader.expect(' ');
 			
-			float size = MathHelper.clamp(reader.readFloat(), 0F, 1F); reader.expect(' ');
+			float size = Mth.clamp(reader.readFloat(), 0F, 1F); reader.expect(' ');
 			int life = reader.readInt();                 reader.expect(' ');
 			
 			float partialTick = reader.readFloat();      reader.expect(' ');
@@ -149,7 +147,7 @@ public class TrailParticleData implements IParticleData {
 			try {
 				side = RocketSide.values()[s];
 			} catch (IndexOutOfBoundsException e) {
-				Message msg = new StringTextComponent(
+				Message msg = new TextComponent(
 				  "Unknown rocket side: " + s
 				  + ", Valid sides are 0-" + RocketSide.values().length);
 				throw new CommandSyntaxException(new SimpleCommandExceptionType(msg), msg);
@@ -161,7 +159,7 @@ public class TrailParticleData implements IParticleData {
 		}
 		
 		@Override public @NotNull TrailParticleData fromNetwork(
-		  @NotNull ParticleType<TrailParticleData> type, PacketBuffer buf
+		  @NotNull ParticleType<TrailParticleData> type, FriendlyByteBuf buf
 		) {
 			int rgb = buf.readInt();
 			int fadeRGB = buf.readInt();

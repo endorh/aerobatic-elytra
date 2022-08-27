@@ -2,7 +2,7 @@ package endorh.aerobaticelytra.common.event;
 
 import endorh.aerobaticelytra.common.capability.IAerobaticData;
 import endorh.aerobaticelytra.common.capability.IElytraSpec;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.eventbus.api.Event;
 
 /**
@@ -11,12 +11,12 @@ import net.minecraftforge.eventbus.api.Event;
  * @see Remote
  */
 public class AerobaticElytraStartFlightEvent extends Event {
-	public final PlayerEntity player;
+	public final Player player;
 	public final IElytraSpec elytraSpec;
 	public final IAerobaticData aerobaticData;
 	
 	public AerobaticElytraStartFlightEvent(
-	  PlayerEntity player, IElytraSpec elytraSpec, IAerobaticData aerobaticData
+	  Player player, IElytraSpec elytraSpec, IAerobaticData aerobaticData
 	) {
 		this.player = player;
 		this.elytraSpec = elytraSpec;
@@ -29,7 +29,7 @@ public class AerobaticElytraStartFlightEvent extends Event {
 	 */
 	public static class Remote extends AerobaticElytraStartFlightEvent {
 		public Remote(
-		  PlayerEntity player, IElytraSpec spec, IAerobaticData data
+		  Player player, IElytraSpec spec, IAerobaticData data
 		) { super(player, spec, data); }
 	}
 }

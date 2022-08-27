@@ -5,18 +5,16 @@ import endorh.aerobaticelytra.debug.DebugOverlay;
 import endorh.util.sound.AudioUtil;
 import endorh.util.sound.PlayerTickableSound;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.player.Player;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
 
 import static endorh.aerobaticelytra.common.capability.FlightDataCapability.getFlightDataOrDefault;
-
-import endorh.util.sound.PlayerTickableSound.IAttenuation;
 
 /**
  * Faded TickableSound with recovery
@@ -36,21 +34,25 @@ public abstract class FadingTickableSound extends PlayerTickableSound {
 	
 	@SuppressWarnings("unused")
 	public FadingTickableSound(
-	  PlayerEntity player, SoundEvent sound, SoundCategory category
-	) { this(player, sound, category, 8, 8, 0); }
+	  Player player, SoundEvent sound, SoundSource category
+	) {this(player, sound, category, 8, 8, 0);}
 	
 	public FadingTickableSound(
-	  PlayerEntity player, SoundEvent sound, SoundCategory category,
+	  Player player, SoundEvent sound, SoundSource category,
 	  int fadeIn, int fadeOut, int minimumLength
-	) { this(player, sound, category, fadeIn, fadeOut, minimumLength, null); }
+	) {this(player, sound, category, fadeIn, fadeOut, minimumLength, null);}
 	
 	public FadingTickableSound(
-	  PlayerEntity player, SoundEvent sound, SoundCategory category,
+	  Player player, SoundEvent sound, SoundSource category,
 	  int fadeIn, int fadeOut, int minimumLength, @Nullable IAttenuation attenuation
-	) { this(player, sound, category, fadeIn, fadeOut, minimumLength, attenuation, sound.getRegistryName()); }
+	) {
+		this(
+		  player, sound, category, fadeIn, fadeOut, minimumLength, attenuation,
+		  sound.getRegistryName());
+	}
 	
 	public FadingTickableSound(
-	  PlayerEntity player, SoundEvent sound, SoundCategory category,
+	  Player player, SoundEvent sound, SoundSource category,
 	  int fadeIn, int fadeOut, int minimumLength,
 	  @Nullable IAttenuation attenuation, ResourceLocation type
 	) {
@@ -66,14 +68,14 @@ public abstract class FadingTickableSound extends PlayerTickableSound {
 	
 	public void recover() {
 		fading_out = false;
-		animation = Math.round(animation / (float)fadeOut * fadeIn);
+		animation = Math.round(animation / (float) fadeOut * fadeIn);
 	}
 	
 	public void fadeOut() {
 		if (fading_out)
 			return;
 		fading_out = true;
-		animation = Math.round(animation / (float)fadeIn * fadeOut);
+		animation = Math.round(animation / (float) fadeIn * fadeOut);
 		onFadeOut();
 	}
 	
@@ -83,7 +85,9 @@ public abstract class FadingTickableSound extends PlayerTickableSound {
 	}
 	
 	protected void onStart() {}
+	
 	protected void onFadeOut() {}
+	
 	protected void onFinish() {}
 	
 	public void play() {
@@ -99,7 +103,7 @@ public abstract class FadingTickableSound extends PlayerTickableSound {
 	}
 	
 	@Override public final void tick() {
-  		super.tick();
+		super.tick();
 		if (animation < 0)
 			return;
 		age++;
@@ -110,7 +114,7 @@ public abstract class FadingTickableSound extends PlayerTickableSound {
 			fadeOut();
 		if (fading_out) {
 			if (remainingMinimum < fadeOut)
-				fade_factor = AudioUtil.fadeOutExp((fadeOut - --animation) / (float)fadeOut);
+				fade_factor = AudioUtil.fadeOutExp((fadeOut - --animation) / (float) fadeOut);
 			tick(fade_factor);
 			if (animation <= 0) {
 				onFinish();
@@ -129,6 +133,7 @@ public abstract class FadingTickableSound extends PlayerTickableSound {
 	}
 	
 	public abstract void tick(float fade_factor);
+	
 	public boolean shouldFadeOut() {
 		return false;
 	}

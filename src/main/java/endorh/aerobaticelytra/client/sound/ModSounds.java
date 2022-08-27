@@ -1,8 +1,8 @@
 package endorh.aerobaticelytra.client.sound;
 
 import endorh.aerobaticelytra.AerobaticElytra;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundEvent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
@@ -11,7 +11,7 @@ import net.minecraftforge.registries.IForgeRegistry;
 
 import static endorh.aerobaticelytra.AerobaticElytra.prefix;
 
-@EventBusSubscriber(bus = Bus.MOD, modid = AerobaticElytra.MOD_ID)
+@EventBusSubscriber(bus=Bus.MOD, modid=AerobaticElytra.MOD_ID)
 public class ModSounds {
 	public static SoundEvent
 	  AEROBATIC_ELYTRA_FLIGHT, AEROBATIC_ELYTRA_BRAKE,

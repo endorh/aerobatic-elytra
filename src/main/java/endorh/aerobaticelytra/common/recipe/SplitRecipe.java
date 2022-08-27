@@ -5,17 +5,17 @@ import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
 import endorh.aerobaticelytra.common.item.ElytraDyement.WingSide;
 import endorh.aerobaticelytra.common.item.ModItems;
 import endorh.util.network.PacketBufferUtil;
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.IRecipeSerializer;
-import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.item.crafting.SpecialRecipe;
-import net.minecraft.item.crafting.SpecialRecipeSerializer;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.JSONUtils;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
+import net.minecraft.core.NonNullList;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.GsonHelper;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CustomRecipe;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.SimpleRecipeSerializer;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.common.util.RecipeMatcher;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +31,7 @@ import static endorh.aerobaticelytra.AerobaticElytra.prefix;
  * Splits an Aerobatic Elytra in two wings, preserving their
  * colors/patterns/trails/abilities.
  */
-public class SplitRecipe extends SpecialRecipe {
+public class SplitRecipe extends CustomRecipe {
 	public static int MAX_WIDTH = 3;
 	public static int MAX_HEIGHT = 3;
 	
@@ -64,13 +64,13 @@ public class SplitRecipe extends SpecialRecipe {
 			this.damage = damage;
 		}
 		
-		public void write(PacketBuffer buf) {
+		public void write(FriendlyByteBuf buf) {
 			buf.writeBoolean(leave);
 			if (leave)
 				buf.writeVarInt(damage);
 		}
 		
-		public static LeaveData read(PacketBuffer buf) {
+		public static LeaveData read(FriendlyByteBuf buf) {
 			boolean leave = buf.readBoolean();
 			int damage = leave? buf.readVarInt() : 0;
 			return new LeaveData(leave, damage);
@@ -78,8 +78,8 @@ public class SplitRecipe extends SpecialRecipe {
 		
 		public static LeaveData from(JsonObject obj) {
 			return new LeaveData(
-			  JSONUtils.getAsBoolean(obj, "leave", false),
-			  JSONUtils.getAsInt(obj, "damage", 0));
+			  GsonHelper.getAsBoolean(obj, "leave", false),
+			  GsonHelper.getAsInt(obj, "damage", 0));
 		}
 	}
 	
@@ -107,7 +107,7 @@ public class SplitRecipe extends SpecialRecipe {
 	}
 	
 	@Override public boolean matches(
-	  @NotNull CraftingInventory inv, @NotNull World world
+	  @NotNull CraftingContainer inv, @NotNull Level world
 	) {
 		ItemStack elytra = ItemStack.EMPTY;
 		final List<ItemStack> inputs = new ArrayList<>();
@@ -129,7 +129,7 @@ public class SplitRecipe extends SpecialRecipe {
 	
 	@Override
 	public @NotNull ItemStack assemble(
-	  @NotNull CraftingInventory inv
+	  @NotNull CraftingContainer inv
 	) {
 		ItemStack elytra = ItemStack.EMPTY;
 		for (int i = 0; i < inv.getContainerSize(); i++) {
@@ -144,7 +144,7 @@ public class SplitRecipe extends SpecialRecipe {
 	}
 	
 	@Override
-	public @NotNull NonNullList<ItemStack> getRemainingItems(@NotNull CraftingInventory inv) {
+	public @NotNull NonNullList<ItemStack> getRemainingItems(@NotNull CraftingContainer inv) {
 		NonNullList<ItemStack> rem = NonNullList.withSize(inv.getContainerSize(), ItemStack.EMPTY);
 		
 		List<ItemStack> inputs = new java.util.ArrayList<>();
@@ -193,7 +193,7 @@ public class SplitRecipe extends SpecialRecipe {
 		return recipeItems;
 	}
 	
-	public static class Serializer extends SpecialRecipeSerializer<SplitRecipe> {
+	public static class Serializer extends SimpleRecipeSerializer<SplitRecipe> {
 		public static final ResourceLocation NAME = prefix("split_recipe");
 		public Serializer() {
 			super(id -> null);
@@ -205,7 +205,7 @@ public class SplitRecipe extends SpecialRecipe {
 		  @NotNull ResourceLocation recipeId, @NotNull JsonObject json
 		) {
 			NonNullList<Pair<Ingredient, LeaveData>> list =
-			  readIngredients(JSONUtils.getAsJsonArray(json, "ingredients"));
+			  readIngredients(GsonHelper.getAsJsonArray(json, "ingredients"));
 			if (list.size() > MAX_WIDTH * MAX_HEIGHT - 1) {
 				throw new JsonParseException("Too many ingredients for split recipe, the max is " + (SplitRecipe.MAX_WIDTH * SplitRecipe.MAX_HEIGHT - 1));
 			} else {
@@ -259,12 +259,12 @@ public class SplitRecipe extends SpecialRecipe {
 			} else {
 				return Ingredient.fromValues(
 				  StreamSupport.stream(arr.spliterator(), false).map(
-				    (element) -> Ingredient.valueFromJson(JSONUtils.convertToJsonObject(element, "item"))));
+				    (element) -> Ingredient.valueFromJson(GsonHelper.convertToJsonObject(element, "item"))));
 			}
 		}
 		
 		@Override
-		public SplitRecipe fromNetwork(@NotNull ResourceLocation recipeId, @NotNull PacketBuffer buf) {
+		public SplitRecipe fromNetwork(@NotNull ResourceLocation recipeId, @NotNull FriendlyByteBuf buf) {
 			NonNullList<Pair<Ingredient, LeaveData>> ingredients =
 			  PacketBufferUtil.readNonNullList(
 			    buf, b -> Pair.of(Ingredient.fromNetwork(b), LeaveData.read(b)),
@@ -273,7 +273,7 @@ public class SplitRecipe extends SpecialRecipe {
 		}
 		
 		@Override
-		public void toNetwork(@NotNull PacketBuffer buf, @NotNull SplitRecipe recipe) {
+		public void toNetwork(@NotNull FriendlyByteBuf buf, @NotNull SplitRecipe recipe) {
 			PacketBufferUtil.writeList(
 			  recipe.ingredients, buf, (p, b) -> {
 			  	   p.getLeft().toNetwork(b);
@@ -282,7 +282,7 @@ public class SplitRecipe extends SpecialRecipe {
 		}
 	}
 	
-	@Override public @NotNull IRecipeSerializer<?> getSerializer() {
+	@Override public @NotNull RecipeSerializer<?> getSerializer() {
 		return SERIALIZER;
 	}
 }

@@ -10,17 +10,17 @@ import endorh.aerobaticelytra.common.capability.IElytraSpec;
 import endorh.aerobaticelytra.common.item.IEffectAbility;
 import endorh.aerobaticelytra.common.item.IEffectAbility.EffectAbility;
 import endorh.aerobaticelytra.common.item.IEffectAbility.EffectAbility.Deserializer;
-import net.minecraft.client.resources.JsonReloadListener;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.loot.LootContext;
-import net.minecraft.loot.LootContext.Builder;
-import net.minecraft.loot.LootParameterSets;
-import net.minecraft.loot.LootParameters;
-import net.minecraft.loot.LootSerializers;
-import net.minecraft.profiler.IProfiler;
-import net.minecraft.resources.IResourceManager;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
+import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.loot.Deserializers;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.LootContext.Builder;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraftforge.event.TickEvent.Phase;
 import net.minecraftforge.event.TickEvent.PlayerTickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -35,8 +35,8 @@ import java.util.stream.Collectors;
 import static java.lang.Math.max;
 
 @EventBusSubscriber(modid = AerobaticElytra.MOD_ID)
-public class JsonAbilityManager extends JsonReloadListener {
-	private static final Gson GSON = LootSerializers.createConditionSerializer()
+public class JsonAbilityManager extends SimpleJsonResourceReloadListener {
+	private static final Gson GSON = Deserializers.createConditionSerializer()
 	  .registerTypeAdapter(EffectAbility.class, new Deserializer())
 	  .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
 	  .create();
@@ -46,8 +46,8 @@ public class JsonAbilityManager extends JsonReloadListener {
 	}
 	
 	@Override protected void apply(
-	  @NotNull Map<ResourceLocation, JsonElement> map, @NotNull IResourceManager resourceManager,
-	  @NotNull IProfiler profiler
+	  @NotNull Map<ResourceLocation, JsonElement> map, @NotNull ResourceManager resourceManager,
+	  @NotNull ProfilerFiller profiler
 	) {
 		//noinspection unchecked
 		final Set<EffectAbility> abilities = (Set<EffectAbility>) (Set<?>)
@@ -62,7 +62,7 @@ public class JsonAbilityManager extends JsonReloadListener {
 	public static void onPlayerTick(PlayerTickEvent event) {
 		if (event.phase != Phase.END || !AerobaticElytraLogic.hasAerobaticElytra(event.player) || event.side != LogicalSide.SERVER)
 			return;
-		ServerPlayerEntity player = ((ServerPlayerEntity) event.player);
+		ServerPlayer player = ((ServerPlayer) event.player);
 		ItemStack elytra = AerobaticElytraLogic.getAerobaticElytra(player);
 		if (elytra.isEmpty())
 			return;
@@ -87,10 +87,10 @@ public class JsonAbilityManager extends JsonReloadListener {
 		}
 	}
 	
-	public static LootContext createEffectAbilityLootContext(ServerPlayerEntity player) {
+	public static LootContext createEffectAbilityLootContext(ServerPlayer player) {
 		return new Builder(player.getLevel()).withRandom(player.getRandom())
-		  .withParameter(LootParameters.THIS_ENTITY, player)
-		  .withParameter(LootParameters.ORIGIN, player.position())
-		  .create(LootParameterSets.GIFT);
+		  .withParameter(LootContextParams.THIS_ENTITY, player)
+		  .withParameter(LootContextParams.ORIGIN, player.position())
+		  .create(LootContextParamSets.GIFT);
 	}
 }

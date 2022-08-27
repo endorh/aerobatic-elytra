@@ -5,8 +5,8 @@ import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.particle.TrailParticle;
 import endorh.aerobaticelytra.common.particle.TrailParticleData.*;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.particle.ParticleManager;
-import net.minecraft.particles.ParticleType;
+import net.minecraft.client.particle.ParticleEngine;
+import net.minecraft.core.particles.ParticleType;
 import net.minecraftforge.client.event.ParticleFactoryRegisterEvent;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -56,7 +56,7 @@ public class ModParticles {
 	
 	@SubscribeEvent
 	public static void onParticleFactoryRegistration(ParticleFactoryRegisterEvent event) {
-		ParticleManager p = Minecraft.getInstance().particleEngine;
+		ParticleEngine p = Minecraft.getInstance().particleEngine;
 		
 		p.register(TRAIL_PARTICLE, TrailParticle.Factory::new);
 		p.register(STAR_TRAIL_PARTICLE, TrailParticle.Factory::new);
