@@ -6,7 +6,6 @@ import endorh.util.capability.SerializableCapabilityWrapperProvider;
 import endorh.util.math.Vec3d;
 import net.minecraft.client.resources.sounds.ElytraOnPlayerSoundInstance;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -86,7 +85,7 @@ public class AerobaticDataCapability {
 	/**
 	 * Create a serializable provider for a player
 	 */
-	public static ICapabilitySerializable<Tag> createProvider(Player player) {
+	public static ICapabilitySerializable<CompoundTag> createProvider(Player player) {
 		if (CAPABILITY == null) return null;
 		return new SerializableCapabilityWrapperProvider<>(
 		  CAPABILITY, null, new AerobaticData(player));
@@ -281,7 +280,7 @@ public class AerobaticDataCapability {
 				lastLiftOff = player.tickCount;
 		}
 		
-		@Override public int ticksFlying() {
+		@Override public int getTicksFlying() {
 			return isFlying? player.tickCount - lastLiftOff : 0;
 		}
 		

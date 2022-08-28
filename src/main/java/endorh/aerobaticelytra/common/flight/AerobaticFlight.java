@@ -332,7 +332,7 @@ public class AerobaticFlight {
 		
 		// Add trail
 		if (player.level.isClientSide) {
-			if (data.ticksFlying() > Const.TAKEOFF_ANIMATION_LENGTH_TICKS
+			if (data.getTicksFlying() > Const.TAKEOFF_ANIMATION_LENGTH_TICKS
 			    && !player.verticalCollision && !player.horizontalCollision
 			    // Cowardly refuse to smooth trail on bounces
 			    && System.currentTimeMillis() - data.getLastBounceTime() > 250L

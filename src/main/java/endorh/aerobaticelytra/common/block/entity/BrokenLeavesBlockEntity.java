@@ -1,4 +1,4 @@
-package endorh.aerobaticelytra.common.tile;
+package endorh.aerobaticelytra.common.block.entity;
 
 import endorh.aerobaticelytra.client.block.BrokenLeavesBlockModel;
 import endorh.aerobaticelytra.common.block.BrokenLeavesBlock;
@@ -20,34 +20,33 @@ import org.jetbrains.annotations.Nullable;
  *
  * @see BrokenLeavesBlockModel
  */
-public class BrokenLeavesTileEntity extends BlockEntity {
+public class BrokenLeavesBlockEntity extends BlockEntity {
 	public static final String NAME = "broken_leaves_te";
 	public static final String TAG_REPLACED_LEAVES = "ReplacedLeaves";
 	
 	public BlockState replacedLeaves = null;
 	
-	public BrokenLeavesTileEntity(BlockPos pos, BlockState state) {
-		super(ModTileEntities.BROKEN_LEAVES_TE, pos, state);
+	public BrokenLeavesBlockEntity(BlockPos pos, BlockState state) {
+		super(ModBlockEntities.BROKEN_LEAVES_TE, pos, state);
 	}
 	
 	@Override public @Nullable ClientboundBlockEntityDataPacket getUpdatePacket() {
-		return new ClientboundBlockEntityDataPacket(worldPosition, 0, getUpdateTag());
+		return ClientboundBlockEntityDataPacket.create(this);
 	}
 	
 	@Override public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
 		super.onDataPacket(net, pkt);
 		CompoundTag updateNBT = pkt.getTag();
-		replacedLeaves = NbtUtils.readBlockState(updateNBT.getCompound(TAG_REPLACED_LEAVES));
+		if (updateNBT != null && updateNBT.contains(TAG_REPLACED_LEAVES))
+			replacedLeaves = NbtUtils.readBlockState(updateNBT.getCompound(TAG_REPLACED_LEAVES));
 		final BlockState state = getBlockState();
 		assert level != null;
 		level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_ALL_IMMEDIATE);
 	}
 	
-	@Override public @NotNull CompoundTag save(@NotNull CompoundTag compound) {
-		CompoundTag nbt = super.save(compound);
+	@Override protected void saveAdditional(@NotNull CompoundTag nbt) {
 		if (replacedLeaves != null)
 			nbt.put(TAG_REPLACED_LEAVES, NbtUtils.writeBlockState(replacedLeaves));
-		return nbt;
 	}
 	
 	@Override public void onLoad() {

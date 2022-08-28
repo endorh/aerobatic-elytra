@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public interface IFlightData extends ILocalPlayerCapability<IFlightData>, ISerializableCapability<CompoundTag> {
+public interface IFlightData extends ILocalPlayerCapability<IFlightData>, ISerializableCapability {
 	/**
 	 * Get the associated player.
 	 */

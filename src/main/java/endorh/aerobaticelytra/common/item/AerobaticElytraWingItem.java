@@ -26,6 +26,7 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -92,17 +93,16 @@ public class AerobaticElytraWingItem extends Item implements DyeableLeatherItem 
 		final Player player = context.getPlayer();
 		if (isDebugWing(stack) && player != null && canUseDebugWing(player)) {
 			final BlockPos pos = context.getClickedPos();
-			final Block block = world.getBlockState(pos).getBlock();
-			if (block.getTags().contains(BlockTags.LEAVES.getName())) {
+			final BlockState state = world.getBlockState(pos);
+			final Block block = state.getBlock();
+			if (state.is(BlockTags.LEAVES)) {
 				BrokenLeavesBlock.breakLeaves(world, pos);
 			} else if (block == ModBlocks.BROKEN_LEAVES && context.isInside()) {
 				final BlockPos next = pos.subtract(context.getClickedFace().getNormal());
-				if (world.getBlockState(next).getBlock().getTags()
-				  .contains(BlockTags.LEAVES.getName())) {
+				if (world.getBlockState(next).is(BlockTags.LEAVES)) {
 					BrokenLeavesBlock.breakLeaves(world, next);
 					final BlockPos down = next.below();
-					if (world.getBlockState(down).getBlock().getTags()
-					  .contains(BlockTags.LEAVES.getName()))
+					if (world.getBlockState(down).is(BlockTags.LEAVES))
 						BrokenLeavesBlock.breakLeaves(world, down);
 				}
 			}

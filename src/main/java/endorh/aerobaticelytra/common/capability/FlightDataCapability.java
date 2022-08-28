@@ -83,9 +83,10 @@ public class FlightDataCapability {
 	}
 	
 	/** Create a serializable provider for a player */
-	public static ICapabilitySerializable<Tag> createProvider(Player player) {
+	public static ICapabilitySerializable<CompoundTag> createProvider(Player player) {
 		if (CAPABILITY == null) return null;
-		return new SerializableCapabilityWrapperProvider<>(CAPABILITY, null, new FlightData(player));
+		return new SerializableCapabilityWrapperProvider<>(
+		  CAPABILITY, null, new FlightData(player));
 	}
 	
 	/**

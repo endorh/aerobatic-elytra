@@ -6,6 +6,7 @@ import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.config.ClientConfig.style.visual;
 import endorh.aerobaticelytra.common.capability.IAerobaticData;
 import endorh.aerobaticelytra.common.config.Config;
+import endorh.aerobaticelytra.common.config.Config.aerobatic.propulsion;
 import endorh.aerobaticelytra.common.flight.AerobaticFlight;
 import net.minecraft.client.Camera;
 import net.minecraft.client.CameraType;
@@ -17,7 +18,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityViewRenderEvent.CameraSetup;
-import net.minecraftforge.client.event.EntityViewRenderEvent.FOVModifier;
+import net.minecraftforge.client.event.EntityViewRenderEvent.FieldOfView;
 import net.minecraftforge.client.event.RenderHandEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
@@ -30,15 +31,15 @@ import static net.minecraft.util.Mth.lerp;
 
 @EventBusSubscriber(value=Dist.CLIENT, modid=AerobaticElytra.MOD_ID)
 public class CameraHandler {
-	public static double lastFOV = 0F;
+	public static double lastFOV = 0D;
 	public static float lastRoll = 0F;
 	public static final Logger LOGGER = LogManager.getLogger();
 	
 	/** Apply aerobatic camera roll */
 	@SubscribeEvent
 	public static void onCameraSetup(final CameraSetup event) {
-		Camera info = event.getInfo();
-		Entity entity = info.getEntity();
+		Camera cam = event.getCamera();
+		Entity entity = cam.getEntity();
 		if (entity instanceof LocalPlayer player) {
 			IAerobaticData data = getAerobaticDataOrDefault(player);
 			
@@ -88,7 +89,7 @@ public class CameraHandler {
 				  0.1F, lastYawOffset,
 				  data.getTiltYaw() / Config.aerobatic.tilt.range_yaw * -1.5F);
 			}
-			final PoseStack mStack = event.getMatrixStack();
+			final PoseStack mStack = event.getPoseStack();
 			mStack.mulPose(Vector3f.XP.rotationDegrees(lastPitchOffset));
 			mStack.mulPose(Vector3f.YP.rotationDegrees(lastYawOffset));
 			mStack.mulPose(Vector3f.ZP.rotationDegrees(lastRollOffset));
@@ -102,18 +103,17 @@ public class CameraHandler {
 	 * Apply flight FOV
 	 */
 	@SubscribeEvent
-	public static void onFovModifier(final FOVModifier event) {
-		Camera info = event.getInfo();
-		Entity entity = info.getEntity();
+	public static void onFovModifier(final FieldOfView event) {
+		Camera cam = event.getCamera();
+		Entity entity = cam.getEntity();
 		if (entity instanceof Player player) {
 			IAerobaticData data = getAerobaticDataOrDefault(player);
 			final double fov = event.getFOV();
-			double newFOV = 0D;
+			double newFOV = 0F;
 			if (data.isFlying()) {
-				final double f = Math.min(1D, data.ticksFlying() / 4D);
-				final double p =
-				  abs(data.getPropulsionStrength()) / Config.aerobatic.propulsion.span * 10;
-				final double b = data.isBoosted()? 15 : 0;
+				final double f = Math.min(1D, (data.getTicksFlying() + event.getPartialTicks()) / 4D);
+				final double p = abs(data.getPropulsionStrength()) / propulsion.span * 10D;
+				final double b = data.isBoosted()? 15D : 0D;
 				newFOV = f * (p + b) * visual.fov_effect_strength;
 			}
 			lastFOV = (lastFOV * 3 + newFOV) / 4;

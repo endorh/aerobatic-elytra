@@ -5,20 +5,18 @@ import com.google.gson.JsonSyntaxException;
 import endorh.util.nbt.NBTPredicate;
 import endorh.util.nbt.NBTPredicate.NBTPredicateParseException;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.SerializationTags;
-import net.minecraft.tags.Tag;
-import net.minecraft.tags.TagCollection;
+import net.minecraft.tags.TagKey;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraftforge.registries.ForgeRegistries.Keys;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,7 +49,7 @@ import static endorh.util.text.TextUtil.stc;
 public class ItemSelector implements Predicate<ItemStack> {
 	private final @Nullable Item item;
 	// The tags' names are stored for serialization
-	private final @Nullable Map<Tag<Item>, ResourceLocation> tags;
+	private final @Nullable Map<TagKey<Item>, ResourceLocation> tags;
 	private final @Nullable NBTPredicate nbtPredicate;
 	
 	private static final Pattern item_selector_pattern = Pattern.compile(
@@ -96,15 +94,8 @@ public class ItemSelector implements Predicate<ItemStack> {
 	
 	public ItemSelector(List<ResourceLocation> tags, @Nullable NBTPredicate nbtPredicate) {
 		this.item = null;
-		//noinspection unchecked
-		final TagCollection<Item> itemTags =
-		  (TagCollection<Item>) SerializationTags.getInstance().collections.get(Keys.ITEMS);
-		this.tags = tags.stream().collect(Collectors.toMap(r -> {
-			final Tag<Item> tag = itemTags.getTag(r);
-			if (tag == null)
-				throw new IllegalArgumentException("Unknown item tag name: \"" + r + "\"");
-			return tag;
-		}, r -> r));
+		this.tags = tags.stream().collect(Collectors.toMap(
+		  r -> TagKey.create(Registry.ITEM_REGISTRY, r), r -> r));
 		this.nbtPredicate = nbtPredicate;
 	}
 	
@@ -115,10 +106,14 @@ public class ItemSelector implements Predicate<ItemStack> {
 	}
 	
 	public boolean testIgnoringNBT(ItemStack stack) {
-		if (item != null)
+		if (item != null) {
 			return item.equals(stack.getItem());
-		else if (tags != null) {
-			return tags.keySet().stream().anyMatch(t -> t.contains(stack.getItem()));
+		} else if (tags != null) {
+			for (TagKey<Item> tag: tags.keySet())
+				for (Holder<Item> holder: Registry.ITEM.getTagOrEmpty(tag))
+					if (holder.isBound() && holder.value().equals(stack.getItem()))
+						return true;
+			return false;
 		} else throw new IllegalStateException("Both item and tags cannot be null");
 	}
 	
@@ -151,16 +146,7 @@ public class ItemSelector implements Predicate<ItemStack> {
 			  buf.readBoolean()? NBTPredicate.parse(buf.readUtf()).orElse(null) : null;
 			return new ItemSelector(item, nbtPredicate);
 		} else {
-			final List<ResourceLocation> tagNames =
-			  readList(buf, FriendlyByteBuf::readResourceLocation);
-			//noinspection unchecked
-			final TagCollection<Item> itemTags =
-			  (TagCollection<Item>) SerializationTags.getInstance().collections.get(Keys.ITEMS);
-			for (ResourceLocation tagName: tagNames) {
-				if (itemTags.getTag(tagName) == null)
-					throw new IllegalStateException(
-					  "Unknown item tag name found in packet: \"" + tagName + "\"");
-			}
+			final List<ResourceLocation> tagNames = readList(buf, FriendlyByteBuf::readResourceLocation);
 			NBTPredicate nbtPredicate =
 			  buf.readBoolean()? NBTPredicate.parse(buf.readUtf()).orElse(null) : null;
 			return new ItemSelector(tagNames, nbtPredicate);
@@ -196,11 +182,13 @@ public class ItemSelector implements Predicate<ItemStack> {
 	 */
 	public Ingredient similarIngredient() {
 		if (tags != null && !tags.isEmpty()) {
-			return Ingredient.of(
-			  tags.keySet().stream().flatMap(t -> t.getValues().stream()).toArray(Item[]::new));
-		} else if (item != null) {
-			return Ingredient.of(item);
-		}
+			List<Item> list = new ArrayList<>();
+			for (TagKey<Item> tag: tags.keySet()) {
+				for (Holder<Item> h: Registry.ITEM.getTagOrEmpty(tag))
+					if (h.isBound()) list.add(h.value());
+			}
+			return Ingredient.of(list.toArray(Item[]::new));
+		} else if (item != null) return Ingredient.of(item);
 		return Ingredient.EMPTY;
 	}
 	

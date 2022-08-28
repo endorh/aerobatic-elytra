@@ -47,7 +47,7 @@ import static net.minecraft.util.Mth.clamp;
  * on every new instance to be able to receive ability reload callbacks
  */
 public interface IElytraSpec
-  extends IDatapackAbilityReloadListener, ISerializableCapability<CompoundTag> {
+  extends IDatapackAbilityReloadListener, ISerializableCapability {
 	/**
 	 * Shorthand for {@code getAbilities().get(prop)}
 	 *

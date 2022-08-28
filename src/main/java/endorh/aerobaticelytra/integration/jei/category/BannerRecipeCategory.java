@@ -1,32 +1,31 @@
 package endorh.aerobaticelytra.integration.jei.category;
 
-import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.ModResources;
-import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
-import endorh.aerobaticelytra.common.item.AerobaticElytraWingItem;
 import endorh.aerobaticelytra.common.item.ModItems;
 import endorh.aerobaticelytra.common.recipe.BannerRecipe;
 import endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiHelper;
 import endorh.aerobaticelytra.integration.jei.category.BannerRecipeCategory.BannerRecipeWrapper;
+import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.VanillaTypes;
-import mezz.jei.api.gui.IRecipeLayout;
+import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
-import mezz.jei.api.gui.ingredient.IGuiItemStackGroup;
-import mezz.jei.api.ingredients.IIngredients;
-import mezz.jei.api.recipe.IFocus;
+import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
+import mezz.jei.api.helpers.IGuiHelper;
+import mezz.jei.api.helpers.IJeiHelpers;
+import mezz.jei.api.recipe.IFocusGroup;
+import mezz.jei.api.recipe.RecipeIngredientRole;
+import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.registration.IRecipeRegistration;
+import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
+import net.minecraft.network.chat.Component;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeManager;
-import net.minecraft.tags.ItemTags;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.Util;
-import net.minecraft.network.chat.Component;
-import net.minecraft.ChatFormatting;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -40,53 +39,32 @@ import static endorh.util.text.TextUtil.optSplitTtc;
 import static endorh.util.text.TextUtil.ttc;
 
 public class BannerRecipeCategory extends BaseCategory<BannerRecipeWrapper> {
-	public static final ResourceLocation UID = AerobaticElytra.prefix("banner");
+	public static final RecipeType<BannerRecipeWrapper> TYPE = RecipeType.create(
+	  AerobaticElytra.MOD_ID, "banner", BannerRecipeWrapper.class);
 	protected static long lastIconChange = 0;
 	
 	public BannerRecipeCategory() {
-		super(UID, BannerRecipeWrapper.class, ModResources::regular3x3RecipeBg,
+		super(TYPE, ModResources::regular3x3RecipeBg,
 		      ModItems.AEROBATIC_ELYTRA, Items.RED_BANNER, true);
 	}
 	
-	@Override public void setIngredients(
-	  @NotNull BannerRecipeWrapper recipe, @NotNull IIngredients ingredients
-	) {
-		ingredients.setInputIngredients(ImmutableList.of(
-		  Ingredient.of(ModItems.AEROBATIC_ELYTRA, ModItems.AEROBATIC_ELYTRA_WING),
-		  Ingredient.of(ItemTags.BANNERS)));
-		ingredients.setOutputLists(VanillaTypes.ITEM, ImmutableList.of(ImmutableList.of(
-		  new ItemStack(ModItems.AEROBATIC_ELYTRA), new ItemStack(ModItems.AEROBATIC_ELYTRA_WING))));
-	}
-	
 	@Override public void setRecipe(
-	  @NotNull IRecipeLayout layout, @NotNull BannerRecipeWrapper recipe,
-	  @NotNull IIngredients ingredients
+	  @NotNull IRecipeLayoutBuilder builder, @NotNull BannerRecipeWrapper recipe,
+	  @NotNull IFocusGroup focuses
 	) {
-		IFocus<?> focus = layout.getFocus(VanillaTypes.ITEM);
-		final IGuiItemStackGroup stacks = layout.getItemStacks();
-		stacks.init(0, true, 0, 0);
-		stacks.init(1, true, 18, 0);
-		stacks.init(2, false, 94, 18);
-		
-		if (focus != null && (focus.getValue() instanceof AerobaticElytraItem
-		                      || focus.getValue() instanceof AerobaticElytraWingItem)) {
-			stacks.setOverrideDisplayFocus(null);
-		}
-		
-		List<ItemStack> elytras = getAerobaticElytrasMatchingFocus(focus);
-		if (recipe.wings)
-			elytras = split(elytras).getFirst();
+		List<ItemStack> elytras = getAerobaticElytrasMatchingFocus(focuses.getFocuses(VanillaTypes.ITEM_STACK));
+		if (recipe.wings) elytras = split(elytras).getFirst();
 		final List<ItemStack> banners = getBanners();
-		stacks.set(0, elytras);
-		stacks.set(1, banners);
-		stacks.set(2, elytras(new ItemStack(
-		  recipe.wings? ModItems.AEROBATIC_ELYTRA_WING : ModItems.AEROBATIC_ELYTRA
-		), banners));
-		stacks.addTooltipCallback((i, input, ingredient, tooltip) -> {
-			if (i == 1)
-				tooltip.add(ttc("jei.tooltip.recipe.tag", ItemTags.BANNERS.getName()).withStyle(
-				  ChatFormatting.GRAY));
-		});
+		
+		builder.addSlot(RecipeIngredientRole.INPUT, 0, 0)
+		  .addItemStacks(elytras);
+		builder.addSlot(RecipeIngredientRole.INPUT, 18, 0)
+		  .addItemStacks(banners).addTooltipCallback(
+		    (view, tooltip) -> tooltip.add(ttc("jei.tooltip.recipe.tag", ItemTags.BANNERS.location()).withStyle(ChatFormatting.GRAY)));
+		builder.addSlot(RecipeIngredientRole.OUTPUT, 94, 18)
+		  .addItemStacks(elytras(
+			 new ItemStack(recipe.wings? ModItems.AEROBATIC_ELYTRA_WING : ModItems.AEROBATIC_ELYTRA),
+			 banners));
 	}
 	
 	public static List<ItemStack> elytras(ItemStack elytra, List<ItemStack> patterns) {
@@ -101,15 +79,17 @@ public class BannerRecipeCategory extends BaseCategory<BannerRecipeWrapper> {
 		if (opt.isPresent()) {
 			final BannerRecipe recipe = (BannerRecipe) opt.get();
 			reg.addRecipes(
-			  IntStream.range(0, 2).mapToObj(i -> new BannerRecipeWrapper(recipe, i != 0))
-				 .collect(Collectors.toList()), UID);
+			  type, IntStream.range(0, 2)
+				 .mapToObj(i -> new BannerRecipeWrapper(recipe, i != 0))
+				 .collect(Collectors.toList()));
 		}
 	}
 	
 	@Override public @NotNull List<Component> getTooltipStrings(
-	  @NotNull BannerRecipeWrapper recipe, double mouseX, double mouseY
+	  @NotNull BannerRecipeWrapper recipe, @NotNull IRecipeSlotsView view, double mouseX,
+	  double mouseY
 	) {
-		final List<Component> tt = super.getTooltipStrings(recipe, mouseX, mouseY);
+		final List<Component> tt = super.getTooltipStrings(recipe, view, mouseX, mouseY);
 		if (inRect(mouseX, mouseY, 61, 19, 22, 15))
 			tt.addAll(optSplitTtc("aerobaticelytra.jei.help.category.banner"));
 		return tt;
@@ -129,6 +109,7 @@ public class BannerRecipeCategory extends BaseCategory<BannerRecipeWrapper> {
 		final long t = System.currentTimeMillis();
 		if (t - lastIconChange > 1000L) {
 			icon = createMultiIngredientDrawable(
+			  VanillaTypes.ITEM_STACK,
 			  new ItemStack(iconItems.getFirst()), makeBanner(
 				 nextDyeColor(), Util.make(new ArrayList<>(), l -> {
 					 for (int i = 0, n = AerobaticElytraJeiHelper.RANDOM.nextInt(4); i < n; i++)

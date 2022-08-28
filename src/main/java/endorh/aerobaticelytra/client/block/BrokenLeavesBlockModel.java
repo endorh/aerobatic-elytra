@@ -2,7 +2,7 @@ package endorh.aerobaticelytra.client.block;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import endorh.aerobaticelytra.common.block.BrokenLeavesBlock;
-import endorh.aerobaticelytra.common.tile.BrokenLeavesTileEntity;
+import endorh.aerobaticelytra.common.block.entity.BrokenLeavesBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -27,7 +27,7 @@ import java.util.Random;
 /**
  * Model for {@link BrokenLeavesBlock}, which copies its quads
  * from the {@link BlockState} stored in the
- * {@link BrokenLeavesTileEntity}
+ * {@link BrokenLeavesBlockEntity}
  * attached to the block.
  */
 public class BrokenLeavesBlockModel implements BakedModel {

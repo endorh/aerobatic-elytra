@@ -4,7 +4,7 @@ import endorh.aerobaticelytra.client.block.BrokenLeavesBlockModel;
 import endorh.aerobaticelytra.client.block.ModBlockColors;
 import endorh.aerobaticelytra.common.config.Config;
 import endorh.aerobaticelytra.common.config.Config.collision.leave_breaking;
-import endorh.aerobaticelytra.common.tile.BrokenLeavesTileEntity;
+import endorh.aerobaticelytra.common.block.entity.BrokenLeavesBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.BlockPos.MutableBlockPos;
 import net.minecraft.core.Direction;
@@ -41,7 +41,7 @@ import static net.minecraft.tags.BlockTags.LEAVES;
  * later, and copy their model and tint color for
  * rendering.<br>
  *
- * @see BrokenLeavesTileEntity
+ * @see BrokenLeavesBlockEntity
  * @see BrokenLeavesBlockModel
  * @see ModBlockColors
  */
@@ -66,7 +66,7 @@ public class BrokenLeavesBlock extends LeavesBlock implements EntityBlock {
 	
 	@Nullable @Override
 	public BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) {
-		return new BrokenLeavesTileEntity(pos, state);
+		return new BrokenLeavesBlockEntity(pos, state);
 	}
 	
 	@Nullable @Override public <T extends BlockEntity> BlockEntityTicker<T> getTicker(
@@ -105,7 +105,7 @@ public class BrokenLeavesBlock extends LeavesBlock implements EntityBlock {
 			return;
 		}
 		final BlockState prevBlockState = world.getBlockState(pos);
-		if (!prevBlockState.getBlock().getTags().contains(LEAVES.getName()))
+		if (!prevBlockState.is(LEAVES))
 			throw new IllegalArgumentException(
 			  "Attempt to replace non leaves block with broken leaves");
 		final Integer dist = prevBlockState.getValue(DISTANCE);
@@ -113,7 +113,7 @@ public class BrokenLeavesBlock extends LeavesBlock implements EntityBlock {
 		for (Direction direction: Direction.values()) {
 			cursor.setWithOffset(pos, direction);
 			final BlockState adj = world.getBlockState(cursor);
-			if (adj.getBlock().getTags().contains(LEAVES.getName()) && !adj.getValue(PERSISTENT)
+			if (adj.is(LEAVES) && !adj.getValue(PERSISTENT)
 			    && adj.getValue(DISTANCE) < 7 && adj.getValue(DISTANCE) > dist)
 				breakLeaves(world, cursor);
 		}
@@ -123,7 +123,7 @@ public class BrokenLeavesBlock extends LeavesBlock implements EntityBlock {
 			 .setValue(PERSISTENT, prevBlockState.getValue(PERSISTENT)),
 		  Block.UPDATE_ALL);
 		BlockEntity tile = world.getBlockEntity(pos);
-		if (!(tile instanceof BrokenLeavesTileEntity te))
+		if (!(tile instanceof BrokenLeavesBlockEntity te))
 			throw new IllegalStateException(
 			  "Broken leaves block did not have BrokenLeavesTileEntity");
 		te.replacedLeaves = prevBlockState;
@@ -137,7 +137,7 @@ public class BrokenLeavesBlock extends LeavesBlock implements EntityBlock {
 		if (!(bs.getBlock() == ModBlocks.BROKEN_LEAVES))
 			return;
 		BlockEntity tile = world.getBlockEntity(pos);
-		if (!(tile instanceof BrokenLeavesTileEntity te))
+		if (!(tile instanceof BrokenLeavesBlockEntity te))
 			return;
 		if (te.replacedLeaves != null) {
 			if (world.isUnobstructed(te.replacedLeaves, pos, CollisionContext.empty()))
@@ -165,7 +165,7 @@ public class BrokenLeavesBlock extends LeavesBlock implements EntityBlock {
 	  BlockAndTintGetter world, BlockPos pos
 	) {
 		BlockEntity tile = world.getBlockEntity(pos);
-		if (!(tile instanceof BrokenLeavesTileEntity te))
+		if (!(tile instanceof BrokenLeavesBlockEntity te))
 			return Optional.empty();
 		return te.replacedLeaves != null? Optional.of(te.replacedLeaves) : Optional.empty();
 	}

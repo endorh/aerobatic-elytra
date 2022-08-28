@@ -36,6 +36,7 @@ public class TrailParticle extends TextureSheetParticle {
 	private final SpriteSet sprites;
 	private final float size;
 	private final float partialTick;
+	private final BlockPos pos = new BlockPos(x, y, z);
 	private final boolean ownPlayer;
 	
 	private Vec3f m;
@@ -177,11 +178,11 @@ public class TrailParticle extends TextureSheetParticle {
       yo = y;
       zo = z;
       if (type == 5) {
-	      if (random.nextFloat() > 0.9F)
+	      if (random.nextFloat() > 0.9F) {
 		      age = lifetime;
-	      else if (!level.getBlockState(new BlockPos(x, y, z))
-	        .getFluidState().getType().is(FluidTags.WATER))
+	      } else if (!level.getBlockState(new BlockPos(x, y, z)).getFluidState().is(FluidTags.WATER)) {
 		      age = lifetime;
+	      }
       }
       
       pickSprite(sprites);

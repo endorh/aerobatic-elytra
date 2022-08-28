@@ -21,10 +21,7 @@ import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
-import net.minecraftforge.registries.IForgeRegistry;
-import net.minecraftforge.registries.IForgeRegistryInternal;
-import net.minecraftforge.registries.RegistryBuilder;
-import net.minecraftforge.registries.RegistryManager;
+import net.minecraftforge.registries.*;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -88,20 +85,18 @@ public class ModRegistries {
 	public static UnicodeMathSyntaxHighlightParser ABILITY_EXPRESSION_HIGHLIGHTER;
 	
 	@SubscribeEvent
-	public static void onNewRegistry(RegistryEvent.NewRegistry event) {
-		FLIGHT_MODE_REGISTRY = new RegistryBuilder<IFlightMode>()
+	public static void onNewRegistry(NewRegistryEvent event) {
+		event.create(new RegistryBuilder<IFlightMode>()
 		  .setName(AerobaticElytra.prefix("flight_modes"))
 		  .setType(IFlightMode.class)
 		  .allowModification()
-		  .onBake(ModRegistries::onFlightModeRegistryBake)
-		  .create();
+		  .onBake(ModRegistries::onFlightModeRegistryBake), r -> FLIGHT_MODE_REGISTRY = r);
 		
-		ABILITY_REGISTRY = new RegistryBuilder<IAbility>()
+		event.create(new RegistryBuilder<IAbility>()
 		  .setName(AerobaticElytra.prefix("ability"))
 		  .setType(IAbility.class)
 		  .allowModification()
-		  .onBake(ModRegistries::onAbilityRegistryBake)
-		  .create();
+		  .onBake(ModRegistries::onAbilityRegistryBake), r -> ABILITY_REGISTRY = r);
 		
 		AerobaticElytra.logRegistered("Registries");
 	}

@@ -54,15 +54,13 @@ public class ElytraSpecCapability {
 		return stack.getCapability(CAPABILITY).orElse(new ElytraSpec());
 	}
 	
-	public static ICapabilitySerializable<Tag> createProvider() {
-		if (CAPABILITY == null)
-			return null;
+	public static ICapabilitySerializable<CompoundTag> createProvider() {
+		if (CAPABILITY == null) return null;
 		return new SerializableCapabilityWrapperProvider<>(CAPABILITY, null, new ElytraSpec());
 	}
 	
-	public static ICapabilitySerializable<Tag> createProvider(IElytraSpec spec) {
-		if (CAPABILITY == null)
-			return null;
+	public static ICapabilitySerializable<CompoundTag> createProvider(IElytraSpec spec) {
+		if (CAPABILITY == null) return null;
 		return new SerializableCapabilityWrapperProvider<>(CAPABILITY, null, spec);
 	}
 	

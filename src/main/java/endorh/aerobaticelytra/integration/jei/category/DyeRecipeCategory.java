@@ -1,31 +1,29 @@
 package endorh.aerobaticelytra.integration.jei.category;
 
-import com.google.common.collect.ImmutableList;
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.ModResources;
-import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
-import endorh.aerobaticelytra.common.item.AerobaticElytraWingItem;
 import endorh.aerobaticelytra.common.item.ModItems;
 import endorh.aerobaticelytra.common.recipe.DyeRecipe;
 import endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiHelper;
 import mezz.jei.api.constants.VanillaTypes;
-import mezz.jei.api.gui.IRecipeLayout;
+import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
+import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
-import mezz.jei.api.gui.ingredient.IGuiItemStackGroup;
-import mezz.jei.api.ingredients.IIngredients;
-import mezz.jei.api.recipe.IFocus;
+import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
+import mezz.jei.api.recipe.IFocusGroup;
+import mezz.jei.api.recipe.RecipeIngredientRole;
+import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.registration.IRecipeRegistration;
+import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeManager;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.Util;
-import net.minecraft.network.chat.Component;
-import net.minecraft.ChatFormatting;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -42,57 +40,38 @@ import static java.lang.Math.ceil;
 import static java.lang.Math.min;
 
 public class DyeRecipeCategory extends BaseCategory<DyeRecipeCategory.DyeRecipeWrapper> {
-	public static final ResourceLocation UID = AerobaticElytra.prefix("dye");
+	public static final RecipeType<DyeRecipeWrapper> TYPE = RecipeType.create(
+	  AerobaticElytra.MOD_ID, "dye", DyeRecipeWrapper.class);
 	protected static long lastIconChange = 0;
 	
 	public DyeRecipeCategory() {
-		super(UID, DyeRecipeWrapper.class, ModResources::regular3x3RecipeBg,
-		      ModItems.AEROBATIC_ELYTRA, Items.RED_DYE, true);
-	}
-	
-	@Override public void setIngredients(
-	  @NotNull DyeRecipeWrapper recipe, @NotNull IIngredients ingredients
-	) {
-		ingredients.setInputIngredients(ImmutableList.of(
-		  Ingredient.of(ModItems.AEROBATIC_ELYTRA, ModItems.AEROBATIC_ELYTRA_WING),
-		  DyeRecipeWrapper.dyeIngredient));
-		ingredients.setOutputLists(VanillaTypes.ITEM, ImmutableList.of(ImmutableList.of(
-		  new ItemStack(ModItems.AEROBATIC_ELYTRA), new ItemStack(ModItems.AEROBATIC_ELYTRA_WING))));
+		super(TYPE, ModResources::regular3x3RecipeBg, ModItems.AEROBATIC_ELYTRA, Items.RED_DYE, true);
 	}
 	
 	@Override public void setRecipe(
-	  @NotNull IRecipeLayout layout, @NotNull DyeRecipeWrapper recipe,
-	  @NotNull IIngredients ingredients
+	  @NotNull IRecipeLayoutBuilder builder, @NotNull DyeRecipeWrapper recipe, @NotNull IFocusGroup focuses
 	) {
-		IFocus<?> focus = layout.getFocus(VanillaTypes.ITEM);
-		final IGuiItemStackGroup stacks = layout.getItemStacks();
+		List<IRecipeSlotBuilder> slots = new ArrayList<>(10);
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++)
-				stacks.init(i * 3 + j, true, 18 * j, 18 * i);
-		}
-		stacks.init(9, false, 94, 18);
-		
-		if (focus != null && (focus.getValue() instanceof AerobaticElytraItem
-		                      || focus.getValue() instanceof AerobaticElytraWingItem)) {
-			stacks.setOverrideDisplayFocus(null);
+				slots.add(builder.addSlot(RecipeIngredientRole.INPUT, 18 * j, 18 * i));
 		}
 		
-		List<ItemStack> elytras = getAerobaticElytrasMatchingFocus(focus);
+		List<ItemStack> elytras = getAerobaticElytrasMatchingFocus(focuses.getFocuses(VanillaTypes.ITEM_STACK));
 		if (recipe.wings)
 			elytras = split(elytras).getFirst();
-		stacks.set(0, elytras);
+		slots.get(0).addItemStacks(elytras);
 		List<List<DyeItem>> dyes = new ArrayList<>();
 		for (int i = 0, s = min(recipe.dyeAmount, 8); i < s; i++) {
 			final List<ItemStack> d = randomSample(DyeRecipeWrapper.dyeStacks, 4);
 			dyes.add(d.stream().map(e -> (DyeItem) e.getItem()).collect(Collectors.toList()));
-			stacks.set(i + 1, d);
+			slots.get(i + 1).addItemStacks(d);
 		}
-		stacks.addTooltipCallback((i, input, ingredient, tooltip) -> {
-			if (1 <= i && i <= min(recipe.dyeAmount, 8))
-				tooltip.add(
-				  ttc("jei.tooltip.recipe.tag", "minecraft:dyes").withStyle(ChatFormatting.GRAY));
-		});
-		stacks.set(9, dye(elytras, dyes));
+		IntStream.range(1, min(recipe.dyeAmount + 1, 9)).mapToObj(slots::get).forEach(
+		  s -> s.addTooltipCallback((view, tooltip) -> tooltip.add(
+			 ttc("jei.tooltip.recipe.tag", "minecraft:dyes").withStyle(ChatFormatting.GRAY))));
+		
+		builder.addSlot(RecipeIngredientRole.OUTPUT, 94, 18).addItemStacks(dye(elytras, dyes));
 	}
 	
 	public static List<ItemStack> dye(List<ItemStack> stacks, List<List<DyeItem>> dyes) {
@@ -106,9 +85,9 @@ public class DyeRecipeCategory extends BaseCategory<DyeRecipeCategory.DyeRecipeW
 	}
 	
 	@Override public @NotNull List<Component> getTooltipStrings(
-	  @NotNull DyeRecipeWrapper recipe, double mouseX, double mouseY
+	  @NotNull DyeRecipeWrapper recipe, @NotNull IRecipeSlotsView view, double mouseX, double mouseY
 	) {
-		final List<Component> tt = super.getTooltipStrings(recipe, mouseX, mouseY);
+		final List<Component> tt = super.getTooltipStrings(recipe, view, mouseX, mouseY);
 		if (inRect(mouseX, mouseY, 61, 19, 22, 15))
 			tt.addAll(optSplitTtc("aerobaticelytra.jei.help.category.dye"));
 		return tt;
@@ -122,9 +101,9 @@ public class DyeRecipeCategory extends BaseCategory<DyeRecipeCategory.DyeRecipeW
 		if (opt.isPresent()) {
 			final DyeRecipe recipe = (DyeRecipe) opt.get();
 			reg.addRecipes(
-			  IntStream.range(1, 17).mapToObj(
+			  type, IntStream.range(1, 17).mapToObj(
 				 i -> new DyeRecipeWrapper(recipe, (int) ceil(i / 2.0), i % 2 == 0)
-			  ).collect(Collectors.toList()), UID);
+			  ).collect(Collectors.toList()));
 		}
 	}
 	
@@ -158,6 +137,7 @@ public class DyeRecipeCategory extends BaseCategory<DyeRecipeCategory.DyeRecipeW
 		final long t = System.currentTimeMillis();
 		if (t - lastIconChange > 1000L) {
 			icon = createMultiIngredientDrawable(
+			  VanillaTypes.ITEM_STACK,
 			  new ItemStack(iconItems.getFirst()), new ItemStack(DyeItem.byColor(nextDyeColor())));
 			lastIconChange = t;
 		}

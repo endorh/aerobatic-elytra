@@ -237,7 +237,7 @@ public class AerobaticElytraSound extends FadingTickableSound {
 			if (player != null) {
 				getAerobaticDataOrDefault(player).setElytraSound(elytraSound);
 				if (AerobaticElytraLogic.hasAerobaticElytra(player)) {
-					event.setResultSound(null);
+					event.setSound(null);
 					new AerobaticElytraSound(player).play();
 				}
 			}

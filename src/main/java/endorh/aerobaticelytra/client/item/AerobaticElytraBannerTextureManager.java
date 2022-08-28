@@ -22,22 +22,22 @@ public class AerobaticElytraBannerTextureManager extends SimplePreparableReloadL
 	public static final ResourceLocation LOCATION_AEROBATIC_ELYTRA_BANNER_ATLAS = AerobaticElytra.prefix("aerobatic_elytra_banner");
 	protected final TextureAtlas atlas = new TextureAtlas(LOCATION_AEROBATIC_ELYTRA_BANNER_ATLAS);
 	
-	protected static final Set<Material> ModelBakery$LOCATIONS_BUILTIN_TEXTURES;
+	protected static final Set<Material> ModelBakery$UNREFERENCED_TEXTURES;
 	
 	static {
 		//noinspection unchecked
-		ModelBakery$LOCATIONS_BUILTIN_TEXTURES =
+		ModelBakery$UNREFERENCED_TEXTURES =
 		  (Set<Material>) ObfuscationReflectionUtil.getStaticFieldValue(
-		    ModelBakery.class, "UNREFERENCED_TEXTURES"
+		    ModelBakery.class, "f_119234_"
 		  ).orElseThrow(() -> new IllegalStateException(
-		    "Could not access ModelBakery$LOCATIONS_BUILTIN_TEXTURES"));
+		    "Could not access ModelBakery$UNREFERENCED_TEXTURES"));
 	}
 	
 	public AerobaticElytraBannerTextureManager(ReloadableResourceManager resourceManager) {
 		resourceManager.registerReloadListener(this);
 		// Add render materials (not thread-safe)
 		for(BannerPattern pattern : BannerPattern.values())
-			ModelBakery$LOCATIONS_BUILTIN_TEXTURES.add(
+			ModelBakery$UNREFERENCED_TEXTURES.add(
 			  new Material(LOCATION_AEROBATIC_ELYTRA_BANNER_ATLAS, getTextureLocation(pattern)));
 		// For some reason, the
 	}

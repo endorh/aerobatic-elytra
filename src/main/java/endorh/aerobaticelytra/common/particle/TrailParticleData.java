@@ -22,6 +22,8 @@ import java.awt.Color;
 import java.util.List;
 import java.util.Locale;
 
+import net.minecraft.core.particles.ParticleOptions.Deserializer;
+
 public class TrailParticleData implements ParticleOptions {
 	
 	public final float size;

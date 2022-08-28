@@ -26,12 +26,12 @@ plugins {
 
 val modId = "aerobaticelytra"
 val modGroup = "endorh.aerobaticelytra"
-val modVersion = "0.2.18"
-val mcVersion = "1.17.1"
-val forge = "37.1.0"
+val modVersion = "0.2.20"
+val mcVersion = "1.18.2"
+val forge = "40.1.0"
 val forgeVersion = "$mcVersion-$forge"
 val mappingsChannel = "official"
-val mappingsVersion = "1.17.1"
+val mappingsVersion = "1.18.2"
 
 group = modGroup
 version = modVersion
@@ -67,9 +67,9 @@ val simpleConfigVersion = "1.0.+"
 val endorhUtilVersion = "0.5.+"
 
 // Integration
-val jeiVersion = "8.3.1.62"
-val curiosVersion = "1.17.1-5.0.2.7"
-val caelusVersion = "1.17.1-3.0.0.2"
+val jeiVersion = "9.7.1.255"
+val curiosVersion = "1.18.2-5.0.7.1"
+val caelusVersion = "1.18.1-3.0.0.2"
 val aerobaticElytraJetpackVersion = "0.2.+"
 
 val jarAttributes = mapOf(
@@ -115,7 +115,7 @@ sourceSets.main.get().resources {
 
 java {
 	toolchain {
-		languageVersion.set(JavaLanguageVersion.of(16))
+		languageVersion.set(JavaLanguageVersion.of(17))
 	}
 }
 
@@ -242,23 +242,23 @@ dependencies {
 	runtimeOnly(fg.deobf("endorh.aerobaticelytra.jetpack:aerobaticelytrajetpack-$mcVersion:$aerobaticElytraJetpackVersion"))
 
 	// Curious Elytra
-	runtimeOnly(fg.deobf("curse.maven:curiouselytra-317716:3569454"))
+	runtimeOnly(fg.deobf("curse.maven:elytra-slot-317716:3601975"))
 
 	// Colytra
-	runtimeOnly(fg.deobf("curse.maven:colytra-280200:3608030"))
+	runtimeOnly(fg.deobf("curse.maven:colytra-280200:3725170"))
 
 	// Customizable Elytra
-	runtimeOnly(fg.deobf("curse.maven:customizableelytra-440047:3541081"))
+	runtimeOnly(fg.deobf("curse.maven:customizableelytra-440047:3728574"))
 
 	// Additional Banners
-	// runtimeOnly(fg.deobf("curse.maven:bookshelf-228525:unreleased"))
-	// runtimeOnly(fg.deobf("curse.maven:additionalbanners-230137:unreleased"))
+	runtimeOnly(fg.deobf("curse.maven:bookshelf-228525:3900932"))
+	runtimeOnly(fg.deobf("curse.maven:additionalbanners-230137:3835686"))
 
 	// Xaero's World Map
-	runtimeOnly(fg.deobf("curse.maven:xaeros-worldmap-317780:3835786"))
+	runtimeOnly(fg.deobf("curse.maven:xaeros-worldmap-317780:3948203"))
 
 	// Xaero's Minimap (waypoint rendering doesn't account for camera roll)
-	// runtimeOnly(fg.deobf("curse.maven:xaeros-minimap-263420:3835771"))
+	// runtimeOnly(fg.deobf("curse.maven:xaeros-minimap-263420:3937634"))
 
 	// Immersive Portals (untestable in an unobfuscated environment, crashes without refmaps)
 	//   Portals with rotation override roll with a fixed animation that is sometimes in the wrong axis
@@ -266,7 +266,7 @@ dependencies {
 	// runtimeOnly(fg.deobf("curse.maven:immersive-portals-355440:unreleased"))
 
 	// Catalogue
-	// runtimeOnly(fg.deobf("curse.maven:catalogue-459701:3529459"))
+	runtimeOnly(fg.deobf("curse.maven:catalogue-459701:3803098"))
 }
 
 // Tasks --------------------------------------------------------------------------

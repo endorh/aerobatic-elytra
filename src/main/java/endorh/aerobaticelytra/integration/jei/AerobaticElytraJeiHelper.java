@@ -14,21 +14,21 @@ import endorh.aerobaticelytra.common.item.ModItems;
 import endorh.aerobaticelytra.common.recipe.JoinRecipe;
 import endorh.aerobaticelytra.common.recipe.TrailRecipe;
 import endorh.aerobaticelytra.integration.jei.gui.MultiIngredientDrawable;
+import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.drawable.IDrawable;
+import mezz.jei.api.ingredients.IIngredientType;
 import mezz.jei.api.recipe.IFocus;
-import net.minecraft.world.level.block.BannerBlock;
+import net.minecraft.Util;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.BannerBlock;
 import net.minecraft.world.level.block.entity.BannerPattern;
-import net.minecraft.Util;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static net.minecraft.world.item.ItemStack.EMPTY;
 
@@ -207,30 +207,34 @@ public class AerobaticElytraJeiHelper {
 	}
 	
 	public static List<ItemStack> getAerobaticElytrasMatchingFocus(
-	  IFocus<?> focus
+	  Stream<IFocus<ItemStack>> focuses
 	) {
-		if (focus != null) {
-			final ItemStack focusStack = (ItemStack) focus.getValue();
-			if (focusStack.getItem() instanceof AerobaticElytraItem) {
-				final ItemStack elytra = focusStack.copy();
-				elytra.setDamageValue(0);
-				return ImmutableList.of(elytra);
-			} else if (focusStack.getItem() instanceof AerobaticElytraWingItem) {
-				final ItemStack right = focusStack.copy();
-				right.setDamageValue(0);
-				final List<ItemStack> leftWings = getAerobaticElytras().stream()
-				  .map(s -> ((AerobaticElytraItem) s.getItem()).getWing(s, WingSide.LEFT))
-				  .collect(Collectors.toList());
-				leftWings.add(0, right.copy());
-				return leftWings.stream().map(w -> {
-					ItemStack l = right.copy();
-					dyement.read(w);
-					dyement.write(l);
-					return JoinRecipe.join(l, right);
-				}).collect(Collectors.toList());
+		List<ItemStack> list = new ArrayList<>();
+		focuses.forEach(f -> {
+			Optional<ItemStack> opt = f.getTypedValue().getIngredient(VanillaTypes.ITEM_STACK);
+			if (opt.isPresent()) {
+				final ItemStack focusStack = opt.get();
+				if (focusStack.getItem() instanceof AerobaticElytraItem) {
+					final ItemStack elytra = focusStack.copy();
+					elytra.setDamageValue(0);
+					list.add(elytra);
+				} else if (focusStack.getItem() instanceof AerobaticElytraWingItem) {
+					final ItemStack right = focusStack.copy();
+					right.setDamageValue(0);
+					final List<ItemStack> leftWings = getAerobaticElytras().stream()
+					  .map(s -> ((AerobaticElytraItem) s.getItem()).getWing(s, WingSide.LEFT))
+					  .collect(Collectors.toList());
+					leftWings.add(0, right.copy());
+					leftWings.stream().map(w -> {
+						ItemStack l = right.copy();
+						dyement.read(w);
+						dyement.write(l);
+						return JoinRecipe.join(l, right);
+					}).forEach(list::add);
+				}
 			}
-		}
-		return getAerobaticElytras();
+		});
+		return list.isEmpty()? getAerobaticElytras() : list;
 	}
 	
 	public static <T> List<T> randomSample(List<T> pool, int copies) {
@@ -244,8 +248,8 @@ public class AerobaticElytraJeiHelper {
 	
 	public static int mcm(int a, int b) {return a * b / gcd(a, b);}
 	
-	public static <V> IDrawable createMultiIngredientDrawable(V first, V second) {
+	public static <V> IDrawable createMultiIngredientDrawable(IIngredientType<V> type, V first, V second) {
 		return new MultiIngredientDrawable<>(
-		  first, second, AerobaticElytraJeiPlugin.ingredientManager.getIngredientRenderer(first));
+		  first, second, AerobaticElytraJeiPlugin.ingredientManager.getIngredientRenderer(type));
 	}
 }

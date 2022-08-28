@@ -5,7 +5,7 @@ import endorh.util.network.ServerPlayerPacket;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.fmllegacy.network.NetworkEvent.Context;
+import net.minecraftforge.network.NetworkEvent.Context;
 
 public class DebugPackets {
 	public static void registerAll() {

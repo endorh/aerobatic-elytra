@@ -1,10 +1,12 @@
 package endorh.aerobaticelytra.server.loot;
 
-import com.google.gson.*;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.FluidTags;
-import net.minecraft.tags.Tag;
-import net.minecraft.tags.Tag.Named;
+import net.minecraft.tags.TagKey;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.storage.loot.LootContext;
@@ -19,9 +21,9 @@ import org.jetbrains.annotations.NotNull;
  * detect if the player has the eyes underwater
  */
 public class SubmergedLootCondition implements LootItemCondition {
-	protected final Named<Fluid> fluidTag;
+	protected final TagKey<Fluid> fluidTag;
 	
-	public SubmergedLootCondition(Named<Fluid> fluidTag) {
+	public SubmergedLootCondition(TagKey<Fluid> fluidTag) {
 		this.fluidTag = fluidTag;
 	}
 	
@@ -39,18 +41,15 @@ public class SubmergedLootCondition implements LootItemCondition {
 		  @NotNull JsonObject json, @NotNull SubmergedLootCondition condition,
 		  @NotNull JsonSerializationContext context
 		) {
-			json.add("fluid", new JsonPrimitive(condition.fluidTag.getName().toString()));
+			json.add("fluid", new JsonPrimitive(condition.fluidTag.location().toString()));
 		}
 		
 		@Override public @NotNull SubmergedLootCondition deserialize(
 		  @NotNull JsonObject json, @NotNull JsonDeserializationContext context
 		) {
-			final ResourceLocation fluid =
-			  new ResourceLocation(GsonHelper.getAsString(json, "fluid", "water"));
-			final Tag<Fluid> fluidTag = FluidTags.getAllTags().getTag(fluid);
-			if (!(fluidTag instanceof Tag.Named<Fluid>)) {
-				throw new JsonParseException("Unknown fluid tag: \"" + fluid + "\"");
-			} else {return new SubmergedLootCondition((Named<Fluid>) fluidTag);}
+			final ResourceLocation fluid = new ResourceLocation(GsonHelper.getAsString(json, "fluid", "water"));
+			final TagKey<Fluid> fluidTag = FluidTags.create(fluid);
+			return new SubmergedLootCondition(fluidTag);
 		}
 	}
 }

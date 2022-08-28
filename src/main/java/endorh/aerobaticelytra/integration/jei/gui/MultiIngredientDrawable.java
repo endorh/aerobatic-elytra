@@ -27,10 +27,16 @@ public class MultiIngredientDrawable<V> implements IDrawable {
 		return 16;
 	}
 	
-	@Override public void draw(@NotNull PoseStack matrixStack, int xOffset, int yOffset) {
+	@Override public void draw(@NotNull PoseStack mStack, int xOffset, int yOffset) {
 		RenderSystem.enableDepthTest();
-		this.ingredientRenderer.render(matrixStack, xOffset - 2, yOffset - 2, first);
-		this.ingredientRenderer.render(matrixStack, xOffset + 4, yOffset + 4, second);
+		mStack.pushPose(); {
+			mStack.translate(xOffset - 2, yOffset - 2, 0D);
+			ingredientRenderer.render(mStack, first);
+		} mStack.popPose();
+		mStack.pushPose(); {
+			mStack.translate(xOffset + 4, yOffset + 4, 0D);
+			ingredientRenderer.render(mStack, second);
+		} mStack.popPose();
 		RenderSystem.disableDepthTest();
 	}
 }

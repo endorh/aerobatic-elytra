@@ -76,10 +76,9 @@ public class AerobaticCollision {
 		boolean preventLanding = false;
 		for (BlockPos pos: collided) {
 			final BlockState bs = player.level.getBlockState(pos);
-			Block block = bs.getBlock();
-			if (block == Blocks.HAY_BLOCK) {
+			if (bs.is(Blocks.HAY_BLOCK)) {
 				damageModifier = max(damageModifier, Config.collision.hay_bale_multiplier);
-			} else if (block.getTags().contains(BlockTags.LEAVES.getName())) {
+			} else if (bs.is(BlockTags.LEAVES)) {
 				if (shouldBreakLeaves) {
 					BrokenLeavesBlock.breakLeaves(player.level, pos);
 					propStrength *= 0.8F;
@@ -87,7 +86,7 @@ public class AerobaticCollision {
 					destroyed++;
 					preventLanding = true;
 				}
-			} else if (block instanceof SlimeBlock) {
+			} else if (bs.getBlock() instanceof SlimeBlock) {
 				slimeBounce = true;
 			} else damageModifier = 1F;
 		}

@@ -2,7 +2,7 @@ package endorh.aerobaticelytra.client.block;
 
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.common.block.ModBlocks;
-import endorh.aerobaticelytra.common.tile.BrokenLeavesTileEntity;
+import endorh.aerobaticelytra.common.block.entity.BrokenLeavesBlockEntity;
 import endorh.util.common.ColorUtil;
 import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.world.level.FoliageColor;
@@ -27,7 +27,7 @@ public class ModBlockColors {
 			  if (world == null || pos == null)
 				  return defaultColor;
 			  final BlockEntity tile = world.getBlockEntity(pos);
-			  if (!(tile instanceof BrokenLeavesTileEntity te))
+			  if (!(tile instanceof BrokenLeavesBlockEntity te))
 				  return defaultColor;
 			  if (te.replacedLeaves == null)
 				  return defaultColor;

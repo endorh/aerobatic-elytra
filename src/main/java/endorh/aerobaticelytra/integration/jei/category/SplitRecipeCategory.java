@@ -1,79 +1,66 @@
 package endorh.aerobaticelytra.integration.jei.category;
 
-import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.ModResources;
 import endorh.aerobaticelytra.common.item.ModItems;
 import endorh.aerobaticelytra.common.recipe.SplitRecipe;
 import endorh.aerobaticelytra.common.recipe.SplitRecipe.LeaveData;
-import endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiHelper;
 import mezz.jei.api.constants.VanillaTypes;
-import mezz.jei.api.gui.IRecipeLayout;
-import mezz.jei.api.gui.ingredient.IGuiItemStackGroup;
-import mezz.jei.api.ingredients.IIngredients;
-import mezz.jei.api.recipe.IFocus;
-import mezz.jei.api.recipe.IFocus.Mode;
+import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
+import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
+import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
+import mezz.jei.api.recipe.IFocusGroup;
+import mezz.jei.api.recipe.RecipeIngredientRole;
+import mezz.jei.api.recipe.RecipeType;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiHelper.getAerobaticElytrasMatchingFocus;
 import static endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiHelper.split;
 import static endorh.util.text.TextUtil.optSplitTtc;
 import static java.lang.Math.min;
 
 public class SplitRecipeCategory extends BaseCategory<SplitRecipe> {
-	public static final ResourceLocation UID = AerobaticElytra.prefix("split");
+	public static final RecipeType<SplitRecipe> TYPE = RecipeType.create(AerobaticElytra.MOD_ID, "split", SplitRecipe.class);
 	
 	public SplitRecipeCategory() {
-		super(UID, SplitRecipe.class, ModResources::byproduct3x3RecipeBg,
+		super(TYPE, ModResources::byproduct3x3RecipeBg,
 		      ModItems.AEROBATIC_ELYTRA, Items.SHEARS, true);
 	}
 	
-	@Override public void setIngredients(
-	  @NotNull SplitRecipe recipe, @NotNull IIngredients ingredients
-	) {
-		ingredients.setInputIngredients(recipe.getIngredients());
-		ingredients.setOutputLists(VanillaTypes.ITEM, ImmutableList.of(
-		  ImmutableList.of(new ItemStack(ModItems.AEROBATIC_ELYTRA_WING))));
-	}
-	
-	@Override public void setRecipe(
-	  @NotNull IRecipeLayout layout, @NotNull SplitRecipe recipe, @NotNull IIngredients ingredients
-	) {
-		IFocus<?> focus = layout.getFocus(VanillaTypes.ITEM);
+	@Override
+	public void setRecipe(@NotNull IRecipeLayoutBuilder builder, @NotNull SplitRecipe recipe, @NotNull IFocusGroup focuses) {
+		List<ItemStack> elytras = getAerobaticElytrasMatchingFocus(focuses.getFocuses(VanillaTypes.ITEM_STACK));
 		
-		final IGuiItemStackGroup stacks = layout.getItemStacks();
-		for (int i = 0; i < 3; i++) {
-			for (int j = 0; j < 3; j++) {
-				stacks.init(i * 3 + j, true, 18 * j, 18 * i);
-				stacks.init(9 + i * 3 + j, false, 27 + 18 * j, 63 + 18 * i);
-			}
-		}
-		stacks.init(18, false, 94, 18);
-		if (focus != null)
-			stacks.setOverrideDisplayFocus(null);
-		
-		final List<ItemStack> elytras = AerobaticElytraJeiHelper.getAerobaticElytrasMatchingFocus(focus);
+		List<IRecipeSlotBuilder> slots = new ArrayList<>(18);
 		final Pair<List<ItemStack>, List<ItemStack>> wings = split(elytras);
-		stacks.set(0, elytras);
-		stacks.set(9, wings.getFirst());
-		stacks.set(18, wings.getSecond());
+		for (int i = 0; i < 3; i++) for (int j = 0; j < 3; j++)
+			slots.add(builder.addSlot(RecipeIngredientRole.INPUT, 18 * j, 18 * i));
+		for (int i = 0; i < 3; i++) for (int j = 0; j < 3; j++)
+			slots.add(builder.addSlot(RecipeIngredientRole.INPUT, 27 + 18 * j, 63 + 18 * i));
+		builder.addSlot(RecipeIngredientRole.OUTPUT, 94, 18)
+		  .addItemStacks(wings.getSecond());
+		
+		slots.get(0).addItemStacks(elytras);
+		slots.get(9).addItemStacks(wings.getFirst());
 		for (int i = 0, s = min(recipe.ingredients.size(), 8); i < s; i++) {
 			final List<ItemStack> ing = Arrays.asList(
 			  recipe.ingredients.get(i).getLeft().getItems());
 			final List<ItemStack> st = getItemMatchingFocus(
-			  focus, Mode.INPUT, ing, ing);
-			stacks.set(i + 1, st);
+			  focuses.getFocuses(VanillaTypes.ITEM_STACK),
+			  RecipeIngredientRole.INPUT, ing, ing);
+			slots.get(i + 1).addItemStacks(st);
 			final LeaveData data = recipe.ingredients.get(i).getRight();
 			if (data.leave)
-				stacks.set(10 + i, damage(st, data.damage));
+				slots.get(10 + i).addItemStacks(damage(st, data.damage));
 		}
 	}
 	
@@ -86,9 +73,9 @@ public class SplitRecipeCategory extends BaseCategory<SplitRecipe> {
 	}
 	
 	@Override public @NotNull List<Component> getTooltipStrings(
-	  @NotNull SplitRecipe recipe, double mouseX, double mouseY
+	  @NotNull SplitRecipe recipe, @NotNull IRecipeSlotsView view, double mouseX, double mouseY
 	) {
-		final List<Component> tt = super.getTooltipStrings(recipe, mouseX, mouseY);
+		final List<Component> tt = super.getTooltipStrings(recipe, view, mouseX, mouseY);
 		if (inRect(mouseX, mouseY, 61, 19, 22, 15))
 			tt.addAll(optSplitTtc("aerobaticelytra.jei.help.category.split"));
 		else if (inRect(mouseX, mouseY, 7, 60, 17, 19))

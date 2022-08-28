@@ -16,6 +16,8 @@ import javax.annotation.Nullable;
 
 import static endorh.aerobaticelytra.common.capability.FlightDataCapability.getFlightDataOrDefault;
 
+import endorh.util.sound.PlayerTickableSound.IAttenuation;
+
 /**
  * Faded TickableSound with recovery
  */

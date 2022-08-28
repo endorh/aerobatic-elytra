@@ -15,12 +15,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.Input;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.ClientRegistry;
 import net.minecraftforge.client.event.InputEvent.KeyInputEvent;
-import net.minecraftforge.client.event.InputUpdateEvent;
+import net.minecraftforge.client.event.MovementInputUpdateEvent;
 import net.minecraftforge.client.settings.IKeyConflictContext;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
-import net.minecraftforge.fmlclient.registry.ClientRegistry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -64,10 +64,10 @@ public class KeyHandler {
 	}
 	
 	@SubscribeEvent
-	public static void onInputUpdateEvent(InputUpdateEvent event) {
+	public static void onMovementInputUpdateEvent(MovementInputUpdateEvent event) {
 		final Player player = event.getPlayer();
 		final IAerobaticData data = getAerobaticDataOrDefault(player);
-		final Input movementInput = event.getMovementInput();
+		final Input movementInput = event.getInput();
 		final IFlightMode mode = getFlightDataOrDefault(player).getFlightMode();
 		
 		if (mode.is(FlightModeTags.AEROBATIC) && player.isFallFlying()) {

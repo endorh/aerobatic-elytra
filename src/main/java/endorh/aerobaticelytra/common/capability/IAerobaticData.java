@@ -5,7 +5,6 @@ import endorh.aerobaticelytra.common.flight.AerobaticFlight.VectorBase;
 import endorh.util.capability.ISerializableCapability;
 import endorh.util.math.Vec3d;
 import net.minecraft.client.resources.sounds.ElytraOnPlayerSoundInstance;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.capabilities.Capability;
@@ -17,7 +16,7 @@ import javax.annotation.Nullable;
  * such as rotation, inclination and acceleration
  */
 public interface IAerobaticData
-  extends ILocalPlayerCapability<IAerobaticData>, ISerializableCapability<CompoundTag> {
+  extends ILocalPlayerCapability<IAerobaticData>, ISerializableCapability {
 	/**
 	 * Player of the capability<br>
 	 * Used to access the pitch and yaw
@@ -250,7 +249,7 @@ public interface IAerobaticData
 	 *
 	 * @see Player#getFallFlyingTicks()
 	 */
-	int ticksFlying();
+	int getTicksFlying();
 	
 	/**
 	 * {@code player.world.canBlockSeeSky(player.getPosition())}<br>

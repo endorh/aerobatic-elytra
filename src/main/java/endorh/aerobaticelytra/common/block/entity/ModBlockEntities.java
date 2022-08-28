@@ -1,4 +1,4 @@
-package endorh.aerobaticelytra.common.tile;
+package endorh.aerobaticelytra.common.block.entity;
 
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.common.block.ModBlocks;
@@ -14,12 +14,12 @@ import static endorh.aerobaticelytra.AerobaticElytra.prefix;
 import static endorh.util.common.ForgeUtil.futureNotNull;
 
 @EventBusSubscriber(bus=Bus.MOD, modid=AerobaticElytra.MOD_ID)
-public class ModTileEntities {
+public class ModBlockEntities {
 	
 	/**
-	 * @see BrokenLeavesTileEntity
+	 * @see BrokenLeavesBlockEntity
 	 */
-	@ObjectHolder(AerobaticElytra.MOD_ID + ":" + BrokenLeavesTileEntity.NAME)
+	@ObjectHolder(AerobaticElytra.MOD_ID + ":" + BrokenLeavesBlockEntity.NAME)
 	public static final BlockEntityType<?> BROKEN_LEAVES_TE = futureNotNull();
 	
 	@SubscribeEvent
@@ -28,9 +28,9 @@ public class ModTileEntities {
 	) {
 		final IForgeRegistry<BlockEntityType<?>> reg = event.getRegistry();
 		BlockEntityType<?> type = BlockEntityType.Builder.of(
-		  BrokenLeavesTileEntity::new, ModBlocks.BROKEN_LEAVES
+		  BrokenLeavesBlockEntity::new, ModBlocks.BROKEN_LEAVES
 		).build(null);
-		type.setRegistryName(prefix(BrokenLeavesTileEntity.NAME));
+		type.setRegistryName(prefix(BrokenLeavesBlockEntity.NAME));
 		reg.register(type);
 		AerobaticElytra.logRegistered("Tile Entities");
 	}

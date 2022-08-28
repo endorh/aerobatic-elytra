@@ -14,8 +14,8 @@ import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
-import net.minecraftforge.fmllegacy.network.NetworkDirection;
-import net.minecraftforge.fmllegacy.network.PacketDistributor;
+import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.PacketDistributor;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.*;
@@ -423,7 +423,7 @@ public class WeatherData {
 	}
 	
 	public static float getBiomePrecipitationStrength(Player player) {
-		return switch (player.level.getBiome(player.blockPosition()).getPrecipitation()) {
+		return switch (player.level.getBiome(player.blockPosition()).value().getPrecipitation()) {
 			case NONE -> 0F;
 			case SNOW -> 1.2F;
 			case RAIN -> 1F;
