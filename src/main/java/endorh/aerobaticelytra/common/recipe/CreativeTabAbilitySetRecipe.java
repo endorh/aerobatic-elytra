@@ -4,22 +4,21 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import endorh.aerobaticelytra.common.capability.IElytraSpec;
 import endorh.aerobaticelytra.common.item.IAbility;
+import net.minecraft.core.Registry;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.GsonHelper;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.CustomRecipe;
+import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.SimpleRecipeSerializer;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.util.GsonHelper;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.core.Registry;
 import net.minecraft.world.level.Level;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
-import static endorh.aerobaticelytra.AerobaticElytra.prefix;
 import static endorh.aerobaticelytra.common.capability.ElytraSpecCapability.getElytraSpecOrDefault;
 
 /**
@@ -53,11 +52,8 @@ public class CreativeTabAbilitySetRecipe extends CustomRecipe {
 	}
 	
 	public static class Serializer extends SimpleRecipeSerializer<CreativeTabAbilitySetRecipe> {
-		public static final ResourceLocation NAME = prefix("creative_tab_ability_set");
-		
 		public Serializer() {
 			super(id -> null);
-			setRegistryName(NAME);
 		}
 		
 		@Override public @NotNull CreativeTabAbilitySetRecipe fromJson(

@@ -5,7 +5,6 @@ import endorh.aerobaticelytra.common.config.Config.aerobatic.modes;
 import endorh.aerobaticelytra.common.config.Const;
 import endorh.aerobaticelytra.common.flight.AerobaticFlight;
 import endorh.aerobaticelytra.common.flight.ElytraFlight;
-import endorh.aerobaticelytra.common.flight.mode.IFlightMode.IEnumFlightMode;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
@@ -19,7 +18,7 @@ import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public enum FlightModes implements IEnumFlightMode {
+public enum FlightModes implements IFlightMode {
 	ELYTRA_FLIGHT(
 	  () -> modes.enable_normal_elytra_mode, -4000,
 	  Const.FLIGHT_MODE_TOAST_U_OFFSET, Const.FLIGHT_MODE_TOAST_V_OFFSET,

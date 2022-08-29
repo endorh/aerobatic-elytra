@@ -1,16 +1,15 @@
 package endorh.aerobaticelytra.integration.jei;
 
-import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
 import endorh.aerobaticelytra.common.capability.ElytraSpecCapability;
 import endorh.aerobaticelytra.common.capability.IElytraSpec;
 import endorh.aerobaticelytra.common.capability.IElytraSpec.RocketStar;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
+import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.item.AerobaticElytraWingItem;
 import endorh.aerobaticelytra.common.item.ElytraDyement;
 import endorh.aerobaticelytra.common.item.ElytraDyement.WingSide;
 import endorh.aerobaticelytra.common.item.IAbility.Ability;
-import endorh.aerobaticelytra.common.item.ModItems;
 import endorh.aerobaticelytra.common.recipe.JoinRecipe;
 import endorh.aerobaticelytra.common.recipe.TrailRecipe;
 import endorh.aerobaticelytra.integration.jei.gui.MultiIngredientDrawable;
@@ -19,26 +18,32 @@ import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.ingredients.IIngredientType;
 import mezz.jei.api.recipe.IFocus;
 import net.minecraft.Util;
+import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.BannerBlock;
 import net.minecraft.world.level.block.entity.BannerPattern;
+import net.minecraft.world.level.levelgen.LegacyRandomSource;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @SuppressWarnings("SameParameterValue")
 public class AerobaticElytraJeiHelper {
-	public static final Random RANDOM = new Random();
+	public static final RandomSource RANDOM = new LegacyRandomSource(0);
 	protected static final ElytraDyement dyement = new ElytraDyement();
 	
 	public static List<ItemStack> getAerobaticElytras() {
 		return Util.make(new ArrayList<>(), l -> {
 			for (int i = 0; i < 5; i++) {
-				l.add(new ItemStack(ModItems.AEROBATIC_ELYTRA));
+				l.add(new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA));
 				l.add(makeElytra(nextDyeColor()));
 				l.add(makeElytra(nextDyeColor(), nextDyeColor()));
 				l.add(makeElytra(
@@ -89,11 +94,12 @@ public class AerobaticElytraJeiHelper {
 	}
 	
 	public static BannerPattern nextPattern() {
-		return BannerPattern.values()[RANDOM.nextInt(BannerPattern.values().length - 1) + 1];
+		return Registry.BANNER_PATTERN.getRandom(RANDOM).orElseThrow(
+		  () -> new IllegalStateException("No banner patterns registered")).get();
 	}
 	
 	public static ItemStack makeElytra(DyeColor color) {
-		final ItemStack e = new ItemStack(ModItems.AEROBATIC_ELYTRA);
+		final ItemStack e = new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA);
 		dyement.read(e);
 		dyement.setColor(color.getTextColor());
 		dyement.write(e);
@@ -101,7 +107,7 @@ public class AerobaticElytraJeiHelper {
 	}
 	
 	public static ItemStack makeElytra(DyeColor leftColor, DyeColor rightColor) {
-		final ItemStack e = new ItemStack(ModItems.AEROBATIC_ELYTRA);
+		final ItemStack e = new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA);
 		dyement.read(e);
 		dyement.getWing(WingSide.LEFT).setColor(leftColor.getTextColor());
 		dyement.getWing(WingSide.RIGHT).setColor(rightColor.getTextColor());
@@ -111,7 +117,7 @@ public class AerobaticElytraJeiHelper {
 	
 	@SafeVarargs
 	public static ItemStack makeElytra(DyeColor base, Pair<BannerPattern, DyeColor>... patterns) {
-		final ItemStack e = new ItemStack(ModItems.AEROBATIC_ELYTRA);
+		final ItemStack e = new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA);
 		dyement.read(e);
 		dyement.setPattern(base, Arrays.asList(patterns));
 		dyement.write(e);
@@ -122,7 +128,7 @@ public class AerobaticElytraJeiHelper {
 	  DyeColor baseLeft, List<Pair<BannerPattern, DyeColor>> leftPatterns,
 	  DyeColor baseRight, List<Pair<BannerPattern, DyeColor>> rightPatterns
 	) {
-		final ItemStack e = new ItemStack(ModItems.AEROBATIC_ELYTRA);
+		final ItemStack e = new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA);
 		dyement.read(e);
 		dyement.getWing(WingSide.LEFT).setPattern(baseLeft, leftPatterns);
 		dyement.getWing(WingSide.RIGHT).setPattern(baseRight, rightPatterns);

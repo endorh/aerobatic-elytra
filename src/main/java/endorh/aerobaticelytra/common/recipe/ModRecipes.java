@@ -3,12 +3,12 @@ package endorh.aerobaticelytra.common.recipe;
 import endorh.aerobaticelytra.AerobaticElytra;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.SimpleRecipeSerializer;
-import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegisterEvent;
 import net.minecraftforge.registries.RegistryObject;
 
 @EventBusSubscriber(bus=Bus.MOD, modid=AerobaticElytra.MOD_ID)
@@ -36,14 +36,14 @@ public class ModRecipes {
 	
 	// Recipes with custom Serializer
 	@SubscribeEvent
-	public static void onRegister(RegistryEvent.Register<RecipeSerializer<?>> event) {
-		event.getRegistry().registerAll(
-		  AbilityNBTInheritingShapedRecipe.SERIALIZER,
-		  UpgradeRecipe.SERIALIZER,
-		  RepairRecipe.SERIALIZER,
-		  SplitRecipe.SERIALIZER,
-		  CreativeTabAbilitySetRecipe.SERIALIZER
-		);
-		AerobaticElytra.logRegistered("Recipes");
+	public static void onRegister(RegisterEvent event) {
+		event.register(ForgeRegistries.RECIPE_SERIALIZERS.getRegistryKey(), r -> {
+			r.register("ability_nbt_inheriting_shaped_recipe", AbilityNBTInheritingShapedRecipe.SERIALIZER);
+			r.register("upgrade_recipe", UpgradeRecipe.SERIALIZER);
+			r.register("repair_recipe", RepairRecipe.SERIALIZER);
+			r.register("split_recipe", SplitRecipe.SERIALIZER);
+			r.register("creative_tab_ability_set", CreativeTabAbilitySetRecipe.SERIALIZER);
+			AerobaticElytra.logRegistered("Recipes");
+		});
 	}
 }

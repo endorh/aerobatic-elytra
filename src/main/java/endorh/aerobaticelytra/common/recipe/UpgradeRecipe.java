@@ -1,13 +1,12 @@
 package endorh.aerobaticelytra.common.recipe;
 
 import com.google.gson.JsonObject;
-import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.common.AerobaticElytraLogic;
 import endorh.aerobaticelytra.common.capability.ElytraSpecCapability;
 import endorh.aerobaticelytra.common.capability.IElytraSpec;
 import endorh.aerobaticelytra.common.capability.IElytraSpec.Upgrade;
-import endorh.aerobaticelytra.common.item.ModItems;
-import endorh.aerobaticelytra.common.registry.ModRegistries;
+import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
+import endorh.aerobaticelytra.common.registry.AerobaticElytraRegistries;
 import endorh.util.recipe.RecipeManagerHelper.CachedRecipeProvider;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.FriendlyByteBuf;
@@ -22,7 +21,6 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.registries.ForgeRegistryEntry;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -95,7 +93,7 @@ public class UpgradeRecipe extends CustomRecipe {
 				if (recipe != null)
 					recipe.reloadAbilities();
 			}
-			if (!ModRegistries.getDatapackAbilities().isEmpty()) {
+			if (!AerobaticElytraRegistries.getDatapackAbilities().isEmpty()) {
 				boolean any = false;
 				for (ResourceLocation id : INSTANCES.keySet()) {
 					UpgradeRecipe recipe = INSTANCES.get(id).get();
@@ -283,23 +281,14 @@ public class UpgradeRecipe extends CustomRecipe {
 	
 	@Override
 	public @NotNull ItemStack getResultItem() {
-		return new ItemStack(ModItems.AEROBATIC_ELYTRA);
+		return new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA);
 	}
 	
 	public boolean isValid() {
 		return valid;
 	}
 	
-	public static class Serializer extends ForgeRegistryEntry<RecipeSerializer<?>>
-	  implements RecipeSerializer<UpgradeRecipe> {
-		
-		public static final ResourceLocation NAME = new ResourceLocation(
-		  AerobaticElytra.MOD_ID, "upgrade_recipe");
-		
-		Serializer() {
-			setRegistryName(NAME);
-		}
-		
+	public static class Serializer implements RecipeSerializer<UpgradeRecipe> {
 		@NotNull @Override public UpgradeRecipe fromJson(
 		  @NotNull ResourceLocation recipeId, @NotNull JsonObject json
 		) {

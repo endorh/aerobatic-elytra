@@ -32,6 +32,9 @@ import static endorh.aerobaticelytra.common.capability.AerobaticDataCapability.g
 import static endorh.util.common.LogUtil.oneTimeLogger;
 import static java.lang.Math.*;
 
+import endorh.util.sound.PlayerTickableSound.IAttenuation;
+import endorh.util.sound.PlayerTickableSound.PlayerTickableSubSound;
+
 @EventBusSubscriber(value=Dist.CLIENT, modid=AerobaticElytra.MOD_ID)
 public class AerobaticElytraSound extends FadingTickableSound {
 	

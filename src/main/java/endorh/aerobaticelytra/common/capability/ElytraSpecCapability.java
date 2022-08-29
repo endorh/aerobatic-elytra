@@ -3,10 +3,9 @@ package endorh.aerobaticelytra.common.capability;
 import endorh.aerobaticelytra.common.config.Config;
 import endorh.aerobaticelytra.common.item.IAbility;
 import endorh.aerobaticelytra.common.item.IEffectAbility;
-import endorh.aerobaticelytra.common.registry.ModRegistries;
+import endorh.aerobaticelytra.common.registry.AerobaticElytraRegistries;
 import endorh.util.capability.SerializableCapabilityWrapperProvider;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.capabilities.Capability;
@@ -171,7 +170,7 @@ public class ElytraSpecCapability {
 			CompoundTag data = nbt.getCompound(TAG_BASE);
 			CompoundTag ability = data.getCompound(TAG_ABILITIES);
 			
-			for (IAbility type: ModRegistries.getAbilities().values()) {
+			for (IAbility type: AerobaticElytraRegistries.getAbilities().values()) {
 				if (ability.contains(type.fullName())) {
 					float value = ability.getFloat(type.fullName());
 					if (Config.item.fix_nan_elytra_abilities && Float.isNaN(value))

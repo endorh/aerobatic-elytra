@@ -4,22 +4,20 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSyntaxException;
-import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.common.capability.IElytraSpec;
 import endorh.aerobaticelytra.common.item.IAbility;
 import endorh.util.network.PacketBufferUtil;
 import endorh.util.recipe.NBTInheritingShapedRecipe;
-import net.minecraft.world.inventory.CraftingContainer;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.util.GsonHelper;
-import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.registries.ForgeRegistryEntry;
+import net.minecraft.util.GsonHelper;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.ShapedRecipe;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -59,16 +57,8 @@ public class AbilityNBTInheritingShapedRecipe extends NBTInheritingShapedRecipe 
 		return result;
 	}
 	
-	public static class Serializer extends ForgeRegistryEntry<RecipeSerializer<?>>
-	  implements RecipeSerializer<AbilityNBTInheritingShapedRecipe> {
-		
-		private static final ResourceLocation NAME = new ResourceLocation(
-		  AerobaticElytra.MOD_ID, "ability_nbt_inheriting_shaped_recipe");
+	public static class Serializer implements RecipeSerializer<AbilityNBTInheritingShapedRecipe> {
 		private static final Logger LOGGER = LogManager.getLogger();
-		
-		Serializer() {
-			setRegistryName(NAME);
-		}
 		
 		@NotNull @Override public AbilityNBTInheritingShapedRecipe fromJson(
 		  @NotNull ResourceLocation recipeId, @NotNull JsonObject json

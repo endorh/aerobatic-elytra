@@ -17,7 +17,7 @@ import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import org.jetbrains.annotations.NotNull;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -84,9 +84,7 @@ public class ItemSelector implements Predicate<ItemStack> {
 				return new ItemSelector(tags, nbtPredicate);
 			} else {
 				String itemName = m.group("name");
-				final Item item = Registry.ITEM.getOptional(new ResourceLocation(itemName))
-				  .orElseThrow(
-				    () -> new IllegalArgumentException("Unknown item: \"" + itemName + "\""));
+				final Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(itemName));
 				return new ItemSelector(item, nbtPredicate);
 			}
 		} else throw new IllegalArgumentException("Malformed item selector: \"" + str + "\"");
@@ -99,7 +97,7 @@ public class ItemSelector implements Predicate<ItemStack> {
 		this.nbtPredicate = nbtPredicate;
 	}
 	
-	public ItemSelector(@NotNull Item item, @Nullable NBTPredicate nbtPredicate) {
+	public ItemSelector(@Nullable Item item, @Nullable NBTPredicate nbtPredicate) {
 		this.item = item;
 		this.tags = null;
 		this.nbtPredicate = nbtPredicate;
@@ -114,7 +112,7 @@ public class ItemSelector implements Predicate<ItemStack> {
 					if (holder.isBound() && holder.value().equals(stack.getItem()))
 						return true;
 			return false;
-		} else throw new IllegalStateException("Both item and tags cannot be null");
+		} else return false;
 	}
 	
 	public boolean test(ItemStack stack) {
@@ -138,12 +136,8 @@ public class ItemSelector implements Predicate<ItemStack> {
 	
 	public static ItemSelector read(FriendlyByteBuf buf) {
 		if (buf.readBoolean()) {
-			final ResourceLocation itemName = buf.readResourceLocation();
-			Item item = Registry.ITEM.getOptional(itemName).orElseThrow(
-			  () -> new IllegalStateException(
-			    "Unknown item name found in packet: \"" + itemName + "\""));
-			NBTPredicate nbtPredicate =
-			  buf.readBoolean()? NBTPredicate.parse(buf.readUtf()).orElse(null) : null;
+			Item item = buf.readItem().getItem();
+			NBTPredicate nbtPredicate = buf.readBoolean()? NBTPredicate.parse(buf.readUtf()).orElse(null) : null;
 			return new ItemSelector(item, nbtPredicate);
 		} else {
 			final List<ResourceLocation> tagNames = readList(buf, FriendlyByteBuf::readResourceLocation);
@@ -156,8 +150,7 @@ public class ItemSelector implements Predicate<ItemStack> {
 	public void write(FriendlyByteBuf buf) {
 		if (item != null) {
 			buf.writeBoolean(true);
-			//noinspection ConstantConditions
-			buf.writeResourceLocation(item.getRegistryName());
+			buf.writeItem(new ItemStack(item));
 		} else if (tags != null) {
 			buf.writeBoolean(false);
 			writeList(buf, tags.values(), FriendlyByteBuf::writeResourceLocation);
@@ -223,7 +216,7 @@ public class ItemSelector implements Predicate<ItemStack> {
 				res.append('{').append(tagName).append('}');
 		}
 		if (item != null)
-			res.append(item.getRegistryName());
+			res.append(ForgeRegistries.ITEMS.getKey(item));
 		if (nbtPredicate != null)
 			res.append(nbtPredicate);
 		return res.toString();

@@ -18,9 +18,8 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.EntityViewRenderEvent.CameraSetup;
-import net.minecraftforge.client.event.EntityViewRenderEvent.FieldOfView;
 import net.minecraftforge.client.event.RenderHandEvent;
+import net.minecraftforge.client.event.ViewportEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import org.apache.logging.log4j.LogManager;
@@ -36,7 +35,7 @@ public class CameraHandler {
 	
 	/** Apply aerobatic camera roll */
 	@SubscribeEvent
-	public static void onCameraSetup(final CameraSetup event) {
+	public static void onCameraSetup(ViewportEvent.ComputeCameraAngles event) {
 		Camera cam = event.getCamera();
 		Entity entity = cam.getEntity();
 		if (entity instanceof LocalPlayer player) {
@@ -102,7 +101,7 @@ public class CameraHandler {
 	 * Apply flight FOV
 	 */
 	@SubscribeEvent
-	public static void onFovModifier(final FieldOfView event) {
+	public static void onFovModifier(ViewportEvent.ComputeFov event) {
 		Camera cam = event.getCamera();
 		Entity entity = cam.getEntity();
 		if (entity instanceof Player player) {
@@ -110,7 +109,7 @@ public class CameraHandler {
 			final double fov = event.getFOV();
 			double newFOV = 0F;
 			if (data.isFlying()) {
-				final double f = Math.min(1D, (data.getTicksFlying() + event.getPartialTicks()) / 4D);
+				final double f = Math.min(1D, (data.getTicksFlying() + event.getPartialTick()) / 4D);
 				final double p = Mth.abs(data.getPropulsionStrength()) / propulsion.span * 10D;
 				final double b = data.isBoosted()? 15D : 0D;
 				newFOV = f * (p + b) * visual.fov_effect_strength;

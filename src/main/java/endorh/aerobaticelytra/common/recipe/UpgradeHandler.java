@@ -23,7 +23,7 @@ public class UpgradeHandler {
 	 */
 	@SubscribeEvent
 	public static void onPlayerRightClickItem(PlayerInteractEvent.RightClickItem event) {
-		Player player = event.getPlayer();
+		Player player = event.getEntity();
 		if (player.isOnGround()) {
 			ItemStack elytra = player.getItemBySlot(EquipmentSlot.OFFHAND);
 			if (elytra.getItem() instanceof AerobaticElytraItem) {

@@ -34,24 +34,24 @@ license="${license}"
 [[dependencies.aerobaticelytra]]
     modId="forge"
     mandatory=true
-    versionRange="[35,)"
+    versionRange="[41,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.aerobaticelytra]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.18.2,1.19)"
+    versionRange="[1.19,1.20)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.aerobaticelytra]]
     modId="caelus"
     mandatory=false
-    versionRange="[1.18.1-3.0,1.18.1-4.0)"
+    versionRange="[1,)"
     ordering="AFTER"
     side="BOTH"
 [[dependencies.aerobaticelytra]]
-    modId="elytra-shot"
+    modId="curios"
     mandatory=false
-    versionRange="[1.18.2-5.0,1.18.2-6.0)"
+    versionRange="[1,)"
     ordering="AFTER"
     side="BOTH"

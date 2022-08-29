@@ -28,6 +28,7 @@ import java.util.Map;
 
 import static endorh.aerobaticelytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
 import static endorh.aerobaticelytra.common.capability.FlightDataCapability.getFlightDataOrDefault;
+import static endorh.aerobaticelytra.common.registry.AerobaticElytraRegistries.FLIGHT_MODE_REGISTRY;
 import static java.lang.Math.abs;
 import static java.lang.Math.max;
 
@@ -97,7 +98,7 @@ public class AerobaticPackets {
 				invalidate();
 				handlePlayerWarning(
 				  sender, "Player '%s' tried to use restricted flight mode: %s",
-				  mode.getRegistryName());
+				  FLIGHT_MODE_REGISTRY.getKey(mode));
 			}
 		}
 		

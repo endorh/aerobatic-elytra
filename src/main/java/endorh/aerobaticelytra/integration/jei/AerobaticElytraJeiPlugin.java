@@ -4,8 +4,8 @@ import com.google.common.collect.ImmutableList;
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.input.KeyHandler;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
-import endorh.aerobaticelytra.common.item.ModItems;
-import endorh.aerobaticelytra.common.recipe.*;
+import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
+import endorh.aerobaticelytra.common.recipe.UpgradeRecipe;
 import endorh.aerobaticelytra.integration.jei.category.*;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
@@ -85,7 +85,7 @@ public class AerobaticElytraJeiPlugin implements IModPlugin {
 		// Differentiate aerobatic elytras by their abilities
 		reg.registerSubtypeInterpreter(
 		  VanillaTypes.ITEM_STACK,
-		  ModItems.AEROBATIC_ELYTRA,
+		  AerobaticElytraItems.AEROBATIC_ELYTRA,
 		  (stack, context) -> getElytraSpecOrDefault(stack).getAbilities().entrySet().stream().map(
 			 entry -> entry.getKey().toString() + ":" + entry.getValue()
 		  ).collect(Collectors.joining()));
@@ -98,7 +98,7 @@ public class AerobaticElytraJeiPlugin implements IModPlugin {
 		if (key.equals(keyName))
 			keyName = keyName.replaceFirst("key\\.keyboard\\.", "");
 		reg.addIngredientInfo(
-		  new ItemStack(ModItems.AEROBATIC_ELYTRA), VanillaTypes.ITEM_STACK,
+		  new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA), VanillaTypes.ITEM_STACK,
 		  ttc("aerobaticelytra.jei.info.aerobatic_elytra", keyName));
 		
 		// Get recipe list
@@ -115,13 +115,12 @@ public class AerobaticElytraJeiPlugin implements IModPlugin {
 	  IRecipeRegistration reg, RecipeManager manager, BaseCategory<V> cat
 	) {
 		ingredientManager = reg.getIngredientManager();
-		final Class<? extends V> cls = cat.getRecipeClass();
 		cat.registerRecipes(reg, manager);
 	}
 	
 	@Override public void registerRecipeCatalysts(IRecipeCatalystRegistration reg) {
 		// Register the Aerobatic Elytra item as catalyst for upgrade recipes
-		reg.addRecipeCatalyst(VanillaTypes.ITEM_STACK, new ItemStack(ModItems.AEROBATIC_ELYTRA), UpgradeRecipeCategory.TYPE);
+		reg.addRecipeCatalyst(VanillaTypes.ITEM_STACK, new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA), UpgradeRecipeCategory.TYPE);
 		final ItemStack craftingTable = new ItemStack(Items.CRAFTING_TABLE);
 		reg.addRecipeCatalyst(
 		  VanillaTypes.ITEM_STACK, craftingTable,
@@ -144,13 +143,6 @@ public class AerobaticElytraJeiPlugin implements IModPlugin {
 	}
 	
 	public static class RecipeManagerPlugin implements IRecipeManagerPlugin {
-		@SuppressWarnings("removal")
-		@Override public <V> @NotNull List<ResourceLocation> getRecipeCategoryUids(
-		  @NotNull IFocus<V> focus
-		) {
-			return Collections.emptyList();
-		}
-		
 		@Override public <V> @NotNull List<RecipeType<?>> getRecipeTypes(@NotNull IFocus<V> focus) {
 			if (focus.getTypedValue().getIngredient(VanillaTypes.ITEM_STACK).map(ItemStack::getItem).orElse(null) instanceof AerobaticElytraItem) {
 				return ImmutableList.of(UpgradeRecipeCategory.TYPE);

@@ -8,7 +8,7 @@ import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.world.level.FoliageColor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.ColorHandlerEvent;
+import net.minecraftforge.client.event.RegisterColorHandlersEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
@@ -18,7 +18,7 @@ import java.awt.Color;
 @EventBusSubscriber(value = Dist.CLIENT, bus = Bus.MOD, modid = AerobaticElytra.MOD_ID)
 public class ModBlockColors {
 	@SubscribeEvent
-	public static void registerBlockColors(ColorHandlerEvent.Block event) {
+	public static void registerBlockColors(RegisterColorHandlersEvent.Block event) {
 		BlockColors colors = event.getBlockColors();
 		int defaultColor = ColorUtil.multiply(new Color(FoliageColor.getEvergreenColor()), 0.6F).getRGB();
 		// Return the color of the leaves block stored under the Tile Entity, or a fallback

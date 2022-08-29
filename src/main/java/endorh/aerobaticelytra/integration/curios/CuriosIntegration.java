@@ -1,6 +1,6 @@
 package endorh.aerobaticelytra.integration.curios;
 
-import endorh.aerobaticelytra.common.item.ModItems;
+import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
@@ -27,7 +27,7 @@ public class CuriosIntegration {
 	public static Optional<ImmutableTriple<String, Integer, ItemStack>> findCurioAerobaticElytra(
 	  LivingEntity entity
 	) {
-		return CuriosApi.getCuriosHelper().findEquippedCurio(ModItems.AEROBATIC_ELYTRA, entity);
+		return CuriosApi.getCuriosHelper().findEquippedCurio(AerobaticElytraItems.AEROBATIC_ELYTRA, entity);
 	}
 	
 	// ElytraSlot mod doesn't use RenderElytraEvent from Caelus anymore

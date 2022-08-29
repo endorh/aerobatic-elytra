@@ -6,6 +6,7 @@ import endorh.aerobaticelytra.common.flight.mode.FlightModes;
 import endorh.aerobaticelytra.common.flight.mode.IFlightMode;
 import endorh.aerobaticelytra.common.item.AbilityReloadManager;
 import endorh.aerobaticelytra.common.item.IAbility;
+import endorh.aerobaticelytra.common.item.IAbility.Ability;
 import endorh.aerobaticelytra.common.item.IDatapackAbility;
 import endorh.aerobaticelytra.common.item.IEffectAbility;
 import endorh.aerobaticelytra.common.recipe.UpgradeRecipe;
@@ -14,10 +15,11 @@ import endorh.util.math.MathParser.ExpressionParser;
 import endorh.util.math.MathParser.FixedNamespaceSet;
 import endorh.util.math.MathParser.UnicodeMathDoubleExpressionParser;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.Registry;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
@@ -30,22 +32,31 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.Map.Entry;
 
+import static endorh.aerobaticelytra.AerobaticElytra.prefix;
+
 @EventBusSubscriber(bus = Bus.MOD, modid = AerobaticElytra.MOD_ID)
-public class ModRegistries {
+public class AerobaticElytraRegistries {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	public static IForgeRegistry<IFlightMode> FLIGHT_MODE_REGISTRY;
 	public static List<IFlightMode> FLIGHT_MODE_LIST;
+	public static ResourceKey<Registry<IFlightMode>> FLIGHT_MODE_REGISTRY_KEY;
 	
 	// Use getAbilities() insteaed
 	private static IForgeRegistry<IAbility> ABILITY_REGISTRY;
+	public static ResourceKey<Registry<IAbility>> ABILITY_REGISTRY_KEY;
 	
 	// Datapack abilities are stored in a map, since registries can't be modified at json reload time
 	private static final Map<ResourceLocation, IAbility> ABILITIES = new HashMap<>();
 	private static final Map<ResourceLocation, IDatapackAbility> DATAPACK_ABILITIES = new HashMap<>();
 	private static final Map<ResourceLocation, IEffectAbility> EFFECT_ABILITIES = new HashMap<>();
+	private static final Map<IAbility, ResourceLocation> ABILITY_NAMES = new HashMap<>();
 	private static final Map<String, IAbility> JSON_TO_ABILITY = new HashMap<>();
 	private static final Set<IDatapackAbility> OUTDATED_ABILITIES = Collections.newSetFromMap(Collections.synchronizedMap(new WeakHashMap<>()));
+	
+	public static @Nullable ResourceLocation getAbilityKey(IAbility ability) {
+		return ABILITY_NAMES.get(ability);
+	}
 	
 	public static @Nullable IAbility getAbility(ResourceLocation id) {
 		return ABILITIES.get(id);
@@ -86,17 +97,25 @@ public class ModRegistries {
 	
 	@SubscribeEvent
 	public static void onNewRegistry(NewRegistryEvent event) {
-		event.create(new RegistryBuilder<IFlightMode>()
-		  .setName(AerobaticElytra.prefix("flight_modes"))
-		  .setType(IFlightMode.class)
-		  .allowModification()
-		  .onBake(ModRegistries::onFlightModeRegistryBake), r -> FLIGHT_MODE_REGISTRY = r);
+		event.create(
+		  new RegistryBuilder<IFlightMode>()
+		    .setName(prefix("flight_modes"))
+		    .allowModification()
+		    .onBake(AerobaticElytraRegistries::onFlightModeRegistryBake),
+		  r -> {
+			  FLIGHT_MODE_REGISTRY = r;
+			  FLIGHT_MODE_REGISTRY_KEY = r.getRegistryKey();
+		  });
 		
-		event.create(new RegistryBuilder<IAbility>()
-		  .setName(AerobaticElytra.prefix("ability"))
-		  .setType(IAbility.class)
-		  .allowModification()
-		  .onBake(ModRegistries::onAbilityRegistryBake), r -> ABILITY_REGISTRY = r);
+		event.create(
+		  new RegistryBuilder<IAbility>()
+		    .setName(prefix("ability"))
+		    .allowModification()
+		    .onBake(AerobaticElytraRegistries::onAbilityRegistryBake),
+		  r -> {
+			  ABILITY_REGISTRY = r;
+			  ABILITY_REGISTRY_KEY = r.getRegistryKey();
+		  });
 		
 		AerobaticElytra.logRegistered("Registries");
 	}
@@ -112,26 +131,31 @@ public class ModRegistries {
 	  IForgeRegistryInternal<IAbility> owner, RegistryManager stage
 	) { bakeAbilities(); }
 	
-	public static void reloadDatapackAbilities(Collection<? extends IDatapackAbility> abilities) {
+	public static void reloadDatapackAbilities(Map<ResourceLocation, ? extends IDatapackAbility> abilities) {
 		OUTDATED_ABILITIES.addAll(DATAPACK_ABILITIES.values());
 		DATAPACK_ABILITIES.clear();
-		for (IDatapackAbility ability : abilities)
-			DATAPACK_ABILITIES.put(ability.getRegistryName(), ability);
+		DATAPACK_ABILITIES.putAll(abilities);
 		bakeAbilities();
 	}
 	
 	private static void bakeAbilities() {
 		ABILITIES.clear();
+		ABILITY_NAMES.clear();
 		JSON_TO_ABILITY.clear();
 		EFFECT_ABILITIES.clear();
 		
-		for (IAbility ability : ABILITY_REGISTRY)
-			ABILITIES.put(ability.getRegistryName(), ability);
+		for (Entry<ResourceKey<IAbility>, IAbility> e: ABILITY_REGISTRY.getEntries()) {
+			ABILITIES.put(e.getKey().location(), e.getValue());
+			ABILITY_NAMES.put(e.getValue(), e.getKey().location());
+		}
 		for (Entry<ResourceLocation, IDatapackAbility> entry : DATAPACK_ABILITIES.entrySet()) {
 			if (ABILITIES.containsKey(entry.getKey())) {
 				LOGGER.warn("Datapack Aerobatic Elytra Ability conflicts with one already defined by " +
 				            "a mod: \"" + entry.getKey() + "\". The datapack one will be ignored");
-			} else ABILITIES.put(entry.getKey(), entry.getValue());
+			} else {
+				ABILITIES.put(entry.getKey(), entry.getValue());
+				ABILITY_NAMES.put(entry.getValue(), entry.getKey());
+			}
 		}
 		// final Map<String, Map<String, IAbility>> namespaceSet = new HashMap<>();
 		final Map<String, ChatFormatting> abilityColors = new HashMap<>();
@@ -164,16 +188,16 @@ public class ModRegistries {
 	}
 	
 	@SubscribeEvent
-	public static void onRegisterFlightModes(RegistryEvent.Register<IFlightMode> event) {
-		final IForgeRegistry<IFlightMode> reg = event.getRegistry();
-		reg.registerAll(FlightModes.values());
-		AerobaticElytra.logRegistered("Flight Modes");
-	}
-	
-	@SubscribeEvent
-	public static void onRegisterAbilities(RegistryEvent.Register<IAbility> event) {
-		final IForgeRegistry<IAbility> reg = event.getRegistry();
-		for (IAbility type : IAbility.Ability.values())
-			reg.register(type);
+	public static void onRegisterFlightModes(RegisterEvent event) {
+		event.register(FLIGHT_MODE_REGISTRY_KEY, h -> {
+			for (FlightModes mode: FlightModes.values())
+				h.register(prefix(mode.name().toLowerCase()), mode);
+			AerobaticElytra.logRegistered("Flight Modes");
+		});
+		event.register(ABILITY_REGISTRY_KEY, h -> {
+			for (Ability ability: Ability.values())
+				h.register(prefix(ability.name().toLowerCase()), ability);
+			AerobaticElytra.logRegistered("Abilities");
+		});
 	}
 }

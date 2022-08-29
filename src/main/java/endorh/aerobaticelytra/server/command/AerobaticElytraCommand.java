@@ -17,11 +17,10 @@ import endorh.aerobaticelytra.common.capability.ElytraSpecCapability;
 import endorh.aerobaticelytra.common.capability.IElytraSpec;
 import endorh.aerobaticelytra.common.item.AerobaticElytraWingItem;
 import endorh.aerobaticelytra.common.item.IAbility;
-import endorh.aerobaticelytra.common.registry.ModRegistries;
+import endorh.aerobaticelytra.common.registry.AerobaticElytraRegistries;
 import endorh.aerobaticelytra.debug.Debug;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.*;
@@ -59,6 +58,8 @@ import static com.mojang.brigadier.arguments.StringArgumentType.*;
 import static endorh.util.command.QualifiedNameArgumentType.optionallyQualified;
 import static endorh.util.text.TextUtil.stc;
 import static endorh.util.text.TextUtil.ttc;
+import static net.minecraft.commands.Commands.argument;
+import static net.minecraft.commands.Commands.literal;
 
 @EventBusSubscriber(modid = AerobaticElytra.MOD_ID)
 public class AerobaticElytraCommand {
@@ -71,7 +72,7 @@ public class AerobaticElytraCommand {
 	      .map(bd -> escapeIfRequired(bd.getTitle())), builder));
 	public static final SuggestionProvider<CommandSourceStack> SUGGEST_ABILITIES =
 	  ((context, builder) -> SharedSuggestionProvider.suggest(
-	    ModRegistries.getAbilitiesByName().keySet(), builder));
+	    AerobaticElytraRegistries.getAbilitiesByName().keySet(), builder));
 	public static final SimpleCommandExceptionType NO_ELYTRA_HOLDING_TARGETS =
 	  new SimpleCommandExceptionType(ttc(
 	    "commands.aerobaticelytra.error.no_elytra"));
@@ -87,75 +88,75 @@ public class AerobaticElytraCommand {
 	
 	public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
 		LiteralArgumentBuilder<CommandSourceStack> aerobaticElytraCommand =
-		  Commands.literal("aerobaticelytra")
+		  literal("aerobaticelytra")
 		    .requires(cs -> cs.hasPermission(2))
 		    .then(
-		      Commands.literal("datapack").then(
-			     Commands.literal("install").then(
-			       Commands.argument("datapack", string())
+		      literal("datapack").then(
+			     literal("install").then(
+			       argument("datapack", string())
 		            .suggests(SUGGEST_PACKS)
 		            .executes(cc -> installPack(cc, getString(cc, "datapack"))))
-		      ).then(Commands.literal("list").executes(AerobaticElytraCommand::listPacks))
+		      ).then(literal("list").executes(AerobaticElytraCommand::listPacks))
 		    ).then(
-			   Commands.literal("debug").then(
-				  Commands.literal("show").executes(cc -> enableDebug(cc, true))
+			   literal("debug").then(
+				  literal("show").executes(cc -> enableDebug(cc, true))
 		      ).then(
-				  Commands.literal("hide").executes(cc -> enableDebug(cc, false))
+				  literal("hide").executes(cc -> enableDebug(cc, false))
 		      ).then(
-				  Commands.literal("give").executes(AerobaticElytraCommand::giveDebugWing))
+				  literal("give").executes(AerobaticElytraCommand::giveDebugWing))
 		  ).then(
-			   Commands.literal("ability").then(
-				  Commands.literal("get").then(
-				    Commands.argument("target", EntityArgument.entity())
+			   literal("ability").then(
+				  literal("get").then(
+				    argument("target", EntityArgument.entity())
 		          .executes(AerobaticElytraCommand::getAbilities).then(
-						  Commands.argument("ability_name", optionallyQualified())
+						  argument("ability_name", optionallyQualified())
 			           .suggests(SUGGEST_ABILITIES)
 			           .executes(cc -> getAbility(
 			             cc, getString(cc, "ability_name")))))
 		    ).then(
-				  Commands.literal("set").then(
-				    Commands.argument("target", EntityArgument.entities()).then(
-					   Commands.argument("ability_name", optionallyQualified())
+				  literal("set").then(
+				    argument("target", EntityArgument.entities()).then(
+					   argument("ability_name", optionallyQualified())
 				      .suggests(SUGGEST_ABILITIES).then(
-						    Commands.argument("ability_value", floatArg()).executes(
+						    argument("ability_value", floatArg()).executes(
 						    cc -> setAbility(
 						      cc, getString(cc, "ability_name"), getFloat(cc, "ability_value"))))))
 		    ).then(
-				  Commands.literal("reset").then(
-				    Commands.argument("target", EntityArgument.entities())
+				  literal("reset").then(
+				    argument("target", EntityArgument.entities())
 				    .executes(AerobaticElytraCommand::resetAbilities)
 				    .then(
-				      Commands.argument("ability_name", optionallyQualified())
+				      argument("ability_name", optionallyQualified())
 					     .suggests(SUGGEST_ABILITIES)
 					     .executes(
 						    cc -> resetAbility(cc, getString(cc, "ability_name")))))
 		    ).then(
-				  Commands.literal("remove").then(
-				    Commands.argument("target", EntityArgument.entities())
+				  literal("remove").then(
+				    argument("target", EntityArgument.entities())
 				    .executes(AerobaticElytraCommand::removeAbilities)
 				    .then(
-				      Commands.argument("ability_name", optionallyQualified())
+				      argument("ability_name", optionallyQualified())
 					     .suggests(SUGGEST_ABILITIES)
 					     .executes(cc -> removeAbility(cc, getString(cc, "ability_name")))))
 		    ).then(
-				  Commands.literal("unknown").then(
-				    Commands.literal("get").then(
-				      Commands.argument("target", EntityArgument.entity())
+				  literal("unknown").then(
+				    literal("get").then(
+				      argument("target", EntityArgument.entity())
 				      .executes(AerobaticElytraCommand::getUnknownAbilities).then(
-						    Commands.argument("ability_name", optionallyQualified())
+						    argument("ability_name", optionallyQualified())
 					     .executes(cc -> getUnknownAbility(cc, getString(cc, "ability_name")))))
 		      ).then(
-				    Commands.literal("set").then(
-				      Commands.argument("target", EntityArgument.entities()).then(
-					     Commands.argument("ability_name", optionallyQualified()).then(
-						    Commands.argument("ability_value", floatArg())
+				    literal("set").then(
+				      argument("target", EntityArgument.entities()).then(
+					     argument("ability_name", optionallyQualified()).then(
+						    argument("ability_value", floatArg())
 				          .executes(cc -> setUnknownAbility(
 				            cc, getString(cc, "ability_name"), getFloat(cc, "ability_value"))))))
 		      ).then(
-				    Commands.literal("remove").then(
-				      Commands.argument("target", EntityArgument.entities())
+				    literal("remove").then(
+				      argument("target", EntityArgument.entities())
 			         .executes(AerobaticElytraCommand::removeUnknownAbilities).then(
-						    Commands.argument("ability_name", optionallyQualified())
+						    argument("ability_name", optionallyQualified())
 			             .executes(cc -> removeUnknownAbility(cc, getString(cc, "ability_name"))))))));
 		dispatcher.register(aerobaticElytraCommand);
 	}
@@ -188,7 +189,7 @@ public class AerobaticElytraCommand {
 	}
 	
 	public static Component displayFloat(float value) {
-		return new TextComponent(String.format("%5.2f", value))
+		return Component.literal(String.format("%5.2f", value))
 		  .withStyle(ChatFormatting.AQUA);
 	}
 	
@@ -253,7 +254,7 @@ public class AerobaticElytraCommand {
 			msg = msg.append(
 			  ttc("commands.aerobaticelytra.ability.get.all.success",
 			      spec.getAbilities().size(), name));
-			for (IAbility ability : ModRegistries.getAbilities().values())
+			for (IAbility ability : AerobaticElytraRegistries.getAbilities().values())
 				msg = msg.append("\n").append(
 				  ttc("commands.aerobaticelytra.ability.get.ability", ability.getDisplayName(),
 				      displayFloat(spec.getAbility(ability))));
@@ -329,11 +330,11 @@ public class AerobaticElytraCommand {
 	  throws CommandSyntaxException {
 		final List<IElytraSpec> specs = getElytraSpecs(context);
 		specs.forEach(
-		  s -> ModRegistries.getAbilities().values().forEach(s::resetAbility));
+		  s -> AerobaticElytraRegistries.getAbilities().values().forEach(s::resetAbility));
 		MutableComponent msg = ttc(
 		  "commands.aerobaticelytra.ability.reset.all.success",
-		  ModRegistries.getAbilities().values().size(), specs.size());
-		for (IAbility ability : ModRegistries.getAbilities().values())
+		  AerobaticElytraRegistries.getAbilities().values().size(), specs.size());
+		for (IAbility ability : AerobaticElytraRegistries.getAbilities().values())
 			msg = msg.append("\n").append(
 			  ttc("commands.aerobaticelytra.ability.reset.ability", ability.getDisplayName(),
 			      displayFloat(ability.getDefault())));
@@ -346,7 +347,7 @@ public class AerobaticElytraCommand {
 	) throws CommandSyntaxException {
 		final List<IElytraSpec> specs = getElytraSpecs(cc);
 		specs.forEach(s -> {
-			ModRegistries.getAbilities().values().forEach(s::removeAbility);
+			AerobaticElytraRegistries.getAbilities().values().forEach(s::removeAbility);
 			s.getUnknownAbilities().clear();
 		});
 		cc.getSource().sendSuccess(
@@ -528,8 +529,8 @@ public class AerobaticElytraCommand {
 		final PackResources resourcePack = pack.open();
 		
 		return resourcePack.getResources(
-		  PackType.SERVER_DATA, AerobaticElytra.MOD_ID, "datapacks", 2,
-		  s -> !stripPath(s).equals("datapacks")
+		  PackType.SERVER_DATA, AerobaticElytra.MOD_ID, "datapacks",
+		  s -> !stripPath(s.getPath()).equals("datapacks")
 		).stream()
 		  .map(rl -> new BundledDatapack(
 		    resourcePack, new ResourceLocation(rl.getNamespace(), stripPath(rl.getPath()))))
@@ -566,7 +567,7 @@ public class AerobaticElytraCommand {
 					}
 				} catch (JsonSyntaxException ignored) {}
 			} catch (IOException ignored) {}
-			this.title = new TextComponent(title);
+			this.title = Component.literal(title);
 			this.description = description;
 		}
 		
@@ -593,7 +594,7 @@ public class AerobaticElytraCommand {
 		public Collection<ResourceLocation> getAllResourceLocations() {
 			final Collection<ResourceLocation> locations = pack.getResources(
 			  PackType.SERVER_DATA, location.getNamespace(),
-			  location.getPath(), Integer.MAX_VALUE, s -> !s.equals(location.getPath()));
+			  location.getPath(), s -> !s.getPath().equals(location.getPath()));
 			locations.add(getMcMetaLocation());
 			return locations;
 		}

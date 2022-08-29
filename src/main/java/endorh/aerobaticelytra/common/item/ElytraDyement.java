@@ -2,6 +2,8 @@ package endorh.aerobaticelytra.common.item;
 
 import com.mojang.datafixers.util.Pair;
 import endorh.aerobaticelytra.AerobaticElytra;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
 import net.minecraft.core.cauldron.CauldronInteraction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -13,6 +15,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStack.TooltipPart;
 import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.level.block.entity.BannerPattern;
+import net.minecraft.world.level.block.entity.BannerPatterns;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
@@ -228,7 +231,7 @@ public class ElytraDyement {
 		) {
 			if (addBase) {
 				patternData = new ArrayList<>(patternData);
-				patternData.add(0, Pair.of(BannerPattern.BASE, base));
+				patternData.add(0, Pair.of(Registry.BANNER_PATTERN.get(BannerPatterns.BASE), base));
 			}
 			hasPattern = true;
 			basePatternColor = base;
@@ -315,14 +318,14 @@ public class ElytraDyement {
 		  DyeColor color, @Nullable ListTag nbtList
 		) {
 			List<Pair<BannerPattern, DyeColor>> list = new ArrayList<>();
-			list.add(Pair.of(BannerPattern.BASE, color));
+			list.add(Pair.of(Registry.BANNER_PATTERN.get(BannerPatterns.BASE), color));
 			if (nbtList != null) {
 				for (int i = 0; i < nbtList.size(); ++i) {
 					CompoundTag compoundnbt = nbtList.getCompound(i);
-					BannerPattern bannerpattern = BannerPattern.byHash(compoundnbt.getString("Pattern"));
-					if (bannerpattern != null) {
+					Holder<BannerPattern> holder = BannerPattern.byHash(compoundnbt.getString("Pattern"));
+					if (holder != null) {
 						int j = compoundnbt.getInt("Color");
-						list.add(Pair.of(bannerpattern, DyeColor.byId(j)));
+						list.add(Pair.of(holder.value(), DyeColor.byId(j)));
 					}
 				}
 			}
@@ -439,8 +442,8 @@ public class ElytraDyement {
 	
 	@SubscribeEvent
 	public static void registerCauldronInteractions(FMLCommonSetupEvent event) {
-		CauldronInteraction.WATER.put(ModItems.AEROBATIC_ELYTRA, CLEAR_AEROBATIC_ELYTRA_DYE);
-		CauldronInteraction.WATER.put(ModItems.AEROBATIC_ELYTRA_WING, CLEAR_AEROBATIC_ELYTRA_DYE);
+		CauldronInteraction.WATER.put(AerobaticElytraItems.AEROBATIC_ELYTRA, CLEAR_AEROBATIC_ELYTRA_DYE);
+		CauldronInteraction.WATER.put(AerobaticElytraItems.AEROBATIC_ELYTRA_WING, CLEAR_AEROBATIC_ELYTRA_DYE);
 	}
 	
 	public static ItemStack clearDyes(ItemStack elytra) {

@@ -8,12 +8,12 @@ import endorh.aerobaticelytra.common.item.IAbility.Ability;
 import endorh.aerobaticelytra.common.item.IDatapackAbility;
 import endorh.aerobaticelytra.common.item.IDatapackAbilityReloadListener;
 import endorh.aerobaticelytra.common.item.IEffectAbility;
-import endorh.aerobaticelytra.common.registry.ModRegistries;
+import endorh.aerobaticelytra.common.registry.AerobaticElytraRegistries;
 import endorh.util.capability.ISerializableCapability;
 import endorh.util.math.MathParser.ExpressionParser.ParseException.NameParseException;
 import endorh.util.math.MathParser.FixedNamespaceSet;
 import endorh.util.math.MathParser.ParsedExpression;
-import endorh.util.text.FormattableTextComponentList;
+import endorh.util.text.MutableComponentList;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.gui.screens.Screen;
@@ -22,7 +22,6 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.Mth;
@@ -165,11 +164,11 @@ public interface IElytraSpec
 	 */
 	@Override default void onAerobaticElytraDatapackAbilityReload() {
 		final Map<String, Float> unknown = getUnknownAbilities();
-		for (IDatapackAbility ability: ModRegistries.getOutdatedAbilities()) {
+		for (IDatapackAbility ability: AerobaticElytraRegistries.getOutdatedAbilities()) {
 			if (hasAbility(ability))
 				unknown.put(ability.fullName(), removeAbility(ability));
 		}
-		for (IDatapackAbility ability: ModRegistries.getDatapackAbilities().values()) {
+		for (IDatapackAbility ability: AerobaticElytraRegistries.getDatapackAbilities().values()) {
 			final String name = ability.fullName();
 			if (unknown.containsKey(name))
 				setAbility(ability, unknown.remove(name));
@@ -430,10 +429,10 @@ public interface IElytraSpec
 			return nbt;
 		}
 		
-		public static FormattableTextComponentList getTooltipInfo(
+		public static MutableComponentList getTooltipInfo(
 		  RocketStar[] list, String indent, ChatFormatting format
 		) {
-			FormattableTextComponentList tooltip = new FormattableTextComponentList();
+			MutableComponentList tooltip = new MutableComponentList();
 			final String inner = indent + "  ";
 			for (RocketStar star: list) {
 				FireworkRocketItem.Shape shape = FireworkRocketItem.Shape.byId(star.type);
@@ -478,9 +477,9 @@ public interface IElytraSpec
 		private static Component dyeName(int color) {
 			DyeColor dyecolor = DyeColor.byFireworkColor(color);
 			return dyecolor == null
-			       ? new TranslatableComponent(
+			       ? Component.translatable(
 			  "item.minecraft.firework_star.custom_color")
-			       : new TranslatableComponent(
+			       : Component.translatable(
 			         "item.minecraft.firework_star." + dyecolor.getName());
 		}
 	}
@@ -524,14 +523,14 @@ public interface IElytraSpec
 		 * @return The new valid state
 		 */
 		public boolean reloadAbilities() {
-			type = ModRegistries.getAbilityByName(abilityName);
+			type = AerobaticElytraRegistries.getAbilityByName(abilityName);
 			try {
-				expression = ModRegistries.ABILITY_EXPRESSION_PARSER.parse(rawExpression);
+				expression = AerobaticElytraRegistries.ABILITY_EXPRESSION_PARSER.parse(rawExpression);
 			} catch (NameParseException ignored) {expression = null;}
 			valid = expression != null && type != null;
 			if (valid) {
 				MutableComponent pretty =
-				  ModRegistries.ABILITY_EXPRESSION_HIGHLIGHTER.parse(rawExpression).eval();
+				  AerobaticElytraRegistries.ABILITY_EXPRESSION_HIGHLIGHTER.parse(rawExpression).eval();
 				if (type.getDisplayType().isBool()) {
 					final String expr = pretty.getString().trim();
 					boolean val = false;
@@ -602,7 +601,7 @@ public interface IElytraSpec
 		
 		public boolean apply(IElytraSpec spec) {
 			final FixedNamespaceSet<Double> namespaceSet = expression.getNamespaceSet();
-			for (IAbility t: ModRegistries.getAbilities().values())
+			for (IAbility t: AerobaticElytraRegistries.getAbilities().values())
 				namespaceSet.set(t.getName(), (double) spec.getAbility(t));
 			
 			float result = (float) Mth.clamp(expression.eval(), min, max);
@@ -636,7 +635,7 @@ public interface IElytraSpec
 				return tt;
 			}
 			String name = type.getName();
-			ChatFormatting color = ModRegistries.ABILITY_EXPRESSION_HIGHLIGHTER.getNameColor(name);
+			ChatFormatting color = AerobaticElytraRegistries.ABILITY_EXPRESSION_HIGHLIGHTER.getNameColor(name);
 			if (prettyExpression != null) {
 				tt.add(stc(name).withStyle(color)
 				         .append(stc(" = ").withStyle(ChatFormatting.GOLD))

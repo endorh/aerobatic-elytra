@@ -1,11 +1,11 @@
 package endorh.aerobaticelytra.integration.jei.category;
 
 import endorh.aerobaticelytra.AerobaticElytra;
-import endorh.aerobaticelytra.client.ModResources;
 import endorh.aerobaticelytra.common.capability.IElytraSpec.Upgrade;
-import endorh.aerobaticelytra.common.item.ModItems;
+import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.recipe.ItemSelector;
 import endorh.aerobaticelytra.common.recipe.UpgradeRecipe;
+import endorh.aerobaticelytra.integration.jei.gui.JeiResources;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
@@ -29,13 +29,13 @@ public class UpgradeRecipeCategory extends BaseCategory<UpgradeRecipe> {
 	public static final RecipeType<UpgradeRecipe> TYPE = RecipeType.create(AerobaticElytra.MOD_ID, "upgrade", UpgradeRecipe.class);
 	
 	public UpgradeRecipeCategory() {
-		super(TYPE, ModResources::upgradeRecipeBg, ModItems.AEROBATIC_ELYTRA, false);
+		super(TYPE, JeiResources::upgradeRecipeBg, AerobaticElytraItems.AEROBATIC_ELYTRA, false);
 	}
 	
 	@Override public void setRecipe(@NotNull IRecipeLayoutBuilder builder, @NotNull UpgradeRecipe recipe, @NotNull IFocusGroup focuses) {
 		List<Ingredient> ingredients = new ArrayList<>(recipe.getIngredients());
 		List<ItemStack> inputs = ingredients.stream().flatMap(i -> Arrays.stream(i.getItems())).toList();
-		ingredients.add(Ingredient.of(ModItems.AEROBATIC_ELYTRA));
+		ingredients.add(Ingredient.of(AerobaticElytraItems.AEROBATIC_ELYTRA));
 		ItemStack output = recipe.getResultItem();
 		List<ItemStack> elytras = getAerobaticElytrasMatchingFocus(focuses.getFocuses(VanillaTypes.ITEM_STACK));
 		List<ItemStack> items = setTag(recipe, getItemMatchingFocus(

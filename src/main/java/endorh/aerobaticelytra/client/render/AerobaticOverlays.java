@@ -21,23 +21,21 @@ import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameType;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
-import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
-import net.minecraftforge.client.gui.ForgeIngameGui;
-import net.minecraftforge.client.gui.IIngameOverlay;
-import net.minecraftforge.client.gui.OverlayRegistry;
+import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
+import net.minecraftforge.client.event.RenderGuiOverlayEvent;
+import net.minecraftforge.client.gui.overlay.IGuiOverlay;
+import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 
 import static java.lang.Math.round;
 import static java.lang.System.currentTimeMillis;
 
 @EventBusSubscriber(value = Dist.CLIENT, modid = AerobaticElytra.MOD_ID)
 public class AerobaticOverlays {
-	public static final IIngameOverlay AEROBATIC_CROSSHAIR = new AerobaticCrosshairOverlay();
-	public static final IIngameOverlay FLIGHT_BAR = new FlightBarOverlay();
+	public static IGuiOverlay AEROBATIC_CROSSHAIR;
+	public static IGuiOverlay FLIGHT_BAR;
 	
 	private static long toastEnd = 0L;
 	private static long remainingToastTime = 0L;
@@ -46,6 +44,7 @@ public class AerobaticOverlays {
 	private static boolean awaitingDebugCrosshair = false;
 	private static boolean showingCrosshair = true;
 	private static boolean showingFlightBar = true;
+	private static boolean showingExperienceBar = true;
 	
 	public static void showModeToastIfRelevant(Player player, IFlightMode mode) {
 		if (AerobaticElytraLogic.hasAerobaticElytra(player))
@@ -59,13 +58,13 @@ public class AerobaticOverlays {
 	}
 	
 	@SubscribeEvent
-	public static void onRenderGameOverlayPost(RenderGameOverlayEvent.Post event) {
-		if (event.getType() == ElementType.ALL && remainingToastTime > 0) {
+	public static void onRenderGameOverlayPost(RenderGuiOverlayEvent.Post event) {
+		if (event.getOverlay() == VanillaGuiOverlay.AIR_LEVEL.type() && remainingToastTime > 0) {
 			Minecraft mc = Minecraft.getInstance();
 			Player pl = mc.player;
 			assert pl != null;
 			float alpha = remainingToastTime / (float) visual.mode_toast_length_ms;
-			renderToast(mode, alpha, event.getMatrixStack(), event.getWindow());
+			renderToast(mode, alpha, event.getPoseStack(), event.getWindow());
 			final long t = currentTimeMillis();
 			remainingToastTime = toastEnd - t;
 		}
@@ -95,8 +94,8 @@ public class AerobaticOverlays {
 	 * Enable and disable overlays.
 	 */
 	@SubscribeEvent
-	public static void onRenderGameOverlayPre(RenderGameOverlayEvent.Pre event) {
-		if (event.getType() == ElementType.ALL) {
+	public static void onRenderGameOverlayPre(RenderGuiOverlayEvent.Pre event) {
+		if (event.getOverlay() == VanillaGuiOverlay.AIR_LEVEL.type()) {
 			rotatingDebugCrosshair = false;
 			boolean showCrosshair = false;
 			if (visual.flight_crosshair) {
@@ -109,7 +108,7 @@ public class AerobaticOverlays {
 					if (opt.getCameraType().isFirstPerson()
 					    && mc.gameMode.getPlayerMode() != GameType.SPECTATOR
 					    && !opt.hideGui) {
-						if (opt.renderDebug && !pl.isReducedDebugInfo() && !opt.reducedDebugInfo) {
+						if (opt.renderDebug && !pl.isReducedDebugInfo() && !opt.reducedDebugInfo().get()) {
 							rotatingDebugCrosshair = true;
 						} else {
 							showCrosshair = true;
@@ -117,11 +116,8 @@ public class AerobaticOverlays {
 					}
 				}
 			}
-			if (showCrosshair != showingCrosshair || showCrosshair) {
-				OverlayRegistry.enableOverlay(AEROBATIC_CROSSHAIR, showCrosshair);
-				OverlayRegistry.enableOverlay(ForgeIngameGui.CROSSHAIR_ELEMENT, !showCrosshair);
+			if (showCrosshair != showingCrosshair || showCrosshair)
 				showingCrosshair = showCrosshair;
-			}
 			boolean showFlightBar = false;
 			boolean suppressExperienceBar = false;
 			if (visual.flight_bar != FlightBarDisplay.HIDE) {
@@ -136,14 +132,25 @@ public class AerobaticOverlays {
 				}
 			}
 			if (suppressExperienceBar) {
-				OverlayRegistry.enableOverlay(ForgeIngameGui.EXPERIENCE_BAR_ELEMENT, false);
+				showingExperienceBar = false;
 			} else if (showFlightBar != showingFlightBar) {
-				OverlayRegistry.enableOverlay(ForgeIngameGui.EXPERIENCE_BAR_ELEMENT, false);
+				showingExperienceBar = true;
 			}
-			if (showFlightBar != showingFlightBar) {
+			if (showFlightBar != showingFlightBar)
 				showingFlightBar = showFlightBar;
-				OverlayRegistry.enableOverlay(FLIGHT_BAR, showFlightBar);
-			}
+		}
+	}
+	
+	@SubscribeEvent
+	public static void onRenderOverlay(RenderGuiOverlayEvent.Pre event) {
+		if (event.getOverlay() == VanillaGuiOverlay.CROSSHAIR.type()) {
+			event.setCanceled(showingCrosshair);
+		} else if (event.getOverlay().overlay() == AEROBATIC_CROSSHAIR) {
+			event.setCanceled(!showingCrosshair);
+		} else if (event.getOverlay().overlay() == FLIGHT_BAR) {
+			event.setCanceled(!showingFlightBar);
+		} else if (event.getOverlay() == VanillaGuiOverlay.EXPERIENCE_BAR.type()) {
+			event.setCanceled(!showingExperienceBar);
 		}
 	}
 	
@@ -152,8 +159,8 @@ public class AerobaticOverlays {
 	 * {@link AerobaticOverlays#onPostDebugCrosshair} must be called after this on the same frame.
 	 */
 	@SubscribeEvent
-	public static void onPreDebugCrosshair(RenderGameOverlayEvent.PreLayer event) {
-		if (rotatingDebugCrosshair && event.getOverlay() == ForgeIngameGui.CROSSHAIR_ELEMENT) {
+	public static void onPreDebugCrosshair(RenderGuiOverlayEvent.Pre event) {
+		if (rotatingDebugCrosshair && event.getOverlay() == VanillaGuiOverlay.CROSSHAIR.type()) {
 			Window win = Minecraft.getInstance().getWindow();
 			int winW = win.getGuiScaledWidth();
 			int winH = win.getGuiScaledHeight();
@@ -171,8 +178,8 @@ public class AerobaticOverlays {
 	}
 	
 	@SubscribeEvent
-	public static void onPostDebugCrosshair(RenderGameOverlayEvent.PostLayer event) {
-		if (awaitingDebugCrosshair && event.getOverlay() == ForgeIngameGui.CROSSHAIR_ELEMENT) {
+	public static void onPostDebugCrosshair(RenderGuiOverlayEvent.Post event) {
+		if (awaitingDebugCrosshair && event.getOverlay() == VanillaGuiOverlay.CROSSHAIR.type()) {
 			RenderSystem.getModelViewStack().popPose();
 			awaitingDebugCrosshair = false;
 		}
@@ -180,10 +187,11 @@ public class AerobaticOverlays {
 	
 	@EventBusSubscriber(value = Dist.CLIENT, bus = Bus.MOD, modid = AerobaticElytra.MOD_ID)
 	public static class Registrar {
-		@SubscribeEvent
-		public static void onClientSetup(FMLClientSetupEvent event) {
-			OverlayRegistry.registerOverlayAbove(ForgeIngameGui.CROSSHAIR_ELEMENT, AerobaticCrosshairOverlay.NAME, AEROBATIC_CROSSHAIR);
-			OverlayRegistry.registerOverlayAbove(ForgeIngameGui.EXPERIENCE_BAR_ELEMENT, FlightBarOverlay.NAME, FLIGHT_BAR);
+		@SubscribeEvent public static void onRegisterOverlays(RegisterGuiOverlaysEvent event) {
+			event.registerAboveAll(
+			  AerobaticCrosshairOverlay.NAME, AEROBATIC_CROSSHAIR = new AerobaticCrosshairOverlay());
+			event.registerAboveAll(
+			  FlightBarOverlay.NAME, FLIGHT_BAR = new FlightBarOverlay());
 		}
 	}
 }

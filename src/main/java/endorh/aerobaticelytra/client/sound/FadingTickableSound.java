@@ -9,14 +9,13 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
 
 import static endorh.aerobaticelytra.common.capability.FlightDataCapability.getFlightDataOrDefault;
-
-import endorh.util.sound.PlayerTickableSound.IAttenuation;
 
 /**
  * Faded TickableSound with recovery
@@ -50,7 +49,7 @@ public abstract class FadingTickableSound extends PlayerTickableSound {
 	) {
 		this(
 		  player, sound, category, fadeIn, fadeOut, minimumLength, attenuation,
-		  sound.getRegistryName());
+		  ForgeRegistries.SOUND_EVENTS.getKey(sound));
 	}
 	
 	public FadingTickableSound(

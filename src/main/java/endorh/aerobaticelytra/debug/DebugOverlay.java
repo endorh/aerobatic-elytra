@@ -9,8 +9,7 @@ import endorh.aerobaticelytra.common.flight.WeatherData.WindRegion;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
-import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
+import net.minecraftforge.client.event.CustomizeGuiOverlayEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -28,11 +27,8 @@ public class DebugOverlay {
 	public static float animation = 0F;
 	
 	@SubscribeEvent
-	public static void onDebugScreenRenderEvent(RenderGameOverlayEvent.Text event) {
-		if (!Debug.isEnabled())
-			return;
-		if (event.getType() == ElementType.TEXT
-		    && !Minecraft.getInstance().options.renderDebug) {
+	public static void onDebugScreenRenderEvent(CustomizeGuiOverlayEvent.DebugText event) {
+		if (Debug.isEnabled() && !Minecraft.getInstance().options.renderDebug) {
 			event.getLeft().addAll(getLeftInfo());
 			event.getRight().addAll(getRightInfo());
 		}

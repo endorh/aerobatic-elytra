@@ -16,7 +16,6 @@ import net.minecraft.core.Direction.Axis;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -49,12 +48,11 @@ public class AerobaticElytraWingItem extends Item implements DyeableLeatherItem 
 	
 	public AerobaticElytraWingItem(Properties builder) {
 		super(builder.tab(CreativeModeTab.TAB_MISC));
-		setRegistryName(NAME);
 	}
 	
 	public static ItemStack createDebugWing() {
-		final ItemStack stack = new ItemStack(ModItems.AEROBATIC_ELYTRA_WING, 1);
-		stack.setHoverName(new TextComponent("Debug Wing"));
+		final ItemStack stack = new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA_WING, 1);
+		stack.setHoverName(Component.literal("Debug Wing"));
 		return stack;
 	}
 	
@@ -79,7 +77,7 @@ public class AerobaticElytraWingItem extends Item implements DyeableLeatherItem 
 	}
 	
 	public static boolean isDebugWing(ItemStack stack) {
-		return stack.getItem() == ModItems.AEROBATIC_ELYTRA_WING
+		return stack.getItem() == AerobaticElytraItems.AEROBATIC_ELYTRA_WING
 		       && "Debug Wing".equals(stack.getHoverName().getString());
 	}
 	
@@ -152,8 +150,8 @@ public class AerobaticElytraWingItem extends Item implements DyeableLeatherItem 
 	
 	@Override public int getMaxDamage(ItemStack stack) {
 		//noinspection ConstantConditions
-		if (ModItems.AEROBATIC_ELYTRA != null)
-			return ModItems.AEROBATIC_ELYTRA.getMaxDamage(stack);
+		if (AerobaticElytraItems.AEROBATIC_ELYTRA != null)
+			return AerobaticElytraItems.AEROBATIC_ELYTRA.getMaxDamage(stack);
 		return super.getMaxDamage(stack);
 	}
 	
@@ -199,7 +197,7 @@ public class AerobaticElytraWingItem extends Item implements DyeableLeatherItem 
 	}
 	
 	public AerobaticElytraItem getElytraItem() {
-		return ModItems.AEROBATIC_ELYTRA;
+		return AerobaticElytraItems.AEROBATIC_ELYTRA;
 	}
 	
 	public List<Component> getTooltipInfo(ItemStack stack, TooltipFlag flag) {

@@ -3,7 +3,8 @@ package endorh.aerobaticelytra.integration.colytra;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.ComponentContents;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
@@ -51,8 +52,9 @@ public class ClientColytraIntegration {
 			}
 		} else {
 			for (Component component : tooltip) {
-				if (component instanceof TranslatableComponent tr) {
-					if ("item.minecraft.elytra".equals(tr.getKey())) {
+				ComponentContents contents = component.getContents();
+				if (contents instanceof TranslatableContents) {
+					if ("item.minecraft.elytra".equals(((TranslatableContents) contents).getKey())) {
 						found = true;
 						break;
 					}

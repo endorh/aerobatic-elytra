@@ -29,7 +29,7 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
-import java.util.Set;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import static java.lang.Math.max;
@@ -49,13 +49,8 @@ public class JsonAbilityManager extends SimpleJsonResourceReloadListener {
 	  @NotNull Map<ResourceLocation, JsonElement> map, @NotNull ResourceManager resourceManager,
 	  @NotNull ProfilerFiller profiler
 	) {
-		//noinspection unchecked
-		final Set<EffectAbility> abilities = (Set<EffectAbility>) (Set<?>)
-		  map.entrySet().stream().map(
-		    e -> GSON.fromJson(e.getValue(), EffectAbility.class).setRegistryName(e.getKey())
-		  ).collect(Collectors.toSet());
-		
-		ModRegistries.reloadDatapackAbilities(abilities);
+		AerobaticElytraRegistries.reloadDatapackAbilities(map.entrySet().stream().collect(Collectors.toMap(
+		  Entry::getKey, e -> GSON.fromJson(e.getValue(), EffectAbility.class))));
 	}
 	
 	@SubscribeEvent

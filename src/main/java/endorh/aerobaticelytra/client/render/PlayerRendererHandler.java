@@ -26,7 +26,7 @@ public class PlayerRendererHandler {
 	 */
 	@SubscribeEvent
 	public static void onRenderPlayerEvent(RenderPlayerEvent.Pre event) {
-		Player player = event.getPlayer();
+		Player player = event.getEntity();
 		if (isAerobaticFlying(player)) {
 			final float yRot = player.getYRot();
 			player.yBodyRot = yRot;

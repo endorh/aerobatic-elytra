@@ -11,7 +11,6 @@ import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.registries.ForgeRegistryEntry;
 import net.minecraftforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,8 +19,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import static endorh.aerobaticelytra.AerobaticElytra.prefix;
 
 public class RepairRecipe extends CustomRecipe {
 	public static final Serializer SERIALIZER = new Serializer();
@@ -62,14 +59,7 @@ public class RepairRecipe extends CustomRecipe {
 		return SERIALIZER;
 	}
 	
-	public static class Serializer extends ForgeRegistryEntry<RecipeSerializer<?>>
-	  implements RecipeSerializer<RepairRecipe> {
-		public static final ResourceLocation NAME = prefix("repair_recipe");
-		
-		Serializer() {
-			setRegistryName(NAME);
-		}
-		
+	public static class Serializer implements RecipeSerializer<RepairRecipe> {
 		@Override public @NotNull RepairRecipe fromJson(
 		  @NotNull ResourceLocation recipeId, @NotNull JsonObject json
 		) {

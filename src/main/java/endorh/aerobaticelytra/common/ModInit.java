@@ -2,13 +2,12 @@ package endorh.aerobaticelytra.common;
 
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.config.ClientConfig;
-import endorh.aerobaticelytra.client.input.KeyHandler;
 import endorh.aerobaticelytra.client.item.AerobaticElytraBannerTextureManager;
 import endorh.aerobaticelytra.client.item.AerobaticElytraItemColor;
 import endorh.aerobaticelytra.client.item.AerobaticElytraWingItemColor;
 import endorh.aerobaticelytra.client.item.ModItemProperties;
 import endorh.aerobaticelytra.common.config.Config;
-import endorh.aerobaticelytra.common.item.ModItems;
+import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.recipe.ModRecipes;
 import endorh.aerobaticelytra.integration.colytra.ClientColytraIntegration;
 import endorh.aerobaticelytra.integration.colytra.ColytraIntegration;
@@ -17,7 +16,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.server.packs.resources.ReloadableResourceManager;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.ParticleFactoryRegisterEvent;
+import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -51,11 +50,11 @@ public class ModInit {
 	/**
 	 * Reload listeners must be registered before the {@link Minecraft} constructor
 	 * calls Minecraft#resourceManager#reloadResources.<br>
-	 * The best event for this is {@link ParticleFactoryRegisterEvent},
+	 * The best event for this is {@link RegisterParticleProvidersEvent},
 	 * even if unrelated to its intended usage
 	 */
 	@SubscribeEvent
-	public static void onMinecraftConstructed(ParticleFactoryRegisterEvent event) {
+	public static void onMinecraftConstructed(RegisterParticleProvidersEvent event) {
 		final ResourceManager resourceManager = Minecraft.getInstance().getResourceManager();
 		if (resourceManager instanceof ReloadableResourceManager)
 			AerobaticElytra.BANNER_TEXTURE_MANAGER = new AerobaticElytraBannerTextureManager((ReloadableResourceManager) resourceManager);
@@ -72,13 +71,11 @@ public class ModInit {
 	}
 	
 	public static void registerClient() {
-		AerobaticElytraItemColor.register(ModItems.AEROBATIC_ELYTRA);
-		AerobaticElytraWingItemColor.register(ModItems.AEROBATIC_ELYTRA_WING);
+		AerobaticElytraItemColor.register(AerobaticElytraItems.AEROBATIC_ELYTRA);
+		AerobaticElytraWingItemColor.register(AerobaticElytraItems.AEROBATIC_ELYTRA_WING);
 		AerobaticElytra.logRegistered("Item Colors");
 		ModItemProperties.register();
 		AerobaticElytra.logRegistered("Item Properties");
-		KeyHandler.register();
-		AerobaticElytra.logRegistered("Key Bindings");
 	}
 	
 	public static void registerIntegrations() {

@@ -13,16 +13,15 @@ import endorh.util.network.PacketBufferUtil;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.Color;
 import java.util.List;
 import java.util.Locale;
-
-import net.minecraft.core.particles.ParticleOptions.Deserializer;
 
 public class TrailParticleData implements ParticleOptions {
 	
@@ -92,7 +91,7 @@ public class TrailParticleData implements ParticleOptions {
 	@NotNull @Override public String writeToString() {
 		return String.format(
 		  Locale.ROOT, "%s %d %d %d %d %d %d %d %b %b %f %f %b %f %f %f %d",
-		  this.getType().getRegistryName(),
+		  ForgeRegistries.PARTICLE_TYPES.getKey(this.getType()),
 		  color.getRed(), color.getGreen(), color.getBlue(),
 		  fadeColor.getRed(), fadeColor.getGreen(), fadeColor.getBlue(),
 		  type, flicker, trail, size, partialTick, ownPlayer,
@@ -165,7 +164,7 @@ public class TrailParticleData implements ParticleOptions {
 			try {
 				side = RocketSide.values()[s];
 			} catch (IndexOutOfBoundsException e) {
-				Message msg = new TextComponent(
+				Message msg = Component.literal(
 				  "Unknown rocket side: " + s
 				  + ", Valid sides are 0-" + RocketSide.values().length);
 				throw new CommandSyntaxException(new SimpleCommandExceptionType(msg), msg);

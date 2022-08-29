@@ -8,10 +8,12 @@ import endorh.aerobaticelytra.common.config.Config.collision.leave_breaking;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.BlockPos.MutableBlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.Level;
@@ -31,7 +33,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
-import java.util.Random;
 
 import static endorh.aerobaticelytra.AerobaticElytra.prefix;
 
@@ -47,10 +48,10 @@ import static endorh.aerobaticelytra.AerobaticElytra.prefix;
  */
 public class BrokenLeavesBlock extends LeavesBlock implements EntityBlock {
 	public static final String NAME = "broken_leaves";
+	public static final ResourceLocation ID = prefix(NAME);
 	
 	public BrokenLeavesBlock() {
 		super(createBlockProperties());
-		setRegistryName(prefix(NAME));
 	}
 	
 	private static BlockBehaviour.Properties createBlockProperties() {
@@ -61,7 +62,8 @@ public class BrokenLeavesBlock extends LeavesBlock implements EntityBlock {
 		  .isSuffocating((state, reader, pos) -> false)
 		  .isViewBlocking((state, reader, pos) -> false)
 		  .randomTicks()
-		  .noCollission().noDrops();
+		  .noCollission()
+		  .requiresCorrectToolForDrops();
 	}
 	
 	@Nullable @Override
@@ -153,11 +155,11 @@ public class BrokenLeavesBlock extends LeavesBlock implements EntityBlock {
 	
 	@Override public void randomTick(
 	  @NotNull BlockState state, @NotNull ServerLevel world,
-	  @NotNull BlockPos pos, @NotNull Random random
+	  @NotNull BlockPos pos, @NotNull RandomSource random
 	) {
 		super.randomTick(state, world, pos, random);
 		if (!world.hasNeighborSignal(pos) &&
-		    world.random.nextFloat() > leave_breaking.regrow_chance) // 0.4F)
+		    random.nextFloat() > leave_breaking.regrow_chance) // 0.4F)
 			tryRestoreBrokenLeaves(world, pos);
 	}
 	

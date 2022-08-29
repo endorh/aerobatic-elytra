@@ -64,7 +64,7 @@ public class RotationHandler {
 		
 		// Inverted controls
 		final Options settings = Minecraft.getInstance().options;
-		int i_p = settings.invertYMouse ? -1 : 1;
+		int i_p = settings.invertYMouse().get() ? -1 : 1;
 		int i_r = 1;
 		if (ClientConfig.controls.invert_pitch)
 			i_p *= -1;
@@ -109,7 +109,7 @@ public class RotationHandler {
 		
 		// Inverted controls
 		final Options settings = Minecraft.getInstance().options;
-		int i_p = settings.invertYMouse ? -1 : 1;
+		int i_p = settings.invertYMouse().get() ? -1 : 1;
 		int i_r = 1;
 		if (ClientConfig.controls.invert_pitch)
 			i_p *= -1;

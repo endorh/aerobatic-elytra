@@ -26,6 +26,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -47,12 +48,12 @@ import net.minecraftforge.fml.DistExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
+import static endorh.aerobaticelytra.AerobaticElytra.prefix;
 import static endorh.aerobaticelytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
 import static endorh.aerobaticelytra.common.capability.ElytraSpecCapability.getElytraSpec;
 import static endorh.aerobaticelytra.common.capability.ElytraSpecCapability.getElytraSpecOrDefault;
@@ -64,21 +65,22 @@ import static endorh.util.text.TooltipUtil.shiftToExpand;
 import static java.lang.Math.*;
 
 public class AerobaticElytraItem extends ElytraItem implements Wearable, DyeableLeatherItem {
-	public AerobaticElytraItem() {
-		this(new Item.Properties());
-	}
 	
 	public static final String NAME = "aerobatic_elytra";
+	public static final ResourceLocation ID = prefix(NAME);
+	
 	public static int DEFAULT_COLOR = 0x8F9EAE;
 	protected final ElytraDyement dyement = new ElytraDyement();
 	
+	public AerobaticElytraItem() {
+		this(new Item.Properties());
+	}
 	public AerobaticElytraItem(Item.Properties builder) {
 		super(
 		  builder
 			 //.group(ItemGroup.TRANSPORTATION)
 			 .durability(432 * 3)
 			 .rarity(Rarity.RARE));
-		setRegistryName(NAME);
 		DispenserBlock.registerBehavior(this, ArmorItem.DISPENSE_ITEM_BEHAVIOR);
 	}
 	
@@ -398,7 +400,8 @@ public class AerobaticElytraItem extends ElytraItem implements Wearable, Dyeable
 	
 	public ResourceLocation getTextureLocation(BannerPattern pattern) {
 		return new ResourceLocation(
-		  AerobaticElytra.MOD_ID, "entity/aerobatic_elytra/" + pattern.getFilename());
+		  AerobaticElytra.MOD_ID, "entity/aerobatic_elytra/" + Registry.BANNER_PATTERN.getResourceKey(pattern)
+		  .map(k -> k.location().getPath()).orElse("missing"));
 	}
 	
 	@OnlyIn(Dist.CLIENT)
@@ -481,7 +484,8 @@ public class AerobaticElytraItem extends ElytraItem implements Wearable, Dyeable
 				tooltip.add(
 				  stc(extraIndent).append(
 					 ttc("block.minecraft.banner."
-					     + pattern.getFilename() + '.'
+					     + Registry.BANNER_PATTERN.getResourceKey(pattern)
+					       .map(k -> k.location().getPath()).orElse("missing") + '.'
 					     + color.getName())
 						.withStyle(ChatFormatting.GRAY)
 				  ));
@@ -500,7 +504,7 @@ public class AerobaticElytraItem extends ElytraItem implements Wearable, Dyeable
 	// Split wings
 	@SuppressWarnings("unused")
 	public AerobaticElytraWingItem getWingItem(ItemStack elytra, WingSide side) {
-		return ModItems.AEROBATIC_ELYTRA_WING;
+		return AerobaticElytraItems.AEROBATIC_ELYTRA_WING;
 	}
 	
 	public ItemStack getWing(ItemStack elytra, WingSide side) {

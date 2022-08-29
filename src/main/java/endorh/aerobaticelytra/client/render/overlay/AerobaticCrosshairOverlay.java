@@ -4,7 +4,6 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.common.capability.AerobaticDataCapability;
 import endorh.aerobaticelytra.common.capability.IAerobaticData;
 import endorh.aerobaticelytra.common.config.Config.aerobatic.tilt;
@@ -13,18 +12,21 @@ import endorh.util.math.Vec3f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraftforge.client.gui.ForgeIngameGui;
-import net.minecraftforge.client.gui.IIngameOverlay;
+import net.minecraftforge.client.gui.overlay.ForgeGui;
+import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 
+import static endorh.aerobaticelytra.AerobaticElytra.prefix;
 import static endorh.aerobaticelytra.client.ModResources.FLIGHT_GUI_ICONS_LOCATION;
 
-public class AerobaticCrosshairOverlay implements IIngameOverlay {
-	public static final String NAME = AerobaticElytra.MOD_ID + ":crosshair";
+public class AerobaticCrosshairOverlay implements IGuiOverlay {
+	public static final String NAME = "crosshair";
+	public static final ResourceLocation ID = prefix(NAME);
 	private static final Vec3f ZP = Vec3f.ZP.get();
 	
 	@Override public void render(
-	  ForgeIngameGui gui, PoseStack mStack, float partialTicks, int width, int height
+	  ForgeGui gui, PoseStack mStack, float partialTicks, int width, int height
 	) {
 		RenderSystem.setShaderTexture(0, FLIGHT_GUI_ICONS_LOCATION);
 		RenderSystem.enableBlend();

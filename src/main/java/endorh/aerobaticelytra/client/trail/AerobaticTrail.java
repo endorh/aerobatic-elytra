@@ -17,7 +17,8 @@ import endorh.aerobaticelytra.common.particle.TrailParticleData;
 import endorh.util.math.Vec3d;
 import endorh.util.math.Vec3f;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -390,8 +391,8 @@ public class AerobaticTrail {
 			this.wingSide = wingSide;
 		}
 		
-		public TranslatableComponent getDisplayName() {
-			return new TranslatableComponent(translationKey);
+		public MutableComponent getDisplayName() {
+			return Component.translatable(translationKey);
 		}
 		
 		public RocketSide opposite() {

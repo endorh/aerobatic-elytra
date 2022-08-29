@@ -70,7 +70,7 @@ public class AerobaticFlight {
 	
 	private static final Vec3f ZERO = Vec3f.ZERO.get();
 	
-	// Cache vector instances (since Minecraft is not multi-threaded)
+	// Cache vector instances (since Minecraft is not multithreaded)
 	private static final Vec3f prevMotionVec = Vec3f.ZERO.get();
 	private static final Vec3f motionVec = Vec3f.ZERO.get();
 	private static final Vec3f gravAccVec = Vec3f.ZERO.get();

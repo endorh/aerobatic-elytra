@@ -13,15 +13,17 @@ import endorh.aerobaticelytra.common.config.Const;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraftforge.client.gui.ForgeIngameGui;
-import net.minecraftforge.client.gui.IIngameOverlay;
+import net.minecraftforge.client.gui.overlay.ForgeGui;
+import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 
 import static endorh.aerobaticelytra.client.ModResources.FLIGHT_GUI_ICONS_LOCATION;
 import static java.lang.Math.round;
 
-public class FlightBarOverlay implements IIngameOverlay {
-	public static final String NAME = AerobaticElytra.MOD_ID + ":flight_bar";
+public class FlightBarOverlay implements IGuiOverlay {
+	public static final String NAME = "flight_bar";
+	public static final ResourceLocation ID = AerobaticElytra.prefix(NAME);
 	
 	private static float lastBoost = 0F;
 	private static float lastProp = 0F;
@@ -30,7 +32,7 @@ public class FlightBarOverlay implements IIngameOverlay {
 	private static float lastPartialTicks = 0F;
 	
 	@Override public void render(
-	  ForgeIngameGui gui, PoseStack mStack, float partialTicks, int width, int height
+	  ForgeGui gui, PoseStack mStack, float partialTicks, int width, int height
 	) {
 		LocalPlayer player = Minecraft.getInstance().player;
 		assert player != null;

@@ -2,8 +2,8 @@ package endorh.aerobaticelytra.common.recipe;
 
 import com.google.gson.*;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
+import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.item.ElytraDyement.WingSide;
-import endorh.aerobaticelytra.common.item.ModItems;
 import endorh.util.network.PacketBufferUtil;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.FriendlyByteBuf;
@@ -24,8 +24,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-
-import static endorh.aerobaticelytra.AerobaticElytra.prefix;
 
 /**
  * Splits an Aerobatic Elytra in two wings, preserving their
@@ -90,7 +88,7 @@ public class SplitRecipe extends CustomRecipe {
 		super(idIn);
 		this.recipeItems = addElytra(recipeItems);
 		ingredients = recipeItems;
-		ItemStack elytra = new ItemStack(ModItems.AEROBATIC_ELYTRA, 1);
+		ItemStack elytra = new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA, 1);
 		if (recipeItems.stream().anyMatch(p -> p.getLeft().test(elytra)))
 			throw new JsonSyntaxException(
 			  "An AerobaticElytraSplitRecipe cannot contain any aerobatic elytra ingredient");
@@ -100,7 +98,7 @@ public class SplitRecipe extends CustomRecipe {
 	  NonNullList<Pair<Ingredient, LeaveData>> ingredients
 	) {
 		final NonNullList<Ingredient> res = NonNullList.withSize(ingredients.size() + 1, Ingredient.EMPTY);
-		res.set(0, Ingredient.of(ModItems.AEROBATIC_ELYTRA));
+		res.set(0, Ingredient.of(AerobaticElytraItems.AEROBATIC_ELYTRA));
 		for (int i = 0, s = ingredients.size(); i < s; i++)
 			res.set(i + 1, ingredients.get(i).getLeft());
 		return res;
@@ -173,8 +171,8 @@ public class SplitRecipe extends CustomRecipe {
 					ItemStack left = stack.copy();
 					left.setDamageValue(left.getDamageValue() + data.damage);
 					rem.set(j, left);
-				} else if (stack.hasContainerItem())
-					rem.set(j, stack.getContainerItem());
+				} else if (stack.hasCraftingRemainingItem())
+					rem.set(j, stack.getCraftingRemainingItem());
 			}
 		}
 		return rem;
@@ -194,10 +192,8 @@ public class SplitRecipe extends CustomRecipe {
 	}
 	
 	public static class Serializer extends SimpleRecipeSerializer<SplitRecipe> {
-		public static final ResourceLocation NAME = prefix("split_recipe");
 		public Serializer() {
 			super(id -> null);
-			setRegistryName(NAME);
 		}
 		
 		@Override
@@ -209,7 +205,7 @@ public class SplitRecipe extends CustomRecipe {
 			if (list.size() > MAX_WIDTH * MAX_HEIGHT - 1) {
 				throw new JsonParseException("Too many ingredients for split recipe, the max is " + (SplitRecipe.MAX_WIDTH * SplitRecipe.MAX_HEIGHT - 1));
 			} else {
-				ItemStack elytra = new ItemStack(ModItems.AEROBATIC_ELYTRA);
+				ItemStack elytra = new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA);
 				if (list.stream().anyMatch(p -> p.getLeft().test(elytra)))
 					throw new JsonParseException(
 					  "Aerobatic elytra split recipes cannot contain any aerobatic elytra ingredient");

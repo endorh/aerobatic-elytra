@@ -19,7 +19,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Type;
 import java.util.Arrays;
@@ -175,17 +174,6 @@ public interface IEffectAbility extends IDatapackAbility {
 		
 		@Override public float getDefault() {
 			return defValue;
-		}
-		
-		@Override public IAbility setRegistryName(ResourceLocation name) {
-			if (registryName != null)
-				throw new IllegalStateException("Cannot set the registry name of an EffectAbility");
-			registryName = name;
-			return this;
-		}
-		
-		@Nullable @Override public ResourceLocation getRegistryName() {
-			return registryName;
 		}
 		
 		@Override public String toString() {

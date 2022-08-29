@@ -1,21 +1,21 @@
 package endorh.aerobaticelytra.common.flight.mode;
 
-import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.render.model.IElytraPose;
-import endorh.aerobaticelytra.common.registry.ModRegistries;
+import endorh.aerobaticelytra.common.registry.AerobaticElytraRegistries;
 import net.minecraft.client.player.RemotePlayer;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.registries.IForgeRegistryEntry;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+
+import static endorh.aerobaticelytra.common.registry.AerobaticElytraRegistries.FLIGHT_MODE_REGISTRY;
 
 /**
  * Abstract flight mode.<br>
@@ -28,7 +28,7 @@ import java.util.function.Predicate;
  * {@link IFlightMode#getFlightHandler()} and its variants.<br>
  * Flight modes may also provide their own {@link IElytraPose}s for players.<br>
  */
-public interface IFlightMode extends IForgeRegistryEntry<IFlightMode> {
+public interface IFlightMode {
 	/**
 	 * Whether should the mode be used as one of the candidates
 	 * for the "toggle flight mode" key<br>
@@ -52,14 +52,6 @@ public interface IFlightMode extends IForgeRegistryEntry<IFlightMode> {
 	default boolean canBeUsedBy(Player player) {
 		return true;
 	}
-	
-	@Override default Class<IFlightMode> getRegistryType() {
-		return IFlightMode.class;
-	}
-	
-	@Override IFlightMode setRegistryName(ResourceLocation name);
-	
-	@NotNull @Override ResourceLocation getRegistryName();
 	
 	default int getRegistryOrder() {
 		return 0;
@@ -87,7 +79,7 @@ public interface IFlightMode extends IForgeRegistryEntry<IFlightMode> {
 	
 	/**
 	 * @return The method used to handle a non-flight tick for a
-	 * {@link net.minecraft.client.entity.player.RemoteClientPlayerEntity}
+	 * {@link RemotePlayer}
 	 */
 	@Nullable default Consumer<Player> getRemoteNonFlightHandler() {
 		return null;
@@ -141,11 +133,11 @@ public interface IFlightMode extends IForgeRegistryEntry<IFlightMode> {
 	 * Usually, the step is either +1 or -1
 	 */
 	default IFlightMode next(Predicate<IFlightMode> predicate, int step) {
-		int l = ModRegistries.FLIGHT_MODE_LIST.size();
-		int o = ModRegistries.FLIGHT_MODE_LIST.indexOf(this);
+		int l = AerobaticElytraRegistries.FLIGHT_MODE_LIST.size();
+		int o = AerobaticElytraRegistries.FLIGHT_MODE_LIST.indexOf(this);
 		for (int i = 0; i < l; i++) {
 			IFlightMode mode =
-			  ModRegistries.FLIGHT_MODE_LIST.get((o + (i + 1) * step + l) % l);
+			  AerobaticElytraRegistries.FLIGHT_MODE_LIST.get((o + (i + 1) * step + l) % l);
 			if (predicate.test(mode))
 				return mode;
 		}
@@ -156,7 +148,8 @@ public interface IFlightMode extends IForgeRegistryEntry<IFlightMode> {
 	 * Serialize to packet
 	 */
 	default void write(FriendlyByteBuf buf) {
-		buf.writeResourceLocation(getRegistryName());
+		buf.writeResourceLocation(Objects.requireNonNull(
+		  FLIGHT_MODE_REGISTRY.getKey(this), "Unregistered flight mode " + this));
 	}
 	
 	/**
@@ -164,10 +157,10 @@ public interface IFlightMode extends IForgeRegistryEntry<IFlightMode> {
 	 */
 	static IFlightMode read(FriendlyByteBuf buf) {
 		final ResourceLocation regName = buf.readResourceLocation();
-		if (!ModRegistries.FLIGHT_MODE_REGISTRY.containsKey(regName))
+		if (!FLIGHT_MODE_REGISTRY.containsKey(regName))
 			throw new IllegalArgumentException(
 			  "Invalid FlightMode registry name in packet: '" + regName + "'");
-		return ModRegistries.FLIGHT_MODE_REGISTRY.getValue(regName);
+		return FLIGHT_MODE_REGISTRY.getValue(regName);
 	}
 	
 	/**
@@ -175,20 +168,5 @@ public interface IFlightMode extends IForgeRegistryEntry<IFlightMode> {
 	 */
 	default @Nullable IElytraPose getElytraPose(Player player) {
 		return null;
-	}
-	
-	/**
-	 * Boilerplate for enum based IFlightMode s, taking use of the Enum#name() method
-	 */
-	interface IEnumFlightMode extends IFlightMode {
-		String name();
-		
-		@NotNull @Override default ResourceLocation getRegistryName() {
-			return new ResourceLocation(AerobaticElytra.MOD_ID, name().toLowerCase());
-		}
-		
-		@Override default IFlightMode setRegistryName(ResourceLocation name) {
-			throw new IllegalArgumentException("Cannot set registry name of enum flight mode!");
-		}
 	}
 }

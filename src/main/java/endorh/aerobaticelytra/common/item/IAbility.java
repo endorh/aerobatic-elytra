@@ -2,14 +2,13 @@ package endorh.aerobaticelytra.common.item;
 
 import com.google.common.base.CaseFormat;
 import endorh.aerobaticelytra.AerobaticElytra;
-import endorh.aerobaticelytra.common.registry.ModRegistries;
+import endorh.aerobaticelytra.common.registry.AerobaticElytraRegistries;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
-import net.minecraftforge.registries.IForgeRegistryEntry;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
@@ -17,29 +16,33 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import static endorh.aerobaticelytra.AerobaticElytra.prefix;
 import static endorh.aerobaticelytra.common.item.IAbility.DisplayType.*;
 import static endorh.util.text.TextUtil.stc;
 import static endorh.util.text.TextUtil.ttc;
 
 @EventBusSubscriber(modid = AerobaticElytra.MOD_ID)
-public interface IAbility extends IForgeRegistryEntry<IAbility> {
+public interface IAbility {
 	/**
 	 * Name used to parse in JSON, should be unique.<br>
 	 */
 	String getName();
 	
+	default @Nullable ResourceLocation getRegistryKey() {
+		return AerobaticElytraRegistries.getAbilityKey(this);
+	}
+	
 	default String fullName() {
-		assert getRegistryName() != null;
-		return getRegistryName().getNamespace().replace('`', '_') + ':' + getName();
+		ResourceLocation key = Objects.requireNonNull(getRegistryKey(), "Unregistered ability " + this);
+		return key.getNamespace().replace('`', '_') + ':' + getName();
 	}
 	
 	default void write(FriendlyByteBuf buf) {
-		buf.writeResourceLocation(Objects.requireNonNull(getRegistryName()));
+		buf.writeResourceLocation(Objects.requireNonNull(
+		  getRegistryKey(), "Unregistered ability " + this));
 	}
 	
 	static IAbility read(FriendlyByteBuf buf) {
-		return ModRegistries.getAbility(buf.readResourceLocation());
+		return AerobaticElytraRegistries.getAbility(buf.readResourceLocation());
 	}
 	
 	/**
@@ -57,10 +60,6 @@ public interface IAbility extends IForgeRegistryEntry<IAbility> {
 	 */
 	float getDefault();
 	
-	@Override default Class<IAbility> getRegistryType() {
-		return IAbility.class;
-	}
-	
 	/**
 	 * Color used in syntax highlighting
 	 * If null, a random one is chosen by hashing the name
@@ -77,7 +76,6 @@ public interface IAbility extends IForgeRegistryEntry<IAbility> {
 		AQUATIC(ChatFormatting.BLUE, 1F, SCALE_BOOL),
 		TRAIL(ChatFormatting.DARK_PURPLE, 1F, SCALE);
 		
-		private final ResourceLocation registryName;
 		private final String jsonName;
 		private final String translationKey;
 		private final ChatFormatting color;
@@ -85,7 +83,6 @@ public interface IAbility extends IForgeRegistryEntry<IAbility> {
 		private final DisplayType displayType;
 		
 		Ability(ChatFormatting color, float defaultValue, DisplayType type) {
-			this.registryName = prefix(name().toLowerCase());
 			this.jsonName = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, name());
 			this.translationKey = AerobaticElytra.MOD_ID + ".abilities." + name().toLowerCase();
 			this.color = color;
@@ -101,11 +98,6 @@ public interface IAbility extends IForgeRegistryEntry<IAbility> {
 		
 		@Override public ChatFormatting getColor() { return color; }
 		@Override public float getDefault() { return defaultValue; }
-		
-		@Override public ResourceLocation getRegistryName() { return registryName; }
-		@Override public IAbility setRegistryName(ResourceLocation name) {
-			throw new IllegalStateException("Cannot set registry name of enum registry entry");
-		}
 	}
 	
 	/**
@@ -244,10 +236,10 @@ public interface IAbility extends IForgeRegistryEntry<IAbility> {
 	}
 	
 	static IAbility fromName(String name) {
-		return ModRegistries.getAbilityByName(name);
+		return AerobaticElytraRegistries.getAbilityByName(name);
 	}
 	
 	static boolean isDefined(String jsonName) {
-		return ModRegistries.hasAbilityName(jsonName);
+		return AerobaticElytraRegistries.hasAbilityName(jsonName);
 	}
 }

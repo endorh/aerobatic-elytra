@@ -9,9 +9,9 @@ import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkAccess;
-import net.minecraftforge.event.TickEvent.WorldTickEvent;
-import net.minecraftforge.event.world.ChunkEvent;
-import net.minecraftforge.event.world.WorldEvent;
+import net.minecraftforge.event.TickEvent.LevelTickEvent;
+import net.minecraftforge.event.level.ChunkEvent;
+import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.network.NetworkDirection;
@@ -195,21 +195,21 @@ public class WeatherData {
 		
 		@SubscribeEvent
 		public static void onChunkLoad(ChunkEvent.Load event) {
-			if (!(event.getWorld() instanceof Level))
+			if (!(event.getLevel() instanceof Level))
 				return;
 			CHUNK_UPDATE_TASKS.add(ChunkUpdateTask.load(event.getChunk()));
 		}
 		
 		@SubscribeEvent
 		public static void onChunkUnload(ChunkEvent.Unload event) {
-			if (!(event.getWorld() instanceof Level))
+			if (!(event.getLevel() instanceof Level))
 				return;
 			CHUNK_UPDATE_TASKS.add(ChunkUpdateTask.unload(event.getChunk()));
 		}
 		
 		@SubscribeEvent
-		public static void onWorldUnload(WorldEvent.Unload event) {
-			if (!(event.getWorld() instanceof Level world))
+		public static void onWorldUnload(LevelEvent.Unload event) {
+			if (!(event.getLevel() instanceof Level world))
 				return;
 			if (weatherRegions.containsKey(world)) {
 				final Map<Pair<Long, Long>, WeatherRegion> worldRegions = weatherRegions.get(world);
@@ -406,10 +406,10 @@ public class WeatherData {
 	}
 	
 	@SubscribeEvent
-	public static void tick(WorldTickEvent event) {
+	public static void tick(LevelTickEvent event) {
 		WeatherRegion.handleChunkTasks();
 		if (event.side.isServer()) {
-			Level world = event.world;
+			Level world = event.level;
 			if (weatherRegions.containsKey(world)) {
 				final Map<Pair<Long, Long>, WeatherRegion> worldRegions = weatherRegions.get(world);
 				//noinspection SynchronizationOnLocalVariableOrMethodParameter

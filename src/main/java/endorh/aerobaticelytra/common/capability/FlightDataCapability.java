@@ -4,10 +4,8 @@ import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.sound.FadingTickableSound;
 import endorh.aerobaticelytra.common.flight.mode.FlightModes;
 import endorh.aerobaticelytra.common.flight.mode.IFlightMode;
-import endorh.aerobaticelytra.common.registry.ModRegistries;
 import endorh.util.capability.SerializableCapabilityWrapperProvider;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -24,7 +22,10 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+
+import static endorh.aerobaticelytra.common.registry.AerobaticElytraRegistries.FLIGHT_MODE_REGISTRY;
 
 @EventBusSubscriber(modid=AerobaticElytra.MOD_ID)
 public class FlightDataCapability {
@@ -104,7 +105,7 @@ public class FlightDataCapability {
 	 */
 	@SubscribeEvent
 	public static void onClonePlayer(PlayerEvent.Clone event) {
-		IFlightData playerData = requireFlightData(event.getPlayer());
+		IFlightData playerData = requireFlightData(event.getEntity());
 		playerData.copy(requireFlightData(event.getOriginal()));
 		playerData.reset();
 	}
@@ -146,7 +147,8 @@ public class FlightDataCapability {
 		
 		@Override public CompoundTag serializeCapability() {
 			CompoundTag nbt = new CompoundTag();
-			nbt.putString(TAG_FLIGHT_MODE, getFlightMode().getRegistryName().toString());
+			nbt.putString(TAG_FLIGHT_MODE, Objects.requireNonNull(
+			  FLIGHT_MODE_REGISTRY.getKey(getFlightMode())).toString());
 			return nbt;
 		}
 		
@@ -155,10 +157,10 @@ public class FlightDataCapability {
 			ResourceLocation regName = new ResourceLocation(nbt.getString(TAG_FLIGHT_MODE));
 			// Registry entries may vary between world loads
 			
-			if (!ModRegistries.FLIGHT_MODE_REGISTRY.containsKey(regName)) {
+			if (!FLIGHT_MODE_REGISTRY.containsKey(regName)) {
 				setFlightMode(FlightModes.ELYTRA_FLIGHT);
 			} else {
-				IFlightMode mode = ModRegistries.FLIGHT_MODE_REGISTRY.getValue(regName);
+				IFlightMode mode = FLIGHT_MODE_REGISTRY.getValue(regName);
 				if (mode == null)
 					mode = FlightModes.ELYTRA_FLIGHT;
 				setFlightMode(mode);

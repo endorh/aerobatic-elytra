@@ -2,8 +2,8 @@ package endorh.aerobaticelytra.debug;
 
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.event.TickEvent.LevelTickEvent;
 import net.minecraftforge.event.TickEvent.Phase;
-import net.minecraftforge.event.TickEvent.WorldTickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,10 +14,10 @@ public class DebugTicker {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	@SubscribeEvent
-	public static void onTick(WorldTickEvent event) {
+	public static void onTick(LevelTickEvent event) {
 		if (!Debug.isEnabled())
 			return;
-		final List<? extends Player> players = event.world.players();
+		final List<? extends Player> players = event.level.players();
 		if (!players.isEmpty()) {
 			ServerPlayer player = (ServerPlayer) players.get(0);
 			if (event.phase == Phase.START) {

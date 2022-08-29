@@ -23,7 +23,7 @@ public class SyncHandler {
 	@SubscribeEvent
 	public static void onStartTracking(StartTracking event) {
 		if (event.getTarget() instanceof Player tracked) {
-			ServerPlayer player = (ServerPlayer)event.getPlayer();
+			ServerPlayer player = (ServerPlayer) event.getEntity();
 			new SFlightDataPacket(tracked).sendTo(player);
 			new SAerobaticDataPacket(tracked).sendTo(player);
 		}
@@ -31,17 +31,17 @@ public class SyncHandler {
 	
 	@SubscribeEvent
 	public static void onPlayerLogin(PlayerLoggedInEvent event) {
-		update((ServerPlayer)event.getPlayer());
+		update((ServerPlayer) event.getEntity());
 	}
 	
 	@SubscribeEvent
 	public static void onPlayerRespawn(PlayerRespawnEvent event) {
-		reset((ServerPlayer)event.getPlayer());
+		reset((ServerPlayer) event.getEntity());
 	}
 	
 	@SubscribeEvent
 	public static void onPlayerChangedDimension(PlayerChangedDimensionEvent event) {
-		// reset((ServerPlayerEntity)event.getPlayer());
+		// reset((ServerPlayerEntity) event.getEntity());
 	}
 	
 	private static void update(ServerPlayer player) {

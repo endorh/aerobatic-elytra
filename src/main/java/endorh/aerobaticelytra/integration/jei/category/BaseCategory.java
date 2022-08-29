@@ -1,10 +1,10 @@
 package endorh.aerobaticelytra.integration.jei.category;
 
 import com.mojang.datafixers.util.Pair;
-import endorh.aerobaticelytra.client.ModResources;
 import endorh.aerobaticelytra.client.config.ClientConfig.style.dark_theme;
 import endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiHelper;
 import endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiPlugin;
+import endorh.aerobaticelytra.integration.jei.gui.JeiResources;
 import endorh.aerobaticelytra.integration.jei.gui.ShapelessDecoratedDrawable;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -16,8 +16,6 @@ import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import mezz.jei.api.registration.IRecipeRegistration;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -62,7 +60,7 @@ public abstract class BaseCategory<T> implements IRecipeCategory<T> {
 		final String shortName = type.getUid().getPath().replace("/", ".");
 		this.type = type;
 		if (shapeless)
-			backgroundProvider = ModResources.shapeless(backgroundProvider);
+			backgroundProvider = JeiResources.shapeless(backgroundProvider);
 		final IDrawable[] bg = backgroundProvider.apply(guiHelper);
 		background = bg[0];
 		background_dark = bg[1];
@@ -71,17 +69,12 @@ public abstract class BaseCategory<T> implements IRecipeCategory<T> {
 		this.shapeless = shapeless;
 	}
 	
-	
-	@SuppressWarnings("removal") @Override public @NotNull ResourceLocation getUid() {
-		return type.getUid();
-	}
-	
-	@SuppressWarnings("removal") @Override public @NotNull Class<? extends T> getRecipeClass() {
-		return type.getRecipeClass();
+	@Override public @NotNull RecipeType<T> getRecipeType() {
+		return type;
 	}
 	
 	@Override public @NotNull Component getTitle() {
-		return new TranslatableComponent(localizedNameKey);
+		return Component.translatable(localizedNameKey);
 	}
 	
 	@Override public @NotNull IDrawable getBackground() {
@@ -108,7 +101,7 @@ public abstract class BaseCategory<T> implements IRecipeCategory<T> {
 	) {
 		//noinspection unchecked
 		registerRecipes(reg, recipeManager, recipeManager.getRecipes().stream()
-		  .filter(getRecipeClass()::isInstance)
+		  .filter(r -> getRecipeType().getRecipeClass().isInstance(r))
 		  .sorted(Comparator.comparing(
 			 r -> r.getIngredients().stream().map(Ingredient::toString)
 				.collect(Collectors.joining(";"))

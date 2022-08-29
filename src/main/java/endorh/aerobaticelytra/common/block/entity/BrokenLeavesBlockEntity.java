@@ -51,7 +51,7 @@ public class BrokenLeavesBlockEntity extends BlockEntity {
 	
 	@Override public void onLoad() {
 		super.onLoad();
-		final CompoundTag nbt = getTileData();
+		final CompoundTag nbt = getPersistentData();
 		if (nbt.contains(TAG_REPLACED_LEAVES))
 			replacedLeaves = NbtUtils.readBlockState(nbt.getCompound(TAG_REPLACED_LEAVES));
 	}

@@ -3,9 +3,9 @@ package endorh.aerobaticelytra.client.item;
 import endorh.aerobaticelytra.client.config.ClientConfig.style.visibility;
 import endorh.aerobaticelytra.common.capability.IElytraSpec;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
+import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.item.ElytraDyement;
 import endorh.aerobaticelytra.common.item.IAbility.Ability;
-import endorh.aerobaticelytra.common.item.ModItems;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.item.ClampedItemPropertyFunction;
 import net.minecraft.client.renderer.item.ItemProperties;
@@ -32,11 +32,11 @@ public class ModItemProperties {
 	private static final ElytraDyement dyement = new ElytraDyement();
 	
 	public static void register() {
-		reg(ModItems.AEROBATIC_ELYTRA, BROKEN_PROPERTY, ModItemProperties::getBrokenProperty);
-		reg(ModItems.AEROBATIC_ELYTRA, FUEL_PROPERTY, ModItemProperties::getFuelProperty);
-		reg(ModItems.AEROBATIC_ELYTRA, HIDE_FUEL_PROPERTY, ModItemProperties::getHideFuelProperty);
-		reg(ModItems.AEROBATIC_ELYTRA, EQUAL_WINGS_PROPERTY, ModItemProperties::getEqualWingsProperty);
-		reg(ModItems.AEROBATIC_ELYTRA_WING, BROKEN_PROPERTY, ModItemProperties::getBrokenProperty);
+		reg(AerobaticElytraItems.AEROBATIC_ELYTRA, BROKEN_PROPERTY, ModItemProperties::getBrokenProperty);
+		reg(AerobaticElytraItems.AEROBATIC_ELYTRA, FUEL_PROPERTY, ModItemProperties::getFuelProperty);
+		reg(AerobaticElytraItems.AEROBATIC_ELYTRA, HIDE_FUEL_PROPERTY, ModItemProperties::getHideFuelProperty);
+		reg(AerobaticElytraItems.AEROBATIC_ELYTRA, EQUAL_WINGS_PROPERTY, ModItemProperties::getEqualWingsProperty);
+		reg(AerobaticElytraItems.AEROBATIC_ELYTRA_WING, BROKEN_PROPERTY, ModItemProperties::getBrokenProperty);
 	}
 	
 	private static void reg(
