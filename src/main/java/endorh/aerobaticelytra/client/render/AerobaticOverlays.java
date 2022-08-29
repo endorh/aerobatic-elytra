@@ -17,6 +17,7 @@ import endorh.aerobaticelytra.common.flight.AerobaticFlight;
 import endorh.aerobaticelytra.common.flight.mode.IFlightMode;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
+import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameType;
 import net.minecraftforge.api.distmarker.Dist;
@@ -32,7 +33,6 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 
 import static java.lang.Math.round;
 import static java.lang.System.currentTimeMillis;
-import static net.minecraft.client.gui.GuiComponent.blit;
 
 @EventBusSubscriber(value = Dist.CLIENT, modid = AerobaticElytra.MOD_ID)
 public class AerobaticOverlays {
@@ -85,7 +85,7 @@ public class AerobaticOverlays {
 		if (u != -1 && v != -1) {
 			int x = round((winW - iW) * visual.mode_toast_x_fraction);
 			int y = round((winH - iH) * visual.mode_toast_y_fraction);
-			blit(mStack, x, y, u, v, iW, iH, tW, tH);
+			GuiComponent.blit(mStack, x, y, u, v, iW, iH, tW, tH);
 		}
 		RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
 		RenderSystem.disableBlend();

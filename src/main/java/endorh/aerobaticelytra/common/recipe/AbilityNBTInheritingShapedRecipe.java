@@ -31,8 +31,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static endorh.aerobaticelytra.common.capability.ElytraSpecCapability.getElytraSpecOrDefault;
-import static net.minecraft.util.GsonHelper.getAsJsonArray;
-import static net.minecraft.util.GsonHelper.getAsJsonObject;
 
 public class AbilityNBTInheritingShapedRecipe extends NBTInheritingShapedRecipe {
 	public static final Serializer SERIALIZER = new Serializer();
@@ -78,21 +76,22 @@ public class AbilityNBTInheritingShapedRecipe extends NBTInheritingShapedRecipe 
 			String group = GsonHelper.getAsString(json, "group", "");
 			boolean allowUnknown = GsonHelper.getAsBoolean(json, "allow_unknown_items", false);
 			Map<String, Ingredient> map = NBTInheritingShapedRecipe.Serializer
-			  .deserializeKey(getAsJsonObject(json, "key"), allowUnknown);
+			  .deserializeKey(GsonHelper.getAsJsonObject(json, "key"), allowUnknown);
 			String[] pat = NBTInheritingShapedRecipe.Serializer.shrink(
-			  NBTInheritingShapedRecipe.Serializer.patternFromJson(getAsJsonArray(json, "pattern")));
+			  NBTInheritingShapedRecipe.Serializer.patternFromJson(
+			    GsonHelper.getAsJsonArray(json, "pattern")));
 			int w = pat[0].length();
 			int h = pat.length;
 			NonNullList<int[]> nbtSources = NBTInheritingShapedRecipe.Serializer
 			  .nbtSourcesFromPattern(pat);
 			NonNullList<Ingredient> list = NBTInheritingShapedRecipe.Serializer
 			  .deserializeIngredients(pat, map, w, h);
-			ItemStack output = ShapedRecipe.itemStackFromJson(getAsJsonObject(json, "result"));
+			ItemStack output = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "result"));
 			CompoundTag outputTag = NBTInheritingShapedRecipe.Serializer
 			  .nbtFromJson(json);
 			Pair<Map<IAbility, Float>, Map<String, Float>> abilities = abilitiesFromJson(
-			  getAsJsonObject(
-				 getAsJsonObject(json, "result"), "abilities")
+			  GsonHelper.getAsJsonObject(
+				 GsonHelper.getAsJsonObject(json, "result"), "abilities")
 			);
 			
 			return new AbilityNBTInheritingShapedRecipe(

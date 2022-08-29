@@ -11,14 +11,14 @@ import endorh.aerobaticelytra.common.capability.IAerobaticData;
 import endorh.aerobaticelytra.common.config.Config.aerobatic.propulsion;
 import endorh.aerobaticelytra.common.config.Const;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.util.Mth;
 import net.minecraftforge.client.gui.ForgeIngameGui;
 import net.minecraftforge.client.gui.IIngameOverlay;
 
 import static endorh.aerobaticelytra.client.ModResources.FLIGHT_GUI_ICONS_LOCATION;
 import static java.lang.Math.round;
-import static net.minecraft.client.gui.GuiComponent.blit;
-import static net.minecraft.util.Mth.lerp;
 
 public class FlightBarOverlay implements IIngameOverlay {
 	public static final String NAME = AerobaticElytra.MOD_ID + ":flight_bar";
@@ -74,25 +74,25 @@ public class FlightBarOverlay implements IIngameOverlay {
 		}
 		lastPartialTicks = partialTicks;
 		
-		prop = round(lerp(partialTicks, lastProp, prop));
-		boost = round(lerp(partialTicks, lastBoost, boost));
+		prop = round(Mth.lerp(partialTicks, lastProp, prop));
+		boost = round(Mth.lerp(partialTicks, lastBoost, boost));
 		
 		if (cap > 0) {
 			// Base
-			blit(mStack, x, y, 0, 50, (int)barLength - 1, barHeight, tW, tH);
+			GuiComponent.blit(mStack, x, y, 0, 50, (int)barLength - 1, barHeight, tW, tH);
 			// Propulsion
 			if (prop > 0)
-				blit(mStack, x, y, 0, 55, prop, barHeight, tW, tH);
+				GuiComponent.blit(mStack, x, y, 0, 55, prop, barHeight, tW, tH);
 			else if (prop < 0)
-				blit(mStack, x, y, 0, 60, -prop, barHeight, tW, tH);
+				GuiComponent.blit(mStack, x, y, 0, 60, -prop, barHeight, tW, tH);
 			// Boost
 			if (boost > 0)
-				blit(mStack, x, y, 0, 65, boost, barHeight, tW, tH);
+				GuiComponent.blit(mStack, x, y, 0, 65, boost, barHeight, tW, tH);
 			// Brake
 			if (brake_heat > 0)
-				blit(mStack, x, y, 0, brake_cooldown? 75 : 70, brake_heat, barHeight, tW, tH);
+				GuiComponent.blit(mStack, x, y, 0, brake_cooldown? 75 : 70, brake_heat, barHeight, tW, tH);
 			// Overlay
-			blit(mStack, x, y, 0, 80, (int)barLength - 1, barHeight, tW, tH);
+			GuiComponent.blit(mStack, x, y, 0, 80, (int)barLength - 1, barHeight, tW, tH);
 		}
 		
 		RenderSystem.disableBlend();

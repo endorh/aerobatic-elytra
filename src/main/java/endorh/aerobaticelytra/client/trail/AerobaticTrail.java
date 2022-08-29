@@ -18,6 +18,7 @@ import endorh.util.math.Vec3d;
 import endorh.util.math.Vec3f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -28,7 +29,6 @@ import java.util.*;
 import static endorh.aerobaticelytra.common.capability.IElytraSpec.RocketStar.*;
 import static java.lang.Math.max;
 import static java.lang.Math.round;
-import static net.minecraft.util.Mth.clampedLerp;
 
 public class AerobaticTrail {
 	public static final Map<Byte, BoostShape> SHAPES = new HashMap<>();
@@ -216,7 +216,7 @@ public class AerobaticTrail {
 		final Color fadeColor = new Color(pickRandom(explosion.fadeColors).orElse(color.getRGB()));
 		final int life = round(getLife(explosion.type, explosion.trail) * spec.getAbility(
 		  Ability.TRAIL));
-		final float size = clampedLerp(0.4F, 0.5F, spec.getAbility(Ability.TRAIL));
+		final float size = Mth.clampedLerp(0.4F, 0.5F, spec.getAbility(Ability.TRAIL));
 		
 		return shouldGenerate(explosion.type, partial)? Optional
 		  .of(new TrailParticleData(
@@ -286,7 +286,7 @@ public class AerobaticTrail {
 		final Color color = new Color(pickRandom(explosion.colors).orElse(Color.WHITE.getRGB()));
 		final Color fadeColor = new Color(pickRandom(explosion.fadeColors).orElse(color.getRGB()));
 		final int life = round(getLife(explosion.type, explosion.trail) * trailMod * 0.6F);
-		final float size = clampedLerp(0.4F, 0.5F, trailMod);
+		final float size = Mth.clampedLerp(0.4F, 0.5F, trailMod);
 		
 		return new TrailParticleData(
 		  color, fadeColor, explosion.type, explosion.flicker, false, life, size,

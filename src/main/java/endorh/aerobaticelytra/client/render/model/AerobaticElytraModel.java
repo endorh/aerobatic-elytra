@@ -21,6 +21,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.core.Rotations;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraftforge.api.distmarker.Dist;
@@ -35,8 +36,6 @@ import java.util.List;
 
 import static endorh.aerobaticelytra.client.render.model.AerobaticElytraModelPose.ModelRotation.*;
 import static endorh.aerobaticelytra.common.capability.FlightDataCapability.getFlightDataOrDefault;
-import static net.minecraft.util.Mth.abs;
-import static net.minecraft.util.Mth.lerp;
 
 /**
  * Acrnet.minecraft.util.Mth Designed with the help of Tabula 8.0.0<br>
@@ -382,32 +381,32 @@ public class AerobaticElytraModel<T extends LivingEntity> extends ElytraModel<T>
     public void interpolate(
       float t, AerobaticElytraModelPose pre, AerobaticElytraModelPose pos
     ) {
-        leftWing.xRot = lerp(t, pre.leftWing.x, pos.leftWing.x);
-        leftWing.yRot = lerp(t, pre.leftWing.y, pos.leftWing.y);
-        leftWing.zRot = lerp(t, pre.leftWing.z, pos.leftWing.z);
-        leftWing.x = lerp(t, pre.leftWing.origin.x, pos.leftWing.origin.x);
-        leftWing.y = lerp(t, pre.leftWing.origin.y, pos.leftWing.origin.y);
-        leftWing.z = lerp(t, pre.leftWing.origin.z, pos.leftWing.origin.z);
-        leftTip.xRot = lerp(t, pre.leftTip, pos.leftTip);
-        leftRoll.yRot = lerp(t, pre.leftRoll, pos.leftRoll);
-        leftPitch.yRot = lerp(t, pre.leftPitch, pos.leftPitch);
+        leftWing.xRot = Mth.lerp(t, pre.leftWing.x, pos.leftWing.x);
+        leftWing.yRot = Mth.lerp(t, pre.leftWing.y, pos.leftWing.y);
+        leftWing.zRot = Mth.lerp(t, pre.leftWing.z, pos.leftWing.z);
+        leftWing.x = Mth.lerp(t, pre.leftWing.origin.x, pos.leftWing.origin.x);
+        leftWing.y = Mth.lerp(t, pre.leftWing.origin.y, pos.leftWing.origin.y);
+        leftWing.z = Mth.lerp(t, pre.leftWing.origin.z, pos.leftWing.origin.z);
+        leftTip.xRot = Mth.lerp(t, pre.leftTip, pos.leftTip);
+        leftRoll.yRot = Mth.lerp(t, pre.leftRoll, pos.leftRoll);
+        leftPitch.yRot = Mth.lerp(t, pre.leftPitch, pos.leftPitch);
         
-        rightWing.xRot = lerp(t, pre.rightWing.x, pos.rightWing.x);
-        rightWing.yRot = lerp(t, pre.rightWing.y, pos.rightWing.y);
-        rightWing.zRot = lerp(t, pre.rightWing.z, pos.rightWing.z);
-        rightWing.x = lerp(t, pre.rightWing.origin.x, pos.rightWing.origin.x);
-        rightWing.y = lerp(t, pre.rightWing.origin.y, pos.rightWing.origin.y);
-        rightWing.z = lerp(t, pre.rightWing.origin.z, pos.rightWing.origin.z);
-        rightTip.xRot = lerp(t, pre.rightTip, pos.rightTip);
-        rightRoll.yRot = lerp(t, pre.rightRoll, pos.rightRoll);
-        rightPitch.yRot = lerp(t, pre.rightPitch, pos.rightPitch);
+        rightWing.xRot = Mth.lerp(t, pre.rightWing.x, pos.rightWing.x);
+        rightWing.yRot = Mth.lerp(t, pre.rightWing.y, pos.rightWing.y);
+        rightWing.zRot = Mth.lerp(t, pre.rightWing.z, pos.rightWing.z);
+        rightWing.x = Mth.lerp(t, pre.rightWing.origin.x, pos.rightWing.origin.x);
+        rightWing.y = Mth.lerp(t, pre.rightWing.origin.y, pos.rightWing.origin.y);
+        rightWing.z = Mth.lerp(t, pre.rightWing.origin.z, pos.rightWing.origin.z);
+        rightTip.xRot = Mth.lerp(t, pre.rightTip, pos.rightTip);
+        rightRoll.yRot = Mth.lerp(t, pre.rightRoll, pos.rightRoll);
+        rightPitch.yRot = Mth.lerp(t, pre.rightPitch, pos.rightPitch);
         
-        leftRocket.xRot = lerp(t, pre.leftRocket.x, pos.leftRocket.x);
-        leftRocket.yRot = lerp(t, pre.leftRocket.y, pos.leftRocket.y);
-        leftRocket.zRot = lerp(t, pre.leftRocket.z, pos.leftRocket.z);
-        rightRocket.xRot = lerp(t, pre.rightRocket.x, pos.rightRocket.x);
-        rightRocket.yRot = lerp(t, pre.rightRocket.y, pos.rightRocket.y);
-        rightRocket.zRot = lerp(t, pre.rightRocket.z, pos.rightRocket.z);
+        leftRocket.xRot = Mth.lerp(t, pre.leftRocket.x, pos.leftRocket.x);
+        leftRocket.yRot = Mth.lerp(t, pre.leftRocket.y, pos.leftRocket.y);
+        leftRocket.zRot = Mth.lerp(t, pre.leftRocket.z, pos.leftRocket.z);
+        rightRocket.xRot = Mth.lerp(t, pre.rightRocket.x, pos.rightRocket.x);
+        rightRocket.yRot = Mth.lerp(t, pre.rightRocket.y, pos.rightRocket.y);
+        rightRocket.zRot = Mth.lerp(t, pre.rightRocket.z, pos.rightRocket.z);
     }
     
     @SuppressWarnings("SuspiciousNameCombination")
@@ -436,15 +435,15 @@ public class AerobaticElytraModel<T extends LivingEntity> extends ElytraModel<T>
     }
     
     public void updatePartVisibility() {
-        leftPitch.visible = abs(leftPitch.yRot) <= DEG_175;
-        rightPitch.visible = abs(rightPitch.yRot) <= DEG_175;
+        leftPitch.visible = Mth.abs(leftPitch.yRot) <= DEG_175;
+        rightPitch.visible = Mth.abs(rightPitch.yRot) <= DEG_175;
         leftRoll.visible =
-          (abs(leftTip.xRot) <= DEG_90 || abs(leftRoll.yRot) <= DEG_90)
-          && abs(leftRoll.yRot) <= DEG_175;
+          (Mth.abs(leftTip.xRot) <= DEG_90 || Mth.abs(leftRoll.yRot) <= DEG_90)
+          && Mth.abs(leftRoll.yRot) <= DEG_175;
         rightRoll.visible =
-          (abs(rightTip.xRot) <= DEG_90 || abs(rightRoll.yRot) <= DEG_90)
-          && abs(rightRoll.yRot) <= DEG_175;
-        leftTip.visible = abs(leftTip.xRot) <= DEG_175;
-        rightTip.visible = abs(rightTip.xRot) <= DEG_175;
+          (Mth.abs(rightTip.xRot) <= DEG_90 || Mth.abs(rightRoll.yRot) <= DEG_90)
+          && Mth.abs(rightRoll.yRot) <= DEG_175;
+        leftTip.visible = Mth.abs(leftTip.xRot) <= DEG_175;
+        rightTip.visible = Mth.abs(rightTip.xRot) <= DEG_175;
     }
 }

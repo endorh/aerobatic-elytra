@@ -8,6 +8,7 @@ import endorh.aerobaticelytra.common.config.Const;
 import endorh.flightcore.events.SetupRotationsRenderPlayerEvent;
 import endorh.util.math.Interpolator;
 import net.minecraft.ChatFormatting;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.PlayerModelPart;
 import net.minecraftforge.api.distmarker.Dist;
@@ -17,7 +18,6 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 
 import static endorh.aerobaticelytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
 import static endorh.aerobaticelytra.common.flight.AerobaticFlight.isAerobaticFlying;
-import static net.minecraft.util.Mth.lerp;
 
 @EventBusSubscriber(value=Dist.CLIENT, modid=AerobaticElytra.MOD_ID)
 public class PlayerRendererHandler {
@@ -55,8 +55,8 @@ public class PlayerRendererHandler {
 			if (t < 1F) {
 				// Smooth lift off
 				float i = Interpolator.quadInOut(t);
-				yaw = lerp(i, (180F - player.yRotO), yaw);
-				pitch = lerp(i, 0F, pitch);
+				yaw = Mth.lerp(i, (180F - player.yRotO), yaw);
+				pitch = Mth.lerp(i, 0F, pitch);
 				// No need to smooth the roll since it starts being 0
 			}
 			

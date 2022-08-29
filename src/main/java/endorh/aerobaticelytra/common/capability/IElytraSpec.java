@@ -25,6 +25,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.GsonHelper;
+import net.minecraft.util.Mth;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.FireworkRocketItem;
 import org.jetbrains.annotations.Nullable;
@@ -37,7 +38,6 @@ import static endorh.util.text.TextUtil.ttc;
 import static endorh.util.text.TooltipUtil.altToExpand;
 import static endorh.util.text.TooltipUtil.ctrlToExpand;
 import static java.lang.String.format;
-import static net.minecraft.util.Mth.clamp;
 
 /**
  * Holds Aerobatic Elytra specifications<br>
@@ -605,7 +605,7 @@ public interface IElytraSpec
 			for (IAbility t: ModRegistries.getAbilities().values())
 				namespaceSet.set(t.getName(), (double) spec.getAbility(t));
 			
-			float result = (float) clamp(expression.eval(), min, max);
+			float result = (float) Mth.clamp(expression.eval(), min, max);
 			if (spec.getAbility(type) != result) {
 				spec.setAbility(type, result);
 				return true;

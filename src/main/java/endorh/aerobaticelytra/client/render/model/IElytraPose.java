@@ -4,6 +4,7 @@ import endorh.aerobaticelytra.common.capability.AerobaticDataCapability;
 import endorh.aerobaticelytra.common.capability.IAerobaticData;
 import endorh.aerobaticelytra.common.config.Config;
 import endorh.util.math.Vec3f;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.player.Player;
@@ -11,8 +12,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static endorh.aerobaticelytra.client.render.model.AerobaticElytraModelPose.ModelRotation.*;
-import static net.minecraft.util.Mth.lerp;
-import static net.minecraft.util.Mth.wrapDegrees;
 
 /**
  * Describes a pose for the {@link AerobaticElytraModel}
@@ -196,18 +195,18 @@ public interface IElytraPose {
 				
 				yTilt = Math.min(1F - stand.getHeadPose().getZ() / 180F, 1F);
 				
-				leftTipExtra = wrapDegrees(stand.getLeftArmPose().getZ() + 10F) * TO_RAD;
-				rightTipExtra = wrapDegrees(stand.getRightArmPose().getZ() - 10F) * TO_RAD;
+				leftTipExtra = Mth.wrapDegrees(stand.getLeftArmPose().getZ() + 10F) * TO_RAD;
+				rightTipExtra = Mth.wrapDegrees(stand.getRightArmPose().getZ() - 10F) * TO_RAD;
 			} else return pose;
 			
 			yTilt = Math.max(yTilt, 0.3F);
 			yTilt = 1F - (1F - yTilt) * (1F - yTilt);
 			float pitchSens = 0.8F;
 			float rollSens = 0.8F;
-			float targetX = lerp(yTilt, DEG_15, DEG_20);
-			float targetZ = lerp(yTilt, -DEG_15, -DEG_90);
-			pose.leftWing.x = lerp(0.1F, pose.leftWing.x, targetX);
-			pose.leftWing.z = lerp(0.1F, pose.leftWing.z, targetZ);
+			float targetX = Mth.lerp(yTilt, DEG_15, DEG_20);
+			float targetZ = Mth.lerp(yTilt, -DEG_15, -DEG_90);
+			pose.leftWing.x = Mth.lerp(0.1F, pose.leftWing.x, targetX);
+			pose.leftWing.z = Mth.lerp(0.1F, pose.leftWing.z, targetZ);
 			pose.rightWing.x = pose.leftWing.x;
 			pose.rightWing.z = -pose.leftWing.z;
 			

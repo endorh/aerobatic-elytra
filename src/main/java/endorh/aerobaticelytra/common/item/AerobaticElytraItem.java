@@ -62,8 +62,6 @@ import static endorh.util.text.TextUtil.stc;
 import static endorh.util.text.TextUtil.ttc;
 import static endorh.util.text.TooltipUtil.shiftToExpand;
 import static java.lang.Math.*;
-import static net.minecraft.util.Mth.hsvToRgb;
-import static net.minecraft.util.Mth.lerp;
 
 public class AerobaticElytraItem extends ElytraItem implements Wearable, DyeableLeatherItem {
 	public AerobaticElytraItem() {
@@ -175,7 +173,7 @@ public class AerobaticElytraItem extends ElytraItem implements Wearable, Dyeable
 	@Override
 	public int getBarColor(@NotNull ItemStack stack) {
 		if (shouldFuelReplaceDurability(stack)) {
-			return hsvToRgb(lerp(
+			return Mth.hsvToRgb(Mth.lerp(
 			  1F - getFuelFraction(stack), 0.58F, 0.7F), 0.8F, 1F);
 		} else return super.getBarColor(stack);
 	}

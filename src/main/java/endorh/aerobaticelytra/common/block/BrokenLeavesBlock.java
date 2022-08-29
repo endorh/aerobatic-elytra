@@ -2,15 +2,16 @@ package endorh.aerobaticelytra.common.block;
 
 import endorh.aerobaticelytra.client.block.BrokenLeavesBlockModel;
 import endorh.aerobaticelytra.client.block.ModBlockColors;
+import endorh.aerobaticelytra.common.block.entity.BrokenLeavesBlockEntity;
 import endorh.aerobaticelytra.common.config.Config;
 import endorh.aerobaticelytra.common.config.Config.collision.leave_breaking;
-import endorh.aerobaticelytra.common.block.entity.BrokenLeavesBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.BlockPos.MutableBlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.Level;
@@ -33,7 +34,6 @@ import java.util.Optional;
 import java.util.Random;
 
 import static endorh.aerobaticelytra.AerobaticElytra.prefix;
-import static net.minecraft.tags.BlockTags.LEAVES;
 
 /**
  * A block that replaces temporarily other leaves blocks,
@@ -105,7 +105,7 @@ public class BrokenLeavesBlock extends LeavesBlock implements EntityBlock {
 			return;
 		}
 		final BlockState prevBlockState = world.getBlockState(pos);
-		if (!prevBlockState.is(LEAVES))
+		if (!prevBlockState.is(BlockTags.LEAVES))
 			throw new IllegalArgumentException(
 			  "Attempt to replace non leaves block with broken leaves");
 		final Integer dist = prevBlockState.getValue(DISTANCE);
@@ -113,7 +113,7 @@ public class BrokenLeavesBlock extends LeavesBlock implements EntityBlock {
 		for (Direction direction: Direction.values()) {
 			cursor.setWithOffset(pos, direction);
 			final BlockState adj = world.getBlockState(cursor);
-			if (adj.is(LEAVES) && !adj.getValue(PERSISTENT)
+			if (adj.is(BlockTags.LEAVES) && !adj.getValue(PERSISTENT)
 			    && adj.getValue(DISTANCE) < 7 && adj.getValue(DISTANCE) > dist)
 				breakLeaves(world, cursor);
 		}

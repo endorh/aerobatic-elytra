@@ -21,6 +21,7 @@ import endorh.aerobaticelytra.common.registry.ModRegistries;
 import endorh.aerobaticelytra.debug.Debug;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.*;
@@ -58,8 +59,6 @@ import static com.mojang.brigadier.arguments.StringArgumentType.*;
 import static endorh.util.command.QualifiedNameArgumentType.optionallyQualified;
 import static endorh.util.text.TextUtil.stc;
 import static endorh.util.text.TextUtil.ttc;
-import static net.minecraft.commands.Commands.argument;
-import static net.minecraft.commands.Commands.literal;
 
 @EventBusSubscriber(modid = AerobaticElytra.MOD_ID)
 public class AerobaticElytraCommand {
@@ -88,75 +87,75 @@ public class AerobaticElytraCommand {
 	
 	public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
 		LiteralArgumentBuilder<CommandSourceStack> aerobaticElytraCommand =
-		  literal("aerobaticelytra")
+		  Commands.literal("aerobaticelytra")
 		    .requires(cs -> cs.hasPermission(2))
 		    .then(
-		      literal("datapack").then(
-			     literal("install").then(
-		          argument("datapack", string())
+		      Commands.literal("datapack").then(
+			     Commands.literal("install").then(
+			       Commands.argument("datapack", string())
 		            .suggests(SUGGEST_PACKS)
 		            .executes(cc -> installPack(cc, getString(cc, "datapack"))))
-		      ).then(literal("list").executes(AerobaticElytraCommand::listPacks))
+		      ).then(Commands.literal("list").executes(AerobaticElytraCommand::listPacks))
 		    ).then(
-			   literal("debug").then(
-				  literal("show").executes(cc -> enableDebug(cc, true))
+			   Commands.literal("debug").then(
+				  Commands.literal("show").executes(cc -> enableDebug(cc, true))
 		      ).then(
-				  literal("hide").executes(cc -> enableDebug(cc, false))
+				  Commands.literal("hide").executes(cc -> enableDebug(cc, false))
 		      ).then(
-				  literal("give").executes(AerobaticElytraCommand::giveDebugWing))
+				  Commands.literal("give").executes(AerobaticElytraCommand::giveDebugWing))
 		  ).then(
-			   literal("ability").then(
-				  literal("get").then(
-		        argument("target", EntityArgument.entity())
+			   Commands.literal("ability").then(
+				  Commands.literal("get").then(
+				    Commands.argument("target", EntityArgument.entity())
 		          .executes(AerobaticElytraCommand::getAbilities).then(
-				      argument("ability_name", optionallyQualified())
+						  Commands.argument("ability_name", optionallyQualified())
 			           .suggests(SUGGEST_ABILITIES)
 			           .executes(cc -> getAbility(
 			             cc, getString(cc, "ability_name")))))
 		    ).then(
-				  literal("set").then(
-		        argument("target", EntityArgument.entities()).then(
-			       argument("ability_name", optionallyQualified())
+				  Commands.literal("set").then(
+				    Commands.argument("target", EntityArgument.entities()).then(
+					   Commands.argument("ability_name", optionallyQualified())
 				      .suggests(SUGGEST_ABILITIES).then(
-				        argument("ability_value", floatArg()).executes(
+						    Commands.argument("ability_value", floatArg()).executes(
 						    cc -> setAbility(
 						      cc, getString(cc, "ability_name"), getFloat(cc, "ability_value"))))))
 		    ).then(
-				  literal("reset").then(
-		        argument("target", EntityArgument.entities())
+				  Commands.literal("reset").then(
+				    Commands.argument("target", EntityArgument.entities())
 				    .executes(AerobaticElytraCommand::resetAbilities)
 				    .then(
-				      argument("ability_name", optionallyQualified())
+				      Commands.argument("ability_name", optionallyQualified())
 					     .suggests(SUGGEST_ABILITIES)
 					     .executes(
 						    cc -> resetAbility(cc, getString(cc, "ability_name")))))
 		    ).then(
-				  literal("remove").then(
-		        argument("target", EntityArgument.entities())
+				  Commands.literal("remove").then(
+				    Commands.argument("target", EntityArgument.entities())
 				    .executes(AerobaticElytraCommand::removeAbilities)
 				    .then(
-				      argument("ability_name", optionallyQualified())
+				      Commands.argument("ability_name", optionallyQualified())
 					     .suggests(SUGGEST_ABILITIES)
 					     .executes(cc -> removeAbility(cc, getString(cc, "ability_name")))))
 		    ).then(
-				  literal("unknown").then(
-				    literal("get").then(
-			       argument("target", EntityArgument.entity())
+				  Commands.literal("unknown").then(
+				    Commands.literal("get").then(
+				      Commands.argument("target", EntityArgument.entity())
 				      .executes(AerobaticElytraCommand::getUnknownAbilities).then(
-					     argument("ability_name", optionallyQualified())
+						    Commands.argument("ability_name", optionallyQualified())
 					     .executes(cc -> getUnknownAbility(cc, getString(cc, "ability_name")))))
 		      ).then(
-				    literal("set").then(
-			       argument("target", EntityArgument.entities()).then(
-				      argument("ability_name", optionallyQualified()).then(
-					     argument("ability_value", floatArg())
+				    Commands.literal("set").then(
+				      Commands.argument("target", EntityArgument.entities()).then(
+					     Commands.argument("ability_name", optionallyQualified()).then(
+						    Commands.argument("ability_value", floatArg())
 				          .executes(cc -> setUnknownAbility(
 				            cc, getString(cc, "ability_name"), getFloat(cc, "ability_value"))))))
 		      ).then(
-				    literal("remove").then(
-			       argument("target", EntityArgument.entities())
+				    Commands.literal("remove").then(
+				      Commands.argument("target", EntityArgument.entities())
 			         .executes(AerobaticElytraCommand::removeUnknownAbilities).then(
-					     argument("ability_name", optionallyQualified())
+						    Commands.argument("ability_name", optionallyQualified())
 			             .executes(cc -> removeUnknownAbility(cc, getString(cc, "ability_name"))))))));
 		dispatcher.register(aerobaticElytraCommand);
 	}

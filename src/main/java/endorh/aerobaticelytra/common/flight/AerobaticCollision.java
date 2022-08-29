@@ -7,19 +7,21 @@ import endorh.aerobaticelytra.common.config.Config.collision.slime_bounce;
 import endorh.aerobaticelytra.common.config.Const;
 import endorh.aerobaticelytra.common.flight.AerobaticFlight.VectorBase;
 import endorh.util.math.Vec3f;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Direction.Axis;
+import net.minecraft.core.Direction.AxisDirection;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.util.Mth;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SlimeBlock;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.tags.BlockTags;
-import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.core.Direction;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,11 +30,6 @@ import java.util.function.Predicate;
 import static endorh.aerobaticelytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
 import static endorh.util.math.Vec3f.forAxis;
 import static java.lang.Math.max;
-import static net.minecraft.core.Direction.fromAxisAndDirection;
-import static net.minecraft.util.Mth.*;
-
-import net.minecraft.core.Direction.Axis;
-import net.minecraft.core.Direction.AxisDirection;
 
 /**
  * Aerobatic collisions logic
@@ -121,7 +118,7 @@ public class AerobaticCollision {
 			  damageModifier * collisionStrength * Config.collision.damage);
 		}
 		
-		data.setLiftCut(clamp(data.getLiftCut() + 0.2F, 0F, 1F));
+		data.setLiftCut(Mth.clamp(data.getLiftCut() + 0.2F, 0F, 1F));
 		
 		// Stop flying when on ground
 		if (player.isOnGround() && player.isEffectiveAi() && !preventLanding)
@@ -134,7 +131,7 @@ public class AerobaticCollision {
 		boolean bounced = false;
 		for (int includeCorners = 0; includeCorners < 2; includeCorners++) {
 			for (Axis axis: Axis.values()) {
-				final Direction dir = fromAxisAndDirection(axis, AxisDirection.POSITIVE);
+				final Direction dir = Direction.fromAxisAndDirection(axis, AxisDirection.POSITIVE);
 				if (shouldBounceDir(player, dir, false) ^
 				    shouldBounceDir(player, dir.getOpposite(), includeCorners != 0)) {
 					bounce(player, base, motionVec, axis);
@@ -157,7 +154,7 @@ public class AerobaticCollision {
 		final Vec3f look = base.look.copy();
 		look.sub(ax, ax.dot(look));
 		if (!look.isZero()) {
-			final float bounceTilt = clamp(
+			final float bounceTilt = Mth.clamp(
 			  (1F - Math.abs(base.look.dot(ax)))
 			  * getAerobaticDataOrDefault(player).getTiltRoll()
 			  * Const.SLIME_BOUNCE_ROLLING_TILT_SENS,
@@ -177,7 +174,7 @@ public class AerobaticCollision {
 		}
 		player.level.playSound(
 		  player, player.blockPosition(), SoundEvents.SLIME_BLOCK_HIT,
-		  SoundSource.PLAYERS, clampedLerp(0F, 1F, motionVec.norm() / 1.6F), 1F);
+		  SoundSource.PLAYERS, Mth.clampedLerp(0F, 1F, motionVec.norm() / 1.6F), 1F);
 		player.awardStat(FlightStats.AEROBATIC_SLIME_BOUNCES, 1);
 	}
 	
@@ -213,9 +210,9 @@ public class AerobaticCollision {
 	  Level world, AABB aaBB, Predicate<BlockState> selector
 	) {
 		List<BlockPos> list = new ArrayList<>();
-		for (int i = floor(aaBB.minX); i < ceil(aaBB.maxX); i++) {
-			for (int j = floor(aaBB.minY); j < ceil(aaBB.maxY); j++) {
-				for (int k = floor(aaBB.minZ); k < ceil(aaBB.maxZ); k++) {
+		for (int i = Mth.floor(aaBB.minX); i < Mth.ceil(aaBB.maxX); i++) {
+			for (int j = Mth.floor(aaBB.minY); j < Mth.ceil(aaBB.maxY); j++) {
+				for (int k = Mth.floor(aaBB.minZ); k < Mth.ceil(aaBB.maxZ); k++) {
 					BlockPos pos = new BlockPos(i, j, k);
 					if (selector.test(world.getBlockState(pos)))
 						list.add(pos);

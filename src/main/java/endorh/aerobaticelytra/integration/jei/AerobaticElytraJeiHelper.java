@@ -30,8 +30,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static net.minecraft.world.item.ItemStack.EMPTY;
-
 @SuppressWarnings("SameParameterValue")
 public class AerobaticElytraJeiHelper {
 	public static final Random RANDOM = new Random();
@@ -66,19 +64,19 @@ public class AerobaticElytraJeiHelper {
 				if (RANDOM.nextFloat() > 0.5F)
 					l.set(
 					  i, TrailRecipe.apply(l.get(i),
-					                       new ItemStack[]{makeRocket(), EMPTY, EMPTY, EMPTY}));
+					                       new ItemStack[]{makeRocket(), ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY}));
 				if (RANDOM.nextFloat() > 0.5F)
 					l.set(
 					  i, TrailRecipe.apply(l.get(i),
-					                       new ItemStack[]{EMPTY, makeRocket(), EMPTY, EMPTY}));
+					                       new ItemStack[]{ItemStack.EMPTY, makeRocket(), ItemStack.EMPTY, ItemStack.EMPTY}));
 				if (RANDOM.nextFloat() > 0.8F)
 					l.set(
 					  i, TrailRecipe.apply(l.get(i),
-					                       new ItemStack[]{EMPTY, EMPTY, makeRocket(), EMPTY}));
+					                       new ItemStack[]{ItemStack.EMPTY, ItemStack.EMPTY, makeRocket(), ItemStack.EMPTY}));
 				if (RANDOM.nextFloat() > 0.8F)
 					l.set(
 					  i, TrailRecipe.apply(l.get(i),
-					                       new ItemStack[]{EMPTY, EMPTY, EMPTY, makeRocket()}));
+					                       new ItemStack[]{ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY, makeRocket()}));
 				final IElytraSpec spec = ElytraSpecCapability.getElytraSpecOrDefault(l.get(i));
 				spec.setAbility(Ability.MAX_FUEL, 40F);
 				spec.setAbility(Ability.FUEL, 30F);
