@@ -26,11 +26,11 @@ plugins {
 val modId = "aerobaticelytra"
 val modGroup = "endorh.aerobaticelytra"
 val modVersion = "0.2.21"
-val mcVersion = "1.19"
-val forge = "41.1.0"
+val mcVersion = "1.19.2"
+val forge = "43.1.1"
 val forgeVersion = "$mcVersion-$forge"
 val mappingsChannel = "official"
-val mappingsVersion = "1.19"
+val mappingsVersion = "1.19.2"
 
 group = modGroup
 version = modVersion
@@ -66,9 +66,9 @@ val simpleConfigVersion = "1.0.+"
 val endorhUtilVersion = "0.5.+"
 
 // Integration
-val jeiVersion = "11.1.1.239"
-val curiosVersion = "1.19-5.1.0.4"
-val caelusVersion = "1.19-3.0.0.3"
+val jeiVersion = "11.2.0.256"
+val curiosVersion = "1.19.2-5.1.1.0"
+val caelusVersion = "1.19.2-3.0.0.6"
 val aerobaticElytraJetpackVersion = "0.2.+"
 
 val jarAttributes = mapOf(
@@ -251,14 +251,14 @@ dependencies {
 	runtimeOnly(fg.deobf("curse.maven:customizableelytra-440047:3940967"))
 
 	// Additional Banners
-	runtimeOnly(fg.deobf("curse.maven:bookshelf-228525:3901609"))
-	runtimeOnly(fg.deobf("curse.maven:additionalbanners-230137:3901622"))
+	runtimeOnly(fg.deobf("curse.maven:bookshelf-228525:3943020"))
+	runtimeOnly(fg.deobf("curse.maven:additionalbanners-230137:3943010"))
 
 	// Xaero's World Map
-	runtimeOnly(fg.deobf("curse.maven:xaeros-worldmap-317780:3876754"))
+	runtimeOnly(fg.deobf("curse.maven:xaeros-worldmap-317780:3948206"))
 
 	// Xaero's Minimap (waypoint rendering doesn't account for camera roll)
-	// runtimeOnly(fg.deobf("curse.maven:xaeros-minimap-263420:3876772"))
+	// runtimeOnly(fg.deobf("curse.maven:xaeros-minimap-263420:3937637"))
 
 	// Immersive Portals (untestable in a deobfuscated environment, crashes without refmaps)
 	//   Portals with rotation override roll with a fixed animation that is sometimes in the wrong axis
