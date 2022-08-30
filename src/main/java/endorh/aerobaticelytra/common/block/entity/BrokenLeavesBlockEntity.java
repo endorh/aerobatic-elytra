@@ -21,13 +21,13 @@ import org.jetbrains.annotations.Nullable;
  * @see BrokenLeavesBlockModel
  */
 public class BrokenLeavesBlockEntity extends BlockEntity {
-	public static final String NAME = "broken_leaves_te";
+	public static final String NAME = "broken_leaves";
 	public static final String TAG_REPLACED_LEAVES = "ReplacedLeaves";
 	
 	public BlockState replacedLeaves = null;
 	
 	public BrokenLeavesBlockEntity(BlockPos pos, BlockState state) {
-		super(ModBlockEntities.BROKEN_LEAVES_TE, pos, state);
+		super(ModBlockEntities.BROKEN_LEAVES, pos, state);
 	}
 	
 	@Override public @Nullable ClientboundBlockEntityDataPacket getUpdatePacket() {

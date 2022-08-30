@@ -7,28 +7,23 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.ObjectHolder;
 import net.minecraftforge.registries.RegisterEvent;
+import org.jetbrains.annotations.NotNull;
 
 import static endorh.util.common.ForgeUtil.futureNotNull;
 
 @EventBusSubscriber(bus=Bus.MOD, modid=AerobaticElytra.MOD_ID)
 public class ModBlockEntities {
-	
-	/**
-	 * @see BrokenLeavesBlockEntity
-	 */
-	@ObjectHolder(value = AerobaticElytra.MOD_ID + ":" + BrokenLeavesBlockEntity.NAME, registryName="block")
-	public static final BlockEntityType<?> BROKEN_LEAVES_TE = futureNotNull();
+	@NotNull public static BlockEntityType<?> BROKEN_LEAVES = futureNotNull();
 	
 	@SubscribeEvent
 	public static void onRegisterTileEntities(RegisterEvent event) {
 		event.register(ForgeRegistries.BLOCK_ENTITY_TYPES.getRegistryKey(), r -> {
-			BlockEntityType<?> type = BlockEntityType.Builder.of(
+			BROKEN_LEAVES = BlockEntityType.Builder.of(
 			  BrokenLeavesBlockEntity::new, ModBlocks.BROKEN_LEAVES
 			).build(null);
-			r.register(BrokenLeavesBlockEntity.NAME, type);
-			AerobaticElytra.logRegistered("Tile Entities");
+			r.register(BrokenLeavesBlockEntity.NAME, BROKEN_LEAVES);
+			AerobaticElytra.logRegistered("Block Entities");
 		});
 	}
 }

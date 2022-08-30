@@ -4,6 +4,7 @@ import com.mojang.datafixers.util.Pair;
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.config.ClientConfig;
 import endorh.aerobaticelytra.client.config.ClientConfig.style.visibility;
+import endorh.aerobaticelytra.client.item.AerobaticElytraBannerTextureManager;
 import endorh.aerobaticelytra.common.capability.ElytraSpecCapability;
 import endorh.aerobaticelytra.common.capability.ElytraSpecCapability.ElytraSpec;
 import endorh.aerobaticelytra.common.capability.IAerobaticData;
@@ -25,6 +26,8 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
+import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
@@ -49,9 +52,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.Color;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static endorh.aerobaticelytra.AerobaticElytra.prefix;
 import static endorh.aerobaticelytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
@@ -65,9 +66,7 @@ import static endorh.util.text.TooltipUtil.shiftToExpand;
 import static java.lang.Math.*;
 
 public class AerobaticElytraItem extends ElytraItem implements Wearable, DyeableLeatherItem {
-	
 	public static final String NAME = "aerobatic_elytra";
-	public static final ResourceLocation ID = prefix(NAME);
 	
 	public static int DEFAULT_COLOR = 0x8F9EAE;
 	protected final ElytraDyement dyement = new ElytraDyement();
@@ -76,13 +75,11 @@ public class AerobaticElytraItem extends ElytraItem implements Wearable, Dyeable
 		this(new Item.Properties());
 	}
 	public AerobaticElytraItem(Item.Properties builder) {
-		super(
-		  builder
-			 //.group(ItemGroup.TRANSPORTATION)
-			 .durability(432 * 3)
-			 .rarity(Rarity.RARE));
+		super(builder.durability(432 * 3).rarity(Rarity.RARE));
 		DispenserBlock.registerBehavior(this, ArmorItem.DISPENSE_ITEM_BEHAVIOR);
 	}
+	
+	private final Map<BannerPattern, Material> bannerMaterialCache = new HashMap<>();
 	
 	@Override public void fillItemCategory(
 	  @NotNull CreativeModeTab group, @NotNull NonNullList<ItemStack> items
@@ -402,6 +399,14 @@ public class AerobaticElytraItem extends ElytraItem implements Wearable, Dyeable
 		return new ResourceLocation(
 		  AerobaticElytra.MOD_ID, "entity/aerobatic_elytra/" + Registry.BANNER_PATTERN.getResourceKey(pattern)
 		  .map(k -> k.location().getPath()).orElse("missing"));
+	}
+	
+	public Material getBannerMaterial(BannerPattern pattern) {
+		return this.bannerMaterialCache.computeIfAbsent(pattern, p -> new Material(
+		  AerobaticElytraBannerTextureManager.LOCATION_AEROBATIC_ELYTRA_BANNER_ATLAS,
+		  Registry.BANNER_PATTERN.getResourceKey(pattern).map(
+			 path -> prefix("entity/aerobatic_elytra/" + path.location().getPath())
+		  ).orElse(MissingTextureAtlasSprite.getLocation())));
 	}
 	
 	@OnlyIn(Dist.CLIENT)

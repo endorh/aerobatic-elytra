@@ -12,17 +12,13 @@ import endorh.util.math.Vec3f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 
-import static endorh.aerobaticelytra.AerobaticElytra.prefix;
 import static endorh.aerobaticelytra.client.ModResources.FLIGHT_GUI_ICONS_LOCATION;
 
 public class AerobaticCrosshairOverlay implements IGuiOverlay {
-	public static final String NAME = "crosshair";
-	public static final ResourceLocation ID = prefix(NAME);
 	private static final Vec3f ZP = Vec3f.ZP.get();
 	
 	@Override public void render(
@@ -78,5 +74,7 @@ public class AerobaticCrosshairOverlay implements IGuiOverlay {
 				GuiComponent.blit(mStack, (winW - cS) / 2, (winH - cS) / 2, cS, cS, cS, cS, tW, tH);
 			} mStack.popPose();
 		} mStack.popPose();
+		
+		RenderSystem.defaultBlendFunc();
 	}
 }

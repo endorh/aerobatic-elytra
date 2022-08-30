@@ -3,7 +3,6 @@ package endorh.aerobaticelytra.client.render.overlay;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.config.ClientConfig;
 import endorh.aerobaticelytra.client.config.ClientConfig.style.visual;
 import endorh.aerobaticelytra.common.capability.AerobaticDataCapability;
@@ -13,7 +12,6 @@ import endorh.aerobaticelytra.common.config.Const;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
@@ -22,8 +20,6 @@ import static endorh.aerobaticelytra.client.ModResources.FLIGHT_GUI_ICONS_LOCATI
 import static java.lang.Math.round;
 
 public class FlightBarOverlay implements IGuiOverlay {
-	public static final String NAME = "flight_bar";
-	public static final ResourceLocation ID = AerobaticElytra.prefix(NAME);
 	
 	private static float lastBoost = 0F;
 	private static float lastProp = 0F;

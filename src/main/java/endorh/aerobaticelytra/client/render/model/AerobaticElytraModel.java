@@ -99,10 +99,9 @@ public class AerobaticElytraModel<T extends LivingEntity> extends ElytraModel<T>
         MeshDefinition mesh = new MeshDefinition();
         PartDefinition root = mesh.getRoot();
         
+        // @formatter:off
         // Left wing
-        PartDefinition left = root.addOrReplaceChild(
-          LEFT_WING, CubeListBuilder.create(),
-          PartPose.offset(0F, 0F, 0F));
+        PartDefinition left = root.addOrReplaceChild(LEFT_WING, CubeListBuilder.create(), PartPose.offset(0F, 0F, 0F));
         PartDefinition leftWing = left.addOrReplaceChild(
           WING, CubeListBuilder.create()
             .texOffs(44, 0).addBox(-15F, -10F, -1F, 20F, 40F, 4F, new CubeDeformation(-4F, -9F, 0F)),
@@ -118,8 +117,7 @@ public class AerobaticElytraModel<T extends LivingEntity> extends ElytraModel<T>
           PartPose.offsetAndRotation(0F, 0F, 0F, 0F, -DEG_180, 0F));
         leftWing.addOrReplaceChild(
           PITCH, CubeListBuilder.create()
-            .texOffs(92, 12)
-            .addBox(-5F, -23.25F, -2F, 6F, 30F, 2F, new CubeDeformation(-1F, -6.75F, 0F)),
+            .texOffs(92, 12).addBox(-5F, -23.25F, -2F, 6F, 30F, 2F, new CubeDeformation(-1F, -6.75F, 0F)),
           PartPose.offsetAndRotation(-11F, 21F, 3F, 0F, -DEG_180, 0F));
         
         // Right wing
@@ -141,34 +139,27 @@ public class AerobaticElytraModel<T extends LivingEntity> extends ElytraModel<T>
           PartPose.offsetAndRotation(0F, 0F, 0F, 0F, DEG_180, 0F));
         rightWing.addOrReplaceChild(
           PITCH, CubeListBuilder.create().mirror()
-            .texOffs(92, 12)
-            .addBox(-1F, -23.25F, -2F, 6F, 30F, 2F, new CubeDeformation(-1F, -6.75F, 0F)),
+            .texOffs(92, 12).addBox(-1F, -23.25F, -2F, 6F, 30F, 2F, new CubeDeformation(-1F, -6.75F, 0F)),
           PartPose.offsetAndRotation(11F, 21F, 3F, 0F, DEG_180, 0F));
         
         // Left rocket
         left.addOrReplaceChild(
           ROCKET, CubeListBuilder.create()
-            .texOffs(0, 0)
-            .addBox(-1.5F, -7.7F, -0.5F, 3F, 10F, 3F, new CubeDeformation(-0.5F, -1.2F, -0.5F))
-            .texOffs(0, 13)
-            .addBox(-2.5F, -6F, -1.5F, 5F, 2F, 5F, new CubeDeformation(-1F, -0.2F, -1F))
-            .texOffs(0, 13)
-            .addBox(-0.5F, -7.3F, 0.5F, 1F, 1F, 1F, new CubeDeformation(-0.1F, -0.1F, -0.1F))
-            .texOffs(0, 15)
-            .addBox(-0.5F, 1F, 0.5F, 1F, 1F, 1F, new CubeDeformation(-0.1F, -0.1F, -0.1F)),
+            .texOffs(0,  0).addBox(-1.5F, -7.7F, -0.5F, 3F, 10F, 3F, new CubeDeformation(-0.5F, -1.2F, -0.5F))
+            .texOffs(0, 13).addBox(-2.5F, -6.0F, -1.5F, 5F,  2F, 5F, new CubeDeformation(-1.0F, -0.2F, -1.0F))
+            .texOffs(0, 13).addBox(-0.5F, -7.3F,  0.5F, 1F,  1F, 1F, new CubeDeformation(-0.1F, -0.1F, -0.1F))
+            .texOffs(0, 15).addBox(-0.5F,  1.0F,  0.5F, 1F,  1F, 1F, new CubeDeformation(-0.1F, -0.1F, -0.1F)),
           PartPose.offsetAndRotation(-2.4F, 8.7F, 1.7F, DEG_5, 0F, DEG_15));
         // Right rocket
         right.addOrReplaceChild(
           ROCKET, CubeListBuilder.create()
-            .texOffs(20, 0)
-            .addBox(-1.5F, -7.7F, -0.5F, 3F, 10F, 3F, new CubeDeformation(-0.5F, -1.2F, -0.5F))
-            .texOffs(20, 13)
-            .addBox(-2.5F, -6F, -1.5F, 5F, 2F, 5F, new CubeDeformation(-1F, -0.2F, -1F))
-            .texOffs(20, 13)
-            .addBox(-0.5F, -7.3F, 0.5F, 1F, 1F, 1F, new CubeDeformation(-0.1F, -0.1F, -0.1F))
-            .texOffs(20, 15)
-            .addBox(-0.5F, 1F, 0.5F, 1F, 1F, 1F, new CubeDeformation(-0.1F, -0.1F, -0.1F)),
+            .texOffs(20,  0).addBox(-1.5F, -7.7F, -0.5F, 3F, 10F, 3F, new CubeDeformation(-0.5F, -1.2F, -0.5F))
+            .texOffs(20, 13).addBox(-2.5F, -6.0F, -1.5F, 5F,  2F, 5F, new CubeDeformation(-1.0F, -0.2F, -1.0F))
+            .texOffs(20, 13).addBox(-0.5F, -7.3F,  0.5F, 1F,  1F, 1F, new CubeDeformation(-0.1F, -0.1F, -0.1F))
+            .texOffs(20, 15).addBox(-0.5F,  1.0F,  0.5F, 1F,  1F, 1F, new CubeDeformation(-0.1F, -0.1F, -0.1F)),
           PartPose.offsetAndRotation(2.4F, 8.7F, 1.7F, DEG_5, 0F, -DEG_15));
+        
+        // @formatter:on
         
         // Add empty parent parts
         root.addOrReplaceChild("head", CubeListBuilder.create(), PartPose.ZERO);
@@ -301,40 +292,34 @@ public class AerobaticElytraModel<T extends LivingEntity> extends ElytraModel<T>
             IFlightData fd = getFlightDataOrDefault(player);
             IElytraPose newPose = fd.getFlightMode().getElytraPose(player);
             AerobaticRenderData smoother = AerobaticRenderData.getAerobaticRenderData(player);
-            if (newPose == null) {
-                newPose = player.isFallFlying()
-                          ? IElytraPose.FLYING_POSE
-                          : player.isCrouching()
-                            ? IElytraPose.CROUCHING_POSE
-                            : IElytraPose.STANDING_POSE;
-            }
+            if (newPose == null) newPose =
+              player.isFallFlying()? IElytraPose.FLYING_POSE :
+              player.isCrouching()? IElytraPose.CROUCHING_POSE : IElytraPose.STANDING_POSE;
             final IElytraPose prevPose = smoother.pose;
-            if (ageInTicks - smoother.animationStart < 0F)
-                smoother.animationStart = 0F;
+            if (ageInTicks - smoother.animationStart < 0F) smoother.animationStart = 0F;
             float t = (ageInTicks - smoother.animationStart) / smoother.animationLength;
             if (smoother.updatePose(newPose)) {
                 final AerobaticElytraModelPose prev = prevPose.getNonNullPose(
                   entity, limbSwing, limbSwingAmount, netHeadYaw, headPitch, ageInTicks);
-                if (t < 1)
+                if (t < 1) {
                     interpolate(Interpolator.quadOut(t), smoother.capturedPose, prev);
-                else update(prev);
+                } else update(prev);
                 captureSnapshot(smoother.capturedPose);
                 newPose.modifyPrevious(smoother.capturedPose);
                 smoother.animationStart = ageInTicks;
                 float temp = newPose.getFadeInTime();
                 if (Float.isNaN(temp)) {
                     temp = prevPose.getFadeOutTime();
-                    if (Float.isNaN(temp))
-                        temp = DEFAULT_ANIMATION_LENGTH;
+                    if (Float.isNaN(temp)) temp = DEFAULT_ANIMATION_LENGTH;
                 }
                 smoother.animationLength = temp;
                 t = 0F;
             }
             final AerobaticElytraModelPose targetPose = smoother.pose.getNonNullPose(
               entity, limbSwing, limbSwingAmount, netHeadYaw, headPitch, ageInTicks);
-            if (t < 1)
+            if (t < 1) {
                 interpolate(Interpolator.quadOut(t), smoother.capturedPose, targetPose);
-            else update(targetPose);
+            } else update(targetPose);
             updatePartVisibility();
             
             bodyRotation.set(0F, 0F, 0F);
@@ -343,11 +328,9 @@ public class AerobaticElytraModel<T extends LivingEntity> extends ElytraModel<T>
             if (entity instanceof ArmorStand) {
                 final Rotations leftLegRotation = ((ArmorStand) entity).getLeftLegPose();
                 final Rotations rightLegRotation = ((ArmorStand) entity).getRightLegPose();
-                IElytraPose p = leftLegRotation.getX() >= 30F
-                                ? IElytraPose.FLYING_POSE
-                                : rightLegRotation.getX() >= 30F
-                                  ? IElytraPose.CROUCHING_POSE
-                                  : IElytraPose.STANDING_POSE;
+                IElytraPose p =
+                  leftLegRotation.getX() >= 30F? IElytraPose.FLYING_POSE :
+                  rightLegRotation.getX() >= 30F? IElytraPose.CROUCHING_POSE : IElytraPose.STANDING_POSE;
                 pose = p.getNonNullPose(
                   entity, limbSwing, limbSwingAmount, netHeadYaw, headPitch, ageInTicks);
                 Rotations bodyPose = ((ArmorStand) entity).getBodyPose();

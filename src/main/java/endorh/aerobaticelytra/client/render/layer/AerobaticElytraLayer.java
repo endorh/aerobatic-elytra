@@ -97,8 +97,7 @@ public class AerobaticElytraLayer<T extends LivingEntity, M extends EntityModel<
 		// which allows the model to be rotated along with armor stand entities
 		//   mStack.translate(0.0D, 0.0D, 0.125D);
 		getParentModel().copyPropertiesTo(modelElytra);
-		modelElytra.setupAnim(
-		  entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
+		modelElytra.setupAnim(entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
 		
 		final boolean effect = !visibility.disable_wing_glint && item.hasModelEffect(elytra);
 		if (effect) {
@@ -179,14 +178,11 @@ public class AerobaticElytraLayer<T extends LivingEntity, M extends EntityModel<
 		for (int i = 0; i < size; ++i) {
 			Pair<BannerPattern, DyeColor> pair = patternColorData.get(i);
 			float[] color = pair.getSecond().getTextureDiffuseColors();
-			Material material = new Material(
-			  AerobaticElytraBannerTextureManager.LOCATION_AEROBATIC_ELYTRA_BANNER_ATLAS,
-			  item.getTextureLocation(pair.getFirst()));
+			Material material = item.getBannerMaterial(pair.getFirst());
 			// Unknown patterns are omitted
-			if (material.sprite().getName() != MissingTextureAtlasSprite.getLocation())
-				modelElytra.renderWing(
-				  side, mStack, material.buffer(buffer, RenderType::entityTranslucent),
-				  packedLight, OverlayTexture.NO_OVERLAY, color[0], color[1], color[2], 1F);
+			if (material.sprite().getName() != MissingTextureAtlasSprite.getLocation()) modelElytra.renderWing(
+			  side, mStack, material.buffer(buffer, RenderType::entityTranslucent),
+			  packedLight, OverlayTexture.NO_OVERLAY, color[0], color[1], color[2], 1F);
 		}
 	}
 	

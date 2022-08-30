@@ -1,47 +1,40 @@
 package endorh.aerobaticelytra.client.render;
 
-import com.mojang.blaze3d.platform.Window;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Quaternion;
-import com.mojang.math.Vector3f;
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.config.ClientConfig;
 import endorh.aerobaticelytra.client.config.ClientConfig.FlightBarDisplay;
 import endorh.aerobaticelytra.client.config.ClientConfig.style.visual;
 import endorh.aerobaticelytra.client.render.overlay.AerobaticCrosshairOverlay;
+import endorh.aerobaticelytra.client.render.overlay.AerobaticDebugCrosshairOverlay;
 import endorh.aerobaticelytra.client.render.overlay.FlightBarOverlay;
+import endorh.aerobaticelytra.client.render.overlay.FlightModeToastOverlay;
 import endorh.aerobaticelytra.common.AerobaticElytraLogic;
-import endorh.aerobaticelytra.common.config.Const;
+import endorh.aerobaticelytra.common.capability.IAerobaticData;
 import endorh.aerobaticelytra.common.flight.AerobaticFlight;
 import endorh.aerobaticelytra.common.flight.mode.IFlightMode;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
-import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
 import net.minecraftforge.client.event.RenderGuiOverlayEvent;
-import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 
-import static java.lang.Math.round;
-import static java.lang.System.currentTimeMillis;
+import static endorh.aerobaticelytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
 
 @EventBusSubscriber(value = Dist.CLIENT, modid = AerobaticElytra.MOD_ID)
 public class AerobaticOverlays {
-	public static IGuiOverlay AEROBATIC_CROSSHAIR;
-	public static IGuiOverlay FLIGHT_BAR;
+	public static AerobaticCrosshairOverlay AEROBATIC_CROSSHAIR;
+	public static AerobaticDebugCrosshairOverlay AEROBATIC_DEBUG_CROSSHAIR;
+	public static FlightBarOverlay FLIGHT_BAR;
+	public static FlightModeToastOverlay MODE_TOAST_OVERLAY;
 	
-	private static long toastEnd = 0L;
-	private static long remainingToastTime = 0L;
-	private static IFlightMode mode = null;
 	private static boolean rotatingDebugCrosshair = false;
-	private static boolean awaitingDebugCrosshair = false;
 	private static boolean showingCrosshair = true;
 	private static boolean showingFlightBar = true;
 	private static boolean showingExperienceBar = true;
@@ -52,49 +45,13 @@ public class AerobaticOverlays {
 	}
 	
 	public static void showModeToast(IFlightMode modeIn) {
-		mode = modeIn;
-		toastEnd = currentTimeMillis() + visual.mode_toast_length_ms;
-		remainingToastTime = visual.mode_toast_length_ms;
-	}
-	
-	@SubscribeEvent
-	public static void onRenderGameOverlayPost(RenderGuiOverlayEvent.Post event) {
-		if (event.getOverlay() == VanillaGuiOverlay.AIR_LEVEL.type() && remainingToastTime > 0) {
-			Minecraft mc = Minecraft.getInstance();
-			Player pl = mc.player;
-			assert pl != null;
-			float alpha = remainingToastTime / (float) visual.mode_toast_length_ms;
-			renderToast(mode, alpha, event.getPoseStack(), event.getWindow());
-			final long t = currentTimeMillis();
-			remainingToastTime = toastEnd - t;
-		}
-	}
-	
-	public static void renderToast(
-	  IFlightMode mode, float alpha, PoseStack mStack, Window win
-	) {
-		RenderSystem.setShaderTexture(0, mode.getToastIconLocation());
-		RenderSystem.enableBlend();
-		RenderSystem.setShaderColor(1F, 1F, 1F, alpha);
-		int winW = win.getGuiScaledWidth();
-		int winH = win.getGuiScaledHeight();
-		int tW = Const.FLIGHT_GUI_TEXTURE_WIDTH, tH = Const.FLIGHT_GUI_TEXTURE_HEIGHT;
-		int iW = Const.FLIGHT_MODE_TOAST_WIDTH, iH = Const.FLIGHT_MODE_TOAST_HEIGHT;
-		int u = mode.getToastIconU(), v = mode.getToastIconV();
-		if (u != -1 && v != -1) {
-			int x = round((winW - iW) * visual.mode_toast_x_fraction);
-			int y = round((winH - iH) * visual.mode_toast_y_fraction);
-			GuiComponent.blit(mStack, x, y, u, v, iW, iH, tW, tH);
-		}
-		RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
-		RenderSystem.disableBlend();
+		MODE_TOAST_OVERLAY.showModeToast(modeIn);
 	}
 	
 	/**
-	 * Enable and disable overlays.
+	 * Enable and disable overlays
 	 */
-	@SubscribeEvent
-	public static void onRenderGameOverlayPre(RenderGuiOverlayEvent.Pre event) {
+	@SubscribeEvent public static void onRenderOverlay(RenderGuiOverlayEvent.Pre event) {
 		if (event.getOverlay() == VanillaGuiOverlay.AIR_LEVEL.type()) {
 			rotatingDebugCrosshair = false;
 			boolean showCrosshair = false;
@@ -102,17 +59,19 @@ public class AerobaticOverlays {
 				Minecraft mc = Minecraft.getInstance();
 				Player pl = mc.player;
 				assert pl != null;
-				if (AerobaticFlight.isAerobaticFlying(pl)) {
+				IAerobaticData data = getAerobaticDataOrDefault(pl);
+				float roll = data.getRotationRoll();
+				if (AerobaticFlight.isAerobaticFlying(pl) || Float.compare(roll, 0F) != 0) {
 					Options opt = mc.options;
 					assert mc.gameMode != null;
 					if (opt.getCameraType().isFirstPerson()
 					    && mc.gameMode.getPlayerMode() != GameType.SPECTATOR
-					    && !opt.hideGui) {
-						if (opt.renderDebug && !pl.isReducedDebugInfo() && !opt.reducedDebugInfo().get()) {
+					    && !opt.hideGui
+					) {
+						if (opt.renderDebug && !pl.isReducedDebugInfo() &&
+						    !opt.reducedDebugInfo().get()) {
 							rotatingDebugCrosshair = true;
-						} else {
-							showCrosshair = true;
-						}
+						} else showCrosshair = true;
 					}
 				}
 			}
@@ -138,13 +97,10 @@ public class AerobaticOverlays {
 			}
 			if (showFlightBar != showingFlightBar)
 				showingFlightBar = showFlightBar;
-		}
-	}
-	
-	@SubscribeEvent
-	public static void onRenderOverlay(RenderGuiOverlayEvent.Pre event) {
-		if (event.getOverlay() == VanillaGuiOverlay.CROSSHAIR.type()) {
-			event.setCanceled(showingCrosshair);
+		} else if (event.getOverlay() == VanillaGuiOverlay.CROSSHAIR.type()) {
+			event.setCanceled(showingCrosshair || rotatingDebugCrosshair);
+		} else if (event.getOverlay().overlay() == AEROBATIC_DEBUG_CROSSHAIR) {
+			event.setCanceled(!rotatingDebugCrosshair);
 		} else if (event.getOverlay().overlay() == AEROBATIC_CROSSHAIR) {
 			event.setCanceled(!showingCrosshair);
 		} else if (event.getOverlay().overlay() == FLIGHT_BAR) {
@@ -154,44 +110,17 @@ public class AerobaticOverlays {
 		}
 	}
 	
-	/**
-	 * Pushes the matrix stack to rotate the crosshair<br>
-	 * {@link AerobaticOverlays#onPostDebugCrosshair} must be called after this on the same frame.
-	 */
-	@SubscribeEvent
-	public static void onPreDebugCrosshair(RenderGuiOverlayEvent.Pre event) {
-		if (rotatingDebugCrosshair && event.getOverlay() == VanillaGuiOverlay.CROSSHAIR.type()) {
-			Window win = Minecraft.getInstance().getWindow();
-			int winW = win.getGuiScaledWidth();
-			int winH = win.getGuiScaledHeight();
-			
-			PoseStack pStack = RenderSystem.getModelViewStack();
-			pStack.pushPose(); {
-				pStack.translate(winW / 2F, winH / 2F, 0F);
-				pStack.mulPose(Quaternion.fromXYZDegrees(new Vector3f(0F, 0F, -CameraHandler.lastRoll)));
-				pStack.translate(-(winW / 2F), -(winH / 2F), 0F);
-			}
-			// Warning! Ensure onPostDebugCrosshair gets called,
-			//          or the matrix stack will break
-			awaitingDebugCrosshair = true;
-		}
-	}
-	
-	@SubscribeEvent
-	public static void onPostDebugCrosshair(RenderGuiOverlayEvent.Post event) {
-		if (awaitingDebugCrosshair && event.getOverlay() == VanillaGuiOverlay.CROSSHAIR.type()) {
-			RenderSystem.getModelViewStack().popPose();
-			awaitingDebugCrosshair = false;
-		}
-	}
-	
 	@EventBusSubscriber(value = Dist.CLIENT, bus = Bus.MOD, modid = AerobaticElytra.MOD_ID)
 	public static class Registrar {
 		@SubscribeEvent public static void onRegisterOverlays(RegisterGuiOverlaysEvent event) {
 			event.registerAboveAll(
-			  AerobaticCrosshairOverlay.NAME, AEROBATIC_CROSSHAIR = new AerobaticCrosshairOverlay());
+			  "crosshair", AEROBATIC_CROSSHAIR = new AerobaticCrosshairOverlay());
 			event.registerAboveAll(
-			  FlightBarOverlay.NAME, FLIGHT_BAR = new FlightBarOverlay());
+			  "debug_crosshair", AEROBATIC_DEBUG_CROSSHAIR = new AerobaticDebugCrosshairOverlay());
+			event.registerBelow(
+			  new ResourceLocation("experience_bar"), "flight_bar", FLIGHT_BAR = new FlightBarOverlay());
+			event.registerAboveAll(
+			  "flight_mode_toast", MODE_TOAST_OVERLAY = new FlightModeToastOverlay());
 		}
 	}
 }
