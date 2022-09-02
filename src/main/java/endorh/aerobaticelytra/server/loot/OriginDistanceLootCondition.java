@@ -19,7 +19,7 @@ public class OriginDistanceLootCondition implements LootItemCondition {
 	}
 	
 	@Override public @NotNull LootItemConditionType getType() {
-		return ModLootConditions.ORIGIN_DISTANCE;
+		return AerobaticLootConditions.ORIGIN_DISTANCE;
 	}
 	
 	@Override public boolean test(LootContext lootContext) {

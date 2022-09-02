@@ -70,7 +70,7 @@ public class TrailParticleData implements ParticleOptions {
 	
 	@NotNull @Override
 	public ParticleType<TrailParticleData> getType() {
-		return ModParticles.TRAIL_PARTICLES.get(type);
+		return AerobaticElytraParticles.TRAIL_PARTICLES.get(type);
 	}
 	
 	@Override public void writeToNetwork(@NotNull FriendlyByteBuf buf) {

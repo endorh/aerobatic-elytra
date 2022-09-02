@@ -116,15 +116,42 @@ public interface IAbility {
 		public boolean isBool() { return bool; }
 		
 		/**
-		 * Display with format {@code %s: %3.1f}
+		 * Display with format {@code %s: %.1f}
 		 */
-		public static final DisplayType DEFAULT = formatValue("%3.1f");
+		public static final DisplayType DEFAULT = formatValue("%.1f");
+		
 		/**
-		 * Display with format {@code %s: %3d}<br>
+		 * Do not display
 		 */
-		@SuppressWarnings("unused")
+		public static DisplayType HIDE = new DisplayType() {
+			@Override public Optional<MutableComponent> format(IAbility ability, float value) {
+				return Optional.empty();
+			}
+		};
+		
+		/**
+		 * Display with format {@code %s: %d}<br>
+		 */
 		public static final DisplayType INTEGER = formatValue(
-		  v -> String.format("%3d", Math.round(v)));
+		  v -> String.format("%d", Math.round(v)));
+		
+		/**
+		 * Display as {@link #INTEGER} if not zero, otherwise {@link #HIDE}
+		 */
+		public static final DisplayType INTEGER_NON_ZERO = filter(
+		  v -> v != 0, INTEGER, HIDE);
+		
+		/**
+		 * Display with format {@code %s: %+d}<br>
+		 */
+		public static final DisplayType INTEGER_SUM = formatValue(
+		  v -> String.format("%+d", Math.round(v)));
+		
+		/**
+		 * Display as {@link #INTEGER_SUM} if not zero, otherwise {@link #HIDE}
+		 */
+		public static final DisplayType INTEGER_SUM_NON_ZERO = filter(
+		  v -> v != 0, INTEGER_SUM, HIDE);
 		
 		/**
 		 * Display the name of the ability, without the value, unconditionally.<br>
@@ -138,26 +165,28 @@ public interface IAbility {
 		};
 		
 		/**
-		 * Do not display
-		 */
-		public static DisplayType HIDE = new DisplayType() {
-			@Override public Optional<MutableComponent> format(IAbility ability, float value) {
-				return Optional.empty();
-			}
-		};
-		
-		/**
-		 * Display as {@link DisplayType#DEFAULT} only if not zero
-		 * @see DisplayType#BOOL
+		 * Display as {@link #DEFAULT} only if not zero
+		 * @see #BOOL
 		 */
 		public static final DisplayType NON_ZERO = filter(v -> v != 0F, DEFAULT, HIDE);
-		/**
-		 * Display as a multiplier with format {@code %s: ×3.1f}
-		 */
-		public static final DisplayType SCALE = formatValue("×%3.1f");
 		
 		/**
-		 * Display as {@link DisplayType#SCALE} if the value is not {@code 1}<br>
+		 * Display with format {@code %s: %+.1f}<br>
+		 */
+		public static final DisplayType SUM = formatValue("%+.1f");
+
+		/**
+		 * Display as {@link #SUM} only if not zero
+		 */
+		public static final DisplayType SUM_NON_ZERO = filter(v -> v != 0F, SUM, HIDE);
+		
+		/**
+		 * Display as a multiplier with format {@code %s: ×%.1f}
+		 */
+		public static final DisplayType SCALE = formatValue("×%.1f");
+		
+		/**
+		 * Display as {@link #SCALE} if the value is not {@code 1}<br>
 		 * Otherwise, the ability is not displayed at all
 		 */
 		@SuppressWarnings("unused")
@@ -169,9 +198,9 @@ public interface IAbility {
 		public static final DisplayType BOOL = filter(v -> v != 0F, NAME_ONLY_ALWAYS, HIDE, true);
 		
 		/**
-		 * Display as {@link DisplayType#BOOL} if the value is 0 or 1<br>
-		 * Otherwise, display as {@link DisplayType#SCALE}<br>
-		 * Can be thought of as a {@link DisplayType#SCALE_NON_ONE} that
+		 * Display as {@link #BOOL} if the value is 0 or 1<br>
+		 * Otherwise, display as {@link #SCALE}<br>
+		 * Can be thought of as a {@link #SCALE_NON_ONE} that
 		 * additionally is not displayed when the value is 0
 		 */
 		public static final DisplayType SCALE_BOOL =

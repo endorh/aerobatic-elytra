@@ -25,7 +25,7 @@ import java.util.Map;
 import static endorh.util.common.ForgeUtil.futureNotNull;
 
 @EventBusSubscriber(bus=Bus.MOD, modid=AerobaticElytra.MOD_ID)
-public class ModBlocks {
+public class AerobaticBlocks {
 	/**
 	 * @see BrokenLeavesBlock
 	 */

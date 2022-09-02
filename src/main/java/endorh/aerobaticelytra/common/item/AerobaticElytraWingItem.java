@@ -1,8 +1,8 @@
 package endorh.aerobaticelytra.common.item;
 
 import endorh.aerobaticelytra.client.config.ClientConfig.style.visibility;
+import endorh.aerobaticelytra.common.block.AerobaticBlocks;
 import endorh.aerobaticelytra.common.block.BrokenLeavesBlock;
-import endorh.aerobaticelytra.common.block.ModBlocks;
 import endorh.aerobaticelytra.common.capability.ElytraSpecCapability;
 import endorh.aerobaticelytra.common.capability.IAerobaticData;
 import endorh.aerobaticelytra.common.capability.IElytraSpec;
@@ -95,7 +95,7 @@ public class AerobaticElytraWingItem extends Item implements DyeableLeatherItem 
 			final Block block = state.getBlock();
 			if (state.is(BlockTags.LEAVES)) {
 				BrokenLeavesBlock.breakLeaves(world, pos);
-			} else if (block == ModBlocks.BROKEN_LEAVES && context.isInside()) {
+			} else if (block == AerobaticBlocks.BROKEN_LEAVES && context.isInside()) {
 				final BlockPos next = pos.subtract(context.getClickedFace().getNormal());
 				if (world.getBlockState(next).is(BlockTags.LEAVES)) {
 					BrokenLeavesBlock.breakLeaves(world, next);

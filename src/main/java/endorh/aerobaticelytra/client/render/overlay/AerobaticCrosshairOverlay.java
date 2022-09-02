@@ -16,7 +16,7 @@ import net.minecraft.util.Mth;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 
-import static endorh.aerobaticelytra.client.ModResources.FLIGHT_GUI_ICONS_LOCATION;
+import static endorh.aerobaticelytra.client.AerobaticElytraResources.FLIGHT_GUI_ICONS_LOCATION;
 
 public class AerobaticCrosshairOverlay implements IGuiOverlay {
 	private static final Vec3f ZP = Vec3f.ZP.get();

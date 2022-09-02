@@ -12,7 +12,7 @@ import net.minecraftforge.registries.RegisterEvent;
 import net.minecraftforge.registries.RegistryObject;
 
 @EventBusSubscriber(bus=Bus.MOD, modid=AerobaticElytra.MOD_ID)
-public class ModRecipes {
+public class AerobaticRecipes {
 	public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS =
 	  DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, AerobaticElytra.MOD_ID);
 	

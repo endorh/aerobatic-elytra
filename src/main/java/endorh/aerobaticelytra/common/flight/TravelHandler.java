@@ -4,7 +4,7 @@ import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.common.flight.mode.IFlightMode;
 import endorh.aerobaticelytra.common.registry.AerobaticElytraRegistries;
 import endorh.flightcore.events.PlayerTravelEvent;
-import endorh.flightcore.events.PlayerTravelEvent.RemotePlayerEntityTravelEvent;
+import endorh.flightcore.events.PlayerTravelEvent.RemotePlayerTravelEvent;
 import endorh.util.common.ObfuscationReflectionUtil;
 import endorh.util.common.ObfuscationReflectionUtil.SoftField;
 import net.minecraft.network.protocol.game.ServerGamePacketListener;
@@ -75,7 +75,7 @@ public class TravelHandler {
 	}
 	
 	@SubscribeEvent
-	public static void onRemotePlayerEntityTravelEvent(RemotePlayerEntityTravelEvent event) {
+	public static void onRemotePlayerEntityTravelEvent(RemotePlayerTravelEvent event) {
 		Player player = event.player;
 		getFlightData(player).ifPresent(fd -> {
 			final IFlightMode mode = fd.getFlightMode();

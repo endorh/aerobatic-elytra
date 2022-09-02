@@ -1,7 +1,7 @@
 package endorh.aerobaticelytra.common.block;
 
+import endorh.aerobaticelytra.client.block.AerobaticBlockColors;
 import endorh.aerobaticelytra.client.block.BrokenLeavesBlockModel;
-import endorh.aerobaticelytra.client.block.ModBlockColors;
 import endorh.aerobaticelytra.common.block.entity.BrokenLeavesBlockEntity;
 import endorh.aerobaticelytra.common.config.Config;
 import endorh.aerobaticelytra.common.config.Config.collision.leave_breaking;
@@ -44,7 +44,7 @@ import static endorh.aerobaticelytra.AerobaticElytra.prefix;
  *
  * @see BrokenLeavesBlockEntity
  * @see BrokenLeavesBlockModel
- * @see ModBlockColors
+ * @see AerobaticBlockColors
  */
 public class BrokenLeavesBlock extends LeavesBlock implements EntityBlock {
 	public static final String NAME = "broken_leaves";
@@ -120,7 +120,7 @@ public class BrokenLeavesBlock extends LeavesBlock implements EntityBlock {
 				breakLeaves(world, cursor);
 		}
 		world.setBlock(
-		  pos, ModBlocks.BROKEN_LEAVES.defaultBlockState()
+		  pos, AerobaticBlocks.BROKEN_LEAVES.defaultBlockState()
 			 .setValue(DISTANCE, prevBlockState.getValue(DISTANCE))
 			 .setValue(PERSISTENT, prevBlockState.getValue(PERSISTENT)),
 		  Block.UPDATE_ALL);
@@ -136,7 +136,7 @@ public class BrokenLeavesBlock extends LeavesBlock implements EntityBlock {
 	  ServerLevel world, BlockPos pos
 	) {
 		final BlockState bs = world.getBlockState(pos);
-		if (!(bs.getBlock() == ModBlocks.BROKEN_LEAVES))
+		if (!(bs.getBlock() == AerobaticBlocks.BROKEN_LEAVES))
 			return;
 		BlockEntity tile = world.getBlockEntity(pos);
 		if (!(tile instanceof BrokenLeavesBlockEntity te))

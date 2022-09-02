@@ -5,10 +5,10 @@ import endorh.aerobaticelytra.client.config.ClientConfig;
 import endorh.aerobaticelytra.client.item.AerobaticElytraBannerTextureManager;
 import endorh.aerobaticelytra.client.item.AerobaticElytraItemColor;
 import endorh.aerobaticelytra.client.item.AerobaticElytraWingItemColor;
-import endorh.aerobaticelytra.client.item.ModItemProperties;
+import endorh.aerobaticelytra.client.item.AerobaticItemProperties;
 import endorh.aerobaticelytra.common.config.Config;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
-import endorh.aerobaticelytra.common.recipe.ModRecipes;
+import endorh.aerobaticelytra.common.recipe.AerobaticRecipes;
 import endorh.aerobaticelytra.integration.colytra.ClientColytraIntegration;
 import endorh.aerobaticelytra.integration.colytra.ColytraIntegration;
 import endorh.aerobaticelytra.integration.curios.CuriosIntegration;
@@ -16,6 +16,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.server.packs.resources.ReloadableResourceManager;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddReloadListenerEvent;
@@ -29,52 +30,31 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 
 @EventBusSubscriber(bus = Bus.MOD, modid = AerobaticElytra.MOD_ID)
-public class ModInit {
+public class AerobaticElytraInit {
 	
 	/**
 	 * Register deferred registries and configs
 	 */
 	public static void setup() {
 		IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-		ModRecipes.RECIPE_SERIALIZERS.register(modEventBus);
+		AerobaticRecipes.RECIPE_SERIALIZERS.register(modEventBus);
 		
 		Config.register();
 		DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> ClientConfig::register);
 		AerobaticElytra.logRegistered("Config");
 		
-		
 		registerIntegrations();
-		MinecraftForge.EVENT_BUS.addListener(ModInit::onRegisterReloadListeners);
 	}
 	
-	/**
-	 * Reload listeners must be registered before the {@link Minecraft} constructor
-	 * calls Minecraft#resourceManager#reloadResources.<br>
-	 * The best event for this is {@link RegisterParticleProvidersEvent},
-	 * even if unrelated to its intended usage
-	 */
-	@SubscribeEvent
-	public static void onMinecraftConstructed(RegisterParticleProvidersEvent event) {
-		final ResourceManager resourceManager = Minecraft.getInstance().getResourceManager();
-		if (resourceManager instanceof ReloadableResourceManager)
-			AerobaticElytra.BANNER_TEXTURE_MANAGER = new AerobaticElytraBannerTextureManager((ReloadableResourceManager) resourceManager);
-	}
-	
-	@SubscribeEvent
-	public static void onClientSetup(FMLClientSetupEvent event) {
-		// These registering methods are not thread-safe
-		event.enqueueWork(ModInit::registerClient);
-	}
-	
-	public static void onRegisterReloadListeners(AddReloadListenerEvent event) {
-		event.addListener(AerobaticElytra.JSON_ABILITY_MANAGER);
+	@SubscribeEvent public static void onClientSetup(FMLClientSetupEvent event) {
+		event.enqueueWork(AerobaticElytraInit::registerClient);
 	}
 	
 	public static void registerClient() {
 		AerobaticElytraItemColor.register(AerobaticElytraItems.AEROBATIC_ELYTRA);
 		AerobaticElytraWingItemColor.register(AerobaticElytraItems.AEROBATIC_ELYTRA_WING);
 		AerobaticElytra.logRegistered("Item Colors");
-		ModItemProperties.register();
+		AerobaticItemProperties.register();
 		AerobaticElytra.logRegistered("Item Properties");
 	}
 	
@@ -87,5 +67,31 @@ public class ModInit {
 	    }
 	    if (AerobaticElytra.caelusLoaded && AerobaticElytra.curiosLoaded)
 	        eventBus.register(CuriosIntegration.class);
+	}
+	
+	@EventBusSubscriber(value=Dist.CLIENT, bus=Bus.MOD, modid=AerobaticElytra.MOD_ID)
+	@OnlyIn(Dist.CLIENT)
+	public static class ClientRegistrar {
+		/**
+		 * Reload listeners must be registered before the {@link Minecraft} constructor
+		 * calls Minecraft#resourceManager#reloadResources.<br>
+		 * The best event for this is {@link RegisterParticleProvidersEvent},
+		 * even if unrelated to its intended usage
+		 */
+		@SubscribeEvent
+		public static void onMinecraftConstructed(RegisterParticleProvidersEvent event) {
+			final ResourceManager resourceManager = Minecraft.getInstance().getResourceManager();
+			if (resourceManager instanceof ReloadableResourceManager)
+				AerobaticElytra.BANNER_TEXTURE_MANAGER =
+				  new AerobaticElytraBannerTextureManager((ReloadableResourceManager) resourceManager);
+		}
+	}
+	
+	@EventBusSubscriber(modid = AerobaticElytra.MOD_ID)
+	public static class GameEventRegistrar {
+		@SubscribeEvent
+		public static void onRegisterReloadListeners(AddReloadListenerEvent event) {
+			event.addListener(AerobaticElytra.JSON_ABILITY_MANAGER);
+		}
 	}
 }

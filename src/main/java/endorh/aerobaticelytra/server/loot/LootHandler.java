@@ -25,7 +25,7 @@ public class LootHandler {
 	) {
 		LOGGER.debug(event.world);
 		LootTable table = event.world.getServer().getLootTables()
-		  .get(ModLootTables.END_SHIP_ELYTRA);
+		  .get(AerobaticLootTables.END_SHIP_ELYTRA);
 		
 		List<ItemStack> list = table.getRandomItems(
 		  new LootContext.Builder(event.world).withRandom(event.random)

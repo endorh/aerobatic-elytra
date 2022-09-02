@@ -22,7 +22,7 @@ import static endorh.aerobaticelytra.AerobaticElytra.prefix;
 import static endorh.aerobaticelytra.common.capability.ElytraSpecCapability.getElytraSpecOrDefault;
 
 @OnlyIn(Dist.CLIENT)
-public class ModItemProperties {
+public class AerobaticItemProperties {
 	public static final ResourceLocation BROKEN_PROPERTY =
 	  new ResourceLocation("broken");
 	public static final ResourceLocation FUEL_PROPERTY = prefix("fuel");
@@ -32,11 +32,11 @@ public class ModItemProperties {
 	private static final ElytraDyement dyement = new ElytraDyement();
 	
 	public static void register() {
-		reg(AerobaticElytraItems.AEROBATIC_ELYTRA, BROKEN_PROPERTY, ModItemProperties::getBrokenProperty);
-		reg(AerobaticElytraItems.AEROBATIC_ELYTRA, FUEL_PROPERTY, ModItemProperties::getFuelProperty);
-		reg(AerobaticElytraItems.AEROBATIC_ELYTRA, HIDE_FUEL_PROPERTY, ModItemProperties::getHideFuelProperty);
-		reg(AerobaticElytraItems.AEROBATIC_ELYTRA, EQUAL_WINGS_PROPERTY, ModItemProperties::getEqualWingsProperty);
-		reg(AerobaticElytraItems.AEROBATIC_ELYTRA_WING, BROKEN_PROPERTY, ModItemProperties::getBrokenProperty);
+		reg(AerobaticElytraItems.AEROBATIC_ELYTRA, BROKEN_PROPERTY, AerobaticItemProperties::getBrokenProperty);
+		reg(AerobaticElytraItems.AEROBATIC_ELYTRA, FUEL_PROPERTY, AerobaticItemProperties::getFuelProperty);
+		reg(AerobaticElytraItems.AEROBATIC_ELYTRA, HIDE_FUEL_PROPERTY, AerobaticItemProperties::getHideFuelProperty);
+		reg(AerobaticElytraItems.AEROBATIC_ELYTRA, EQUAL_WINGS_PROPERTY, AerobaticItemProperties::getEqualWingsProperty);
+		reg(AerobaticElytraItems.AEROBATIC_ELYTRA_WING, BROKEN_PROPERTY, AerobaticItemProperties::getBrokenProperty);
 	}
 	
 	private static void reg(

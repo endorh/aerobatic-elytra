@@ -1,6 +1,6 @@
 package endorh.aerobaticelytra.common.flight.mode;
 
-import endorh.aerobaticelytra.client.ModResources;
+import endorh.aerobaticelytra.client.AerobaticElytraResources;
 import endorh.aerobaticelytra.common.config.Config.aerobatic.modes;
 import endorh.aerobaticelytra.common.config.Const;
 import endorh.aerobaticelytra.common.flight.AerobaticFlight;
@@ -91,7 +91,7 @@ public enum FlightModes implements IFlightMode {
 	
 	
 	@Override public ResourceLocation getToastIconLocation() {
-		return ModResources.FLIGHT_GUI_ICONS_LOCATION;
+		return AerobaticElytraResources.FLIGHT_GUI_ICONS_LOCATION;
 	}
 	
 	@Override public int getToastIconU() { return u; }

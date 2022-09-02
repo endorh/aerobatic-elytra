@@ -139,6 +139,6 @@ public class TrailRecipe extends CustomRecipe {
 	
 	@NotNull @Override
 	public RecipeSerializer<?> getSerializer() {
-		return ModRecipes.TRAIL_RECIPE.get();
+		return AerobaticRecipes.TRAIL_RECIPE.get();
 	}
 }
