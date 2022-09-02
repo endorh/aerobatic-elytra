@@ -128,7 +128,7 @@ public class BrokenLeavesBlock extends LeavesBlock implements EntityBlock {
 		if (!(tile instanceof BrokenLeavesBlockEntity te))
 			throw new IllegalStateException(
 			  "Broken leaves block did not have BrokenLeavesTileEntity");
-		te.replacedLeaves = prevBlockState;
+		te.setReplacedLeaves(prevBlockState);
 		te.setChanged();
 	}
 	
@@ -141,9 +141,10 @@ public class BrokenLeavesBlock extends LeavesBlock implements EntityBlock {
 		BlockEntity tile = world.getBlockEntity(pos);
 		if (!(tile instanceof BrokenLeavesBlockEntity te))
 			return;
-		if (te.replacedLeaves != null) {
-			if (world.isUnobstructed(te.replacedLeaves, pos, CollisionContext.empty()))
-				world.setBlockAndUpdate(pos, te.replacedLeaves);
+		BlockState replacedLeaves = te.getReplacedLeaves();
+		if (replacedLeaves != null) {
+			if (world.isUnobstructed(replacedLeaves, pos, CollisionContext.empty()))
+				world.setBlockAndUpdate(pos, replacedLeaves);
 		} else {
 			world.destroyBlock(pos, false);
 		}
@@ -169,6 +170,7 @@ public class BrokenLeavesBlock extends LeavesBlock implements EntityBlock {
 		BlockEntity tile = world.getBlockEntity(pos);
 		if (!(tile instanceof BrokenLeavesBlockEntity te))
 			return Optional.empty();
-		return te.replacedLeaves != null? Optional.of(te.replacedLeaves) : Optional.empty();
+		BlockState replacedLeaves = te.getReplacedLeaves();
+		return replacedLeaves != null? Optional.of(replacedLeaves) : Optional.empty();
 	}
 }
