@@ -25,7 +25,7 @@ plugins {
 
 val modId = "aerobaticelytra"
 val modGroup = "endorh.aerobaticelytra"
-val modVersion = "0.2.27"
+val modVersion = "0.2.28"
 val mcVersion = "1.19.2"
 val forge = "43.1.1"
 val forgeVersion = "$mcVersion-$forge"
@@ -137,10 +137,11 @@ minecraft {
 		val client = create("client") {
 			workingDirectory(file("run"))
 			
-			// Allowed flags: SCAN, REGISTRIES, REGISTRYDUMP
 			property("forge.logging.markers", "REGISTRIES")
 			property("forge.logging.console.level", "debug")
 			property("mixin.env.disableRefMap", "true")
+			
+			jvmArg("-XX:+AllowEnhancedClassRedefinition")
 			
 			mods {
 				create(modId) {
@@ -152,10 +153,11 @@ minecraft {
 		create("server") {
 			workingDirectory(file("run"))
 			
-			// Allowed flags: SCAN, REGISTRIES, REGISTRYDUMP
 			property("forge.logging.markers", "REGISTRIES")
 			property("forge.logging.console.level", "debug")
 			property("mixin.env.disableRefMap", "true")
+			
+			jvmArg("-XX:+AllowEnhancedClassRedefinition")
 			
 			arg("nogui")
 			

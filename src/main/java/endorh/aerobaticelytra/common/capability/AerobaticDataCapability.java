@@ -107,7 +107,7 @@ public class AerobaticDataCapability {
 	@SubscribeEvent
 	public static void onClonePlayer(PlayerEvent.Clone event) {
 		IAerobaticData playerData = requireAerobaticData(event.getEntity());
-		playerData.copy(requireAerobaticData(event.getOriginal()));
+		playerData.copy(getAerobaticDataOrDefault(event.getOriginal()));
 		playerData.reset();
 	}
 	
