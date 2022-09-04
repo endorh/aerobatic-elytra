@@ -66,7 +66,7 @@ public class FlightDataCapability {
 	 * @see FlightDataCapability#getFlightDataOrDefault
 	 * @see FlightDataCapability#getFlightData
 	 */
-	public static IFlightData demandFlightData(PlayerEntity player) {
+	public static IFlightData requireFlightData(PlayerEntity player) {
 		return player.getCapability(CAPABILITY).orElseThrow(
 		  () -> new IllegalStateException("Missing IFlightData capability on player: " + player));
 	}
@@ -75,7 +75,7 @@ public class FlightDataCapability {
 	 * Return the {@link IFlightData} from the player or a
 	 * default one if for some reason the player's one is
 	 * invalid right now
-	 * @see FlightDataCapability#demandFlightData
+	 * @see FlightDataCapability#requireFlightData
 	 * @see FlightDataCapability#getFlightData
 	 */
 	public static IFlightData getFlightDataOrDefault(PlayerEntity player) {
@@ -84,7 +84,7 @@ public class FlightDataCapability {
 	
 	/**
 	 * @return The optional {@link IFlightData} from the player
-	 * @see FlightDataCapability#demandFlightData
+	 * @see FlightDataCapability#requireFlightData
 	 * @see FlightDataCapability#getFlightDataOrDefault
 	 */
 	public static Optional<IFlightData> getFlightData(PlayerEntity player) {
@@ -114,8 +114,8 @@ public class FlightDataCapability {
 	 */
 	@SubscribeEvent
 	public static void onClonePlayer(PlayerEvent.Clone event) {
-		IFlightData playerData = demandFlightData(event.getPlayer());
-		playerData.copy(demandFlightData(event.getOriginal()));
+		IFlightData playerData = requireFlightData(event.getPlayer());
+		playerData.copy(getFlightDataOrDefault(event.getOriginal()));
 		playerData.reset();
 	}
 	

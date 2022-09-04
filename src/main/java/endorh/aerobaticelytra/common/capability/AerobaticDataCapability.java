@@ -69,7 +69,7 @@ public class AerobaticDataCapability {
 	 * @see AerobaticDataCapability#getAerobaticDataOrDefault
 	 * @see AerobaticDataCapability#getAerobaticData
 	 */
-	public static IAerobaticData demandAerobaticData(PlayerEntity player) {
+	public static IAerobaticData requireAerobaticData(PlayerEntity player) {
 		assert CAPABILITY != null;
 		return player.getCapability(CAPABILITY).orElseThrow(
 		  () -> new IllegalStateException("Missing IAerobaticData capability on player: " + player));
@@ -80,7 +80,7 @@ public class AerobaticDataCapability {
 	 * if for some reason the player doesn't have the capability or it's
 	 * invalid now
 	 * @see AerobaticDataCapability#getAerobaticData
-	 * @see AerobaticDataCapability#demandAerobaticData
+	 * @see AerobaticDataCapability#requireAerobaticData
 	 */
 	public static IAerobaticData getAerobaticDataOrDefault(PlayerEntity player) {
 		assert CAPABILITY != null;
@@ -91,7 +91,7 @@ public class AerobaticDataCapability {
 	/**
 	 * @return The optional {@link IAerobaticData} capability from the player
 	 * @see AerobaticDataCapability#getAerobaticDataOrDefault
-	 * @see AerobaticDataCapability#demandAerobaticData
+	 * @see AerobaticDataCapability#requireAerobaticData
 	 */
 	public static Optional<IAerobaticData> getAerobaticData(PlayerEntity player) {
 		assert CAPABILITY != null;
@@ -122,8 +122,8 @@ public class AerobaticDataCapability {
 	 */
 	@SubscribeEvent
 	public static void onClonePlayer(PlayerEvent.Clone event) {
-		IAerobaticData playerData = demandAerobaticData(event.getPlayer());
-		playerData.copy(demandAerobaticData(event.getOriginal()));
+		IAerobaticData playerData = requireAerobaticData(event.getPlayer());
+		playerData.copy(getAerobaticDataOrDefault(event.getOriginal()));
 		playerData.reset();
 	}
 	

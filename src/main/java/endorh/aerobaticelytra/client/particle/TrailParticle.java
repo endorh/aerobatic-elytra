@@ -130,15 +130,13 @@ public class TrailParticle extends SpriteTexturedParticle {
 		boolean shouldRender = minecraft.gameSettings.getPointOfView() == PointOfView.FIRST_PERSON
 		  ? (age > 5 || lSquared > 12F) : (age > 10 || lSquared > 6F);
 		if (shouldRender || !ownPlayer) {
-			particleScale = scale(age + partialTicks);
-			setAlphaF(alpha(age + partialTicks));
+			particleScale = getScaleForAge(age + partialTicks);
+			setAlphaF(getAlphaForAge(age + partialTicks));
 			super.renderParticle(buffer, renderInfo, partialTicks);
 		}
 	}
 	
-	
-	
-	public float scale(float age) {
+	public float getScaleForAge(float age) {
 		final float start_animation = 10F;
 		final float end_animation = 30F;
 		if (age < start_animation)
@@ -148,7 +146,7 @@ public class TrailParticle extends SpriteTexturedParticle {
 		return size;
 	}
 	
-	public float alpha(float age) {
+	public float getAlphaForAge(float age) {
 		final float end_animation = 30F;
 		if (age >= maxAge)
 			return 0F;

@@ -15,7 +15,7 @@ import net.minecraft.client.util.InputMappings.Type;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.MovementInput;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.InputEvent.KeyInputEvent;
+import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.InputUpdateEvent;
 import net.minecraftforge.client.settings.IKeyConflictContext;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -49,7 +49,7 @@ public class KeyHandler {
 	}
 	
 	@SubscribeEvent
-	public static void onKey(KeyInputEvent event) {
+	public static void onKey(InputEvent event) {
 		final PlayerEntity player = Minecraft.getInstance().player;
 		if (player == null)
 			return;

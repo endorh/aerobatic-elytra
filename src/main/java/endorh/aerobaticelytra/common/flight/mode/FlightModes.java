@@ -30,7 +30,7 @@ public enum FlightModes implements IEnumFlightMode {
 	  Const.FLIGHT_MODE_TOAST_U_OFFSET + Const.FLIGHT_MODE_TOAST_WIDTH,
 	  Const.FLIGHT_MODE_TOAST_V_OFFSET,
 	  AerobaticFlight::onAerobaticTravel, AerobaticFlight::onOtherModeTravel,
-	  AerobaticFlight::onRemoteFlightTravel, null,
+	  AerobaticFlight::onRemoteFlightTravel, AerobaticFlight::onRemoteOtherModeTravel,
 	  FlightModeTags.ELYTRA, FlightModeTags.AEROBATIC);
 	
 	private final Supplier<Boolean> shouldCycle;

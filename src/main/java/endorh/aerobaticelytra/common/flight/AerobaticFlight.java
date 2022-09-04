@@ -391,6 +391,10 @@ public class AerobaticFlight {
 		cooldown(player, data);
 	}
 	
+	public static void onRemoteOtherModeTravel(PlayerEntity player) {
+		onOtherModeTravel(player, null);
+	}
+	
 	public static void doLand(PlayerEntity player, IAerobaticData data) {
 		data.land();
 		MinecraftForge.EVENT_BUS.post(
@@ -417,8 +421,7 @@ public class AerobaticFlight {
 			          step * max(propulsion.range_tick.getFloatMax(), propulsion.range_tick.getFloatMin())));
 		}
 		float boostHeat = data.getBoostHeat();
-		if (boostHeat > 0F)
-			data.setBoostHeat(max(0F, boostHeat - 0.2F));
+		if (boostHeat > 0F) data.setBoostHeat(max(0F, boostHeat - 0.2F));
 	}
 	
 	/**

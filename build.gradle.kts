@@ -26,7 +26,7 @@ plugins {
 
 val modId = "aerobaticelytra"
 val modGroup = "endorh.aerobaticelytra"
-val modVersion = "0.2.18"
+val modVersion = "0.2.19"
 val mcVersion = "1.16.5"
 val forge = "36.1.0"
 val forgeVersion = "$mcVersion-$forge"
@@ -48,7 +48,7 @@ val authors = "Endor H"
 val issueTracker = ""
 val page = ""
 val updateJson = ""
-val logoFile = "${modId}.png"
+val logoFile = "$modId.png"
 val modDescription = """
 	Adds an special elytra able to roll, fly and leave a trail, like an aerobatic plane.
 	All recipes and elytra upgrades can be modified by datapacks with great flexibility.
