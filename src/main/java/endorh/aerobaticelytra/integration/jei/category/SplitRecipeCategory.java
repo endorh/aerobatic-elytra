@@ -2,10 +2,10 @@ package endorh.aerobaticelytra.integration.jei.category;
 
 import com.mojang.datafixers.util.Pair;
 import endorh.aerobaticelytra.AerobaticElytra;
-import endorh.aerobaticelytra.client.AerobaticElytraResources;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.recipe.SplitRecipe;
 import endorh.aerobaticelytra.common.recipe.SplitRecipe.LeaveData;
+import endorh.aerobaticelytra.integration.jei.gui.JeiResources;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
@@ -32,7 +32,7 @@ public class SplitRecipeCategory extends BaseCategory<SplitRecipe> {
 	public static final RecipeType<SplitRecipe> TYPE = RecipeType.create(AerobaticElytra.MOD_ID, "split", SplitRecipe.class);
 	
 	public SplitRecipeCategory() {
-		super(TYPE, AerobaticElytraResources::byproduct3x3RecipeBg,
+		super(TYPE, JeiResources::byproduct3x3RecipeBg,
 		      AerobaticElytraItems.AEROBATIC_ELYTRA, Items.SHEARS, true);
 	}
 	

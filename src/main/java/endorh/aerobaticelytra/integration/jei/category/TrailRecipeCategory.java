@@ -2,11 +2,11 @@ package endorh.aerobaticelytra.integration.jei.category;
 
 import com.google.common.collect.ImmutableList;
 import endorh.aerobaticelytra.AerobaticElytra;
-import endorh.aerobaticelytra.client.AerobaticElytraResources;
 import endorh.aerobaticelytra.client.trail.AerobaticTrail.RocketSide;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.recipe.TrailRecipe;
 import endorh.aerobaticelytra.integration.jei.category.TrailRecipeCategory.TrailRecipeWrapper;
+import endorh.aerobaticelytra.integration.jei.gui.JeiResources;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.ingredient.IRecipeSlotTooltipCallback;
@@ -39,7 +39,7 @@ public class TrailRecipeCategory extends BaseCategory<TrailRecipeWrapper> {
 	public static final RecipeType<TrailRecipeWrapper> TYPE = RecipeType.create(AerobaticElytra.MOD_ID, "trail", TrailRecipeWrapper.class);
 	
 	public TrailRecipeCategory() {
-		super(TYPE, AerobaticElytraResources::regular3x3RecipeBg,
+		super(TYPE, JeiResources::regular3x3RecipeBg,
 		      AerobaticElytraItems.AEROBATIC_ELYTRA, Items.FIREWORK_ROCKET, false);
 	}
 	

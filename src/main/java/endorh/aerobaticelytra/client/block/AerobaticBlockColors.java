@@ -7,6 +7,7 @@ import endorh.util.common.ColorUtil;
 import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.world.level.FoliageColor;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ColorHandlerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -29,10 +30,10 @@ public class AerobaticBlockColors {
 			  final BlockEntity tile = world.getBlockEntity(pos);
 			  if (!(tile instanceof BrokenLeavesBlockEntity te))
 				  return defaultColor;
-			  if (te.replacedLeaves == null)
-				  return defaultColor;
+			  BlockState replacedLeaves = te.getReplacedLeaves();
+			  if (replacedLeaves == null) return defaultColor;
 			  return ColorUtil.multiply(
-			    new Color(colors.getColor(te.replacedLeaves, world, pos, layer)), 0.75F).getRGB();
+			    new Color(colors.getColor(replacedLeaves, world, pos, layer)), 0.75F).getRGB();
 		  }, AerobaticBlocks.BROKEN_LEAVES);
 		AerobaticElytra.logRegistered("Block Colors");
 	}

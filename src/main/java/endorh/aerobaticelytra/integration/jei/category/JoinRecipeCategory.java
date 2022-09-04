@@ -2,9 +2,9 @@ package endorh.aerobaticelytra.integration.jei.category;
 
 import com.mojang.datafixers.util.Pair;
 import endorh.aerobaticelytra.AerobaticElytra;
-import endorh.aerobaticelytra.client.AerobaticElytraResources;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.recipe.JoinRecipe;
+import endorh.aerobaticelytra.integration.jei.gui.JeiResources;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
@@ -28,7 +28,7 @@ public class JoinRecipeCategory extends BaseCategory<JoinRecipe> {
 	
 	public JoinRecipeCategory() {
 		super(
-		  TYPE, AerobaticElytraResources::regular3x3RecipeBg,
+		  TYPE, JeiResources::regular3x3RecipeBg,
 		  AerobaticElytraItems.AEROBATIC_ELYTRA_WING, AerobaticElytraItems.AEROBATIC_ELYTRA_WING, false);
 	}
 	

@@ -137,8 +137,6 @@ public class TrailParticle extends TextureSheetParticle {
 		}
 	}
 	
-	
-	
 	public float getScaleForAge(float age) {
 		final float start_animation = 10F;
 		final float end_animation = 30F;

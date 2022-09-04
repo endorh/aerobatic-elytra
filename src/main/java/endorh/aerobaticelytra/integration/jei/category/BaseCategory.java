@@ -1,10 +1,10 @@
 package endorh.aerobaticelytra.integration.jei.category;
 
 import com.mojang.datafixers.util.Pair;
-import endorh.aerobaticelytra.client.AerobaticElytraResources;
 import endorh.aerobaticelytra.client.config.ClientConfig.style.dark_theme;
 import endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiHelper;
 import endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiPlugin;
+import endorh.aerobaticelytra.integration.jei.gui.JeiResources;
 import endorh.aerobaticelytra.integration.jei.gui.ShapelessDecoratedDrawable;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -62,7 +62,7 @@ public abstract class BaseCategory<T> implements IRecipeCategory<T> {
 		final String shortName = type.getUid().getPath().replace("/", ".");
 		this.type = type;
 		if (shapeless)
-			backgroundProvider = AerobaticElytraResources.shapeless(backgroundProvider);
+			backgroundProvider = JeiResources.shapeless(backgroundProvider);
 		final IDrawable[] bg = backgroundProvider.apply(guiHelper);
 		background = bg[0];
 		background_dark = bg[1];

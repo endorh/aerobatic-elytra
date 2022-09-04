@@ -2,11 +2,11 @@ package endorh.aerobaticelytra.integration.jei.category;
 
 import com.mojang.datafixers.util.Pair;
 import endorh.aerobaticelytra.AerobaticElytra;
-import endorh.aerobaticelytra.client.AerobaticElytraResources;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.recipe.BannerRecipe;
 import endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiHelper;
 import endorh.aerobaticelytra.integration.jei.category.BannerRecipeCategory.BannerRecipeWrapper;
+import endorh.aerobaticelytra.integration.jei.gui.JeiResources;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -41,7 +41,7 @@ public class BannerRecipeCategory extends BaseCategory<BannerRecipeWrapper> {
 	protected static long lastIconChange = 0;
 	
 	public BannerRecipeCategory() {
-		super(TYPE, AerobaticElytraResources::regular3x3RecipeBg,
+		super(TYPE, JeiResources::regular3x3RecipeBg,
 		      AerobaticElytraItems.AEROBATIC_ELYTRA, Items.RED_BANNER, true);
 	}
 	

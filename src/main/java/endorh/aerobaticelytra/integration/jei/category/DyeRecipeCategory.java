@@ -1,10 +1,10 @@
 package endorh.aerobaticelytra.integration.jei.category;
 
 import endorh.aerobaticelytra.AerobaticElytra;
-import endorh.aerobaticelytra.client.AerobaticElytraResources;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.recipe.DyeRecipe;
 import endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiHelper;
+import endorh.aerobaticelytra.integration.jei.gui.JeiResources;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
@@ -45,7 +45,7 @@ public class DyeRecipeCategory extends BaseCategory<DyeRecipeCategory.DyeRecipeW
 	protected static long lastIconChange = 0;
 	
 	public DyeRecipeCategory() {
-		super(TYPE, AerobaticElytraResources::regular3x3RecipeBg, AerobaticElytraItems.AEROBATIC_ELYTRA, Items.RED_DYE, true);
+		super(TYPE, JeiResources::regular3x3RecipeBg, AerobaticElytraItems.AEROBATIC_ELYTRA, Items.RED_DYE, true);
 	}
 	
 	@Override public void setRecipe(

@@ -94,9 +94,8 @@ public class FlightDataCapability {
 	 */
 	@SubscribeEvent
 	public static void onAttachCapability(AttachCapabilitiesEvent<Entity> event) {
-		if (event.getObject() instanceof Player player) {
+		if (event.getObject() instanceof Player player)
 			event.addCapability(ID, createProvider(player));
-		}
 	}
 	
 	/**
@@ -105,7 +104,7 @@ public class FlightDataCapability {
 	@SubscribeEvent
 	public static void onClonePlayer(PlayerEvent.Clone event) {
 		IFlightData playerData = requireFlightData(event.getPlayer());
-		playerData.copy(requireFlightData(event.getOriginal()));
+		playerData.copy(getFlightDataOrDefault(event.getOriginal()));
 		playerData.reset();
 	}
 	

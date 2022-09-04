@@ -1,11 +1,11 @@
 package endorh.aerobaticelytra.integration.jei.category;
 
 import endorh.aerobaticelytra.AerobaticElytra;
-import endorh.aerobaticelytra.client.AerobaticElytraResources;
 import endorh.aerobaticelytra.common.capability.IElytraSpec.Upgrade;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.recipe.ItemSelector;
 import endorh.aerobaticelytra.common.recipe.UpgradeRecipe;
+import endorh.aerobaticelytra.integration.jei.gui.JeiResources;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
@@ -29,7 +29,7 @@ public class UpgradeRecipeCategory extends BaseCategory<UpgradeRecipe> {
 	public static final RecipeType<UpgradeRecipe> TYPE = RecipeType.create(AerobaticElytra.MOD_ID, "upgrade", UpgradeRecipe.class);
 	
 	public UpgradeRecipeCategory() {
-		super(TYPE, AerobaticElytraResources::upgradeRecipeBg, AerobaticElytraItems.AEROBATIC_ELYTRA, false);
+		super(TYPE, JeiResources::upgradeRecipeBg, AerobaticElytraItems.AEROBATIC_ELYTRA, false);
 	}
 	
 	@Override public void setRecipe(@NotNull IRecipeLayoutBuilder builder, @NotNull UpgradeRecipe recipe, @NotNull IFocusGroup focuses) {
