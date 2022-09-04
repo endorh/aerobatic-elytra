@@ -34,27 +34,18 @@ public class AerobaticTrail {
 	public static final Map<Byte, BoostShape> SHAPES = new HashMap<>();
 	
 	static {
-		SHAPES.put(
-		  SHAPE_SMALL_BALL, new CircleBoostShape(0.2F, 50, 2, 0.04F));
-		SHAPES.put(
-		  SHAPE_LARGE_BALL, new CircleBoostShape(0.3F, 60, 3, 0.05F));
-		SHAPES.put(
-		  SHAPE_STAR,
-		  new ShapedBoostShape(
-			 new float[][]{
-				{0.0F, 1.0F}, {0.3455F, 0.309F}, {0.9511F, 0.309F},
-				{0.3795918F, -0.1265306F}, {0.6122449F, -0.8040816F}, {0.0F, -0.3591837F}
-			 }, 5, 3, 0.35F, true, 0.03F));
-		SHAPES.put(
-		  SHAPE_CREEPER,
-		  new ShapedBoostShape(
-			 new float[][]{
-				{0.0F, 0.2F}, {0.2F, 0.2F}, {0.2F, 0.6F}, {0.6F, 0.6F},
-				{0.6F, 0.2F}, {0.2F, 0.2F}, {0.2F, 0.0F}, {0.4F, 0.0F},
-				{0.4F, -0.6F}, {0.2F, -0.6F}, {0.2F, -0.4F}, {0.0F, -0.4F}
-			 }, 4, 3, 0.45F, true, 0.025F));
-		SHAPES.put(
-		  SHAPE_BURST, new BurstBoostShape(0.4F, 70));
+		SHAPES.put(SHAPE_SMALL_BALL, new CircleBoostShape(0.2F, 50, 2, 0.04F));
+		SHAPES.put(SHAPE_LARGE_BALL, new CircleBoostShape(0.3F, 60, 3, 0.05F));
+		SHAPES.put(SHAPE_STAR, new ShapedBoostShape(new float[][]{
+		  {0.0F,        1.0F},       {0.3455F,     0.309F},     {0.9511F, 0.309F},
+		  {0.3795918F, -0.1265306F}, {0.6122449F, -0.8040816F}, {0.0F,   -0.3591837F}
+		}, 5, 3, 0.35F, true, 0.03F));
+		SHAPES.put(SHAPE_CREEPER, new ShapedBoostShape(new float[][]{
+		  {0.0F, 0.2F}, {0.2F, 0.2F}, {0.2F, 0.6F}, {0.6F, 0.6F},
+		  {0.6F, 0.2F}, {0.2F, 0.2F}, {0.2F, 0.0F}, {0.4F, 0.0F},
+		  {0.4F, -0.6F}, {0.2F, -0.6F}, {0.2F, -0.4F}, {0.0F, -0.4F}
+		}, 4, 3, 0.45F, true, 0.025F));
+		SHAPES.put(SHAPE_BURST, new BurstBoostShape(0.4F, 70));
 	}
 	
 	private static final Random random = new Random();
