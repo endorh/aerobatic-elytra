@@ -24,7 +24,7 @@ public class BrokenLeavesTileEntity extends BlockEntity {
 	public static final String NAME = "broken_leaves";
 	public static final String TAG_REPLACED_LEAVES = "ReplacedLeaves";
 	
-	public BlockState replacedLeaves = null;
+	private BlockState replacedLeaves = null;
 	
 	public BrokenLeavesTileEntity(BlockPos pos, BlockState state) {
 		super(AerobaticTileEntities.BROKEN_LEAVES_TE, pos, state);
@@ -37,36 +37,40 @@ public class BrokenLeavesTileEntity extends BlockEntity {
 	@Override public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
 		super.onDataPacket(net, pkt);
 		CompoundTag updateNBT = pkt.getTag();
-		replacedLeaves = NbtUtils.readBlockState(updateNBT.getCompound(TAG_REPLACED_LEAVES));
+		setReplacedLeaves(NbtUtils.readBlockState(updateNBT.getCompound(TAG_REPLACED_LEAVES)));
 		final BlockState state = getBlockState();
 		assert level != null;
 		level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_ALL_IMMEDIATE);
-	}
-	
-	@Override public @NotNull CompoundTag save(@NotNull CompoundTag compound) {
-		CompoundTag nbt = super.save(compound);
-		if (replacedLeaves != null)
-			nbt.put(TAG_REPLACED_LEAVES, NbtUtils.writeBlockState(replacedLeaves));
-		return nbt;
 	}
 	
 	@Override public void onLoad() {
 		super.onLoad();
 		final CompoundTag nbt = getTileData();
 		if (nbt.contains(TAG_REPLACED_LEAVES))
-			replacedLeaves = NbtUtils.readBlockState(nbt.getCompound(TAG_REPLACED_LEAVES));
+			setReplacedLeaves(NbtUtils.readBlockState(nbt.getCompound(TAG_REPLACED_LEAVES)));
 	}
 	
 	@Override public @NotNull CompoundTag getUpdateTag() {
 		CompoundTag tag = super.getUpdateTag();
-		if (replacedLeaves != null)
-			tag.put(TAG_REPLACED_LEAVES, NbtUtils.writeBlockState(replacedLeaves));
+		if (getReplacedLeaves() != null)
+			tag.put(TAG_REPLACED_LEAVES, NbtUtils.writeBlockState(getReplacedLeaves()));
 		return tag;
 	}
 	
 	@Override public void handleUpdateTag(CompoundTag tag) {
 		super.handleUpdateTag(tag);
 		if (tag.contains(TAG_REPLACED_LEAVES))
-			replacedLeaves = NbtUtils.readBlockState(tag.getCompound(TAG_REPLACED_LEAVES));
+			setReplacedLeaves(NbtUtils.readBlockState(tag.getCompound(TAG_REPLACED_LEAVES)));
+	}
+	
+	public BlockState getReplacedLeaves() {
+		if (replacedLeaves == null) replacedLeaves = NbtUtils.readBlockState(
+		  getTileData().getCompound(TAG_REPLACED_LEAVES));
+		return replacedLeaves;
+	}
+	
+	public void setReplacedLeaves(BlockState replacedLeaves) {
+		this.replacedLeaves = replacedLeaves;
+		getTileData().put(TAG_REPLACED_LEAVES, NbtUtils.writeBlockState(replacedLeaves));
 	}
 }

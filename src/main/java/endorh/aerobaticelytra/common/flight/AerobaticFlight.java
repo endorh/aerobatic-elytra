@@ -374,17 +374,19 @@ public class AerobaticFlight {
 	 * takeoff propulsion
 	 */
 	public static void onOtherModeTravel(
-	  Player player, @SuppressWarnings("unused") Vec3 travelVector
+	  Player player, Vec3 travelVector
 	) {
 		IAerobaticData data = getAerobaticDataOrDefault(player);
-		if (data.updateBoosted(false)) {
-			player.level.playSound(
-			  player, player.blockPosition(), AerobaticSounds.AEROBATIC_ELYTRA_SLOWDOWN,
-			  SoundSource.PLAYERS, 1F, 1F);
-		}
+		if (data.updateBoosted(false)) player.level.playSound(
+		  player, player.blockPosition(), AerobaticSounds.AEROBATIC_ELYTRA_SLOWDOWN,
+		  SoundSource.PLAYERS, 1F, 1F);
 		if (data.getRotationBase().valid)
 			doLand(player, data);
 		cooldown(player, data);
+	}
+	
+	public static void onRemoteOtherModeTravel(Player player) {
+		onOtherModeTravel(player, null);
 	}
 	
 	public static void doLand(Player player, IAerobaticData data) {
@@ -412,8 +414,7 @@ public class AerobaticFlight {
 			          step * max(propulsion.range_tick.getFloatMax(), propulsion.range_tick.getFloatMin())));
 		}
 		float boostHeat = data.getBoostHeat();
-		if (boostHeat > 0F)
-			data.setBoostHeat(max(0F, boostHeat - 0.2F));
+		if (boostHeat > 0F) data.setBoostHeat(max(0F, boostHeat - 0.2F));
 	}
 	
 	/**
