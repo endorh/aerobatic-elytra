@@ -7,6 +7,8 @@ import endorh.aerobaticelytra.common.particle.TrailParticleData.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.ParticleEngine;
 import net.minecraft.core.particles.ParticleType;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.ParticleFactoryRegisterEvent;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -18,7 +20,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 @EventBusSubscriber(bus = Bus.MOD, modid = AerobaticElytra.MOD_ID)
-public class ModParticles {
+public class AerobaticElytraParticles {
 	
 	public static TrailParticleType TRAIL_PARTICLE;
 	public static StarTrailParticleType STAR_TRAIL_PARTICLE;
@@ -54,16 +56,20 @@ public class ModParticles {
 		return particleType;
 	}
 	
-	@SubscribeEvent
-	public static void onParticleFactoryRegistration(ParticleFactoryRegisterEvent event) {
-		ParticleEngine p = Minecraft.getInstance().particleEngine;
-		
-		p.register(TRAIL_PARTICLE, TrailParticle.Factory::new);
-		p.register(STAR_TRAIL_PARTICLE, TrailParticle.Factory::new);
-		p.register(CREEPER_TRAIL_PARTICLE, TrailParticle.Factory::new);
-		p.register(BURST_TRAIL_PARTICLE, TrailParticle.Factory::new);
-		p.register(BUBBLE_TRAIL_PARTICLE, TrailParticle.Factory::new);
-		
-		AerobaticElytra.logRegistered("Particle Factories");
+	@EventBusSubscriber(value=Dist.CLIENT, bus=Bus.MOD, modid=AerobaticElytra.MOD_ID)
+	@OnlyIn(Dist.CLIENT)
+	public static class ClientRegistrar {
+		@SubscribeEvent
+		public static void onParticleFactoryRegistration(ParticleFactoryRegisterEvent event) {
+			ParticleEngine p = Minecraft.getInstance().particleEngine;
+			
+			p.register(TRAIL_PARTICLE, TrailParticle.Factory::new);
+			p.register(STAR_TRAIL_PARTICLE, TrailParticle.Factory::new);
+			p.register(CREEPER_TRAIL_PARTICLE, TrailParticle.Factory::new);
+			p.register(BURST_TRAIL_PARTICLE, TrailParticle.Factory::new);
+			p.register(BUBBLE_TRAIL_PARTICLE, TrailParticle.Factory::new);
+			
+			AerobaticElytra.logRegistered("Particle Factories");
+		}
 	}
 }

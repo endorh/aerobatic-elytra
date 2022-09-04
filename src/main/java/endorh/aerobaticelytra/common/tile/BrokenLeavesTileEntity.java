@@ -27,7 +27,7 @@ public class BrokenLeavesTileEntity extends BlockEntity {
 	public BlockState replacedLeaves = null;
 	
 	public BrokenLeavesTileEntity(BlockPos pos, BlockState state) {
-		super(ModTileEntities.BROKEN_LEAVES_TE, pos, state);
+		super(AerobaticTileEntities.BROKEN_LEAVES_TE, pos, state);
 	}
 	
 	@Override public @Nullable ClientboundBlockEntityDataPacket getUpdatePacket() {

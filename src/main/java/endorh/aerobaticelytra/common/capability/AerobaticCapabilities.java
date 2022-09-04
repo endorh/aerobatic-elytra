@@ -9,7 +9,7 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 import java.util.stream.Stream;
 
 @EventBusSubscriber(bus=Bus.MOD, modid=AerobaticElytra.MOD_ID)
-public class ModCapabilities {
+public class AerobaticCapabilities {
 	@SubscribeEvent
 	public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
 		Stream.of(IFlightData.class, IAerobaticData.class, IElytraSpec.class)

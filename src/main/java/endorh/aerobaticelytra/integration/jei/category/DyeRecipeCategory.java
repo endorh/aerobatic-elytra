@@ -2,12 +2,12 @@ package endorh.aerobaticelytra.integration.jei.category;
 
 import com.google.common.collect.ImmutableList;
 import endorh.aerobaticelytra.AerobaticElytra;
-import endorh.aerobaticelytra.client.ModResources;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
+import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.item.AerobaticElytraWingItem;
-import endorh.aerobaticelytra.common.item.ModItems;
 import endorh.aerobaticelytra.common.recipe.DyeRecipe;
 import endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiHelper;
+import endorh.aerobaticelytra.integration.jei.gui.JeiResources;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -15,17 +15,17 @@ import mezz.jei.api.gui.ingredient.IGuiItemStackGroup;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.IFocus;
 import mezz.jei.api.registration.IRecipeRegistration;
+import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeManager;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.Util;
-import net.minecraft.network.chat.Component;
-import net.minecraft.ChatFormatting;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -46,18 +46,18 @@ public class DyeRecipeCategory extends BaseCategory<DyeRecipeCategory.DyeRecipeW
 	protected static long lastIconChange = 0;
 	
 	public DyeRecipeCategory() {
-		super(UID, DyeRecipeWrapper.class, ModResources::regular3x3RecipeBg,
-		      ModItems.AEROBATIC_ELYTRA, Items.RED_DYE, true);
+		super(UID, DyeRecipeWrapper.class, JeiResources::regular3x3RecipeBg,
+		      AerobaticElytraItems.AEROBATIC_ELYTRA, Items.RED_DYE, true);
 	}
 	
 	@Override public void setIngredients(
 	  @NotNull DyeRecipeWrapper recipe, @NotNull IIngredients ingredients
 	) {
 		ingredients.setInputIngredients(ImmutableList.of(
-		  Ingredient.of(ModItems.AEROBATIC_ELYTRA, ModItems.AEROBATIC_ELYTRA_WING),
+		  Ingredient.of(AerobaticElytraItems.AEROBATIC_ELYTRA, AerobaticElytraItems.AEROBATIC_ELYTRA_WING),
 		  DyeRecipeWrapper.dyeIngredient));
 		ingredients.setOutputLists(VanillaTypes.ITEM, ImmutableList.of(ImmutableList.of(
-		  new ItemStack(ModItems.AEROBATIC_ELYTRA), new ItemStack(ModItems.AEROBATIC_ELYTRA_WING))));
+		  new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA), new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA_WING))));
 	}
 	
 	@Override public void setRecipe(
@@ -147,7 +147,7 @@ public class DyeRecipeCategory extends BaseCategory<DyeRecipeCategory.DyeRecipeW
 		
 		public List<Ingredient> getIngredients() {
 			return Util.make(new ArrayList<>(), l -> {
-				l.add(Ingredient.of(ModItems.AEROBATIC_ELYTRA));
+				l.add(Ingredient.of(AerobaticElytraItems.AEROBATIC_ELYTRA));
 				for (int i = 0; i < dyeAmount; i++)
 					l.add(dyeIngredient);
 			});

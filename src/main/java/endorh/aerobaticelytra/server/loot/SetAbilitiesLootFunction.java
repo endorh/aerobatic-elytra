@@ -37,7 +37,7 @@ public class SetAbilitiesLootFunction extends LootItemConditionalFunction {
 	}
 	
 	@Override public @NotNull LootItemFunctionType getType() {
-		return ModLootFunctions.SET_ABILITIES;
+		return AerobaticLootFunctions.SET_ABILITIES;
 	}
 	
 	public static Builder builder() {

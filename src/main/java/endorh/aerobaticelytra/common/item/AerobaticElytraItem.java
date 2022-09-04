@@ -509,7 +509,7 @@ public class AerobaticElytraItem extends ElytraItem implements Wearable, Dyeable
 	// Split wings
 	@SuppressWarnings("unused")
 	public AerobaticElytraWingItem getWingItem(ItemStack elytra, WingSide side) {
-		return ModItems.AEROBATIC_ELYTRA_WING;
+		return AerobaticElytraItems.AEROBATIC_ELYTRA_WING;
 	}
 	
 	public ItemStack getWing(ItemStack elytra, WingSide side) {

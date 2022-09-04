@@ -73,12 +73,12 @@ public class AerobaticElytraSound extends FadingTickableSound {
 	private final PlayerTickableSubSound whistleSound;
 	
 	public static void playBoostSound(Player player) {
-		playPlayerSound(player, ModSounds.AEROBATIC_ELYTRA_BOOST,
+		playPlayerSound(player, AerobaticSounds.AEROBATIC_ELYTRA_BOOST,
 		                SoundSource.PLAYERS, ClientConfig.sound.boost, 1F);
 	}
 	
 	public static void playSlowDownSound(Player player) {
-		playPlayerSound(player, ModSounds.AEROBATIC_ELYTRA_SLOWDOWN,
+		playPlayerSound(player, AerobaticSounds.AEROBATIC_ELYTRA_SLOWDOWN,
 		                SoundSource.PLAYERS, ClientConfig.sound.boost, 1F);
 	}
 	
@@ -109,15 +109,15 @@ public class AerobaticElytraSound extends FadingTickableSound {
 	}
 	
 	public AerobaticElytraSound(Player player) {
-		super(player, ModSounds.AEROBATIC_ELYTRA_FLIGHT, CATEGORY,
+		super(player, AerobaticSounds.AEROBATIC_ELYTRA_FLIGHT, CATEGORY,
 		      FADE_IN, FADE_OUT, MIN_LEN, ATTENUATION);
 		aerobaticData = getAerobaticDataOrDefault(player);
 		brakeSound = new PlayerTickableSubSound(
-		  player, ModSounds.AEROBATIC_ELYTRA_BRAKE, CATEGORY, ATTENUATION);
+		  player, AerobaticSounds.AEROBATIC_ELYTRA_BRAKE, CATEGORY, ATTENUATION);
 		rotateSound = new PlayerTickableSubSound(
-		  player, ModSounds.AEROBATIC_ELYTRA_ROTATE, CATEGORY, ATTENUATION);
+		  player, AerobaticSounds.AEROBATIC_ELYTRA_ROTATE, CATEGORY, ATTENUATION);
 		whistleSound = new PlayerTickableSubSound(
-		  player, ModSounds.AEROBATIC_ELYTRA_WHISTLE, CATEGORY, ATTENUATION);
+		  player, AerobaticSounds.AEROBATIC_ELYTRA_WHISTLE, CATEGORY, ATTENUATION);
 	}
 	
 	@Override public boolean shouldFadeOut() {

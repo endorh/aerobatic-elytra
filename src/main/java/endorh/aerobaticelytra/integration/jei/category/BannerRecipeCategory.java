@@ -3,13 +3,13 @@ package endorh.aerobaticelytra.integration.jei.category;
 import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
 import endorh.aerobaticelytra.AerobaticElytra;
-import endorh.aerobaticelytra.client.ModResources;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
+import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.item.AerobaticElytraWingItem;
-import endorh.aerobaticelytra.common.item.ModItems;
 import endorh.aerobaticelytra.common.recipe.BannerRecipe;
 import endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiHelper;
 import endorh.aerobaticelytra.integration.jei.category.BannerRecipeCategory.BannerRecipeWrapper;
+import endorh.aerobaticelytra.integration.jei.gui.JeiResources;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -44,18 +44,19 @@ public class BannerRecipeCategory extends BaseCategory<BannerRecipeWrapper> {
 	protected static long lastIconChange = 0;
 	
 	public BannerRecipeCategory() {
-		super(UID, BannerRecipeWrapper.class, ModResources::regular3x3RecipeBg,
-		      ModItems.AEROBATIC_ELYTRA, Items.RED_BANNER, true);
+		super(UID, BannerRecipeWrapper.class, JeiResources::regular3x3RecipeBg,
+		      AerobaticElytraItems.AEROBATIC_ELYTRA, Items.RED_BANNER, true);
 	}
 	
 	@Override public void setIngredients(
 	  @NotNull BannerRecipeWrapper recipe, @NotNull IIngredients ingredients
 	) {
 		ingredients.setInputIngredients(ImmutableList.of(
-		  Ingredient.of(ModItems.AEROBATIC_ELYTRA, ModItems.AEROBATIC_ELYTRA_WING),
+		  Ingredient.of(AerobaticElytraItems.AEROBATIC_ELYTRA, AerobaticElytraItems.AEROBATIC_ELYTRA_WING),
 		  Ingredient.of(ItemTags.BANNERS)));
 		ingredients.setOutputLists(VanillaTypes.ITEM, ImmutableList.of(ImmutableList.of(
-		  new ItemStack(ModItems.AEROBATIC_ELYTRA), new ItemStack(ModItems.AEROBATIC_ELYTRA_WING))));
+		  new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA),
+		  new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA_WING))));
 	}
 	
 	@Override public void setRecipe(
@@ -80,7 +81,7 @@ public class BannerRecipeCategory extends BaseCategory<BannerRecipeWrapper> {
 		stacks.set(0, elytras);
 		stacks.set(1, banners);
 		stacks.set(2, elytras(new ItemStack(
-		  recipe.wings? ModItems.AEROBATIC_ELYTRA_WING : ModItems.AEROBATIC_ELYTRA
+		  recipe.wings? AerobaticElytraItems.AEROBATIC_ELYTRA_WING : AerobaticElytraItems.AEROBATIC_ELYTRA
 		), banners));
 		stacks.addTooltipCallback((i, input, ingredient, tooltip) -> {
 			if (i == 1)

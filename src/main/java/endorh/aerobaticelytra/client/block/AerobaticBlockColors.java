@@ -1,7 +1,7 @@
 package endorh.aerobaticelytra.client.block;
 
 import endorh.aerobaticelytra.AerobaticElytra;
-import endorh.aerobaticelytra.common.block.ModBlocks;
+import endorh.aerobaticelytra.common.block.AerobaticBlocks;
 import endorh.aerobaticelytra.common.tile.BrokenLeavesTileEntity;
 import endorh.util.common.ColorUtil;
 import net.minecraft.client.color.block.BlockColors;
@@ -16,7 +16,7 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 import java.awt.Color;
 
 @EventBusSubscriber(value = Dist.CLIENT, bus = Bus.MOD, modid = AerobaticElytra.MOD_ID)
-public class ModBlockColors {
+public class AerobaticBlockColors {
 	@SubscribeEvent
 	public static void registerBlockColors(ColorHandlerEvent.Block event) {
 		BlockColors colors = event.getBlockColors();
@@ -33,7 +33,7 @@ public class ModBlockColors {
 				  return defaultColor;
 			  return ColorUtil.multiply(
 			    new Color(colors.getColor(te.replacedLeaves, world, pos, layer)), 0.75F).getRGB();
-		  }, ModBlocks.BROKEN_LEAVES);
+		  }, AerobaticBlocks.BROKEN_LEAVES);
 		AerobaticElytra.logRegistered("Block Colors");
 	}
 }

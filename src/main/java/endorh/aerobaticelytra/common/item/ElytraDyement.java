@@ -436,8 +436,8 @@ public class ElytraDyement {
 	
 	@SubscribeEvent
 	public static void registerCauldronInteractions(FMLCommonSetupEvent event) {
-		CauldronInteraction.WATER.put(ModItems.AEROBATIC_ELYTRA, CLEAR_AEROBATIC_ELYTRA_DYE);
-		CauldronInteraction.WATER.put(ModItems.AEROBATIC_ELYTRA_WING, CLEAR_AEROBATIC_ELYTRA_DYE);
+		CauldronInteraction.WATER.put(AerobaticElytraItems.AEROBATIC_ELYTRA, CLEAR_AEROBATIC_ELYTRA_DYE);
+		CauldronInteraction.WATER.put(AerobaticElytraItems.AEROBATIC_ELYTRA_WING, CLEAR_AEROBATIC_ELYTRA_DYE);
 	}
 	
 	public static ItemStack clearDyes(ItemStack elytra) {

@@ -6,7 +6,6 @@ import com.mojang.datafixers.util.Pair;
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.config.ClientConfig.style.visibility;
 import endorh.aerobaticelytra.client.config.ClientConfig.style.visual;
-import endorh.aerobaticelytra.client.item.AerobaticElytraBannerTextureManager;
 import endorh.aerobaticelytra.client.render.model.AerobaticElytraChestModel;
 import endorh.aerobaticelytra.client.render.model.AerobaticElytraModel;
 import endorh.aerobaticelytra.common.AerobaticElytraLogic;
@@ -44,7 +43,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import static endorh.aerobaticelytra.client.ModResources.TEXTURE_AEROBATIC_ELYTRA;
+import static endorh.aerobaticelytra.client.AerobaticElytraResources.TEXTURE_AEROBATIC_ELYTRA;
 import static java.lang.Math.min;
 
 @EventBusSubscriber(value=Dist.CLIENT, bus=Bus.MOD, modid=AerobaticElytra.MOD_ID)

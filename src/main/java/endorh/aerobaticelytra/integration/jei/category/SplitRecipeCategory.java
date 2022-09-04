@@ -3,11 +3,11 @@ package endorh.aerobaticelytra.integration.jei.category;
 import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
 import endorh.aerobaticelytra.AerobaticElytra;
-import endorh.aerobaticelytra.client.ModResources;
-import endorh.aerobaticelytra.common.item.ModItems;
+import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.recipe.SplitRecipe;
 import endorh.aerobaticelytra.common.recipe.SplitRecipe.LeaveData;
 import endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiHelper;
+import endorh.aerobaticelytra.integration.jei.gui.JeiResources;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.gui.ingredient.IGuiItemStackGroup;
@@ -32,8 +32,8 @@ public class SplitRecipeCategory extends BaseCategory<SplitRecipe> {
 	public static final ResourceLocation UID = AerobaticElytra.prefix("split");
 	
 	public SplitRecipeCategory() {
-		super(UID, SplitRecipe.class, ModResources::byproduct3x3RecipeBg,
-		      ModItems.AEROBATIC_ELYTRA, Items.SHEARS, true);
+		super(UID, SplitRecipe.class, JeiResources::byproduct3x3RecipeBg,
+		      AerobaticElytraItems.AEROBATIC_ELYTRA, Items.SHEARS, true);
 	}
 	
 	@Override public void setIngredients(
@@ -41,7 +41,7 @@ public class SplitRecipeCategory extends BaseCategory<SplitRecipe> {
 	) {
 		ingredients.setInputIngredients(recipe.getIngredients());
 		ingredients.setOutputLists(VanillaTypes.ITEM, ImmutableList.of(
-		  ImmutableList.of(new ItemStack(ModItems.AEROBATIC_ELYTRA_WING))));
+		  ImmutableList.of(new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA_WING))));
 	}
 	
 	@Override public void setRecipe(

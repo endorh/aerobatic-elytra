@@ -38,15 +38,13 @@ public class AerobaticElytraLogic {
 		           || !ColytraIntegration.getColytraSubItem(stack).isEmpty());
 	}
 	
-	public static boolean isRemoteClientPlayerEntity(Player player) {
-		if (!player.level.isClientSide)
-			return false;
+	public static boolean isRemoteLocalPlayer(Player player) {
+		if (!player.level.isClientSide) return false;
 		return (player instanceof RemotePlayer);
 	}
 	
-	public static boolean isClientPlayerEntity(Player player) {
-		if (!player.level.isClientSide)
-			return false;
+	public static boolean isLocalPlayer(Player player) {
+		if (!player.level.isClientSide) return false;
 		return (player instanceof LocalPlayer);
 	}
 	
@@ -60,8 +58,7 @@ public class AerobaticElytraLogic {
 			return chest;
 		if (chest.getItem() instanceof ArmorItem && AerobaticElytra.caelusLoaded) {
 			elytra = ColytraIntegration.getColytraSubItem(chest);
-			if (elytra != ItemStack.EMPTY)
-				return elytra;
+			if (elytra != ItemStack.EMPTY) return elytra;
 		}
 		if (AerobaticElytra.curiosLoaded)
 			elytra = CuriosIntegration.getCurioAerobaticElytra(entity);

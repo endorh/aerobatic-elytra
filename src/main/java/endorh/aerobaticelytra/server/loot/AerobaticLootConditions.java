@@ -11,7 +11,7 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 
 @EventBusSubscriber(bus=Bus.MOD, modid=AerobaticElytra.MOD_ID)
-public class ModLootConditions {
+public class AerobaticLootConditions {
 	public static LootItemConditionType ORIGIN_DISTANCE;
 	public static LootItemConditionType AEROBATIC_FLYING;
 	public static LootItemConditionType ELYTRA_FLYING;

@@ -3,10 +3,10 @@ package endorh.aerobaticelytra.integration.jei.category;
 import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
 import endorh.aerobaticelytra.AerobaticElytra;
-import endorh.aerobaticelytra.client.ModResources;
-import endorh.aerobaticelytra.common.item.ModItems;
+import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.recipe.JoinRecipe;
 import endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiHelper;
+import endorh.aerobaticelytra.integration.jei.gui.JeiResources;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.gui.ingredient.IGuiItemStackGroup;
@@ -27,18 +27,18 @@ public class JoinRecipeCategory extends BaseCategory<JoinRecipe> {
 	public static final ResourceLocation UID = AerobaticElytra.prefix("join");
 	
 	public JoinRecipeCategory() {
-		super(UID, JoinRecipe.class, ModResources::regular3x3RecipeBg,
-		      ModItems.AEROBATIC_ELYTRA_WING, ModItems.AEROBATIC_ELYTRA_WING, false);
+		super(UID, JoinRecipe.class, JeiResources::regular3x3RecipeBg,
+		      AerobaticElytraItems.AEROBATIC_ELYTRA_WING, AerobaticElytraItems.AEROBATIC_ELYTRA_WING, false);
 	}
 	
 	@Override public void setIngredients(
 	  @NotNull JoinRecipe recipe, @NotNull IIngredients ingredients
 	) {
 		ingredients.setInputIngredients(ImmutableList.of(
-		  Ingredient.of(ModItems.AEROBATIC_ELYTRA_WING),
-		  Ingredient.of(ModItems.AEROBATIC_ELYTRA_WING)));
+		  Ingredient.of(AerobaticElytraItems.AEROBATIC_ELYTRA_WING),
+		  Ingredient.of(AerobaticElytraItems.AEROBATIC_ELYTRA_WING)));
 		ingredients.setOutputLists(VanillaTypes.ITEM, ImmutableList.of(
-		  ImmutableList.of(new ItemStack(ModItems.AEROBATIC_ELYTRA))));
+		  ImmutableList.of(new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA))));
 	}
 	
 	@Override public void setRecipe(

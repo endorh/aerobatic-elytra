@@ -2,12 +2,12 @@ package endorh.aerobaticelytra.integration.jei.category;
 
 import com.google.common.collect.ImmutableList;
 import endorh.aerobaticelytra.AerobaticElytra;
-import endorh.aerobaticelytra.client.ModResources;
 import endorh.aerobaticelytra.common.capability.IElytraSpec.Upgrade;
-import endorh.aerobaticelytra.common.item.ModItems;
+import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.recipe.ItemSelector;
 import endorh.aerobaticelytra.common.recipe.UpgradeRecipe;
 import endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiHelper;
+import endorh.aerobaticelytra.integration.jei.gui.JeiResources;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.gui.ingredient.IGuiItemStackGroup;
@@ -33,14 +33,14 @@ public class UpgradeRecipeCategory extends BaseCategory<UpgradeRecipe> {
 	public static final ResourceLocation UID = AerobaticElytra.prefix("upgrade");
 	
 	public UpgradeRecipeCategory() {
-		super(UID, UpgradeRecipe.class, ModResources::upgradeRecipeBg, ModItems.AEROBATIC_ELYTRA, false);
+		super(UID, UpgradeRecipe.class, JeiResources::upgradeRecipeBg, AerobaticElytraItems.AEROBATIC_ELYTRA, false);
 	}
 	
 	@Override public void setIngredients(
 	  @NotNull UpgradeRecipe recipe, @NotNull IIngredients ingredients
 	) {
 		final List<Ingredient> ing = new ArrayList<>(recipe.getIngredients());
-		ing.add(Ingredient.of(ModItems.AEROBATIC_ELYTRA));
+		ing.add(Ingredient.of(AerobaticElytraItems.AEROBATIC_ELYTRA));
 		ingredients.setInputIngredients(ing);
 		ingredients.setOutputLists(VanillaTypes.ITEM, ImmutableList.of(ImmutableList.of(
 		  recipe.getResultItem())));

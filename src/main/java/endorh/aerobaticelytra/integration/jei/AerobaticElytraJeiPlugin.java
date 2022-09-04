@@ -4,8 +4,8 @@ import com.google.common.collect.ImmutableList;
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.input.KeyHandler;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
-import endorh.aerobaticelytra.common.item.ModItems;
-import endorh.aerobaticelytra.common.recipe.UpgradeRecipe;
+import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
+import endorh.aerobaticelytra.common.recipe.*;
 import endorh.aerobaticelytra.integration.jei.category.*;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
@@ -82,7 +82,7 @@ public class AerobaticElytraJeiPlugin implements IModPlugin {
 	@Override public void registerItemSubtypes(@NotNull ISubtypeRegistration reg) {
 		// Differentiate aerobatic elytras by their abilities
 		reg.registerSubtypeInterpreter(
-		  ModItems.AEROBATIC_ELYTRA,
+		  AerobaticElytraItems.AEROBATIC_ELYTRA,
 		  (stack, context) -> getElytraSpecOrDefault(stack).getAbilities().entrySet().stream().map(
 			 entry -> entry.getKey().toString() + ":" + entry.getValue()
 		  ).collect(Collectors.joining()));
@@ -95,7 +95,7 @@ public class AerobaticElytraJeiPlugin implements IModPlugin {
 		if (key.equals(keyName))
 			keyName = keyName.replaceFirst("key\\.keyboard\\.", "");
 		reg.addIngredientInfo(
-		  new ItemStack(ModItems.AEROBATIC_ELYTRA), VanillaTypes.ITEM,
+		  new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA), VanillaTypes.ITEM,
 		  ttc("aerobaticelytra.jei.info.aerobatic_elytra", keyName));
 		
 		// Get recipe list
@@ -118,7 +118,7 @@ public class AerobaticElytraJeiPlugin implements IModPlugin {
 	
 	@Override public void registerRecipeCatalysts(IRecipeCatalystRegistration reg) {
 		// Register the Aerobatic Elytra item as catalyst for upgrade recipes
-		reg.addRecipeCatalyst(new ItemStack(ModItems.AEROBATIC_ELYTRA), UpgradeRecipeCategory.UID);
+		reg.addRecipeCatalyst(new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA), UpgradeRecipeCategory.UID);
 		final ItemStack craftingTable = new ItemStack(Items.CRAFTING_TABLE);
 		reg.addRecipeCatalyst(
 		  craftingTable, JoinRecipeCategory.UID, SplitRecipeCategory.UID,

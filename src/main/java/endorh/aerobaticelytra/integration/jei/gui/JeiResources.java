@@ -1,21 +1,14 @@
-package endorh.aerobaticelytra.client;
+package endorh.aerobaticelytra.integration.jei.gui;
 
 import endorh.aerobaticelytra.AerobaticElytra;
-import endorh.aerobaticelytra.integration.jei.gui.ShapelessDecoratedDrawable;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.helpers.IGuiHelper;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.function.Function;
 
-/**
- * Centralization of client {@link ResourceLocation}s
- */
-public class ModResources {
-	public static final ResourceLocation FLIGHT_GUI_ICONS_LOCATION =
-	  AerobaticElytra.prefix("textures/gui/flight_icons.png");
-	public static final ResourceLocation TEXTURE_AEROBATIC_ELYTRA =
-	  AerobaticElytra.prefix("textures/entity/aerobatic_elytra.png");
+public class JeiResources {
+	
 	public static final ResourceLocation TEXTURE_RECIPES =
 	  AerobaticElytra.prefix("textures/gui/recipes.png");
 	
@@ -46,4 +39,3 @@ public class ModResources {
 		};
 	}
 }
-
