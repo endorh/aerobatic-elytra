@@ -21,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
  * @see BrokenLeavesBlockModel
  */
 public class BrokenLeavesTileEntity extends BlockEntity {
-	public static final String NAME = "broken_leaves_te";
+	public static final String NAME = "broken_leaves";
 	public static final String TAG_REPLACED_LEAVES = "ReplacedLeaves";
 	
 	public BlockState replacedLeaves = null;

@@ -35,12 +35,16 @@ public class TrailParticle extends TextureSheetParticle {
 	
 	private final SpriteSet sprites;
 	private final float size;
-	private final float partialTick;
+	private final MutableBlockPos pos = new MutableBlockPos((int) x, (int) y, (int) z);
 	private final boolean ownPlayer;
 	
-	private Vec3f m;
+	private final Vec3f m = Vec3f.ZERO.get();
 	private final Vec3f rollVec;
 	private final RocketSide side;
+	
+	private final float[] initialColorHSB = new float[3];
+	private final float[] fadeColorHSB = new float[3];
+	private final float[] colorRGB = new float[3];
 	
 	private final Color color;
 	private final Color fadeColor;
@@ -82,18 +86,20 @@ public class TrailParticle extends TextureSheetParticle {
 		this.sprites = sprites;
 		
 		this.color = color;
+		Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), initialColorHSB);
 		this.fadeColor = fadeColor;
+		Color.RGBtoHSB(fadeColor.getRed(), fadeColor.getGreen(), fadeColor.getBlue(), fadeColorHSB);
 		this.type = type;
 		this.flicker = flicker;
 		this.trail = trail;
 		
-		this.partialTick = partialTick;
 		this.ownPlayer = ownPlayer;
 		this.rollVec = rollVec;
 		this.side = rocketSide;
 		this.trailData = data;
 		
-		setColor(this.color);
+		ColorUtil.hsbLerpToRgb(0, initialColorHSB, fadeColorHSB, colorRGB);
+		setColor(colorRGB[0], colorRGB[1], colorRGB[2]);
 		
 		this.size = size;
 		quadSize = size;
@@ -116,20 +122,15 @@ public class TrailParticle extends TextureSheetParticle {
 		hasPhysics = true;
 	}
 	
-	private void setColor(Color color) {
-		setColor(color.getRed()/255F, color.getGreen()/255F, color.getBlue()/255F);
-	}
-	
 	@Override public void render(
 	  @NotNull VertexConsumer buffer, @NotNull Camera renderInfo, float partialTicks
 	) {
-		Minecraft minecraft = Minecraft.getInstance();
-		float lSquared =
-		  (float)minecraft.gameRenderer.getMainCamera().getPosition()
-		    .distanceToSqr(x, y, z);
-		boolean shouldRender = minecraft.options.getCameraType() == CameraType.FIRST_PERSON
-		  ? (age > 5 || lSquared > 12F) : (age > 10 || lSquared > 6F);
-		if (shouldRender || !ownPlayer) {
+		Minecraft mc = Minecraft.getInstance();
+		float lSquared = (float) mc.gameRenderer.getMainCamera().getPosition().distanceToSqr(x, y, z);
+		boolean shouldRender = !ownPlayer || (
+		  mc.options.getCameraType() == CameraType.FIRST_PERSON
+		  ? (age > 5 || lSquared > 12F) : (age > 10 || lSquared > 6F));
+		if (shouldRender) {
 			quadSize = getScaleForAge(age + partialTicks);
 			setAlpha(getAlphaForAge(age + partialTicks));
 			super.render(buffer, renderInfo, partialTicks);
@@ -172,20 +173,20 @@ public class TrailParticle extends TextureSheetParticle {
 	
 	@Override public void tick() {
 		if (trail && age == 0)
-			m = new Vec3f(xd, yd, zd);
+			m.set(xd, yd, zd);
 		xo = x;
       yo = y;
       zo = z;
       if (type == 5) {
 	      if (random.nextFloat() > 0.9F)
 		      age = lifetime;
-	      else if (!level.getBlockState(new BlockPos(x, y, z))
-	        .getFluidState().getType().is(FluidTags.WATER))
+	      } else if (!level.getBlockState(pos.set(x, y, z)).getFluidState().is(FluidTags.WATER)) {
 		      age = lifetime;
       }
       
       pickSprite(sprites);
-		setColor(ColorUtil.hsbLerp((float)age / lifetime, color, fadeColor));
+		ColorUtil.hsbLerpToRgb((float) age / lifetime, initialColorHSB, fadeColorHSB, colorRGB);
+		setColor(colorRGB[0], colorRGB[1], colorRGB[2]);
       
       if (age++ >= lifetime) {
          remove();
@@ -252,8 +253,8 @@ public class TrailParticle extends TextureSheetParticle {
 		}
 		RocketStar explosion = explosionOpt.get();
 		
-		Color cColor = new Color(pickRandom(explosion.colors).orElse(Color.WHITE.getRGB()));
-		Color cFadeColor = new Color(pickRandom(explosion.colors).orElse(color.getRGB()));
+		Color cColor = new Color(pickRandom(explosion.colors).orElse(color.getRGB()));
+		Color cFadeColor = new Color(pickRandom(explosion.colors).orElse(fadeColor.getRGB()));
 		final int life = lifetime - 10;
 		final float cSize = size * 0.5F;
 		return new TrailParticleData(
@@ -299,6 +300,26 @@ public class TrailParticle extends TextureSheetParticle {
 			  data.ownPlayer, data.side, data.rollVec, data.trailData, sprites);
 			particle.setSpriteFromAge(sprites);
 			return particle;
+		}
+	}
+	
+	private static class MutableBlockPos extends BlockPos {
+		public MutableBlockPos(int x, int y, int z) {
+			super(x, y, z);
+		}
+		
+		public TrailParticle.MutableBlockPos set(int x, int y, int z) {
+			setX(x);
+			setY(y);
+			setZ(z);
+			return this;
+		}
+		
+		public TrailParticle.MutableBlockPos set(double x, double y, double z) {
+			setX((int) x);
+			setY((int) y);
+			setZ((int) z);
+			return this;
 		}
 	}
 }

@@ -76,5 +76,7 @@ public class AerobaticCrosshairOverlay implements IIngameOverlay {
 				blit(mStack, (winW - cS) / 2, (winH - cS) / 2, cS, cS, cS, cS, tW, tH);
 			} mStack.popPose();
 		} mStack.popPose();
+		
+		RenderSystem.defaultBlendFunc();
 	}
 }
