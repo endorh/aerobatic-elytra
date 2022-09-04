@@ -1,6 +1,5 @@
 package endorh.aerobaticelytra.integration.jei;
 
-import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
 import endorh.aerobaticelytra.common.capability.ElytraSpecCapability;
 import endorh.aerobaticelytra.common.capability.IElytraSpec;
@@ -10,7 +9,7 @@ import endorh.aerobaticelytra.common.item.AerobaticElytraWingItem;
 import endorh.aerobaticelytra.common.item.ElytraDyement;
 import endorh.aerobaticelytra.common.item.ElytraDyement.WingSide;
 import endorh.aerobaticelytra.common.item.IAbility.Ability;
-import endorh.aerobaticelytra.common.item.ModItems;
+import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.recipe.JoinRecipe;
 import endorh.aerobaticelytra.common.recipe.TrailRecipe;
 import endorh.aerobaticelytra.integration.jei.gui.MultiIngredientDrawable;
@@ -40,7 +39,7 @@ public class AerobaticElytraJeiHelper {
 	public static List<ItemStack> getAerobaticElytras() {
 		return Util.make(new ArrayList<>(), l -> {
 			for (int i = 0; i < 5; i++) {
-				l.add(new ItemStack(ModItems.AEROBATIC_ELYTRA));
+				l.add(new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA));
 				l.add(makeElytra(nextDyeColor()));
 				l.add(makeElytra(nextDyeColor(), nextDyeColor()));
 				l.add(makeElytra(
@@ -95,7 +94,7 @@ public class AerobaticElytraJeiHelper {
 	}
 	
 	public static ItemStack makeElytra(DyeColor color) {
-		final ItemStack e = new ItemStack(ModItems.AEROBATIC_ELYTRA);
+		final ItemStack e = new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA);
 		dyement.read(e);
 		dyement.setColor(color.getTextColor());
 		dyement.write(e);
@@ -103,7 +102,7 @@ public class AerobaticElytraJeiHelper {
 	}
 	
 	public static ItemStack makeElytra(DyeColor leftColor, DyeColor rightColor) {
-		final ItemStack e = new ItemStack(ModItems.AEROBATIC_ELYTRA);
+		final ItemStack e = new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA);
 		dyement.read(e);
 		dyement.getWing(WingSide.LEFT).setColor(leftColor.getTextColor());
 		dyement.getWing(WingSide.RIGHT).setColor(rightColor.getTextColor());
@@ -113,7 +112,7 @@ public class AerobaticElytraJeiHelper {
 	
 	@SafeVarargs
 	public static ItemStack makeElytra(DyeColor base, Pair<BannerPattern, DyeColor>... patterns) {
-		final ItemStack e = new ItemStack(ModItems.AEROBATIC_ELYTRA);
+		final ItemStack e = new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA);
 		dyement.read(e);
 		dyement.setPattern(base, Arrays.asList(patterns));
 		dyement.write(e);
@@ -124,7 +123,7 @@ public class AerobaticElytraJeiHelper {
 	  DyeColor baseLeft, List<Pair<BannerPattern, DyeColor>> leftPatterns,
 	  DyeColor baseRight, List<Pair<BannerPattern, DyeColor>> rightPatterns
 	) {
-		final ItemStack e = new ItemStack(ModItems.AEROBATIC_ELYTRA);
+		final ItemStack e = new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA);
 		dyement.read(e);
 		dyement.getWing(WingSide.LEFT).setPattern(baseLeft, leftPatterns);
 		dyement.getWing(WingSide.RIGHT).setPattern(baseRight, rightPatterns);

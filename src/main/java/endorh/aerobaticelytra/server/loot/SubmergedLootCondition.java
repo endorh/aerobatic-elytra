@@ -28,7 +28,7 @@ public class SubmergedLootCondition implements LootItemCondition {
 	}
 	
 	@Override public @NotNull LootItemConditionType getType() {
-		return ModLootConditions.SUBMERGED;
+		return AerobaticLootConditions.SUBMERGED;
 	}
 	
 	@Override public boolean test(LootContext lootContext) {

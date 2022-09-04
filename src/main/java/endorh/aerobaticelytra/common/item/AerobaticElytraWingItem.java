@@ -1,8 +1,8 @@
 package endorh.aerobaticelytra.common.item;
 
 import endorh.aerobaticelytra.client.config.ClientConfig.style.visibility;
+import endorh.aerobaticelytra.common.block.AerobaticBlocks;
 import endorh.aerobaticelytra.common.block.BrokenLeavesBlock;
-import endorh.aerobaticelytra.common.block.ModBlocks;
 import endorh.aerobaticelytra.common.capability.ElytraSpecCapability;
 import endorh.aerobaticelytra.common.capability.IAerobaticData;
 import endorh.aerobaticelytra.common.capability.IElytraSpec;
@@ -53,7 +53,7 @@ public class AerobaticElytraWingItem extends Item implements DyeableLeatherItem 
 	}
 	
 	public static ItemStack createDebugWing() {
-		final ItemStack stack = new ItemStack(ModItems.AEROBATIC_ELYTRA_WING, 1);
+		final ItemStack stack = new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA_WING, 1);
 		stack.setHoverName(new TextComponent("Debug Wing"));
 		return stack;
 	}
@@ -79,7 +79,7 @@ public class AerobaticElytraWingItem extends Item implements DyeableLeatherItem 
 	}
 	
 	public static boolean isDebugWing(ItemStack stack) {
-		return stack.getItem() == ModItems.AEROBATIC_ELYTRA_WING
+		return stack.getItem() == AerobaticElytraItems.AEROBATIC_ELYTRA_WING
 		       && "Debug Wing".equals(stack.getHoverName().getString());
 	}
 	
@@ -97,7 +97,7 @@ public class AerobaticElytraWingItem extends Item implements DyeableLeatherItem 
 			final Block block = state.getBlock();
 			if (state.is(BlockTags.LEAVES)) {
 				BrokenLeavesBlock.breakLeaves(world, pos);
-			} else if (block == ModBlocks.BROKEN_LEAVES && context.isInside()) {
+			} else if (block == AerobaticBlocks.BROKEN_LEAVES && context.isInside()) {
 				final BlockPos next = pos.subtract(context.getClickedFace().getNormal());
 				if (world.getBlockState(next).is(BlockTags.LEAVES)) {
 					BrokenLeavesBlock.breakLeaves(world, next);
@@ -152,8 +152,8 @@ public class AerobaticElytraWingItem extends Item implements DyeableLeatherItem 
 	
 	@Override public int getMaxDamage(ItemStack stack) {
 		//noinspection ConstantConditions
-		if (ModItems.AEROBATIC_ELYTRA != null)
-			return ModItems.AEROBATIC_ELYTRA.getMaxDamage(stack);
+		if (AerobaticElytraItems.AEROBATIC_ELYTRA != null)
+			return AerobaticElytraItems.AEROBATIC_ELYTRA.getMaxDamage(stack);
 		return super.getMaxDamage(stack);
 	}
 	
@@ -199,7 +199,7 @@ public class AerobaticElytraWingItem extends Item implements DyeableLeatherItem 
 	}
 	
 	public AerobaticElytraItem getElytraItem() {
-		return ModItems.AEROBATIC_ELYTRA;
+		return AerobaticElytraItems.AEROBATIC_ELYTRA;
 	}
 	
 	public List<Component> getTooltipInfo(ItemStack stack, TooltipFlag flag) {

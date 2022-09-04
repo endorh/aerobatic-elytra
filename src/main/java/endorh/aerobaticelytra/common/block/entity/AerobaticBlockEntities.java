@@ -1,7 +1,7 @@
 package endorh.aerobaticelytra.common.block.entity;
 
 import endorh.aerobaticelytra.AerobaticElytra;
-import endorh.aerobaticelytra.common.block.ModBlocks;
+import endorh.aerobaticelytra.common.block.AerobaticBlocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -14,7 +14,7 @@ import static endorh.aerobaticelytra.AerobaticElytra.prefix;
 import static endorh.util.common.ForgeUtil.futureNotNull;
 
 @EventBusSubscriber(bus=Bus.MOD, modid=AerobaticElytra.MOD_ID)
-public class ModBlockEntities {
+public class AerobaticBlockEntities {
 	
 	/**
 	 * @see BrokenLeavesBlockEntity
@@ -28,7 +28,7 @@ public class ModBlockEntities {
 	) {
 		final IForgeRegistry<BlockEntityType<?>> reg = event.getRegistry();
 		BlockEntityType<?> type = BlockEntityType.Builder.of(
-		  BrokenLeavesBlockEntity::new, ModBlocks.BROKEN_LEAVES
+		  BrokenLeavesBlockEntity::new, AerobaticBlocks.BROKEN_LEAVES
 		).build(null);
 		type.setRegistryName(prefix(BrokenLeavesBlockEntity.NAME));
 		reg.register(type);

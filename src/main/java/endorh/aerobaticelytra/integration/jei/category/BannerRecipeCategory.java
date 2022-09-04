@@ -2,18 +2,15 @@ package endorh.aerobaticelytra.integration.jei.category;
 
 import com.mojang.datafixers.util.Pair;
 import endorh.aerobaticelytra.AerobaticElytra;
-import endorh.aerobaticelytra.client.ModResources;
-import endorh.aerobaticelytra.common.item.ModItems;
+import endorh.aerobaticelytra.client.AerobaticElytraResources;
+import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.recipe.BannerRecipe;
 import endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiHelper;
 import endorh.aerobaticelytra.integration.jei.category.BannerRecipeCategory.BannerRecipeWrapper;
-import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
-import mezz.jei.api.helpers.IGuiHelper;
-import mezz.jei.api.helpers.IJeiHelpers;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
@@ -44,8 +41,8 @@ public class BannerRecipeCategory extends BaseCategory<BannerRecipeWrapper> {
 	protected static long lastIconChange = 0;
 	
 	public BannerRecipeCategory() {
-		super(TYPE, ModResources::regular3x3RecipeBg,
-		      ModItems.AEROBATIC_ELYTRA, Items.RED_BANNER, true);
+		super(TYPE, AerobaticElytraResources::regular3x3RecipeBg,
+		      AerobaticElytraItems.AEROBATIC_ELYTRA, Items.RED_BANNER, true);
 	}
 	
 	@Override public void setRecipe(
@@ -63,7 +60,7 @@ public class BannerRecipeCategory extends BaseCategory<BannerRecipeWrapper> {
 		    (view, tooltip) -> tooltip.add(ttc("jei.tooltip.recipe.tag", ItemTags.BANNERS.location()).withStyle(ChatFormatting.GRAY)));
 		builder.addSlot(RecipeIngredientRole.OUTPUT, 94, 18)
 		  .addItemStacks(elytras(
-			 new ItemStack(recipe.wings? ModItems.AEROBATIC_ELYTRA_WING : ModItems.AEROBATIC_ELYTRA),
+			 new ItemStack(recipe.wings? AerobaticElytraItems.AEROBATIC_ELYTRA_WING : AerobaticElytraItems.AEROBATIC_ELYTRA),
 			 banners));
 	}
 	

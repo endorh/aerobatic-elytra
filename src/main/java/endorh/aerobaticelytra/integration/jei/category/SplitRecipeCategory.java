@@ -2,8 +2,8 @@ package endorh.aerobaticelytra.integration.jei.category;
 
 import com.mojang.datafixers.util.Pair;
 import endorh.aerobaticelytra.AerobaticElytra;
-import endorh.aerobaticelytra.client.ModResources;
-import endorh.aerobaticelytra.common.item.ModItems;
+import endorh.aerobaticelytra.client.AerobaticElytraResources;
+import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.recipe.SplitRecipe;
 import endorh.aerobaticelytra.common.recipe.SplitRecipe.LeaveData;
 import mezz.jei.api.constants.VanillaTypes;
@@ -32,8 +32,8 @@ public class SplitRecipeCategory extends BaseCategory<SplitRecipe> {
 	public static final RecipeType<SplitRecipe> TYPE = RecipeType.create(AerobaticElytra.MOD_ID, "split", SplitRecipe.class);
 	
 	public SplitRecipeCategory() {
-		super(TYPE, ModResources::byproduct3x3RecipeBg,
-		      ModItems.AEROBATIC_ELYTRA, Items.SHEARS, true);
+		super(TYPE, AerobaticElytraResources::byproduct3x3RecipeBg,
+		      AerobaticElytraItems.AEROBATIC_ELYTRA, Items.SHEARS, true);
 	}
 	
 	@Override

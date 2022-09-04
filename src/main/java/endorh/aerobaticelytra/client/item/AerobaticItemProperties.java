@@ -5,7 +5,7 @@ import endorh.aerobaticelytra.common.capability.IElytraSpec;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
 import endorh.aerobaticelytra.common.item.ElytraDyement;
 import endorh.aerobaticelytra.common.item.IAbility.Ability;
-import endorh.aerobaticelytra.common.item.ModItems;
+import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.item.ClampedItemPropertyFunction;
 import net.minecraft.client.renderer.item.ItemProperties;
@@ -22,9 +22,8 @@ import static endorh.aerobaticelytra.AerobaticElytra.prefix;
 import static endorh.aerobaticelytra.common.capability.ElytraSpecCapability.getElytraSpecOrDefault;
 
 @OnlyIn(Dist.CLIENT)
-public class ModItemProperties {
-	public static final ResourceLocation BROKEN_PROPERTY =
-	  new ResourceLocation("broken");
+public class AerobaticItemProperties {
+	public static final ResourceLocation BROKEN_PROPERTY = new ResourceLocation("broken");
 	public static final ResourceLocation FUEL_PROPERTY = prefix("fuel");
 	public static final ResourceLocation HIDE_FUEL_PROPERTY = prefix("hide_fuel");
 	public static final ResourceLocation EQUAL_WINGS_PROPERTY = prefix("equal_wings");
@@ -32,11 +31,11 @@ public class ModItemProperties {
 	private static final ElytraDyement dyement = new ElytraDyement();
 	
 	public static void register() {
-		reg(ModItems.AEROBATIC_ELYTRA, BROKEN_PROPERTY, ModItemProperties::getBrokenProperty);
-		reg(ModItems.AEROBATIC_ELYTRA, FUEL_PROPERTY, ModItemProperties::getFuelProperty);
-		reg(ModItems.AEROBATIC_ELYTRA, HIDE_FUEL_PROPERTY, ModItemProperties::getHideFuelProperty);
-		reg(ModItems.AEROBATIC_ELYTRA, EQUAL_WINGS_PROPERTY, ModItemProperties::getEqualWingsProperty);
-		reg(ModItems.AEROBATIC_ELYTRA_WING, BROKEN_PROPERTY, ModItemProperties::getBrokenProperty);
+		reg(AerobaticElytraItems.AEROBATIC_ELYTRA, BROKEN_PROPERTY, AerobaticItemProperties::getBrokenProperty);
+		reg(AerobaticElytraItems.AEROBATIC_ELYTRA, FUEL_PROPERTY, AerobaticItemProperties::getFuelProperty);
+		reg(AerobaticElytraItems.AEROBATIC_ELYTRA, HIDE_FUEL_PROPERTY, AerobaticItemProperties::getHideFuelProperty);
+		reg(AerobaticElytraItems.AEROBATIC_ELYTRA, EQUAL_WINGS_PROPERTY, AerobaticItemProperties::getEqualWingsProperty);
+		reg(AerobaticElytraItems.AEROBATIC_ELYTRA_WING, BROKEN_PROPERTY, AerobaticItemProperties::getBrokenProperty);
 	}
 	
 	private static void reg(

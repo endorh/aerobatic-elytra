@@ -1,7 +1,7 @@
 package endorh.aerobaticelytra.integration.jei.gui;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import endorh.aerobaticelytra.client.ModResources;
+import endorh.aerobaticelytra.client.AerobaticElytraResources;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.helpers.IGuiHelper;
 import org.jetbrains.annotations.NotNull;
@@ -17,8 +17,8 @@ public class ShapelessDecoratedDrawable implements IDrawable {
 		this.decorated = decorated;
 		this.dark = dark;
 		if (shapelessIcon == null) {
-			shapelessIcon = guiHelper.createDrawable(ModResources.TEXTURE_RECIPES, 0, 144, 36, 34);
-			darkShapelessIcon = guiHelper.createDrawable(ModResources.TEXTURE_RECIPES, 36, 144, 36, 34);
+			shapelessIcon = guiHelper.createDrawable(AerobaticElytraResources.TEXTURE_RECIPES, 0, 144, 36, 34);
+			darkShapelessIcon = guiHelper.createDrawable(AerobaticElytraResources.TEXTURE_RECIPES, 36, 144, 36, 34);
 		}
 	}
 	

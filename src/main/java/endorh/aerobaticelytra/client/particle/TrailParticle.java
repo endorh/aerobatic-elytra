@@ -283,10 +283,6 @@ public class TrailParticle extends TextureSheetParticle {
 		public Factory(SpriteSet sprite) {
 			sprites = sprite;
 		}
-		@SuppressWarnings("unused")
-		public Factory() {
-			throw new UnsupportedOperationException("Use the Factory(IAnimatedSprite) constructor");
-		}
 		
 		@Nullable @Override
 		public Particle createParticle(

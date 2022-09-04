@@ -6,7 +6,7 @@ import endorh.aerobaticelytra.common.AerobaticElytraLogic;
 import endorh.aerobaticelytra.common.capability.ElytraSpecCapability;
 import endorh.aerobaticelytra.common.capability.IElytraSpec;
 import endorh.aerobaticelytra.common.capability.IElytraSpec.Upgrade;
-import endorh.aerobaticelytra.common.item.ModItems;
+import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.registry.ModRegistries;
 import endorh.util.recipe.RecipeManagerHelper.CachedRecipeProvider;
 import net.minecraft.core.NonNullList;
@@ -283,7 +283,7 @@ public class UpgradeRecipe extends CustomRecipe {
 	
 	@Override
 	public @NotNull ItemStack getResultItem() {
-		return new ItemStack(ModItems.AEROBATIC_ELYTRA);
+		return new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA);
 	}
 	
 	public boolean isValid() {
