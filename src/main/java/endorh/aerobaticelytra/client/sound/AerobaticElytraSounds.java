@@ -12,7 +12,7 @@ import net.minecraftforge.registries.IForgeRegistry;
 import static endorh.aerobaticelytra.AerobaticElytra.prefix;
 
 @EventBusSubscriber(bus = Bus.MOD, modid = AerobaticElytra.MOD_ID)
-public class ModSounds {
+public class AerobaticElytraSounds {
 	public static SoundEvent
 	  AEROBATIC_ELYTRA_FLIGHT, AEROBATIC_ELYTRA_BRAKE,
 	  AEROBATIC_ELYTRA_ROTATE, AEROBATIC_ELYTRA_WHISTLE,

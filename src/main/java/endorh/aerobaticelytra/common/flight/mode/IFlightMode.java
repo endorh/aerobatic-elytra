@@ -2,7 +2,7 @@ package endorh.aerobaticelytra.common.flight.mode;
 
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.render.model.IElytraPose;
-import endorh.aerobaticelytra.common.registry.ModRegistries;
+import endorh.aerobaticelytra.common.registry.AerobaticElytraRegistries;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
@@ -140,11 +140,11 @@ public interface IFlightMode extends IForgeRegistryEntry<IFlightMode> {
 	 * Usually, the step is either +1 or -1
 	 */
 	default IFlightMode next(Predicate<IFlightMode> predicate, int step) {
-		int l = ModRegistries.FLIGHT_MODE_LIST.size();
-		int o = ModRegistries.FLIGHT_MODE_LIST.indexOf(this);
+		int l = AerobaticElytraRegistries.FLIGHT_MODE_LIST.size();
+		int o = AerobaticElytraRegistries.FLIGHT_MODE_LIST.indexOf(this);
 		for (int i = 0; i < l; i++) {
 			IFlightMode mode =
-			  ModRegistries.FLIGHT_MODE_LIST.get((o + (i + 1) * step + l) % l);
+			  AerobaticElytraRegistries.FLIGHT_MODE_LIST.get((o + (i + 1) * step + l) % l);
 			if (predicate.test(mode))
 				return mode;
 		}
@@ -163,10 +163,10 @@ public interface IFlightMode extends IForgeRegistryEntry<IFlightMode> {
 	 */
 	static IFlightMode read(PacketBuffer buf) {
 		final ResourceLocation regName = buf.readResourceLocation();
-		if (!ModRegistries.FLIGHT_MODE_REGISTRY.containsKey(regName))
+		if (!AerobaticElytraRegistries.FLIGHT_MODE_REGISTRY.containsKey(regName))
 			throw new IllegalArgumentException(
 			  "Invalid FlightMode registry name in packet: '" + regName + "'");
-		return ModRegistries.FLIGHT_MODE_REGISTRY.getValue(regName);
+		return AerobaticElytraRegistries.FLIGHT_MODE_REGISTRY.getValue(regName);
 	}
 	
 	/**

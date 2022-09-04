@@ -26,7 +26,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import org.lwjgl.opengl.GL11;
 
-import static endorh.aerobaticelytra.client.ModResources.FLIGHT_GUI_ICONS_LOCATION;
+import static endorh.aerobaticelytra.client.AerobaticElytraResources.FLIGHT_GUI_ICONS_LOCATION;
 import static java.lang.Math.round;
 import static java.lang.System.currentTimeMillis;
 import static net.minecraft.client.gui.AbstractGui.blit;

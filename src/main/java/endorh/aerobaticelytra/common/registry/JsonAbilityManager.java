@@ -55,7 +55,7 @@ public class JsonAbilityManager extends JsonReloadListener {
 		    e -> GSON.fromJson(e.getValue(), EffectAbility.class).setRegistryName(e.getKey())
 		  ).collect(Collectors.toSet());
 		
-		ModRegistries.reloadDatapackAbilities(abilities);
+		AerobaticElytraRegistries.reloadDatapackAbilities(abilities);
 	}
 	
 	@SubscribeEvent

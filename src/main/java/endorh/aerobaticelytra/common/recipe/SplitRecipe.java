@@ -2,8 +2,8 @@ package endorh.aerobaticelytra.common.recipe;
 
 import com.google.gson.*;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
+import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.item.ElytraDyement.WingSide;
-import endorh.aerobaticelytra.common.item.ModItems;
 import endorh.util.network.PacketBufferUtil;
 import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.item.ItemStack;
@@ -90,7 +90,7 @@ public class SplitRecipe extends SpecialRecipe {
 		super(idIn);
 		this.recipeItems = addElytra(recipeItems);
 		ingredients = recipeItems;
-		ItemStack elytra = new ItemStack(ModItems.AEROBATIC_ELYTRA, 1);
+		ItemStack elytra = new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA, 1);
 		if (recipeItems.stream().anyMatch(p -> p.getLeft().test(elytra)))
 			throw new JsonSyntaxException(
 			  "An AerobaticElytraSplitRecipe cannot contain any aerobatic elytra ingredient");
@@ -100,7 +100,7 @@ public class SplitRecipe extends SpecialRecipe {
 	  NonNullList<Pair<Ingredient, LeaveData>> ingredients
 	) {
 		final NonNullList<Ingredient> res = NonNullList.withSize(ingredients.size() + 1, Ingredient.EMPTY);
-		res.set(0, Ingredient.fromItems(ModItems.AEROBATIC_ELYTRA));
+		res.set(0, Ingredient.fromItems(AerobaticElytraItems.AEROBATIC_ELYTRA));
 		for (int i = 0, s = ingredients.size(); i < s; i++)
 			res.set(i + 1, ingredients.get(i).getLeft());
 		return res;
@@ -209,7 +209,7 @@ public class SplitRecipe extends SpecialRecipe {
 			if (list.size() > MAX_WIDTH * MAX_HEIGHT - 1) {
 				throw new JsonParseException("Too many ingredients for split recipe, the max is " + (SplitRecipe.MAX_WIDTH * SplitRecipe.MAX_HEIGHT - 1));
 			} else {
-				ItemStack elytra = new ItemStack(ModItems.AEROBATIC_ELYTRA);
+				ItemStack elytra = new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA);
 				if (list.stream().anyMatch(p -> p.getLeft().test(elytra)))
 					throw new JsonParseException(
 					  "Aerobatic elytra split recipes cannot contain any aerobatic elytra ingredient");

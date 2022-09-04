@@ -37,7 +37,7 @@ public class SetAbilitiesLootFunction extends LootFunction {
 	}
 	
 	@Override public @NotNull LootFunctionType getFunctionType() {
-		return ModLootFunctions.SET_ABILITIES;
+		return AerobaticLootFunctions.SET_ABILITIES;
 	}
 	
 	public static Builder builder() {

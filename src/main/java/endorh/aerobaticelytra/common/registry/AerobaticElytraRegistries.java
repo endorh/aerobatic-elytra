@@ -34,7 +34,7 @@ import java.util.*;
 import java.util.Map.Entry;
 
 @EventBusSubscriber(bus = Bus.MOD, modid = AerobaticElytra.MOD_ID)
-public class ModRegistries {
+public class AerobaticElytraRegistries {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	public static IForgeRegistry<IFlightMode> FLIGHT_MODE_REGISTRY;
@@ -93,14 +93,14 @@ public class ModRegistries {
 		  .setName(AerobaticElytra.prefix("flight_modes"))
 		  .setType(IFlightMode.class)
 		  .allowModification()
-		  .onBake(ModRegistries::onFlightModeRegistryBake)
+		  .onBake(AerobaticElytraRegistries::onFlightModeRegistryBake)
 		  .create();
 		
 		ABILITY_REGISTRY = new RegistryBuilder<IAbility>()
 		  .setName(AerobaticElytra.prefix("ability"))
 		  .setType(IAbility.class)
 		  .allowModification()
-		  .onBake(ModRegistries::onAbilityRegistryBake)
+		  .onBake(AerobaticElytraRegistries::onAbilityRegistryBake)
 		  .create();
 		
 		AerobaticElytra.logRegistered("Registries");

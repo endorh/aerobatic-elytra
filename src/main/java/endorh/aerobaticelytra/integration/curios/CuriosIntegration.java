@@ -1,7 +1,7 @@
 package endorh.aerobaticelytra.integration.curios;
 
 import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
-import endorh.aerobaticelytra.common.item.ModItems;
+import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -33,7 +33,7 @@ public class CuriosIntegration {
 	public static Optional<ImmutableTriple<String, Integer, ItemStack>> findCurioAerobaticElytra(
 	  LivingEntity entity
 	) {
-		return CuriosApi.getCuriosHelper().findEquippedCurio(ModItems.AEROBATIC_ELYTRA, entity);
+		return CuriosApi.getCuriosHelper().findEquippedCurio(AerobaticElytraItems.AEROBATIC_ELYTRA, entity);
 	}
 	
 	/**

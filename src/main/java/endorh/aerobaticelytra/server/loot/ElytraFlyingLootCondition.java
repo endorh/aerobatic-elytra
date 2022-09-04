@@ -16,7 +16,7 @@ public class ElytraFlyingLootCondition implements ILootCondition {
 	public ElytraFlyingLootCondition() {}
 	
 	@Override public @NotNull LootConditionType func_230419_b_() {
-		return ModLootConditions.ELYTRA_FLYING;
+		return AerobaticLootConditions.ELYTRA_FLYING;
 	}
 	
 	@Override public boolean test(LootContext lootContext) {

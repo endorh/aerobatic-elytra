@@ -19,7 +19,7 @@ public class AerobaticFlyingLootCondition implements ILootCondition {
 	public AerobaticFlyingLootCondition() {}
 	
 	@Override public @NotNull LootConditionType func_230419_b_() {
-		return ModLootConditions.AEROBATIC_FLYING;
+		return AerobaticLootConditions.AEROBATIC_FLYING;
 	}
 	
 	@Override public boolean test(LootContext lootContext) {

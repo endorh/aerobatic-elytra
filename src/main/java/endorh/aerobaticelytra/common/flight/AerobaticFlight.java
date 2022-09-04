@@ -2,7 +2,7 @@ package endorh.aerobaticelytra.common.flight;
 
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.sound.AerobaticElytraSound;
-import endorh.aerobaticelytra.client.sound.ModSounds;
+import endorh.aerobaticelytra.client.sound.AerobaticElytraSounds;
 import endorh.aerobaticelytra.client.trail.AerobaticTrail;
 import endorh.aerobaticelytra.common.AerobaticElytraLogic;
 import endorh.aerobaticelytra.common.capability.ElytraSpecCapability;
@@ -19,7 +19,7 @@ import endorh.aerobaticelytra.common.config.Const;
 import endorh.aerobaticelytra.common.event.AerobaticElytraFinishFlightEvent;
 import endorh.aerobaticelytra.common.event.AerobaticElytraStartFlightEvent;
 import endorh.aerobaticelytra.common.event.AerobaticElytraStartFlightEvent.Remote;
-import endorh.aerobaticelytra.common.event.AerobaticElytraTickEvent.Post;
+import endorh.aerobaticelytra.common.event.AerobaticElytraTickEvent;
 import endorh.aerobaticelytra.common.event.AerobaticElytraTickEvent.Pre;
 import endorh.aerobaticelytra.common.flight.mode.FlightModeTags;
 import endorh.aerobaticelytra.common.item.AerobaticElytraWingItem;
@@ -98,9 +98,11 @@ public class AerobaticFlight {
 		final boolean isRemote = AerobaticElytraLogic.isRemoteClientPlayerEntity(player);
 		
 		// Post Pre event
-		final Pre pre = isRemote ? new Pre.Remote(player, spec, data) : new Pre(player, spec, data);
+		final AerobaticElytraTickEvent pre =
+		  isRemote? new AerobaticElytraTickEvent.Remote.Pre(player, spec, data)
+		          : new Pre(player, spec, data);
 		if (MinecraftForge.EVENT_BUS.post(pre))
-			return pre.preventDefault;
+			return pre instanceof Pre && ((Pre) pre).isPreventDefault();
 		
 		// Get gravity and apply SLOW_FALLING potion effect as needed
 		double grav = TravelHandler.travelGravity(player);
@@ -353,9 +355,9 @@ public class AerobaticFlight {
 		data.updatePrevTickAngles();
 		
 		// Post post event
-		MinecraftForge.EVENT_BUS.post(isRemote
-		  ? new Post.Remote(player, spec, data)
-		  : new Post(player, spec, data));
+		MinecraftForge.EVENT_BUS.post(
+		  isRemote? new AerobaticElytraTickEvent.Remote.Post(player, spec, data)
+		          : new AerobaticElytraTickEvent.Post(player, spec, data));
 		
 		// Cancel default travel logic
 		return true;
@@ -365,11 +367,9 @@ public class AerobaticFlight {
 	  PlayerEntity player, @SuppressWarnings("unused") Vector3d travelVector
 	) {
 		IAerobaticData data = getAerobaticDataOrDefault(player);
-		if (data.updateBoosted(false)) {
-			player.world.playSound(
-			  player, player.getPosition(), ModSounds.AEROBATIC_ELYTRA_SLOWDOWN,
-			  SoundCategory.PLAYERS, 1F, 1F);
-		}
+		if (data.updateBoosted(false)) player.world.playSound(
+		  player, player.getPosition(), AerobaticElytraSounds.AEROBATIC_ELYTRA_SLOWDOWN,
+		  SoundCategory.PLAYERS, 1F, 1F);
 		if (data.updateFlying(false))
 			doLand(player, data);
 		cooldown(player, data);
@@ -383,11 +383,9 @@ public class AerobaticFlight {
 	  PlayerEntity player, @SuppressWarnings("unused") Vector3d travelVector
 	) {
 		IAerobaticData data = getAerobaticDataOrDefault(player);
-		if (data.updateBoosted(false)) {
-			player.world.playSound(
-			  player, player.getPosition(), ModSounds.AEROBATIC_ELYTRA_SLOWDOWN,
-			  SoundCategory.PLAYERS, 1F, 1F);
-		}
+		if (data.updateBoosted(false)) player.world.playSound(
+		  player, player.getPosition(), AerobaticElytraSounds.AEROBATIC_ELYTRA_SLOWDOWN,
+		  SoundCategory.PLAYERS, 1F, 1F);
 		if (data.getRotationBase().valid)
 			doLand(player, data);
 		cooldown(player, data);
@@ -419,9 +417,8 @@ public class AerobaticFlight {
 			          step * max(propulsion.range_tick.getFloatMax(), propulsion.range_tick.getFloatMin())));
 		}
 		float boostHeat = data.getBoostHeat();
-		if (boostHeat > 0F) {
+		if (boostHeat > 0F)
 			data.setBoostHeat(max(0F, boostHeat - 0.2F));
-		}
 	}
 	
 	/**
@@ -468,9 +465,9 @@ public class AerobaticFlight {
 			return;
 		
 		// Wind
-		if (Config.weather.enabled && data.isAffectedByWeather())
+		if (Config.weather.enabled && data.isAffectedByWeather()) {
 			angularWindVec.set(WeatherData.getAngularWindVector(player));
-		else angularWindVec.set(ZERO);
+		} else angularWindVec.set(ZERO);
 		
 		// Angular acceleration
 		float tiltPitch = data.getTiltPitch();
@@ -479,9 +476,8 @@ public class AerobaticFlight {
 		
 		motionVec.set(player.getMotion());
 		
-		if (!rotationBase.valid) {
+		if (!rotationBase.valid)
 			rotationBase.init(data);
-		}
 		float strength = motionVec.dot(rotationBase.look);
 		if (player.isInWater())
 			strength = strength * strength / (abs(strength) + 2) + 0.5F;
@@ -676,9 +672,9 @@ public class AerobaticFlight {
 				angle = PI - angle;
 				mul = 2F;
 			}
-			if (angle < 0.001F)
+			if (angle < 0.001F) {
 				ax = normal;
-			else {
+			} else {
 				ax.cross(look);
 				ax.unitary();
 			}

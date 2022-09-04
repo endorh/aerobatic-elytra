@@ -7,7 +7,7 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 
 @EventBusSubscriber(bus = Bus.MOD, modid = AerobaticElytra.MOD_ID)
-public class ModCapabilities {
+public class AerobaticCapabilities {
 	@SubscribeEvent
 	public static void onCommonSetup(FMLCommonSetupEvent event) {
 		FlightDataCapability.register();

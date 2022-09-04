@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 @EventBusSubscriber(bus = Bus.MOD, modid = AerobaticElytra.MOD_ID)
-public class ModParticles {
+public class AerobaticParticles {
 	
 	public static TrailParticleType TRAIL_PARTICLE;
 	public static StarTrailParticleType STAR_TRAIL_PARTICLE;

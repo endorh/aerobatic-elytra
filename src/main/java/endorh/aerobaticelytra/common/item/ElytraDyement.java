@@ -19,7 +19,6 @@ import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.ref.WeakReference;
 import java.util.*;
 
 import static endorh.util.text.TextUtil.ttc;
@@ -155,10 +154,10 @@ public class ElytraDyement {
 	}
 	
 	public void setWing(WingSide side, WingDyement dye) {
-		final ElytraDyement parent = dye.parent.get();
+		final ElytraDyement parent = dye.parent;
 		if (parent != null && parent != this)
 			parent.setWing(side, dye.copy());
-		dye.parent = new WeakReference<>(this);
+		dye.parent = this;
 		sides.put(side, dye);
 		hasWingDyement = true;
 	}
@@ -188,7 +187,7 @@ public class ElytraDyement {
 	 * Holder for dyement info for a specific wing
 	 */
 	public static class WingDyement {
-		protected WeakReference<ElytraDyement> parent;
+		protected ElytraDyement parent;
 		public boolean hasColor;
 		public boolean hasPattern;
 		public int color;
@@ -196,25 +195,25 @@ public class ElytraDyement {
 		public List<Pair<BannerPattern, DyeColor>> patternColorData;
 		
 		public WingDyement() {
-			this.parent = new WeakReference<>(null);
+			this.parent = null;
 		}
 		
 		public WingDyement(ElytraDyement dyement) {
-			this.parent = new WeakReference<>(dyement);
+			this.parent = dyement;
 		}
 		
 		public void setColor(int color) {
 			hasPattern = false;
 			hasColor = true;
 			this.color = color;
-			final ElytraDyement parent = this.parent.get();
-			if (parent != null)
-				parent.hasWingDyement = true;
+			if (parent != null) parent.hasWingDyement = true;
 		}
 		
 		public void setPattern(
 		  DyeColor base, List<Pair<BannerPattern, DyeColor>> patternData
-		) { setPattern(base, patternData, true); }
+		) {
+			setPattern(base, patternData, true);
+		}
 		
 		public void setPattern(
 		  DyeColor base, List<Pair<BannerPattern, DyeColor>> patternData, boolean addBase
@@ -227,7 +226,6 @@ public class ElytraDyement {
 			basePatternColor = base;
 			patternColorData = patternData;
 			color = base.getColorValue();
-			final ElytraDyement parent = this.parent.get();
 			if (parent != null)
 				parent.hasWingDyement = true;
 		}
@@ -235,7 +233,6 @@ public class ElytraDyement {
 		public void clear() {
 			hasColor = false;
 			hasPattern = false;
-			final ElytraDyement parent = this.parent.get();
 			color = parent != null? parent.defaultColor : AerobaticElytraItem.DEFAULT_COLOR;
 			if (parent != null)
 				parent.hasWingDyement = parent.isClear();

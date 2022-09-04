@@ -90,6 +90,6 @@ public class BannerRecipe extends SpecialRecipe {
 	
 	@NotNull @Override
 	public IRecipeSerializer<?> getSerializer() {
-		return ModRecipes.BANNER_RECIPE.get();
+		return AerobaticRecipes.BANNER_RECIPE.get();
 	}
 }

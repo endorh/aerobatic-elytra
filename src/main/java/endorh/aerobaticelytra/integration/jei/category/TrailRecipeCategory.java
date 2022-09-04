@@ -2,13 +2,13 @@ package endorh.aerobaticelytra.integration.jei.category;
 
 import com.google.common.collect.ImmutableList;
 import endorh.aerobaticelytra.AerobaticElytra;
-import endorh.aerobaticelytra.client.ModResources;
 import endorh.aerobaticelytra.client.trail.AerobaticTrail.RocketSide;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
+import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.item.AerobaticElytraWingItem;
-import endorh.aerobaticelytra.common.item.ModItems;
 import endorh.aerobaticelytra.common.recipe.TrailRecipe;
 import endorh.aerobaticelytra.integration.jei.category.TrailRecipeCategory.TrailRecipeWrapper;
+import endorh.aerobaticelytra.integration.jei.gui.JeiResources;
 import endorh.util.text.TextUtil;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
@@ -44,18 +44,18 @@ public class TrailRecipeCategory extends BaseCategory<TrailRecipeWrapper> {
 	public static final ResourceLocation UID = AerobaticElytra.prefix("trail");
 	
 	public TrailRecipeCategory() {
-		super(UID, TrailRecipeWrapper.class, ModResources::regular3x3RecipeBg,
-		      ModItems.AEROBATIC_ELYTRA, Items.FIREWORK_ROCKET, false);
+		super(UID, TrailRecipeWrapper.class, JeiResources::regular3x3RecipeBg,
+		      AerobaticElytraItems.AEROBATIC_ELYTRA, Items.FIREWORK_ROCKET, false);
 	}
 	
 	@Override public void setIngredients(
 	  @NotNull TrailRecipeWrapper recipe, @NotNull IIngredients ingredients
 	) {
 		ingredients.setInputIngredients(ImmutableList.of(
-		  Ingredient.fromItems(ModItems.AEROBATIC_ELYTRA, ModItems.AEROBATIC_ELYTRA_WING),
+		  Ingredient.fromItems(AerobaticElytraItems.AEROBATIC_ELYTRA, AerobaticElytraItems.AEROBATIC_ELYTRA_WING),
 		  Ingredient.fromTag(ItemTags.BANNERS)));
 		ingredients.setOutputLists(VanillaTypes.ITEM, ImmutableList.of(ImmutableList.of(
-		  new ItemStack(ModItems.AEROBATIC_ELYTRA), new ItemStack(ModItems.AEROBATIC_ELYTRA_WING))));
+		  new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA), new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA_WING))));
 	}
 	
 	@Override public void setRecipe(

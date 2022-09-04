@@ -121,6 +121,6 @@ public class JoinRecipe extends SpecialRecipe {
 	
 	@Override
 	public @NotNull IRecipeSerializer<?> getSerializer() {
-		return ModRecipes.JOIN_RECIPE.get();
+		return AerobaticRecipes.JOIN_RECIPE.get();
 	}
 }

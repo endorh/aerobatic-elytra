@@ -6,8 +6,8 @@ import endorh.aerobaticelytra.common.AerobaticElytraLogic;
 import endorh.aerobaticelytra.common.capability.ElytraSpecCapability;
 import endorh.aerobaticelytra.common.capability.IElytraSpec;
 import endorh.aerobaticelytra.common.capability.IElytraSpec.Upgrade;
-import endorh.aerobaticelytra.common.item.ModItems;
-import endorh.aerobaticelytra.common.registry.ModRegistries;
+import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
+import endorh.aerobaticelytra.common.registry.AerobaticElytraRegistries;
 import endorh.util.recipe.RecipeManagerHelper.CachedRecipeProvider;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.CraftingInventory;
@@ -100,7 +100,7 @@ public class UpgradeRecipe extends SpecialRecipe {
 				if (recipe != null)
 					recipe.reloadAbilities();
 			}
-			if (!ModRegistries.getDatapackAbilities().isEmpty()) {
+			if (!AerobaticElytraRegistries.getDatapackAbilities().isEmpty()) {
 				boolean any = false;
 				for (ResourceLocation id : INSTANCES.keySet()) {
 					UpgradeRecipe recipe = INSTANCES.get(id).get();
@@ -288,7 +288,7 @@ public class UpgradeRecipe extends SpecialRecipe {
 	
 	@Override
 	public @NotNull ItemStack getRecipeOutput() {
-		return new ItemStack(ModItems.AEROBATIC_ELYTRA);
+		return new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA);
 	}
 	
 	public boolean isValid() {

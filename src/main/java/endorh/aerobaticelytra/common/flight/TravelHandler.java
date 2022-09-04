@@ -2,7 +2,7 @@ package endorh.aerobaticelytra.common.flight;
 
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.common.flight.mode.IFlightMode;
-import endorh.aerobaticelytra.common.registry.ModRegistries;
+import endorh.aerobaticelytra.common.registry.AerobaticElytraRegistries;
 import endorh.flightcore.events.PlayerTravelEvent;
 import endorh.flightcore.events.PlayerTravelEvent.RemotePlayerEntityTravelEvent;
 import endorh.util.common.ObfuscationReflectionUtil;
@@ -62,7 +62,7 @@ public class TravelHandler {
 		getFlightData(player).ifPresent(fd -> {
 			final IFlightMode mode = fd.getFlightMode();
 			boolean cancel = mode.getFlightHandler().test(player, event.travelVector);
-			for (IFlightMode m : ModRegistries.FLIGHT_MODE_REGISTRY) {
+			for (IFlightMode m : AerobaticElytraRegistries.FLIGHT_MODE_REGISTRY) {
 				if (mode != m) {
 					final BiConsumer<PlayerEntity, Vector3d> handler = m.getNonFlightHandler();
 					if (handler != null)
@@ -81,7 +81,7 @@ public class TravelHandler {
 			final Consumer<PlayerEntity> flightHandler = mode.getRemoteFlightHandler();
 			if (flightHandler != null)
 				flightHandler.accept(player);
-			for (IFlightMode m : ModRegistries.FLIGHT_MODE_REGISTRY) {
+			for (IFlightMode m : AerobaticElytraRegistries.FLIGHT_MODE_REGISTRY) {
 				if (mode != m) {
 					final Consumer<PlayerEntity> handler = m.getRemoteNonFlightHandler();
 					if (handler != null)

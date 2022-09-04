@@ -1,7 +1,7 @@
 package endorh.aerobaticelytra.common.tile;
 
 import endorh.aerobaticelytra.AerobaticElytra;
-import endorh.aerobaticelytra.common.block.ModBlocks;
+import endorh.aerobaticelytra.common.block.AerobaticBlocks;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -14,7 +14,7 @@ import static endorh.aerobaticelytra.AerobaticElytra.prefix;
 import static endorh.util.common.ForgeUtil.futureNotNull;
 
 @EventBusSubscriber(bus = Bus.MOD, modid = AerobaticElytra.MOD_ID)
-public class ModTileEntities {
+public class AerobaticTileEntities {
 	
 	/**
 	 * @see BrokenLeavesTileEntity
@@ -28,7 +28,7 @@ public class ModTileEntities {
 	) {
 		final IForgeRegistry<TileEntityType<?>> reg = event.getRegistry();
 		TileEntityType<?> type = TileEntityType.Builder.create(
-		  BrokenLeavesTileEntity::new, ModBlocks.BROKEN_LEAVES
+		  BrokenLeavesTileEntity::new, AerobaticBlocks.BROKEN_LEAVES
 		).build(null);
 		type.setRegistryName(prefix(BrokenLeavesTileEntity.NAME));
 		reg.register(type);

@@ -17,7 +17,7 @@ import endorh.aerobaticelytra.common.capability.ElytraSpecCapability;
 import endorh.aerobaticelytra.common.capability.IElytraSpec;
 import endorh.aerobaticelytra.common.item.AerobaticElytraWingItem;
 import endorh.aerobaticelytra.common.item.IAbility;
-import endorh.aerobaticelytra.common.registry.ModRegistries;
+import endorh.aerobaticelytra.common.registry.AerobaticElytraRegistries;
 import endorh.aerobaticelytra.debug.Debug;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.ISuggestionProvider;
@@ -75,7 +75,7 @@ public class AerobaticElytraCommand {
 	      .map(bd -> escapeIfRequired(bd.getTitle())), builder));
 	public static final SuggestionProvider<CommandSource> SUGGEST_ABILITIES =
 	  ((context, builder) -> ISuggestionProvider.suggest(
-	    ModRegistries.getAbilitiesByName().keySet(), builder));
+	    AerobaticElytraRegistries.getAbilitiesByName().keySet(), builder));
 	public static final SimpleCommandExceptionType NO_ELYTRA_HOLDING_TARGETS =
 	  new SimpleCommandExceptionType(ttc(
 	    "commands.aerobaticelytra.error.no_elytra"));
@@ -257,7 +257,7 @@ public class AerobaticElytraCommand {
 			msg = msg.append(
 			  ttc("commands.aerobaticelytra.ability.get.all.success",
 			      spec.getAbilities().size(), name));
-			for (IAbility ability : ModRegistries.getAbilities().values())
+			for (IAbility ability : AerobaticElytraRegistries.getAbilities().values())
 				msg = msg.appendString("\n").append(
 				  ttc("commands.aerobaticelytra.ability.get.ability", ability.getDisplayName(),
 				      displayFloat(spec.getAbility(ability))));
@@ -333,11 +333,11 @@ public class AerobaticElytraCommand {
 	  throws CommandSyntaxException {
 		final List<IElytraSpec> specs = getElytraSpecs(context);
 		specs.forEach(
-		  s -> ModRegistries.getAbilities().values().forEach(s::resetAbility));
+		  s -> AerobaticElytraRegistries.getAbilities().values().forEach(s::resetAbility));
 		IFormattableTextComponent msg = ttc(
 		  "commands.aerobaticelytra.ability.reset.all.success",
-		  ModRegistries.getAbilities().values().size(), specs.size());
-		for (IAbility ability : ModRegistries.getAbilities().values())
+		  AerobaticElytraRegistries.getAbilities().values().size(), specs.size());
+		for (IAbility ability : AerobaticElytraRegistries.getAbilities().values())
 			msg = msg.appendString("\n").append(
 			  ttc("commands.aerobaticelytra.ability.reset.ability", ability.getDisplayName(),
 			      displayFloat(ability.getDefault())));
@@ -350,7 +350,7 @@ public class AerobaticElytraCommand {
 	) throws CommandSyntaxException {
 		final List<IElytraSpec> specs = getElytraSpecs(cc);
 		specs.forEach(s -> {
-			ModRegistries.getAbilities().values().forEach(s::removeAbility);
+			AerobaticElytraRegistries.getAbilities().values().forEach(s::removeAbility);
 			s.getUnknownAbilities().clear();
 		});
 		cc.getSource().sendFeedback(

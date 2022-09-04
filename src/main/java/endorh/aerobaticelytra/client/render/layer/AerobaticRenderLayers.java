@@ -10,7 +10,7 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 
 @EventBusSubscriber(value = Dist.CLIENT, bus = Bus.MOD, modid = AerobaticElytra.MOD_ID)
-public class ModRenderLayers {
+public class AerobaticRenderLayers {
 	@SubscribeEvent
 	public static void postSetup(FMLLoadCompleteEvent evt) {
 		EntityRendererManager rendererManager = Minecraft.getInstance().getRenderManager();

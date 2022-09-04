@@ -20,7 +20,7 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
+import java.awt.Color;
 import java.util.Optional;
 import java.util.Random;
 
@@ -35,12 +35,16 @@ public class TrailParticle extends SpriteTexturedParticle {
 	
 	private final IAnimatedSprite sprites;
 	private final float size;
-	private final float partialTick;
+	private final MutableBlockPos pos = new MutableBlockPos((int) posX, (int) posY, (int) posZ);
 	private final boolean ownPlayer;
 	
-	private Vec3f m;
+	private final Vec3f m = Vec3f.ZERO.get();
 	private final Vec3f rollVec;
 	private final RocketSide side;
+	
+	private final float[] initialColorHSB = new float[3];
+	private final float[] fadeColorHSB = new float[3];
+	private final float[] colorRGB = new float[3];
 	
 	private final Color color;
 	private final Color fadeColor;
@@ -82,18 +86,20 @@ public class TrailParticle extends SpriteTexturedParticle {
 		this.sprites = sprites;
 		
 		this.color = color;
+		Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), initialColorHSB);
 		this.fadeColor = fadeColor;
+		Color.RGBtoHSB(fadeColor.getRed(), fadeColor.getGreen(), fadeColor.getBlue(), fadeColorHSB);
 		this.type = type;
 		this.flicker = flicker;
 		this.trail = trail;
 		
-		this.partialTick = partialTick;
 		this.ownPlayer = ownPlayer;
 		this.rollVec = rollVec;
 		this.side = rocketSide;
 		this.trailData = data;
 		
-		setColor(this.color);
+		ColorUtil.hsbLerpToRgb(0, initialColorHSB, fadeColorHSB, colorRGB);
+		setColor(colorRGB[0], colorRGB[1], colorRGB[2]);
 		
 		this.size = size;
 		particleScale = size;
@@ -116,17 +122,11 @@ public class TrailParticle extends SpriteTexturedParticle {
 		canCollide = true;
 	}
 	
-	private void setColor(Color color) {
-		setColor(color.getRed()/255F, color.getGreen()/255F, color.getBlue()/255F);
-	}
-	
 	@Override public void renderParticle(
 	  @NotNull IVertexBuilder buffer, @NotNull ActiveRenderInfo renderInfo, float partialTicks
 	) {
 		Minecraft minecraft = Minecraft.getInstance();
-		float lSquared =
-		  (float)minecraft.gameRenderer.getActiveRenderInfo().getProjectedView()
-		    .squareDistanceTo(posX, posY, posZ);
+		float lSquared = (float) minecraft.gameRenderer.getActiveRenderInfo().getProjectedView().squareDistanceTo(posX, posY, posZ);
 		boolean shouldRender = minecraft.gameSettings.getPointOfView() == PointOfView.FIRST_PERSON
 		  ? (age > 5 || lSquared > 12F) : (age > 10 || lSquared > 6F);
 		if (shouldRender || !ownPlayer) {
@@ -171,8 +171,7 @@ public class TrailParticle extends SpriteTexturedParticle {
 	}
 	
 	@Override public void tick() {
-		if (trail && age == 0)
-			m = new Vec3f(motionX, motionY, motionZ);
+		if (trail && age == 0) m.set(motionX, motionY, motionZ);
 		prevPosX = posX;
       prevPosY = posY;
       prevPosZ = posZ;
@@ -185,7 +184,8 @@ public class TrailParticle extends SpriteTexturedParticle {
       }
       
       selectSpriteRandomly(sprites);
-		setColor(ColorUtil.hsbLerp((float)age / maxAge, color, fadeColor));
+		ColorUtil.hsbLerpToRgb((float) age / maxAge, initialColorHSB, fadeColorHSB, colorRGB);
+		setColor(colorRGB[0], colorRGB[1], colorRGB[2]);
       
       if (age++ >= maxAge) {
          setExpired();
@@ -299,6 +299,26 @@ public class TrailParticle extends SpriteTexturedParticle {
 			  data.ownPlayer, data.side, data.rollVec, data.trailData, sprites);
 			particle.selectSpriteWithAge(sprites);
 			return particle;
+		}
+	}
+	
+	private static class MutableBlockPos extends BlockPos {
+		public MutableBlockPos(int x, int y, int z) {
+			super(x, y, z);
+		}
+		
+		public TrailParticle.MutableBlockPos set(int x, int y, int z) {
+			setX(x);
+			setY(y);
+			setZ(z);
+			return this;
+		}
+		
+		public TrailParticle.MutableBlockPos set(double x, double y, double z) {
+			setX((int) x);
+			setY((int) y);
+			setZ((int) z);
+			return this;
 		}
 	}
 }

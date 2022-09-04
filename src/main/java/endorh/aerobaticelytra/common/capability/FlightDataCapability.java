@@ -4,7 +4,7 @@ import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.sound.FadingTickableSound;
 import endorh.aerobaticelytra.common.flight.mode.FlightModes;
 import endorh.aerobaticelytra.common.flight.mode.IFlightMode;
-import endorh.aerobaticelytra.common.registry.ModRegistries;
+import endorh.aerobaticelytra.common.registry.AerobaticElytraRegistries;
 import endorh.util.capability.CapabilityProviderSerializable;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -172,10 +172,10 @@ public class FlightDataCapability {
 			ResourceLocation regName = new ResourceLocation(data.getString(TAG_FLIGHT_MODE));
 			// Registry entries may vary between world loads
 			
-			if (!ModRegistries.FLIGHT_MODE_REGISTRY.containsKey(regName))
+			if (!AerobaticElytraRegistries.FLIGHT_MODE_REGISTRY.containsKey(regName))
 				inst.setFlightMode(FlightModes.ELYTRA_FLIGHT);
 			else {
-				IFlightMode mode = ModRegistries.FLIGHT_MODE_REGISTRY.getValue(regName);
+				IFlightMode mode = AerobaticElytraRegistries.FLIGHT_MODE_REGISTRY.getValue(regName);
 				if (mode == null)
 					mode = FlightModes.ELYTRA_FLIGHT;
 				inst.setFlightMode(mode);

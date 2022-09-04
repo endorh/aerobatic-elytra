@@ -1,7 +1,7 @@
 package endorh.aerobaticelytra.common.block;
 
+import endorh.aerobaticelytra.client.block.AerobaticBlockColors;
 import endorh.aerobaticelytra.client.block.BrokenLeavesBlockModel;
-import endorh.aerobaticelytra.client.block.ModBlockColors;
 import endorh.aerobaticelytra.common.config.Config;
 import endorh.aerobaticelytra.common.config.Config.collision.leave_breaking;
 import endorh.aerobaticelytra.common.tile.BrokenLeavesTileEntity;
@@ -41,7 +41,7 @@ import static net.minecraft.tags.BlockTags.LEAVES;
  *
  * @see BrokenLeavesTileEntity
  * @see BrokenLeavesBlockModel
- * @see ModBlockColors
+ * @see AerobaticBlockColors
  */
 public class BrokenLeavesBlock extends LeavesBlock {
 	public static final String NAME = "broken_leaves";
@@ -113,7 +113,7 @@ public class BrokenLeavesBlock extends LeavesBlock {
 				breakLeaves(world, cursor);
 		}
 		world.setBlockState(
-		  pos, ModBlocks.BROKEN_LEAVES.getDefaultState()
+		  pos, AerobaticBlocks.BROKEN_LEAVES.getDefaultState()
 			 .with(DISTANCE, prevBlockState.get(DISTANCE))
 			 .with(PERSISTENT, prevBlockState.get(PERSISTENT)),
 		  BlockFlags.DEFAULT);
@@ -130,7 +130,7 @@ public class BrokenLeavesBlock extends LeavesBlock {
 	  ServerWorld world, BlockPos pos
 	) {
 		final BlockState bs = world.getBlockState(pos);
-		if (!(bs.getBlock() == ModBlocks.BROKEN_LEAVES))
+		if (!(bs.getBlock() == AerobaticBlocks.BROKEN_LEAVES))
 			return;
 		TileEntity tile = world.getTileEntity(pos);
 		if (!(tile instanceof BrokenLeavesTileEntity))

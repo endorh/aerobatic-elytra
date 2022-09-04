@@ -6,7 +6,6 @@ import com.mojang.datafixers.util.Pair;
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.config.ClientConfig.style.visibility;
 import endorh.aerobaticelytra.client.config.ClientConfig.style.visual;
-import endorh.aerobaticelytra.client.item.AerobaticElytraBannerTextureManager;
 import endorh.aerobaticelytra.client.render.model.AerobaticElytraChestModel;
 import endorh.aerobaticelytra.client.render.model.AerobaticElytraModel;
 import endorh.aerobaticelytra.common.AerobaticElytraLogic;
@@ -40,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import static endorh.aerobaticelytra.client.ModResources.TEXTURE_AEROBATIC_ELYTRA;
+import static endorh.aerobaticelytra.client.AerobaticElytraResources.TEXTURE_AEROBATIC_ELYTRA;
 import static java.lang.Math.min;
 
 @EventBusSubscriber(value = Dist.CLIENT, modid = AerobaticElytra.MOD_ID)
@@ -88,8 +87,7 @@ public class AerobaticElytraLayer<T extends LivingEntity, M extends BipedModel<T
 		// which allows the model to be rotated along with armor stand entities
 		//   mStack.translate(0.0D, 0.0D, 0.125D);
 		getEntityModel().copyModelAttributesTo(modelElytra);
-		modelElytra.setRotationAngles(
-		  entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
+		modelElytra.setRotationAngles(entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
 		
 		final boolean effect = !visibility.disable_wing_glint && item.hasModelEffect(elytra);
 		if (effect) {
@@ -169,14 +167,11 @@ public class AerobaticElytraLayer<T extends LivingEntity, M extends BipedModel<T
 		for (int i = 0; i < size; ++i) {
 			Pair<BannerPattern, DyeColor> pair = patternColorData.get(i);
 			float[] color = pair.getSecond().getColorComponentValues();
-			RenderMaterial material = new RenderMaterial(
-			  AerobaticElytraBannerTextureManager.LOCATION_AEROBATIC_ELYTRA_BANNER_ATLAS,
-			  item.getTextureLocation(pair.getFirst()));
+			RenderMaterial material = item.getBannerMaterial(pair.getFirst());
 			// Unknown patterns are omitted
-			if (material.getSprite().getName() != MissingTextureSprite.getLocation())
-				modelElytra.renderWing(
-				  side, mStack, material.getBuffer(buffer, RenderType::getEntityTranslucent),
-				  packedLight, OverlayTexture.NO_OVERLAY, color[0], color[1], color[2], 1F);
+			if (material.getSprite().getName() != MissingTextureSprite.getLocation()) modelElytra.renderWing(
+			  side, mStack, material.getBuffer(buffer, RenderType::getEntityTranslucent),
+			  packedLight, OverlayTexture.NO_OVERLAY, color[0], color[1], color[2], 1F);
 		}
 	}
 	

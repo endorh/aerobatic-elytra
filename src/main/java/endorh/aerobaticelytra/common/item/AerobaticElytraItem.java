@@ -4,6 +4,7 @@ import com.mojang.datafixers.util.Pair;
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.config.ClientConfig;
 import endorh.aerobaticelytra.client.config.ClientConfig.style.visibility;
+import endorh.aerobaticelytra.client.item.AerobaticElytraBannerTextureManager;
 import endorh.aerobaticelytra.common.capability.ElytraSpecCapability;
 import endorh.aerobaticelytra.common.capability.ElytraSpecCapability.Storage;
 import endorh.aerobaticelytra.common.capability.IAerobaticData;
@@ -23,6 +24,7 @@ import endorh.util.nbt.NBTPath;
 import net.minecraft.block.DispenserBlock;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.renderer.model.RenderMaterial;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.enchantment.IArmorVanishable;
@@ -45,10 +47,8 @@ import net.minecraftforge.fml.DistExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.awt.Color;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static endorh.aerobaticelytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
@@ -70,6 +70,7 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 	public static final String NAME = "aerobatic_elytra";
 	public static int DEFAULT_COLOR = 0x8F9EAE;
 	protected final ElytraDyement dyement = new ElytraDyement();
+	private final Map<BannerPattern, RenderMaterial> bannerMaterialCache = new HashMap<>();
 	
 	public AerobaticElytraItem(Item.Properties builder) {
 		super(
@@ -389,6 +390,12 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 		return new ResourceLocation(AerobaticElytra.MOD_ID, "entity/aerobatic_elytra/" + pattern.getFileName());
 	}
 	
+	public RenderMaterial getBannerMaterial(BannerPattern pattern) {
+		return bannerMaterialCache.computeIfAbsent(pattern, p -> new RenderMaterial(
+		  AerobaticElytraBannerTextureManager.LOCATION_AEROBATIC_ELYTRA_BANNER_ATLAS,
+		  getTextureLocation(pattern)));
+	}
+	
 	@OnlyIn(Dist.CLIENT)
 	public void addDyementTooltipInfo(
 	  ItemStack stack, ITooltipFlag flag, String indent, List<ITextComponent> tooltip
@@ -486,7 +493,7 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 	// Split wings
 	@SuppressWarnings("unused")
 	public AerobaticElytraWingItem getWingItem(ItemStack elytra, WingSide side) {
-		return ModItems.AEROBATIC_ELYTRA_WING;
+		return AerobaticElytraItems.AEROBATIC_ELYTRA_WING;
 	}
 	
 	public ItemStack getWing(ItemStack elytra, WingSide side) {

@@ -14,7 +14,7 @@ import java.util.function.Supplier;
 import static endorh.util.common.ForgeUtil.futureNotNull;
 
 @EventBusSubscriber(bus = Bus.MOD, modid = AerobaticElytra.MOD_ID)
-public class ModItems {
+public class AerobaticElytraItems {
 	@ObjectHolder(AerobaticElytra.MOD_ID + ":" + AerobaticElytraItem.NAME)
 	public static final AerobaticElytraItem AEROBATIC_ELYTRA = futureNotNull();
 	@ObjectHolder(AerobaticElytra.MOD_ID + ":" + AerobaticElytraWingItem.NAME)

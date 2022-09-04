@@ -19,7 +19,7 @@ public class OriginDistanceLootCondition implements ILootCondition {
 	}
 	
 	@Override public @NotNull LootConditionType func_230419_b_() {
-		return ModLootConditions.ORIGIN_DISTANCE;
+		return AerobaticLootConditions.ORIGIN_DISTANCE;
 	}
 	
 	@Override public boolean test(LootContext lootContext) {

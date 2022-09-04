@@ -2,12 +2,12 @@ package endorh.aerobaticelytra.integration.jei.category;
 
 import com.google.common.collect.ImmutableList;
 import endorh.aerobaticelytra.AerobaticElytra;
-import endorh.aerobaticelytra.client.ModResources;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
+import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.item.AerobaticElytraWingItem;
-import endorh.aerobaticelytra.common.item.ModItems;
 import endorh.aerobaticelytra.common.recipe.DyeRecipe;
 import endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiHelper;
+import endorh.aerobaticelytra.integration.jei.gui.JeiResources;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -46,18 +46,18 @@ public class DyeRecipeCategory extends BaseCategory<DyeRecipeCategory.DyeRecipeW
 	protected static long lastIconChange = 0;
 	
 	public DyeRecipeCategory() {
-		super(UID, DyeRecipeWrapper.class, ModResources::regular3x3RecipeBg,
-		      ModItems.AEROBATIC_ELYTRA, Items.RED_DYE, true);
+		super(UID, DyeRecipeWrapper.class, JeiResources::regular3x3RecipeBg,
+		      AerobaticElytraItems.AEROBATIC_ELYTRA, Items.RED_DYE, true);
 	}
 	
 	@Override public void setIngredients(
 	  @NotNull DyeRecipeWrapper recipe, @NotNull IIngredients ingredients
 	) {
 		ingredients.setInputIngredients(ImmutableList.of(
-		  Ingredient.fromItems(ModItems.AEROBATIC_ELYTRA, ModItems.AEROBATIC_ELYTRA_WING),
+		  Ingredient.fromItems(AerobaticElytraItems.AEROBATIC_ELYTRA, AerobaticElytraItems.AEROBATIC_ELYTRA_WING),
 		  DyeRecipeWrapper.dyeIngredient));
 		ingredients.setOutputLists(VanillaTypes.ITEM, ImmutableList.of(ImmutableList.of(
-		  new ItemStack(ModItems.AEROBATIC_ELYTRA), new ItemStack(ModItems.AEROBATIC_ELYTRA_WING))));
+		  new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA), new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA_WING))));
 	}
 	
 	@Override public void setRecipe(
@@ -143,7 +143,7 @@ public class DyeRecipeCategory extends BaseCategory<DyeRecipeCategory.DyeRecipeW
 		
 		public List<Ingredient> getIngredients() {
 			return Util.make(new ArrayList<>(), l -> {
-				l.add(Ingredient.fromItems(ModItems.AEROBATIC_ELYTRA));
+				l.add(Ingredient.fromItems(AerobaticElytraItems.AEROBATIC_ELYTRA));
 				for (int i = 0; i < dyeAmount; i++)
 					l.add(dyeIngredient);
 			});

@@ -27,7 +27,7 @@ public class SubmergedLootCondition implements ILootCondition {
 	}
 	
 	@Override public @NotNull LootConditionType func_230419_b_() {
-		return ModLootConditions.SUBMERGED;
+		return AerobaticLootConditions.SUBMERGED;
 	}
 	
 	@Override public boolean test(LootContext lootContext) {

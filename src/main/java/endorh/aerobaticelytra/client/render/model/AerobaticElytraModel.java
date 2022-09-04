@@ -199,40 +199,34 @@ public class AerobaticElytraModel<T extends LivingEntity> extends ElytraModel<T>
             IFlightData fd = getFlightDataOrDefault(player);
             IElytraPose newPose = fd.getFlightMode().getElytraPose(player);
             AerobaticRenderData smoother = AerobaticRenderData.getAerobaticRenderData(player);
-            if (newPose == null) {
-                newPose = player.isElytraFlying()
-                          ? IElytraPose.FLYING_POSE
-                          : player.isCrouching()
-                            ? IElytraPose.CROUCHING_POSE
-                            : IElytraPose.STANDING_POSE;
-            }
+            if (newPose == null) newPose =
+              player.isElytraFlying()? IElytraPose.FLYING_POSE :
+              player.isCrouching()? IElytraPose.CROUCHING_POSE : IElytraPose.STANDING_POSE;
             final IElytraPose prevPose = smoother.pose;
-            if (ageInTicks - smoother.animationStart < 0F)
-                smoother.animationStart = 0F;
+            if (ageInTicks - smoother.animationStart < 0F) smoother.animationStart = 0F;
             float t = (ageInTicks - smoother.animationStart) / smoother.animationLength;
             if (smoother.updatePose(newPose)) {
                 final AerobaticElytraModelPose prev = prevPose.getNonNullPose(
                   entity, limbSwing, limbSwingAmount, netHeadYaw, headPitch, ageInTicks);
-                if (t < 1)
+                if (t < 1) {
                     interpolate(Interpolator.quadOut(t), smoother.capturedPose, prev);
-                else update(prev);
+                } else update(prev);
                 captureSnapshot(smoother.capturedPose);
                 newPose.modifyPrevious(smoother.capturedPose);
                 smoother.animationStart = ageInTicks;
                 float temp = newPose.getFadeInTime();
                 if (Float.isNaN(temp)) {
                     temp = prevPose.getFadeOutTime();
-                    if (Float.isNaN(temp))
-                        temp = DEFAULT_ANIMATION_LENGTH;
+                    if (Float.isNaN(temp)) temp = DEFAULT_ANIMATION_LENGTH;
                 }
                 smoother.animationLength = temp;
                 t = 0F;
             }
             final AerobaticElytraModelPose targetPose = smoother.pose.getNonNullPose(
               entity, limbSwing, limbSwingAmount, netHeadYaw, headPitch, ageInTicks);
-            if (t < 1)
+            if (t < 1) {
                 interpolate(Interpolator.quadOut(t), smoother.capturedPose, targetPose);
-            else update(targetPose);
+            } else update(targetPose);
             updateVisibility();
             
             setRotateAngle(referenceBodyModel, 0F, 0F, 0F);
@@ -241,11 +235,9 @@ public class AerobaticElytraModel<T extends LivingEntity> extends ElytraModel<T>
             if (entity instanceof ArmorStandEntity) {
                 final Rotations leftLegRotation = ((ArmorStandEntity) entity).getLeftLegRotation();
                 final Rotations rightLegRotation = ((ArmorStandEntity) entity).getRightLegRotation();
-                IElytraPose p = leftLegRotation.getX() >= 30F
-                                ? IElytraPose.FLYING_POSE
-                                : rightLegRotation.getX() >= 30F
-                                  ? IElytraPose.CROUCHING_POSE
-                                  : IElytraPose.STANDING_POSE;
+                IElytraPose p =
+                  leftLegRotation.getX() >= 30F? IElytraPose.FLYING_POSE :
+                  rightLegRotation.getX() >= 30F? IElytraPose.CROUCHING_POSE : IElytraPose.STANDING_POSE;
                 pose = p.getNonNullPose(
                   entity, limbSwing, limbSwingAmount, netHeadYaw, headPitch, ageInTicks);
                 Rotations bodyRotation = ((ArmorStandEntity) entity).getBodyRotation();

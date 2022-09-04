@@ -8,7 +8,7 @@ import endorh.aerobaticelytra.common.item.IAbility.Ability;
 import endorh.aerobaticelytra.common.item.IDatapackAbility;
 import endorh.aerobaticelytra.common.item.IDatapackAbilityReloadListener;
 import endorh.aerobaticelytra.common.item.IEffectAbility;
-import endorh.aerobaticelytra.common.registry.ModRegistries;
+import endorh.aerobaticelytra.common.registry.AerobaticElytraRegistries;
 import endorh.util.math.MathParser.ExpressionParser.ParseException.NameParseException;
 import endorh.util.math.MathParser.FixedNamespaceSet;
 import endorh.util.math.MathParser.ParsedExpression;
@@ -153,11 +153,11 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 	 */
 	@Override default void onAerobaticElytraDatapackAbilityReload() {
 		final Map<String, Float> unknown = getUnknownAbilities();
-		for (IDatapackAbility ability : ModRegistries.getOutdatedAbilities()) {
+		for (IDatapackAbility ability : AerobaticElytraRegistries.getOutdatedAbilities()) {
 			if (hasAbility(ability))
 				unknown.put(ability.fullName(), removeAbility(ability));
 		}
-		for (IDatapackAbility ability : ModRegistries.getDatapackAbilities().values()) {
+		for (IDatapackAbility ability : AerobaticElytraRegistries.getDatapackAbilities().values()) {
 			final String name = ability.fullName();
 			if (unknown.containsKey(name))
 				setAbility(ability, unknown.remove(name));
@@ -506,13 +506,13 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 		 * @return The new valid state
 		 */
 		public boolean reloadAbilities() {
-			type = ModRegistries.getAbilityByName(abilityName);
+			type = AerobaticElytraRegistries.getAbilityByName(abilityName);
 			try {
-				expression = ModRegistries.ABILITY_EXPRESSION_PARSER.parse(rawExpression);
+				expression = AerobaticElytraRegistries.ABILITY_EXPRESSION_PARSER.parse(rawExpression);
 			} catch (NameParseException ignored) { expression = null; }
 			valid = expression != null && type != null;
 			if (valid) {
-				IFormattableTextComponent pretty = ModRegistries.ABILITY_EXPRESSION_HIGHLIGHTER.parse(rawExpression).eval();
+				IFormattableTextComponent pretty = AerobaticElytraRegistries.ABILITY_EXPRESSION_HIGHLIGHTER.parse(rawExpression).eval();
 				if (type.getDisplayType().isBool()) {
 					final String expr = pretty.getString().trim();
 					boolean val = false;
@@ -582,7 +582,7 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 		
 		public boolean apply(IElytraSpec spec) {
 			final FixedNamespaceSet<Double> namespaceSet = expression.getNamespaceSet();
-			for (IAbility t : ModRegistries.getAbilities().values())
+			for (IAbility t : AerobaticElytraRegistries.getAbilities().values())
 				namespaceSet.set(t.getName(), (double) spec.getAbility(t));
 			
 			float result = (float) clamp(expression.eval(), min, max);
@@ -611,7 +611,7 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 				return tt;
 			}
 			String name = type.getName();
-			TextFormatting color = ModRegistries.ABILITY_EXPRESSION_HIGHLIGHTER.getNameColor(name);
+			TextFormatting color = AerobaticElytraRegistries.ABILITY_EXPRESSION_HIGHLIGHTER.getNameColor(name);
 			if (prettyExpression != null) {
 				tt.add(stc(name).mergeStyle(color)
 				         .append(stc(" = ").mergeStyle(TextFormatting.GOLD))

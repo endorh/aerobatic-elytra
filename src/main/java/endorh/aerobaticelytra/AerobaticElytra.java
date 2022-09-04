@@ -1,7 +1,7 @@
 package endorh.aerobaticelytra;
 
 import endorh.aerobaticelytra.client.item.AerobaticElytraBannerTextureManager;
-import endorh.aerobaticelytra.common.ModInit;
+import endorh.aerobaticelytra.common.AerobaticElytraInit;
 import endorh.aerobaticelytra.common.registry.JsonAbilityManager;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.ModList;
@@ -44,7 +44,7 @@ public final class AerobaticElytra {
         curiosLoaded = modList.isLoaded("curios");
         
         // Initialization
-        ModInit.setup();
+        AerobaticElytraInit.setup();
         LOGGER.debug(MAIN, "Mod loading started");
     }
     

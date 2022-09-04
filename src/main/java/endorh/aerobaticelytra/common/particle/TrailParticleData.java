@@ -70,7 +70,7 @@ public class TrailParticleData implements IParticleData {
 	
 	@NotNull @Override
 	public ParticleType<TrailParticleData> getType() {
-		return ModParticles.TRAIL_PARTICLES.get(type);
+		return AerobaticParticles.TRAIL_PARTICLES.get(type);
 	}
 	
 	@Override public void write(@NotNull PacketBuffer buf) {

@@ -4,7 +4,7 @@ import endorh.aerobaticelytra.common.capability.IElytraSpec.TrailData;
 import endorh.aerobaticelytra.common.config.Config;
 import endorh.aerobaticelytra.common.item.IAbility;
 import endorh.aerobaticelytra.common.item.IEffectAbility;
-import endorh.aerobaticelytra.common.registry.ModRegistries;
+import endorh.aerobaticelytra.common.registry.AerobaticElytraRegistries;
 import endorh.util.capability.CapabilityProviderSerializable;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -207,7 +207,7 @@ public class ElytraSpecCapability {
 			CompoundNBT data = dat.getCompound(TAG_BASE);
 			CompoundNBT ability = data.getCompound(TAG_ABILITIES);
 			
-			for (IAbility type : ModRegistries.getAbilities().values()) {
+			for (IAbility type : AerobaticElytraRegistries.getAbilities().values()) {
 				if (ability.contains(type.fullName())) {
 					float value = ability.getFloat(type.fullName());
 					if (Config.item.fix_nan_elytra_abilities && Float.isNaN(value))

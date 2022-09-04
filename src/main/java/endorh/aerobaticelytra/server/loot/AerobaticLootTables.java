@@ -5,8 +5,6 @@ import net.minecraft.util.ResourceLocation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class ModLootTables {
-	private static final Logger LOGGER = LogManager.getLogger();
+public class AerobaticLootTables {
 	public static final ResourceLocation END_SHIP_ELYTRA = AerobaticElytra.prefix("end_ship_elytra");
-	
 }

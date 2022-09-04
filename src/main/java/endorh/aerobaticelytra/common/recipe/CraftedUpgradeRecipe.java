@@ -82,6 +82,6 @@ public class CraftedUpgradeRecipe extends SpecialRecipe {
 	}
 	
 	@Override public @NotNull IRecipeSerializer<?> getSerializer() {
-		return ModRecipes.CRAFTED_UPGRADE_RECIPE.get();
+		return AerobaticRecipes.CRAFTED_UPGRADE_RECIPE.get();
 	}
 }

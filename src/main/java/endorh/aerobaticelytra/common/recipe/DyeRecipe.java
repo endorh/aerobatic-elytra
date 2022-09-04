@@ -120,6 +120,6 @@ public class DyeRecipe extends SpecialRecipe {
 	
 	@NotNull @Override
 	public IRecipeSerializer<?> getSerializer() {
-		return ModRecipes.DYE_RECIPE.get();
+		return AerobaticRecipes.DYE_RECIPE.get();
 	}
 }

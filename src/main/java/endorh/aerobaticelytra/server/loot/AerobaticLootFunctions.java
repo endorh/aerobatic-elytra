@@ -11,7 +11,7 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 
 @EventBusSubscriber(bus = Bus.MOD, modid = AerobaticElytra.MOD_ID)
-public class ModLootFunctions {
+public class AerobaticLootFunctions {
 	
 	public static LootFunctionType SET_ABILITIES;
 	
