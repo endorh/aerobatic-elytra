@@ -1,6 +1,6 @@
 # Aerobatic Elytra
 
-Adds an aerobatic elytra, which is able to roll and propel itself
+Minecraft mod adding an aerobatic elytra, which is able to roll and propel itself
 using rockets.
 
 During aerobatic flight, mouse movement controls pitch and roll
@@ -16,10 +16,5 @@ tilt instead of directly rotating the camera.
   to the elytra
 - Switch to the classic elytra flight with a key
 
-## Quick start
-
-TODO
-
-## Customization guide
-
-TODO
+## Guide? Quick Start? Wiki? FAQ?
+Not there yet.
