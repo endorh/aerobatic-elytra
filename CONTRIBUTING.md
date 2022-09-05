@@ -3,7 +3,7 @@
 I only recommend using IntelliJ IDEA to edit this project.
 
 To run the project on 1.17+ branches you'll need to use the JetBrains Runtime
-(vanilla JBR without fastdebug) as the project's JDK, or delete the
+(vanilla JBR 17 without fastdebug) as the project's JDK, or delete the
 `-XX:+AllowEnhancedClassRedefinition` JVM arguments from the gradle build script
 and rerun `:genIntellijRuns`.
 
