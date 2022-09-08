@@ -206,6 +206,12 @@ repositories {
 	maven(rootProject.projectDir.parentFile.resolve("maven")) {
 		name = "LocalMods" // Local repository
 	}
+	
+	val gitHubRepos = listOf("endorh/lazulib", "endorh/flightcore", "endorh/simpleconfig")
+	for (repo in gitHubRepos) maven("https://maven.pkg.github.com/$repo") {
+		name = "GitHub/$repo"
+	}
+	
 	mavenCentral()
 }
 
