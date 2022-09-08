@@ -46,9 +46,9 @@ val displayName = "Aerobatic Elytra"
 val vendor = "Endor H"
 val credits = ""
 val authors = "Endor H"
-val issueTracker = ""
-val page = ""
-val updateJson = ""
+val issueTracker = "https://github.com/$githubRepo/issues"
+val page = "https://github.com/$githubRepo"
+val updateJson = "https://github.com/$githubRepo/raw/updates/updates.json"
 val logoFile = "$modId.png"
 val modDescription = """
 	Adds an special elytra able to roll, fly and leave a trail, like an aerobatic plane.
@@ -221,18 +221,17 @@ dependencies {
 	implementation("org.jetbrains:annotations:23.0.0")
 
 	// Minecraft
-    "minecraft"("net.minecraftforge:forge:$forgeVersion")
+    minecraft("net.minecraftforge:forge:$forgeVersion")
 
 	// Mod dependencies
 	// Flight Core
-	// TODO: Replace with curse maven or GitHub maven once published
 	implementation("endorh.flightcore:flightcore-$mcVersion:$flightCoreVersion:deobf")
 
 	// Simple Config
 	compileOnly("endorh.simpleconfig:simpleconfig-$mcVersion-api:$simpleConfigApiVersion")
 	runtimeOnly(fg.deobf("endorh.simpleconfig:simpleconfig-$mcVersion:$simpleConfigVersion"))
 
-	// Endor8 Util
+	// LazuLib
 	implementation(fg.deobf("endorh.util.lazulib:lazulib-$mcVersion:$lazuLibVersion"))
 
 	// Mod integrations
