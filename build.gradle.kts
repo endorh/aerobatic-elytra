@@ -26,7 +26,7 @@ plugins {
 
 val modId = "aerobaticelytra"
 val modGroup = "endorh.aerobaticelytra"
-val githubRepo = "endorh/aerobaticelytra"
+val githubRepo = "endorh/aerobatic-elytra"
 val modVersion = "0.2.21"
 val mcVersion = "1.18.2"
 val forge = "40.1.0"
@@ -144,6 +144,7 @@ minecraft {
 			property("forge.logging.console.level", "debug")
 			property("mixin.env.disableRefMap", "true")
 			
+			// JetBrains Runtime HotSwap (run with vanilla JBR 17 without fast-debug, see CONTRIBUTING.md)
 			jvmArg("-XX:+AllowEnhancedClassRedefinition")
 			
 			mods {
@@ -161,6 +162,7 @@ minecraft {
 			property("forge.logging.console.level", "debug")
 			property("mixin.env.disableRefMap", "true")
 			
+			// JetBrains Runtime HotSwap (run with vanilla JBR 17 without fast-debug, see CONTRIBUTING.md)
 			jvmArg("-XX:+AllowEnhancedClassRedefinition")
 			
 			arg("nogui")
@@ -207,7 +209,7 @@ repositories {
 		name = "LocalMods" // Local repository
 	}
 	
-	val gitHubRepos = listOf("endorh/lazulib", "endorh/flightcore", "endorh/simpleconfig")
+	val gitHubRepos = listOf("endorh/lazulib", "endorh/flight-core", "endorh/simple-config")
 	for (repo in gitHubRepos) maven("https://maven.pkg.github.com/$repo") {
 		name = "GitHub/$repo"
 	}
