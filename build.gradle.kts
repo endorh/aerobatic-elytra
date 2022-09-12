@@ -26,7 +26,7 @@ plugins {
 
 val modId = "aerobaticelytra"
 val modGroup = "endorh.aerobaticelytra"
-val githubRepo = "endorh/aerobaticelytra"
+val githubRepo = "endorh/aerobatic-elytra"
 val modVersion = "0.2.19"
 val mcVersion = "1.16.5"
 val forge = "36.1.0"
@@ -203,7 +203,7 @@ repositories {
 		name = "LocalMods" // Local repository
 	}
 	
-	val gitHubRepos = listOf("endorh/lazulib", "endorh/flightcore", "endorh/simpleconfig")
+	val gitHubRepos = listOf("endorh/lazulib", "endorh/flight-core", "endorh/simple-config")
 	for (repo in gitHubRepos) maven("https://maven.pkg.github.com/$repo") {
 		name = "GitHub/$repo"
 	}
