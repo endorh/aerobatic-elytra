@@ -5,7 +5,6 @@ import endorh.aerobaticelytra.common.capability.IAerobaticData;
 import endorh.aerobaticelytra.common.config.Config;
 import endorh.aerobaticelytra.common.config.Config.collision.slime_bounce;
 import endorh.aerobaticelytra.common.config.Const;
-import endorh.aerobaticelytra.common.flight.AerobaticFlight.VectorBase;
 import endorh.util.math.Vec3f;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

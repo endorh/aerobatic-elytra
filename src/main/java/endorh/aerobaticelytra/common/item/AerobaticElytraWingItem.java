@@ -7,7 +7,7 @@ import endorh.aerobaticelytra.common.capability.ElytraSpecCapability;
 import endorh.aerobaticelytra.common.capability.IAerobaticData;
 import endorh.aerobaticelytra.common.capability.IElytraSpec;
 import endorh.aerobaticelytra.common.capability.IElytraSpec.TrailData;
-import endorh.aerobaticelytra.common.flight.AerobaticFlight.VectorBase;
+import endorh.aerobaticelytra.common.flight.VectorBase;
 import endorh.aerobaticelytra.common.item.ElytraDyement.WingSide;
 import endorh.util.math.Vec3f;
 import net.minecraft.ChatFormatting;

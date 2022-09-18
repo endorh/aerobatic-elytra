@@ -7,7 +7,7 @@ import endorh.aerobaticelytra.common.capability.IFlightData;
 import endorh.aerobaticelytra.common.config.Config;
 import endorh.aerobaticelytra.common.config.Config.aerobatic.propulsion;
 import endorh.aerobaticelytra.common.config.Const;
-import endorh.aerobaticelytra.common.flight.AerobaticFlight.VectorBase;
+import endorh.aerobaticelytra.common.flight.VectorBase;
 import endorh.aerobaticelytra.common.flight.mode.IFlightMode;
 import endorh.aerobaticelytra.server.KickHandler;
 import endorh.util.math.Vec3f;
@@ -71,7 +71,8 @@ public class AerobaticPackets {
 		  .registerLocal(DSneakingPacket::new)
 		  .registerLocal(DJumpingPacket::new)
 		  .registerLocal(DSprintingPacket::new)
-		  .registerLocal(DRotationPacket::new);
+		  .registerLocal(DRotationPacket::new)
+		  .registerLocal(DLookAroundPacket::new);
 		ServerPlayerPacket.with(NetworkHandler.CHANNEL, NetworkHandler.ID_GEN)
 		  .register(SFlightDataPacket::new)
 		  .register(SAerobaticDataPacket::new);
@@ -207,9 +208,9 @@ public class AerobaticPackets {
 			data.setTiltYaw(validateClamp(tiltYaw, -tiltRangeYaw, tiltRangeYaw));
 			final String name = sender.getScoreboardName();
 			if (isInvalid()) {
-				if (STRIKES.compute(name, (n, i) -> i != null? i + 1 : 1) < 4)
+				if (STRIKES.compute(name, (n, i) -> i != null? i + 1 : 1) < 4) {
 					unInvalidate();
-				else handlePlayerWarning(sender, "Player '%s' tilted too much!");
+				} else handlePlayerWarning(sender, "Player '%s' tilted too much!");
 			} else STRIKES.computeIfPresent(name, (n, i) -> max(0, i - 1));
 		}
 		
@@ -347,6 +348,31 @@ public class AerobaticPackets {
 		}
 	}
 	
+	public static class DLookAroundPacket extends DistributedPlayerPacket {
+		float yaw;
+		float pitch;
+		
+		public DLookAroundPacket() {}
+		public DLookAroundPacket(IAerobaticData data) {
+			yaw = data.getLookAroundYaw();
+			pitch = data.getLookAroundPitch();
+		}
+		
+		@Override protected void onCommon(Player sender, Context ctx) {
+			IAerobaticData data = getAerobaticDataOrDefault(sender);
+			data.setLookAroundYaw(yaw);
+			data.setLookAroundPitch(pitch);
+		}
+		
+		@Override protected void serialize(FriendlyByteBuf buf) {
+			buf.writeFloat(yaw);
+			buf.writeFloat(pitch);
+		}
+		@Override protected void deserialize(FriendlyByteBuf buf) {
+			yaw = buf.readFloat();
+			pitch = buf.readFloat();
+		}
+	}
 	
 	/**
 	 * {@link IAerobaticData} initialization packet<br>

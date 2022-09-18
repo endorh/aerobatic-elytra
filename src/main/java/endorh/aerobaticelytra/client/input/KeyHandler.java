@@ -22,6 +22,7 @@ import net.minecraftforge.client.settings.IKeyConflictContext;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
+import org.lwjgl.glfw.GLFW;
 
 import static endorh.aerobaticelytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
 import static endorh.aerobaticelytra.common.capability.FlightDataCapability.getFlightDataOrDefault;
@@ -29,13 +30,17 @@ import static net.minecraftforge.client.settings.KeyConflictContext.IN_GAME;
 
 @EventBusSubscriber(value = Dist.CLIENT, modid = AerobaticElytra.MOD_ID)
 public class KeyHandler {
-	public static KeyMapping FLIGHT_MODE_KEYBINDING;
+	public static KeyMapping FLIGHT_MODE;
+	public static KeyMapping LOOK_AROUND;
 	public static final String AEROBATIC_ELYTRA_CATEGORY = "key.aerobaticelytra.category";
+	
+	private static long lastLookAroundPress = 0L;
 	
 	@EventBusSubscriber(value = Dist.CLIENT, modid = AerobaticElytra.MOD_ID, bus = Bus.MOD)
 	public static class Registrar {
 		@SubscribeEvent public static void onRegisterKeyMappings(RegisterKeyMappingsEvent e) {
-			FLIGHT_MODE_KEYBINDING = reg(e, "key.aerobaticelytra.flight_mode.desc", IN_GAME, 67, AEROBATIC_ELYTRA_CATEGORY);
+			FLIGHT_MODE = reg(e, "key.aerobaticelytra.flight_mode.desc", IN_GAME, GLFW.GLFW_KEY_C, AEROBATIC_ELYTRA_CATEGORY);
+			LOOK_AROUND = reg(e, "key.aerobaticelytra.look_around.desc", IN_GAME, GLFW.GLFW_KEY_LEFT_ALT, AEROBATIC_ELYTRA_CATEGORY);
 			AerobaticElytra.logRegistered("Key Mappings");
 		}
 	}
@@ -51,17 +56,27 @@ public class KeyHandler {
 	
 	@SubscribeEvent
 	public static void onKey(InputEvent.Key event) {
-		final Player player = Minecraft.getInstance().player;
-		if (player == null)
-			return;
-		final IFlightData fd = getFlightDataOrDefault(player);
+		Player player = Minecraft.getInstance().player;
+		if (player == null) return;
+		IFlightData fd = getFlightDataOrDefault(player);
+		IAerobaticData data = getAerobaticDataOrDefault(player);
 		
-		if (FLIGHT_MODE_KEYBINDING.consumeClick()) {
+		boolean lookDown = LOOK_AROUND.isDown();
+		if (FLIGHT_MODE.consumeClick()) {
 			fd.nextFlightMode();
 			IFlightMode mode = fd.getFlightMode();
 			new DFlightModePacket(mode).send();
 			AerobaticOverlays.showModeToastIfRelevant(player, mode);
+		} else if (lookDown && !data.isLookingAround()) {
+			long time = System.currentTimeMillis();
+			if (time - lastLookAroundPress < 200L) {
+				lastLookAroundPress = 0L;
+				boolean persistent = data.isLookAroundPersistent();
+				data.setLookAroundPersistent(!persistent);
+				if (persistent) lookDown = false;
+			} else lastLookAroundPress = time;
 		}
+		data.setLookingAround(lookDown);
 	}
 	
 	@SubscribeEvent

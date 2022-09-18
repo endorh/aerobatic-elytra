@@ -2,36 +2,41 @@ package endorh.aerobaticelytra.client.input;
 
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.config.ClientConfig;
+import endorh.aerobaticelytra.client.config.ClientConfig.lookaround;
 import endorh.aerobaticelytra.common.capability.IAerobaticData;
 import endorh.aerobaticelytra.common.config.Config;
 import endorh.aerobaticelytra.common.config.Const;
 import endorh.aerobaticelytra.common.flight.AerobaticFlight;
-import endorh.aerobaticelytra.common.flight.AerobaticFlight.VectorBase;
+import endorh.aerobaticelytra.common.flight.VectorBase;
 import endorh.flightcore.events.PlayerTurnEvent;
 import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BowItem;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.event.TickEvent.PlayerTickEvent;
+import net.minecraftforge.event.entity.player.ArrowLooseEvent;
+import net.minecraftforge.event.entity.player.ArrowNockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 
 import static endorh.aerobaticelytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
-import static endorh.util.math.Interpolator.clampedLerp;
 import static java.lang.Math.abs;
+import static net.minecraft.util.Mth.clamp;
 
 /**
  * Handle Player rotation events
  */
 @EventBusSubscriber(value = Dist.CLIENT, modid = AerobaticElytra.MOD_ID)
 public class RotationHandler {
-	
 	public static final float ROLL_SENS_PRESCALE = 0.012F;
 	public static final float PITCH_SENS_PRESCALE = 0.02F;
 	public static final float YAW_SENS_PRESCALE = 0.1F;
 	
 	private static boolean flying = false;
+	private static int scheduledAimCancel = 0;
 	
 	/**
 	 * Event filter for the player rotation<br>
@@ -42,14 +47,23 @@ public class RotationHandler {
 		if (AerobaticFlight.isAerobaticFlying(player)) {
 			flying = true;
 			event.setCanceled(true); // Prevent default rotation
-			if (player.isInWater())
-				onUnderwaterPlayerRotate(player, (float) event.x, (float) event.y);
-			else onPlayerRotate(player, (float) event.x, (float) event.y);
-			// Update server (done every tick instead)
-			//new DTiltPacket(data).send();
-		} else if (flying) {
-			flying = false;
-		}
+			IAerobaticData data = getAerobaticDataOrDefault(player);
+			float x = (float) event.x;
+			float y = (float) event.y;
+			if (data.isLookingAround()) {
+				onLookAround(player, x, y);
+			} else if (player.isInWater()) {
+				onUnderwaterPlayerRotate(player, x, y);
+			} else onPlayerRotate(player, x, y);
+		} else if (flying) flying = false;
+	}
+	
+	public static void onLookAround(Player player, float x, float y) {
+		IAerobaticData data = getAerobaticDataOrDefault(player);
+		x *= -0.15F * lookaround.sensitivity;
+		y *= 0.15F * lookaround.sensitivity;
+		data.setLookAroundYaw(clamp(data.getLookAroundYaw() + x, -lookaround.max_yaw, lookaround.max_yaw));
+		data.setLookAroundPitch(clamp(data.getLookAroundPitch() + y, -lookaround.max_pitch, lookaround.max_pitch));
 	}
 	
 	/**
@@ -64,14 +78,14 @@ public class RotationHandler {
 		
 		// Inverted controls
 		final Options settings = Minecraft.getInstance().options;
-		int i_p = settings.invertYMouse().get() ? -1 : 1;
-		int i_r = 1;
+		int invertPitch = settings.invertYMouse().get() ? -1 : 1;
+		int invertRoll = 1;
 		if (ClientConfig.controls.invert_pitch)
-			i_p *= -1;
+			invertPitch *= -1;
 		if (settings.getCameraType() == CameraType.THIRD_PERSON_FRONT
 		    && ClientConfig.controls.invert_front_third_person) {
-			i_p *= -1;
-			i_r *= -1;
+			invertPitch *= -1;
+			invertRoll *= -1;
 		}
 		
 		// Get previous values
@@ -80,18 +94,18 @@ public class RotationHandler {
 		float tiltYaw = data.getTiltYaw();
 		
 		// Pre-scaled so that 1 is my preferred sensibility
-		tiltRoll += scaledX * ROLL_SENS_PRESCALE * ClientConfig.controls.roll_sens * i_r;
-		tiltPitch += scaledY * PITCH_SENS_PRESCALE * ClientConfig.controls.pitch_sens * i_p;
+		tiltRoll += scaledX * ROLL_SENS_PRESCALE * ClientConfig.controls.roll_sens * invertRoll;
+		tiltPitch += scaledY * PITCH_SENS_PRESCALE * ClientConfig.controls.pitch_sens * invertPitch;
 		
 		// Clamp within limit
-		tiltRoll = Mth.clamp(tiltRoll, -Config.aerobatic.tilt.range_roll, Config.aerobatic.tilt.range_roll);
-		tiltPitch = Mth.clamp(tiltPitch, -Config.aerobatic.tilt.range_pitch, Config.aerobatic.tilt.range_pitch);
+		tiltRoll = clamp(tiltRoll, -Config.aerobatic.tilt.range_roll, Config.aerobatic.tilt.range_roll);
+		tiltPitch = clamp(tiltPitch, -Config.aerobatic.tilt.range_pitch, Config.aerobatic.tilt.range_pitch);
 		
 		// Update yaw tilt from the moveStrafing field
 		float yawDelta = -0.5F * Mth.sign(tiltYaw) + 1.5F * Mth.sign(player.xxa);
 		if (player.xxa == 0)
-			yawDelta = Mth.sign(yawDelta) * Mth.clamp(2 * abs(yawDelta), 0F, abs(tiltYaw));
-		tiltYaw = Mth.clamp(tiltYaw + yawDelta * YAW_SENS_PRESCALE * ClientConfig.controls.yaw_sens,
+			yawDelta = Mth.sign(yawDelta) * clamp(2 * abs(yawDelta), 0F, abs(tiltYaw));
+		tiltYaw = clamp(tiltYaw + yawDelta * YAW_SENS_PRESCALE * ClientConfig.controls.yaw_sens,
 		                           -Config.aerobatic.tilt.range_yaw, Config.aerobatic.tilt.range_yaw);
 		
 		// Update tilt
@@ -109,14 +123,14 @@ public class RotationHandler {
 		
 		// Inverted controls
 		final Options settings = Minecraft.getInstance().options;
-		int i_p = settings.invertYMouse().get() ? -1 : 1;
-		int i_r = 1;
+		int invertPitch = settings.invertYMouse().get() ? -1 : 1;
+		int invertRoll = 1;
 		if (ClientConfig.controls.invert_pitch)
-			i_p *= -1;
+			invertPitch *= -1;
 		if (settings.getCameraType() == CameraType.THIRD_PERSON_FRONT
 		    && ClientConfig.controls.invert_front_third_person) {
-			i_p *= -1;
-			i_r *= -1;
+			invertPitch *= -1;
+			invertRoll *= -1;
 		}
 		
 		// Get previous values
@@ -125,28 +139,23 @@ public class RotationHandler {
 		float tiltYaw = data.getTiltYaw();
 		
 		VectorBase base = data.getRotationBase();
-		final float underwaterSens = clampedLerp(
+		final float underwaterSens = Mth.clampedLerp(
 		  Const.UNDERWATER_CONTROLS_DIRECT_SENSIBILITY_MAX, Const.UNDERWATER_CONTROLS_DIRECT_SENSIBILITY_MIN,
 		  (float) player.getDeltaMovement().length() / 0.8F);
 		
-		/*LOGGER.debug(format(
-		  "X delta: %5.2f, Y delta: %5.2f",
-		  scaledX * ROLL_SENS_PRESCALE * ClientConfig.controls.roll_sens * i_r * underwaterSens,
-		  scaledY * PITCH_SENS_PRESCALE * ClientConfig.controls.pitch_sens * i_p * underwaterSens));*/
-		
 		// Instantaneous rotation
 		final float pitchDelta =
-		  (float) -scaledY * PITCH_SENS_PRESCALE * ClientConfig.controls.pitch_sens * i_p * underwaterSens;
+		  (float) -scaledY * PITCH_SENS_PRESCALE * ClientConfig.controls.pitch_sens * invertPitch * underwaterSens;
 		final float rollDelta =
-		  (float) scaledX * ROLL_SENS_PRESCALE * ClientConfig.controls.roll_sens * i_r * underwaterSens;
+		  (float) scaledX * ROLL_SENS_PRESCALE * ClientConfig.controls.roll_sens * invertRoll * underwaterSens;
 		
 		// Pre-scaled so that 1 is my preferred sensibility
-		tiltRoll += scaledX * ROLL_SENS_PRESCALE * ClientConfig.controls.roll_sens * i_r;
-		tiltPitch += scaledY * PITCH_SENS_PRESCALE * ClientConfig.controls.pitch_sens * i_p;
+		tiltRoll += scaledX * ROLL_SENS_PRESCALE * ClientConfig.controls.roll_sens * invertRoll;
+		tiltPitch += scaledY * PITCH_SENS_PRESCALE * ClientConfig.controls.pitch_sens * invertPitch;
 		
 		// Clamp within limit
-		tiltRoll = Mth.clamp(tiltRoll, -Config.aerobatic.tilt.range_roll, Config.aerobatic.tilt.range_roll);
-		tiltPitch = Mth.clamp(tiltPitch, -Config.aerobatic.tilt.range_pitch, Config.aerobatic.tilt.range_pitch);
+		tiltRoll = clamp(tiltRoll, -Config.aerobatic.tilt.range_roll, Config.aerobatic.tilt.range_roll);
+		tiltPitch = clamp(tiltPitch, -Config.aerobatic.tilt.range_pitch, Config.aerobatic.tilt.range_pitch);
 		
 		// Apply instantaneous rotation
 		base.look.rotateAlongOrtVecDegrees(base.roll, pitchDelta);
@@ -156,14 +165,42 @@ public class RotationHandler {
 		
 		float yawDelta = -0.5F * Mth.sign(tiltYaw) + 1.5F * Mth.sign(player.xxa);
 		if (player.xxa == 0)
-			yawDelta = Mth.sign(yawDelta) * Mth.clamp(2 * abs(yawDelta), 0F, abs(tiltYaw));
+			yawDelta = Mth.sign(yawDelta) * clamp(2 * abs(yawDelta), 0F, abs(tiltYaw));
 		final float underwaterYawSens = Const.UNDERWATER_YAW_RANGE_MULTIPLIER;
-		tiltYaw = Mth.clamp(tiltYaw + yawDelta * YAW_SENS_PRESCALE * ClientConfig.controls.yaw_sens * underwaterYawSens,
+		tiltYaw = clamp(tiltYaw + yawDelta * YAW_SENS_PRESCALE * ClientConfig.controls.yaw_sens * underwaterYawSens,
 		  -Config.aerobatic.tilt.range_yaw * underwaterYawSens, Config.aerobatic.tilt.range_yaw * underwaterYawSens);
 		
 		// Update tilt
 		data.setTiltPitch(tiltPitch);
 		data.setTiltRoll(tiltRoll);
 		data.setTiltYaw(tiltYaw);
+	}
+	
+	@SubscribeEvent public static void onBowCharge(ArrowNockEvent event) {
+		if (!lookaround.aim_with_bow) return;
+		IAerobaticData data = getAerobaticDataOrDefault(event.getEntity());
+		if (!data.isLookingAround() && !data.isLookAroundPersistent()) {
+			data.setAimingBow(true);
+		}
+	}
+	
+	@SubscribeEvent public static void onBowShoot(ArrowLooseEvent event) {
+		IAerobaticData data = getAerobaticDataOrDefault(event.getEntity());
+		if (data.isAimingBow()) scheduledAimCancel = 2;
+	}
+	
+	@SubscribeEvent public static void onPlayerTickEvent(PlayerTickEvent event) {
+		Player player = event.player;
+		IAerobaticData data = getAerobaticDataOrDefault(player);
+		if (!lookaround.aim_with_bow) {
+			data.setAimingBow(false);
+			return;
+		}
+		if (data.isAimingBow() && !(player.getMainHandItem().getItem() instanceof BowItem)
+		    && !(player.getOffhandItem().getItem() instanceof BowItem)) {
+			data.setAimingBow(false);
+		} else if (scheduledAimCancel > 0 && scheduledAimCancel-- == 1) {
+			data.setAimingBow(false);
+		}
 	}
 }

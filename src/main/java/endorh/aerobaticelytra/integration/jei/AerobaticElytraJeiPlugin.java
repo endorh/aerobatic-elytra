@@ -93,7 +93,7 @@ public class AerobaticElytraJeiPlugin implements IModPlugin {
 	
 	@Override public void registerRecipes(@NotNull IRecipeRegistration reg) {
 		// Add info to item
-		String key = KeyHandler.FLIGHT_MODE_KEYBINDING.getKey().getName();
+		String key = KeyHandler.FLIGHT_MODE.getKey().getName();
 		String keyName = I18n.get(key);
 		if (key.equals(keyName))
 			keyName = keyName.replaceFirst("key\\.keyboard\\.", "");

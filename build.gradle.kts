@@ -206,11 +206,6 @@ repositories {
 		name = "LocalMods" // Local repository
 	}
 	
-	val gitHubRepos = listOf("endorh/lazulib", "endorh/flight-core", "endorh/simple-config")
-	for (repo in gitHubRepos) maven("https://maven.pkg.github.com/$repo") {
-		name = "GitHub/$repo"
-	}
-	
 	mavenCentral()
 }
 
@@ -249,7 +244,7 @@ dependencies {
 
 	// Used for debug
 	// Aerobatic Elytra Jetpack
-	runtimeOnly(fg.deobf("endorh.aerobaticelytra.jetpack:aerobaticelytrajetpack-$mcVersion:$aerobaticElytraJetpackVersion"))
+	// runtimeOnly(fg.deobf("endorh.aerobaticelytra.jetpack:aerobaticelytrajetpack-$mcVersion:$aerobaticElytraJetpackVersion"))
 
 	// Elytra Slot
 	runtimeOnly(fg.deobf("curse.maven:elytra-slot-317716:3929276"))

@@ -8,7 +8,6 @@ import endorh.aerobaticelytra.common.config.Const;
 import endorh.aerobaticelytra.common.flight.mode.IFlightMode;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
-import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 

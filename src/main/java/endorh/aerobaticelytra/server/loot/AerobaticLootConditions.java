@@ -1,10 +1,10 @@
 package endorh.aerobaticelytra.server.loot;
 
 import endorh.aerobaticelytra.AerobaticElytra;
-import net.minecraft.world.level.storage.loot.Serializer;
-import net.minecraft.world.level.storage.loot.predicates.LootItemConditionType;
-import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.minecraft.core.Registry;
+import net.minecraft.world.level.storage.loot.Serializer;
+import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
+import net.minecraft.world.level.storage.loot.predicates.LootItemConditionType;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
