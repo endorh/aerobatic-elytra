@@ -5,7 +5,7 @@ import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.input.KeyHandler;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
-import endorh.aerobaticelytra.common.recipe.*;
+import endorh.aerobaticelytra.common.recipe.UpgradeRecipe;
 import endorh.aerobaticelytra.integration.jei.category.*;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
@@ -93,7 +93,7 @@ public class AerobaticElytraJeiPlugin implements IModPlugin {
 	
 	@Override public void registerRecipes(@NotNull IRecipeRegistration reg) {
 		// Add info to item
-		String key = KeyHandler.FLIGHT_MODE_KEYBINDING.getKey().getName();
+		String key = KeyHandler.FLIGHT_MODE.getKey().getName();
 		String keyName = I18n.get(key);
 		if (key.equals(keyName))
 			keyName = keyName.replaceFirst("key\\.keyboard\\.", "");

@@ -31,7 +31,7 @@ public class FlightCameraSmoother {
 			if (data.isFlying()) {
 				if (mc.isPaused()) {
 					data.setLastRotationTime(currentTimeMillis() / 1000D);
-				} else AerobaticFlight.applyRotationAcceleration(player);
+				} else AerobaticFlight.applyRotationAcceleration(player, event.renderTickTime);
 			}
 		}
 	}
