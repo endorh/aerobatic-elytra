@@ -101,7 +101,7 @@ val modProperties = mapOf(
 	"description"   to modDescription,
 	"group"         to group,
 	"class_name"    to className,
-	"group_slashed" to groupSlashed
+	"group_slashed" to groupSlashed,
 )
 
 // Source Sets -----------------------------------------------------------------
@@ -180,33 +180,72 @@ minecraft {
 
 // Dependencies ----------------------------------------------------------------
 
-repositories {
-	maven("https://repo.maven.apache.org/maven2") {
-		name = "Maven Central"
-	}
-	maven("https://www.cursemaven.com") {
-		name = "Curse Maven" // Curse Maven
-		content {
-			includeGroup("curse.maven")
+val explicitGroups: MutableSet<String> = mutableSetOf()
+fun MavenArtifactRepository.includeOnly(vararg groups: String) {
+	content {
+		groups.forEach {
+			// Include subgroups as well
+			val regex = "${it.replace(".", "\\.")}(\\..*)?"
+			includeGroupByRegex(regex)
+			explicitGroups.add(regex)
 		}
+	}
+}
+fun MavenArtifactRepository.excludeExplicit() {
+	content {
+		explicitGroups.forEach {
+			excludeGroupByRegex(it)
+		}
+	}
+}
+
+repositories {
+	maven("https://www.cursemaven.com") {
+		name = "Curse Maven"
+		includeOnly("curse.maven")
 	}
 	
 	maven("https://dvs1.progwml6.com/files/maven/") {
 		name = "Progwml6 maven" // JEI
+		includeOnly("mezz")
 	}
 	maven("https://modmaven.k-4u.nl") {
 		name = "ModMaven" // JEI fallback
+		includeOnly("mezz")
 	}
 	
 	maven("https://maven.theillusivec4.top/") {
 		name = "TheIllusiveC4" // Curios API
+		includeOnly("top.theillusivec4")
 	}
 	
+	// Local repository for faster multi-mod development
 	maven(rootProject.projectDir.parentFile.resolve("maven")) {
-		name = "LocalMods" // Local repository
+		name = "LocalMods"
+		includeOnly("endorh")
 	}
 	
-	mavenCentral()
+	// GitHub Packages
+	val gitHubRepos = mapOf(
+		"endorh/lazulib" to "endorh.util.lazulib",
+		"endorh/flight-core" to "endorh.flightcore",
+		"endorh/simple-config" to "endorh.simpleconfig",
+	)
+	for (repo in gitHubRepos.entries) maven("https://maven.pkg.github.com/${repo.key}") {
+		name = "GitHub/${repo.key}"
+		includeOnly(repo.value)
+		credentials {
+			// read:packages only GitHub token published by Endor H
+			// You may as well use your own GitHub PAT with read:packages scope, until GitHub
+			//   supports unauthenticated read access to public packages, see:
+			//   https://github.com/orgs/community/discussions/26634#discussioncomment-3252637
+			password = "\u0067hp_SjEzHOWgAWIKVczipKZzLPPJcCMHHd1LILfK"
+		}
+	}
+	
+	mavenCentral {
+		excludeExplicit()
+	}
 }
 
 dependencies {
@@ -227,8 +266,8 @@ dependencies {
 
 	// LazuLib
 	implementation(fg.deobf("endorh.util.lazulib:lazulib-$mcVersion:$lazuLibVersion"))
-
-	// Mod integrations
+	
+	// Mod integrations --------------------------------------------------------
 	// JEI
 	compileOnly(fg.deobf("mezz.jei:jei-$mcVersion-common-api:$jeiVersion"))
 	compileOnly(fg.deobf("mezz.jei:jei-$mcVersion-forge-api:$jeiVersion"))
@@ -242,9 +281,9 @@ dependencies {
 	compileOnly(fg.deobf("top.theillusivec4.caelus:caelus-forge:$caelusVersion:api"))
 	runtimeOnly(fg.deobf("top.theillusivec4.caelus:caelus-forge:$caelusVersion"))
 
-	// Used for debug
+	// Used for debug ----------------------------------------------------------
 	// Aerobatic Elytra Jetpack
-	// runtimeOnly(fg.deobf("endorh.aerobaticelytra.jetpack:aerobaticelytrajetpack-$mcVersion:$aerobaticElytraJetpackVersion"))
+	runtimeOnly(fg.deobf("endorh.aerobaticelytra.jetpack:aerobaticelytrajetpack-$mcVersion:$aerobaticElytraJetpackVersion"))
 
 	// Elytra Slot
 	runtimeOnly(fg.deobf("curse.maven:elytra-slot-317716:3929276"))
@@ -278,7 +317,7 @@ dependencies {
 	// runtimeOnly(fg.deobf("curse.maven:distant-horizons-508933:3923597")) // 1.19.2
 }
 
-// Tasks --------------------------------------------------------------------------
+// Tasks -----------------------------------------------------------------------
 
 tasks.withType<Test> {
 	useJUnitPlatform()
