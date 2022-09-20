@@ -5,7 +5,7 @@ import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.common.capability.IAerobaticData;
 import endorh.aerobaticelytra.common.config.Const;
 import endorh.flightcore.events.SetupRotationsRenderPlayerEvent;
-import endorh.util.math.Interpolator;
+import endorh.util.animation.Easing;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerModelPart;
 import net.minecraft.util.math.vector.Vector3f;
@@ -47,14 +47,17 @@ public class PlayerRendererHandler {
 		if (data.isFlying()) {
 			event.setCanceled(true);
 			MatrixStack mStack = event.matrixStack;
-			float t = (player.getTicksElytraFlying() + event.partialTicks) / Const.TAKEOFF_ANIMATION_LENGTH_TICKS;
-			float yaw = (180F - player.rotationYaw);
-			float pitch = (-90F - player.rotationPitch);
+			float t = (player.getTicksElytraFlying() + event.partialTicks) /
+			          Const.TAKEOFF_ANIMATION_LENGTH_TICKS;
+			float yaw = 180F - data.getRotationYaw();
+			float pitch = -90F - data.getRotationPitch();
 			if (t < 1F) {
 				// Smooth lift off
-				float i = Interpolator.quadInOut(t);
-				yaw = lerp(i, (180F - player.prevRotationYaw), yaw);
+				float i = Easing.quadInOut(t);
+				// Standing pitch is 0
 				pitch = lerp(i, 0F, pitch);
+				// Only yaw affects standing players' rotation
+				yaw = lerp(i, 180F - data.getPrevTickRotationYaw(), yaw);
 				// No need to smooth the roll since it starts being 0
 			}
 			
@@ -62,14 +65,15 @@ public class PlayerRendererHandler {
 			mStack.rotate(Vector3f.XP.rotationDegrees(pitch));
 			mStack.rotate(Vector3f.YP.rotationDegrees(
 			  data.getRotationRoll() + data.getTiltRoll() * Const.TILT_ROLL_RENDER_OFFSET));
-			mStack.rotate(Vector3f.XP.rotationDegrees(- data.getTiltPitch() * Const.TILT_PITCH_RENDER_OFFSET));
-			mStack.rotate(Vector3f.ZP.rotationDegrees(data.getTiltYaw() * Const.TILT_YAW_RENDER_OFFSET));
+			mStack.rotate(Vector3f.XP.rotationDegrees(
+			  -data.getTiltPitch() * Const.TILT_PITCH_RENDER_OFFSET));
+			mStack.rotate(Vector3f.ZP.rotationDegrees(
+			  data.getTiltYaw() * Const.TILT_YAW_RENDER_OFFSET));
 			
 			// Keep the easter egg
 			String s = TextFormatting.getTextWithoutFormattingCodes(player.getName().getString());
-			//noinspection SpellCheckingInspection
 			if (("Dinnerbone".equals(s) || "Grumm".equals(s)) && player.isWearing(PlayerModelPart.CAPE)) {
-				mStack.translate(0D, (double)player.getHeight() + 0.1F, 0D);
+				mStack.translate(0D, (double) player.getHeight() + 0.1F, 0D);
 				mStack.rotate(Vector3f.ZP.rotationDegrees(180F));
 			}
 		}

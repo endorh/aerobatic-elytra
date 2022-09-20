@@ -101,12 +101,13 @@ public class AerobaticElytraCommand {
 		            .executes(cc -> installPack(cc, getString(cc, "datapack"))))
 		      ).then(literal("list").executes(AerobaticElytraCommand::listPacks))
 		    ).then(
-		      literal("debug").then(
-				  literal("show").executes(cc -> enableDebug(cc, true))
-		      ).then(
-				  literal("hide").executes(cc -> enableDebug(cc, false))
-		      ).then(
-				  literal("give").executes(AerobaticElytraCommand::giveDebugWing))
+			   literal("debug")
+			     .then(literal("show").executes(cc -> enableDebug(cc, true)))
+			     .then(literal("hide").executes(cc -> enableDebug(cc, false)))
+			     .then(literal("give").executes(AerobaticElytraCommand::giveDebugWing))
+			     .then(literal("particles")
+			             .then(literal("show").executes(cc -> enableParticles(cc, true)))
+			             .then(literal("hide").executes(cc -> enableParticles(cc, false))))
 		  ).then(
 		    literal("ability").then(
 		      literal("get").then(
@@ -404,6 +405,11 @@ public class AerobaticElytraCommand {
 			return 0;
 		}
 		return 1;
+	}
+	
+	public static int enableParticles(CommandContext<CommandSource> context, boolean enable) {
+		Debug.enableParticles(enable);
+		return 0;
 	}
 	
 	public static int giveDebugWing(CommandContext<CommandSource> context) {

@@ -29,8 +29,8 @@ public class MultiIngredientDrawable<V> implements IDrawable {
 	
 	@Override public void draw(@NotNull MatrixStack matrixStack, int xOffset, int yOffset) {
 		RenderSystem.enableDepthTest();
-		this.ingredientRenderer.render(matrixStack, xOffset - 2, yOffset - 2, first);
-		this.ingredientRenderer.render(matrixStack, xOffset + 4, yOffset + 4, second);
+		ingredientRenderer.render(matrixStack, xOffset - 2, yOffset - 2, first);
+		ingredientRenderer.render(matrixStack, xOffset + 4, yOffset + 4, second);
 		RenderSystem.enableAlphaTest();
 		RenderSystem.disableDepthTest();
 	}

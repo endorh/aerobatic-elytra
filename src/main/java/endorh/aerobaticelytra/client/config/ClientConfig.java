@@ -30,6 +30,12 @@ public class ClientConfig {
 		       .add("yaw_sens", number(1.0F).min(0))
 		       .add("invert_pitch", yesNo(false))
 		       .add("invert_front_third_person", yesNo(false)))
+		  .n(group("lookaround")
+			    .add("sensitivity", number(1F).min(0))
+		       .add("max_pitch", number(70F))
+		       .add("max_yaw", number(70F))
+		       .add("aim_with_bow", yesNo(true))
+			    .add("reset_on_land", yesNo(true)))
 		  .n(group("style")
 		       .n(group("visual")
 		            .add("fov_effect_strength", number(1F).min(0))
@@ -40,7 +46,7 @@ public class ClientConfig {
 		            .add("mode_toast_x_percentage", number(50F, 100).slider()
 		              .fieldScale("mode_toast_x_fraction", 0.01F))
 		            .add("mode_toast_y_percentage", number(70F, 100).slider()
-		               .fieldScale("mode_toast_y_fraction", 0.01F))
+		              .fieldScale("mode_toast_y_fraction", 0.01F))
 		            .add("max_rendered_banner_layers", number(16).max(16)))
 		       .n(group("visibility")
 		            .add("fuel_display", option(FuelDisplay.ROCKETS))
@@ -74,6 +80,14 @@ public class ClientConfig {
 		
 		@Bind public static boolean invert_pitch;
 		@Bind public static boolean invert_front_third_person;
+	}
+	
+	@Bind public static class lookaround {
+		@Bind public static float sensitivity;
+		@Bind public static float max_pitch;
+		@Bind public static float max_yaw;
+		@Bind public static boolean aim_with_bow;
+		@Bind public static boolean reset_on_land;
 	}
 	
 	// @Bind does not compile here

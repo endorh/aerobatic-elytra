@@ -12,7 +12,7 @@ import net.minecraft.tileentity.BannerPattern;
 import net.minecraft.util.IItemProvider;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
+import java.awt.Color;
 import java.util.List;
 
 import static java.lang.Math.max;

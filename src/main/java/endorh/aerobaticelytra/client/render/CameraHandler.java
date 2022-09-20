@@ -44,10 +44,10 @@ public class CameraHandler {
 			IAerobaticData data = getAerobaticDataOrDefault(player);
 			
 			GameSettings gameSettings = Minecraft.getInstance().gameSettings;
-			int i = gameSettings.getPointOfView() == PointOfView.THIRD_PERSON_FRONT? -1 : 1;
+			int invertRoll = gameSettings.getPointOfView() == PointOfView.THIRD_PERSON_FRONT? -1 : 1;
 			if (data.isFlying()) {
-				lastRoll = data.getRotationRoll();
-				event.setRoll(lastRoll * i);
+				lastRoll = data.getLookAroundRoll();
+				event.setRoll(lastRoll * invertRoll);
 				
 				// Prevent wrong interpolation of arm render offsets when flying
 				player.renderArmYaw = player.prevRenderArmYaw = player.rotationYaw;
@@ -57,7 +57,7 @@ public class CameraHandler {
 					lastRoll = lastRoll > 180F ? 360F - (360F - lastRoll) * 0.75F : lastRoll * 0.75F;
 					if (lastRoll < 0.0001F || lastRoll > 359.9999F)
 						lastRoll = 0F;
-					event.setRoll(lastRoll * i);
+					event.setRoll(lastRoll * invertRoll);
 				}
 			}
 		}

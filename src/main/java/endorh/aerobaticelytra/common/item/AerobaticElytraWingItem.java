@@ -1,13 +1,13 @@
 package endorh.aerobaticelytra.common.item;
 
 import endorh.aerobaticelytra.client.config.ClientConfig.style.visibility;
-import endorh.aerobaticelytra.common.block.BrokenLeavesBlock;
 import endorh.aerobaticelytra.common.block.AerobaticBlocks;
+import endorh.aerobaticelytra.common.block.BrokenLeavesBlock;
 import endorh.aerobaticelytra.common.capability.ElytraSpecCapability;
 import endorh.aerobaticelytra.common.capability.IAerobaticData;
 import endorh.aerobaticelytra.common.capability.IElytraSpec;
 import endorh.aerobaticelytra.common.capability.IElytraSpec.TrailData;
-import endorh.aerobaticelytra.common.flight.AerobaticFlight.VectorBase;
+import endorh.aerobaticelytra.common.flight.VectorBase;
 import endorh.aerobaticelytra.common.item.ElytraDyement.WingSide;
 import endorh.util.math.Vec3f;
 import net.minecraft.block.Block;

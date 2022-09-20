@@ -1,8 +1,7 @@
 package endorh.aerobaticelytra.debug;
 
-import endorh.aerobaticelytra.common.capability.AerobaticDataCapability;
 import endorh.aerobaticelytra.common.capability.IAerobaticData;
-import endorh.aerobaticelytra.common.flight.AerobaticFlight.VectorBase;
+import endorh.aerobaticelytra.common.flight.VectorBase;
 import endorh.aerobaticelytra.common.flight.WeatherData;
 import endorh.aerobaticelytra.common.flight.WeatherData.WeatherRegion;
 import endorh.aerobaticelytra.common.flight.WeatherData.WindRegion;
@@ -18,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static endorh.aerobaticelytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
 import static java.lang.String.format;
 
 /**
@@ -63,12 +63,18 @@ public class DebugOverlay {
 		
 		PlayerEntity player = Minecraft.getInstance().player;
 		if (player != null) {
+			IAerobaticData data = getAerobaticDataOrDefault(player);
 			ret.add(format("yaw:  %.2f", player.rotationYaw));
 			ret.add(format("yawh: %.2f", player.getRotationYawHead()));
 			
 			ret.add("");
 			
-			ret.add(format("Lift cut: %.2f", AerobaticDataCapability.getAerobaticDataOrDefault(player).getLiftCut()));
+			ret.add(format("Lift cut: %.2f", data.getLiftCut()));
+			
+			ret.add("");
+			
+			ret.add(format("Look Yaw: %.2f", data.getLookAroundYaw()));
+			ret.add(format("Look Pitch: %.2f", data.getLookAroundPitch()));
 		}
 		
 		ret.add("");
@@ -85,7 +91,7 @@ public class DebugOverlay {
 	public static List<String> getRightInfo() {
 		PlayerEntity player = Minecraft.getInstance().player;
 		assert player != null;
-		IAerobaticData data = AerobaticDataCapability.getAerobaticDataOrDefault(player);
+		IAerobaticData data = getAerobaticDataOrDefault(player);
 		ArrayList<String> ret = new ArrayList<>();
 		
 		VectorBase rotation = data.getRotationBase();

@@ -24,19 +24,18 @@ import endorh.aerobaticelytra.common.event.AerobaticElytraTickEvent.Pre;
 import endorh.aerobaticelytra.common.flight.mode.FlightModeTags;
 import endorh.aerobaticelytra.common.item.AerobaticElytraWingItem;
 import endorh.aerobaticelytra.common.item.IAbility.Ability;
+import endorh.aerobaticelytra.debug.Debug;
 import endorh.aerobaticelytra.network.AerobaticPackets.DAccelerationPacket;
+import endorh.aerobaticelytra.network.AerobaticPackets.DLookAroundPacket;
 import endorh.aerobaticelytra.network.AerobaticPackets.DRotationPacket;
 import endorh.aerobaticelytra.network.AerobaticPackets.DTiltPacket;
-import endorh.util.math.Interpolator;
-import endorh.util.math.Vec3d;
+import endorh.util.animation.Easing;
 import endorh.util.math.Vec3f;
 import net.minecraft.entity.MoverType;
 import net.minecraft.entity.passive.IFlyingAnimal;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.ITextComponent;
@@ -47,20 +46,17 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.Optional;
 
+import static endorh.aerobaticelytra.common.AerobaticElytraLogic.isClientPlayerEntity;
 import static endorh.aerobaticelytra.common.capability.AerobaticDataCapability.getAerobaticData;
 import static endorh.aerobaticelytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
 import static endorh.aerobaticelytra.common.capability.FlightDataCapability.getFlightDataOrDefault;
 import static endorh.aerobaticelytra.common.item.AerobaticElytraWingItem.hasOffhandDebugWing;
-import static endorh.util.math.Interpolator.clampedLerp;
-import static endorh.util.math.Vec3f.PI;
-import static endorh.util.math.Vec3f.PI_HALF;
 import static endorh.util.text.TextUtil.stc;
 import static endorh.util.text.TextUtil.ttc;
 import static java.lang.Math.abs;
 import static java.lang.Math.*;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
-import static net.minecraft.util.math.MathHelper.floor;
 import static net.minecraft.util.math.MathHelper.signum;
 import static net.minecraft.util.math.MathHelper.*;
 
@@ -70,6 +66,7 @@ import static net.minecraft.util.math.MathHelper.*;
 @EventBusSubscriber(modid = AerobaticElytra.MOD_ID)
 public class AerobaticFlight {
 	private static final Logger LOGGER = LogManager.getLogger();
+	private static boolean remoteLookingAround;
 	
 	private static final Vec3f ZERO = Vec3f.ZERO.get();
 	
@@ -106,9 +103,9 @@ public class AerobaticFlight {
 		
 		// Get gravity and apply SLOW_FALLING potion effect as needed
 		double grav = TravelHandler.travelGravity(player);
-		if (player.isInWater())
+		if (player.isInWater()) {
 			grav *= 1F - spec.getAbility(Ability.AQUATIC);
-		else grav *= 1F - spec.getAbility(Ability.LIFT);
+		} else grav *= 1F - spec.getAbility(Ability.LIFT);
 		float liftCut = data.getLiftCut();
 		
 		motionVec.set(player.getMotion());
@@ -122,7 +119,7 @@ public class AerobaticFlight {
 		}
 		
 		// Apply fine acceleration first to avoid losing precision
-		applyRotationAcceleration(player);
+		applyRotationAcceleration(player, 1F);
 		
 		// Rain and wind
 		final boolean affectedByWeather =
@@ -196,7 +193,15 @@ public class AerobaticFlight {
 		// Get vector base
 		VectorBase base = data.getRotationBase();
 		if (data.updateFlying(true)) {
+			// Copy player rotation
+			data.setRotationYaw(player.rotationYaw);
+			data.setRotationPitch(player.rotationPitch);
+			data.setRotationRoll(0F);
+			// Suppress tilt decay when holding the flight key
+			data.setSuppressJumping(true);
+			// Init base
 			base.init(data);
+			// Fire flight started event
 			MinecraftForge.EVENT_BUS.post(isRemote
 			  ? new Remote(player, spec, data)
 			  : new AerobaticElytraStartFlightEvent(player, spec, data));
@@ -207,15 +212,18 @@ public class AerobaticFlight {
 		float tiltRoll = data.getTiltRoll();
 		float tiltYaw = data.getTiltYaw();
 		if (player.isInWater()) {
-			final float underwaterTiltFriction = clampedLerp(
+			float underwaterTiltFriction = (float) clampedLerp(
 			  Const.UNDERWATER_CONTROLS_TILT_FRICTION_MAX, Const.UNDERWATER_CONTROLS_TILT_FRICTION_MIN,
 			  motionVec.norm() / Const.UNDERWATER_CONTROLS_SPEED_THRESHOLD);
-			tiltPitch *= underwaterTiltFriction;
-			tiltRoll *= underwaterTiltFriction;
-			tiltYaw *= underwaterTiltFriction;
-			data.setTiltPitch(tiltPitch);
-			data.setTiltRoll(tiltRoll);
-			data.setTiltYaw(tiltYaw);
+			data.setTiltPitch(tiltPitch *= underwaterTiltFriction);
+			data.setTiltRoll(tiltRoll *= underwaterTiltFriction);
+			data.setTiltYaw(tiltYaw *= underwaterTiltFriction);
+		}
+		
+		if (data.isJumping()) {
+			data.setTiltPitch(tiltPitch *= Const.JUMP_TILT_DECAY);
+			data.setTiltRoll(tiltRoll *= Const.JUMP_TILT_DECAY);
+			data.setTiltYaw(tiltYaw *= Const.JUMP_TILT_DECAY);
 		}
 		
 		// Angular friction
@@ -231,8 +239,7 @@ public class AerobaticFlight {
 		// Gravity acceleration
 		gravAccVec.set(
 		  0, -(float) grav * physics.gravity_multiplier - brakeStrength * braking.added_gravity_tick, 0);
-		float stasis = player.isInWater()? 0F :
-		               Interpolator.quadInOut(1F - propStrength / propulsion.range_tick.getFloatMax());
+		float stasis = player.isInWater()? 0F : Easing.quadInOut(1F - propStrength / propulsion.range_tick.getFloatMax());
 		gravAccVec.y -= stasis * physics.motorless_gravity_tick;
 		
 		// Friction
@@ -307,15 +314,37 @@ public class AerobaticFlight {
 			player.move(MoverType.SELF, player.getMotion());
 		
 		// Collisions
-		if (player.collidedHorizontally || player.collidedVertically)
+		if (player.collidedHorizontally || player.collidedVertically) {
 			AerobaticCollision.onAerobaticCollision(player, hSpeedPrev, motionVec);
-		else data.setLiftCut(clamp(liftCut - 0.15F, 0F, 1F));
+		} else data.setLiftCut(clamp(liftCut - 0.15F, 0F, 1F));
 		
-		// Send update packets to the server
-		if (AerobaticElytraLogic.isClientPlayerEntity(player)) {
+		// Interpolate looking around
+		float lookAroundYaw = data.getLookAroundYaw();
+		float lookAroundPitch = data.getLookAroundPitch();
+		data.setPrevLookAroundYaw(lookAroundYaw);
+		data.setPrevLookAroundPitch(lookAroundPitch);
+		
+		if (isClientPlayerEntity(player)) {
+			// Update look around
+			if (!data.isLookingAround()) {
+				if (!data.isLookAroundPersistent()) {
+					data.setLookAroundYaw(lookAroundYaw *= 0.5F);
+					data.setLookAroundPitch(lookAroundPitch *= 0.5F);
+				}
+				if (lookAroundYaw != 0F && abs(lookAroundYaw) < 1F)
+					data.setLookAroundYaw(lookAroundYaw = 0F);
+				if (lookAroundPitch != 0F && abs(lookAroundPitch) < 1F)
+					data.setLookAroundPitch(lookAroundPitch = 0F);
+			}
+			
+			// Send update packets to the server
 			new DTiltPacket(data).send();
 			new DRotationPacket(data).send();
 			new DAccelerationPacket(data).send();
+			boolean lookingAround = lookAroundYaw != 0F || lookAroundPitch != 0F;
+			if (lookingAround || remoteLookingAround)
+				new DLookAroundPacket(data).send();
+			remoteLookingAround = lookingAround;
 		}
 		
 		// Landing
@@ -336,7 +365,7 @@ public class AerobaticFlight {
 		}
 		
 		// Add trail
-		if (player.world.isRemote) {
+		if (player.world.isRemote && Debug.areParticlesEnabled()) {
 			if (data.ticksFlying() > Const.TAKEOFF_ANIMATION_LENGTH_TICKS
 			    && !player.collidedVertically && !player.collidedHorizontally
 			    // Cowardly refuse to smooth trail on bounces
@@ -450,7 +479,7 @@ public class AerobaticFlight {
 	 * camera angles must be interpolated per frame to avoid jittery
 	 * visuals.
 	 */
-	public static void applyRotationAcceleration(PlayerEntity player) {
+	public static void applyRotationAcceleration(PlayerEntity player, float partialTick) {
 		Optional<IAerobaticData> opt = getAerobaticData(player);
 		if (!opt.isPresent())
 			return;
@@ -463,7 +492,7 @@ public class AerobaticFlight {
 		double time = currentTimeMillis() / 1000D; // Time in seconds
 		double lastTime = data.getLastRotationTime();
 		data.setLastRotationTime(time);
-		float delta = (lastTime == 0D) ? 0F : (float) (time - lastTime) * 20F;
+		float delta = lastTime == 0D? 0F : (float) (time - lastTime) * 20F;
 		if (delta == 0F) // Happens
 			return;
 		
@@ -479,16 +508,15 @@ public class AerobaticFlight {
 		
 		motionVec.set(player.getMotion());
 		
-		if (!rotationBase.valid)
-			rotationBase.init(data);
+		if (!rotationBase.valid) rotationBase.init(data);
+		
 		float strength = motionVec.dot(rotationBase.look);
 		if (player.isInWater())
 			strength = strength * strength / (abs(strength) + 2) + 0.5F;
 		final float pitch = (-tiltPitch * strength - angularWindVec.x) * delta;
 		float yaw = (tiltYaw * strength - angularWindVec.y) * delta;
 		final float roll = (tiltRoll * strength + angularWindVec.z) * delta;
-		if (player.isInWater())
-			yaw *= 4F;
+		if (player.isInWater()) yaw *= 4F;
 		
 		rotationBase.rotate(pitch, yaw, roll);
 		
@@ -496,324 +524,13 @@ public class AerobaticFlight {
 		if (bounceTime - data.getLastBounceTime() <
 		    Const.SLIME_BOUNCE_CAMERA_ANIMATION_LENGTH_MS
 		) {
-			//data.getBounceRotation().add(pitch, yaw, roll);
-			float t = Interpolator.quadOut(
+			float t = Easing.quadOut(
 			  (bounceTime - data.getLastBounceTime()) /
 			  (float) Const.SLIME_BOUNCE_CAMERA_ANIMATION_LENGTH_MS);
 			cameraBase.interpolate(
 			  t, data.getPreBounceBase(), data.getPosBounceBase(), rotationBase);
-		} else {
-			cameraBase.set(rotationBase);
-		}
-		float[] spherical = cameraBase.toSpherical(player.prevRotationYaw);
+		} else cameraBase.set(rotationBase);
 		
-		data.setRotationYaw(spherical[0]);
-		data.setRotationPitch(spherical[1]);
-		data.setRotationRoll(spherical[2]);
-	}
-	
-	/**
-	 * Rotation vector base<br>
-	 * Not thread safe
-	 */
-	public static class VectorBase {
-		private static final Vec3f tempVec = Vec3f.ZERO.get();
-		private static final VectorBase temp = new VectorBase();
-		
-		public final Vec3f look = Vec3f.ZERO.get();
-		public final Vec3f roll = Vec3f.ZERO.get();
-		public final Vec3f normal = Vec3f.ZERO.get();
-		
-		public boolean valid = true;
-		
-		public VectorBase() {}
-		
-		public void init(IAerobaticData data) {
-			update(data.getRotationYaw(), data.getRotationPitch(), data.getRotationRoll());
-			valid = true;
-		}
-		
-		/**
-		 * Set from the spherical coordinates of the look vector, in degrees
-		 */
-		public void update(float yawDeg, float pitchDeg, float rollDeg) {
-			look.set(yawDeg, pitchDeg, true);
-			roll.set(yawDeg + 90F, 0F, true);
-			roll.rotateAlongOrtVecDegrees(look, rollDeg);
-			normal.set(roll);
-			normal.cross(look);
-		}
-		
-		/**
-		 * Translate to spherical coordinates
-		 * @param prevYaw Previous yaw value, since Minecraft does not
-		 *                restrict its domain
-		 * @return [yaw, pitch, roll] of the look vector, in degrees
-		 */
-		public float[] toSpherical(float prevYaw) {
-			float newPitch = look.getPitch();
-			float newYaw;
-			float newRoll;
-			
-			if (abs(newPitch) <= 89.9F) {
-				newYaw = look.getYaw();
-				tempVec.set(newYaw + 90F, 0F, true);
-				newRoll = tempVec.angleUnitaryDegrees(roll, look);
-			} else {
-				newYaw = newPitch > 0? normal.getYaw() : (normal.getYaw() + 180F) % 360F;
-				newRoll = 0F;
-			}
-			
-			// Catch up;
-			newYaw += floor(prevYaw / 360F) * 360F;
-			if (newYaw - prevYaw > 180F)
-				newYaw -= 360F;
-			if (newYaw - prevYaw <= -180F)
-				newYaw += 360F;
-			
-			if (Float.isNaN(newYaw) || Float.isNaN(newPitch) || Float.isNaN(newRoll)) {
- 				LOGGER.error("Error translating spherical coordinates");
-				return new float[] {0F, 0F, 0F};
-			}
-			
-			return new float[] {newYaw, newPitch, newRoll};
-		}
-		
-		/**
-		 * Interpolate between bases {@code pre} and {@code pos}, and then rotate as
-		 * would be necessary to carry {@code pos} to {@code target}.<br>
-		 *
-		 * The {@code pos} base can't be dropped, applying the same rotations applied to
-		 * {@code target} also to {@code pre}, because 3D rotations are not
-		 * commutative. All 3 bases are needed for the interpolation.
-		 *
-		 * @param t Interpolation progress ∈ [0, 1]
-		 * @param pre Start base
-		 * @param pos End base
-		 * @param target Rotated end base
-		 */
-		public void interpolate(
-		  float t, VectorBase pre, VectorBase pos, VectorBase target
-		) {
-			set(pre);
-			// Lerp rotation
-			Vec3f axis = look.copy();
-			axis.cross(pos.look);
-			if (axis.isZero()) {
-				axis.set(normal);
-			} else axis.unitary();
-			float lookAngle = look.angleUnitary(pos.look, axis);
-			tempVec.set(roll);
-			tempVec.rotateAlongVec(axis, lookAngle);
-			tempVec.unitary();
-			float rollAngle = tempVec.angleUnitary(pos.roll, pos.look);
-			if (rollAngle > PI)
-				rollAngle = rollAngle - 2 * PI;
-			look.rotateAlongOrtVec(axis, lookAngle * t);
-			normal.rotateAlongVec(axis, lookAngle * t);
-			roll.rotateAlongVec(axis, lookAngle * t);
-			roll.rotateAlongOrtVec(look, rollAngle * t);
-			normal.rotateAlongOrtVec(look, rollAngle * t);
-			
-			rotate(pos.angles(target));
-			
-			look.unitary();
-			roll.unitary();
-			normal.unitary();
-		}
-		
-		/**
-		 * Determine the rotation angles necessary to carry {@code this}
-		 * to {@code other} in pitch, yaw, roll order.
-		 * @param other Target base
-		 * @return [pitch, yaw, roll];
-		 */
-		public float[] angles(VectorBase other) {
-			temp.set(this);
-			final float pitch = temp.look.angleProjectedDegrees(other.look, temp.roll);
-			temp.look.rotateAlongOrtVecDegrees(temp.roll, pitch);
-			temp.normal.rotateAlongOrtVecDegrees(temp.roll, pitch);
-			final float yaw = temp.look.angleProjectedDegrees(other.look, temp.normal);
-			temp.look.rotateAlongOrtVecDegrees(temp.normal, yaw);
-			temp.roll.rotateAlongOrtVecDegrees(temp.normal, yaw);
-			final float roll = temp.roll.angleProjectedDegrees(other.roll, temp.look);
-			return new float[] {pitch, yaw, roll};
-		}
-		
-		/**
-		 * Rotate in degrees in pitch, yaw, roll order and normalize
-		 * @param angles [pitch, yaw, roll]
-		 */
-		public void rotate(float[] angles) {
-			rotate(angles[0], angles[1], angles[2]);
-		}
-		
-		/**
-		 * Rotate in degrees in pitch, yaw, roll order and normalize.
-		 */
-		public void rotate(float pitch, float yaw, float roll) {
-			look.rotateAlongOrtVecDegrees(this.roll, pitch);
-			normal.rotateAlongOrtVecDegrees(this.roll, pitch);
-			look.rotateAlongOrtVecDegrees(normal, yaw);
-			this.roll.rotateAlongOrtVecDegrees(normal, yaw);
-			this.roll.rotateAlongOrtVecDegrees(look, roll);
-			normal.rotateAlongOrtVecDegrees(look, roll);
-			look.unitary();
-			normal.unitary();
-			this.roll.unitary();
-		}
-		
-		/**
-		 * Mirror across the plane defined by the given axis
-		 * @param axis Normal vector to the plane of reflection
-		 */
-		public void mirror(Vec3f axis) {
-			Vec3f ax = axis.copy();
-			float angle = ax.angleUnitary(look);
-			float mul = -2F;
-			if (angle > PI_HALF) {
-				angle = PI - angle;
-				mul = 2F;
-			}
-			if (angle < 0.001F) {
-				ax = normal;
-			} else {
-				ax.cross(look);
-				ax.unitary();
-			}
-			angle = PI + mul * angle;
-			look.rotateAlongVec(ax, angle);
-			roll.rotateAlongVec(ax, angle);
-			normal.rotateAlongVec(ax, angle);
-		}
-		
-		/**
-		 * Tilt a base in the same way as the player model is
-		 * tilted before rendering.<br>
-		 * That is, in degrees in yaw, -pitch, roll order<br>
-		 * No normalization is applied
-		 */
-		public void tilt(float yaw, float pitch, float rollDeg) {
-			look.rotateAlongOrtVecDegrees(normal, yaw);
-			roll.rotateAlongOrtVecDegrees(normal, yaw);
-			look.rotateAlongOrtVecDegrees(roll, -pitch);
-			normal.rotateAlongOrtVecDegrees(roll, -pitch);
-			roll.rotateAlongOrtVecDegrees(look, rollDeg);
-			normal.rotateAlongOrtVecDegrees(look, rollDeg);
-		}
-		
-		/**
-		 * Offset the rocket vectors to position them approximately where the
-		 * rockets should be
-		 */
-		public void offset(
-		  Vec3d leftRocket, Vec3d rightRocket, Vec3d leftCenterRocket, Vec3d rightCenterRocket
-		) {
-			look.mul(1.6F);
-			normal.mul(0.4F);
-			roll.mul(0.7F);
-			
-			leftRocket.add(look);
-			leftRocket.add(normal);
-			rightRocket.set(leftRocket);
-			leftCenterRocket.set(leftRocket);
-			rightCenterRocket.set(rightRocket);
-			leftRocket.sub(roll);
-			rightRocket.add(roll);
-			
-			roll.mul(0.1F / 0.7F);
-			leftCenterRocket.sub(roll);
-			rightCenterRocket.add(roll);
-		}
-		
-		/**
-		 * Measure approximate distances to another base in each
-		 * axis of rotation
-		 * @param base Target base
-		 * @return [yaw, pitch, roll] in degrees
-		 */
-		public float[] distance(VectorBase base) {
-			Vec3f compare = base.look.copy();
-			Vec3f axis = roll.copy();
-			axis.mul(axis.dot(compare));
-			compare.sub(axis);
-			float pitch;
-			if (compare.isZero())
-				pitch = 0F;
-			else {
-				compare.unitary();
-				pitch = look.angleUnitaryDegrees(compare);
-			}
-			compare.set(base.look);
-			axis.set(normal);
-			axis.mul(axis.dot(compare));
-			compare.sub(axis);
-			float yaw;
-			if (compare.isZero())
-				yaw = 0F;
-			else {
-				compare.unitary();
-				yaw = look.angleUnitaryDegrees(compare);
-			}
-			compare.set(base.roll);
-			axis.set(look);
-			axis.mul(axis.dot(compare));
-			compare.sub(axis);
-			float roll;
-			if (compare.isZero())
-				roll = 0F;
-			else {
-				compare.unitary();
-				roll = this.roll.angleUnitaryDegrees(compare);
-			}
-			return new float[] {yaw, pitch, roll};
-		}
-		
-		public void set(VectorBase base) {
-			look.set(base.look);
-			roll.set(base.roll);
-			normal.set(base.normal);
-		}
-		
-		public void write(PacketBuffer buf) {
-			look.write(buf);
-			roll.write(buf);
-			normal.write(buf);
-		}
-		
-		public static VectorBase read(PacketBuffer buf) {
-			VectorBase base = new VectorBase();
-			base.look.set(Vec3f.read(buf));
-			base.roll.set(Vec3f.read(buf));
-			base.normal.set(Vec3f.read(buf));
-			return base;
-		}
-		
-		public CompoundNBT toNBT() {
-			CompoundNBT nbt = new CompoundNBT();
-			nbt.put("Look", look.toNBT());
-			nbt.put("Roll", roll.toNBT());
-			nbt.put("Normal", normal.toNBT());
-			return nbt;
-		}
-		
-		@SuppressWarnings("unused")
-		public static VectorBase fromNBT(CompoundNBT nbt) {
-			VectorBase base = new VectorBase();
-			base.look.readNBT(nbt.getCompound("Look"));
-			base.roll.readNBT(nbt.getCompound("Roll"));
-			base.normal.readNBT(nbt.getCompound("Normal"));
-			return base;
-		}
-		
-		public void readNBT(CompoundNBT nbt) {
-			look.readNBT(nbt.getCompound("Look"));
-			roll.readNBT(nbt.getCompound("Roll"));
-			normal.readNBT(nbt.getCompound("Normal"));
-		}
-		
-		@Override public String toString() {
-			return format("[ %s\n  %s\n  %s ]", look, roll, normal);
-		}
+		data.updateRotation(cameraBase, partialTick);
 	}
 }

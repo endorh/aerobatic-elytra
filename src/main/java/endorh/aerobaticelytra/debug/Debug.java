@@ -10,6 +10,7 @@ import net.minecraftforge.fml.DistExecutor;
 public class Debug {
 	private static boolean registered = false;
 	private static boolean enabled = false;
+	private static boolean suppressParticles;
 	
 	public static void toggleDebug(PlayerEntity player, boolean enable) {
 		if (enable && !registered)
@@ -33,5 +34,13 @@ public class Debug {
 		DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () ->
 		  MinecraftForge.EVENT_BUS.register(DebugTicker.class));
 		registered = true;
+	}
+	
+	public static void enableParticles(boolean enabled) {
+		suppressParticles = !enabled;
+	}
+	
+	public static boolean areParticlesEnabled() {
+		return !suppressParticles;
 	}
 }

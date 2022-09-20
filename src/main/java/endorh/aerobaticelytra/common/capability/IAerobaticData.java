@@ -1,7 +1,8 @@
 package endorh.aerobaticelytra.common.capability;
 
+import endorh.aerobaticelytra.client.config.ClientConfig.lookaround;
 import endorh.aerobaticelytra.client.sound.AerobaticElytraSound;
-import endorh.aerobaticelytra.common.flight.AerobaticFlight.VectorBase;
+import endorh.aerobaticelytra.common.flight.VectorBase;
 import endorh.util.math.Vec3d;
 import net.minecraft.client.audio.ElytraSound;
 import net.minecraft.entity.player.PlayerEntity;
@@ -9,6 +10,8 @@ import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.common.capabilities.Capability;
 
 import javax.annotation.Nullable;
+
+import static endorh.aerobaticelytra.common.AerobaticElytraLogic.isClientPlayerEntity;
 
 /**
  * {@link PlayerEntity} {@link Capability} containing flight data
@@ -25,9 +28,7 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	 * Player pitch, in degrees
 	 * @return {@link PlayerEntity#rotationPitch}
 	 */
-	default float getRotationPitch() {
-		return getPlayer().rotationPitch;
-	}
+	float getRotationPitch();
 	/**
 	 * Player roll, in degrees
 	 */
@@ -36,19 +37,19 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	 * Player yaw, in degrees
 	 * @return {@link PlayerEntity#rotationYaw}
 	 */
-	default float getRotationYaw() {
-		return getPlayer().rotationYaw;
-	}
+	float getRotationYaw();
 	
 	/**
 	 * Set player pitch
 	 * @param pitch Pitch in degrees
 	 */
-	default void setRotationPitch(float pitch) {
-		PlayerEntity player = getPlayer();
-		player.prevRotationPitch = player.rotationPitch;
-		player.rotationPitch = pitch;
-	}
+	void setRotationPitch(float pitch);
+	
+	/**
+	 * Update the player rotation with the rotation base.
+	 */
+	void updateRotation(VectorBase base, float partialTick);
+	
 	/**
 	 * Set player roll
 	 * @param roll Roll in degrees, 0 means no roll
@@ -59,11 +60,7 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	 * @param yaw Yaw in degrees, not bound to -180~180, as Minecraft
 	 *            doesn't bound
 	 */
-	default void setRotationYaw(float yaw) {
-		PlayerEntity player = getPlayer();
-		player.prevRotationYaw = player.rotationYaw;
-		player.rotationYaw = yaw;
-	}
+	void setRotationYaw(float yaw);
 	
 	/**
 	 * Rotation base containing the look, roll and normal vectors
@@ -188,6 +185,66 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	 * @param tiltYaw Yaw tilt, in degrees per tick
 	 */
 	void setTiltYaw(float tiltYaw);
+	
+	/**
+	 * Player yaw head rotation when flying.
+	 */
+	float getLookAroundYaw();
+	
+	/**
+	 * Player pitch head rotation when flying.
+	 */
+	float getLookAroundPitch();
+	
+	/**
+	 * Player roll camera rotation when flying.
+	 */
+	float getLookAroundRoll();
+	
+	/**
+	 * Set player yaw head rotation when flying.
+	 */
+	void setLookAroundYaw(float yaw);
+	
+	/**
+	 * Set player pitch head rotation when flying.
+	 */
+	void setLookAroundPitch(float pitch);
+	
+	/**
+	 * Set player roll camera rotation when flying.
+	 */
+	void setLookAroundRoll(float roll);
+	
+	/**
+	 * Player yaw head rotation when flying for the previous tick.
+	 */
+	float getPrevLookAroundYaw();
+	
+	/**
+	 * Player pitch head rotation when flying for the previous tick.
+	 */
+	float getPrevLookAroundPitch();
+	
+	/**
+	 * Player roll camera rotation when flying for the previous tick.
+	 */
+	float getPrevLookAroundRoll();
+	
+	/**
+	 * Set player yaw head rotation when flying for the previous tick.
+	 */
+	void setPrevLookAroundYaw(float yaw);
+	
+	/**
+	 * Set player pitch head rotation when flying for the previous tick.
+	 */
+	void setPrevLookAroundPitch(float pitch);
+	
+	/**
+	 * Set player roll camera rotation when flying for the previous tick.
+	 */
+	void setPrevLookAroundRoll(float roll);
 	
 	/**
 	 * Internal flying state
@@ -336,6 +393,21 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	boolean isSprinting();
 	
 	/**
+	 * Internal lookaround state, affects how mouse input is processed.
+	 */
+	boolean isLookingAround();
+	
+	/**
+	 * Whether the lookaround state should be reset upon release of the key.
+	 */
+	boolean isLookAroundPersistent();
+	
+	/**
+	 * Forces the lookaround state while aiming a bow.
+	 */
+	boolean isAimingBow();
+	
+	/**
 	 * Set internal sneaking state
 	 */
 	void setSneaking(boolean sneaking);
@@ -343,10 +415,37 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	 * Set internal jumping state
 	 */
 	void setJumping(boolean jumping);
+	
+	/**
+	 * Suppresses the jumping state until it is reset
+	 */
+	boolean isSuppressJumping();
+	
+	/**
+	 * Suppresses the jumping state until it is reset.
+	 */
+	void setSuppressJumping(boolean suppress);
+	
 	/**
 	 * Set internal sprinting state
 	 */
 	void setSprinting(boolean sprinting);
+	
+	/**
+	 * Set internal lookaround state
+	 */
+	void setLookingAround(boolean lookingAround);
+	
+	/**
+	 * Set persistency of the lookaround state
+	 */
+	void setLookAroundPersistent(boolean persistent);
+	
+	/**
+	 * Force the lookaround state while using a bow
+	 */
+	void setAimingBow(boolean aimingBow);
+	
 	/**
 	 * Update internal sneaking state
 	 * @return True if the state changed
@@ -363,7 +462,7 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	 * @return True if the state changed
 	 */
 	default boolean updateJumping(boolean jumping) {
-		if (jumping != isJumping()) {
+		if (jumping != (isJumping() || isSuppressJumping())) {
 			setJumping(jumping);
 			return true;
 		}
@@ -376,6 +475,18 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 	default boolean updateSprinting(boolean sprinting) {
 		if (sprinting != isSprinting()) {
 			setSprinting(sprinting);
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * Update internal lookaround state
+	 * @return True if the state changed
+	 */
+	default boolean updateLookingAround(boolean lookingAround) {
+		if (lookingAround != isLookingAround()) {
+			setLookingAround(lookingAround);
 			return true;
 		}
 		return false;
@@ -469,5 +580,13 @@ public interface IAerobaticData extends ILocalPlayerCapability<IAerobaticData> {
 		getRotationBase().valid = false;
 		getLastTrailPos().set(Vector3d.ZERO);
 		setLiftCut(0F);
+		
+		PlayerEntity player = getPlayer();
+		if (isClientPlayerEntity(player) && lookaround.reset_on_land) {
+			setLookAroundYaw(0F);
+			setLookAroundPitch(0F);
+			setLookingAround(false);
+			setLookAroundPersistent(false);
+		}
 	}
 }

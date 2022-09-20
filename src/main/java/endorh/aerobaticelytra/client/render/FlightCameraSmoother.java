@@ -11,16 +11,12 @@ import net.minecraftforge.event.TickEvent.Phase;
 import net.minecraftforge.event.TickEvent.RenderTickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import static endorh.aerobaticelytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
 import static java.lang.System.currentTimeMillis;
 
 @EventBusSubscriber(value = Dist.CLIENT, modid = AerobaticElytra.MOD_ID)
 public class FlightCameraSmoother {
-	private static final Logger LOGGER = LogManager.getLogger();
-	
 	/**
 	 * Camera rotation needs to be updated every frame for the client player.
 	 */
@@ -34,8 +30,7 @@ public class FlightCameraSmoother {
 			if (data.isFlying()) {
 				if (mc.isGamePaused()) {
 					data.setLastRotationTime(currentTimeMillis() / 1000D);
-					LOGGER.debug("Paused");
-				} else AerobaticFlight.applyRotationAcceleration(player);
+				} else AerobaticFlight.applyRotationAcceleration(player, event.renderTickTime);
 			}
 		}
 	}

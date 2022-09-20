@@ -1,7 +1,7 @@
 package endorh.aerobaticelytra.common.capability;
 
 import endorh.aerobaticelytra.AerobaticElytra;
-import endorh.aerobaticelytra.common.flight.AerobaticFlight.VectorBase;
+import endorh.aerobaticelytra.common.flight.VectorBase;
 import endorh.util.capability.CapabilityProviderSerializable;
 import endorh.util.math.Vec3d;
 import net.minecraft.client.audio.ElytraSound;
@@ -23,6 +23,8 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
+
+import static net.minecraft.util.math.MathHelper.lerp;
 
 /**
  * Capability for {@link IAerobaticData}
@@ -132,6 +134,8 @@ public class AerobaticDataCapability {
 	 */
 	public static class AerobaticData implements IAerobaticData {
 		protected final PlayerEntity player;
+		protected float rotationYaw = 0F;
+		protected float rotationPitch = 0F;
 		protected float rotationRoll = 0F;
 		
 		protected float prevTickRotationPitch = 0F;
@@ -142,10 +146,18 @@ public class AerobaticDataCapability {
 		protected float tiltRoll = 0F;
 		protected float tiltYaw = 0F;
 		
+		protected float lookAroundYaw = 0F;
+		protected float lookAroundPitch = 0F;
+		protected float lookAroundRoll;
+		protected float prevLookAroundYaw;
+		protected float prevLookAroundPitch;
+		protected float prevLookAroundRoll;
+		
 		protected final VectorBase rotationBase = new VectorBase();
 		protected final VectorBase cameraBase = new VectorBase();
 		protected final VectorBase preBounceBase = new VectorBase();
 		protected final VectorBase posBounceBase = new VectorBase();
+		protected final VectorBase lookAroundBase = new VectorBase();
 		
 		protected boolean braking = false;
 		protected float brakeStrength = 0F;
@@ -164,7 +176,11 @@ public class AerobaticDataCapability {
 		
 		protected boolean sneaking = false;
 		protected boolean jumping = false;
+		protected boolean suppressJumping = false;
 		protected boolean sprinting = false;
+		protected boolean lookingAround = false;
+		protected boolean persistentLookAround = false;
+		protected boolean aimingBow = false;
 		protected boolean playingSound = false;
 		
 		protected ElytraSound elytraSound = null;
@@ -179,26 +195,39 @@ public class AerobaticDataCapability {
 		@Override public PlayerEntity getPlayer() { return player; }
 		
 		@Override public float getRotationPitch() {
-			if (player == null)
-				return 0F;
-			return player.rotationPitch;
+			return rotationPitch;
 		}
 		@Override public float getRotationYaw() {
-			if (player == null)
-				return 0F;
-			return player.rotationYaw;
+			return rotationYaw;
 		}
 		@Override public void setRotationPitch(float pitch) {
-			if (player == null)
-				return;
+			rotationPitch = pitch;
+			// if (player == null) return;
+			// player.xRotO = player.getXRot();
+			// player.setXRot(pitch);
+		}
+		
+		@Override public void updateRotation(VectorBase base, float partialTick) {
+			float[] spherical = base.toSpherical(player.prevRotationYaw);
+			setRotationYaw(spherical[0]);
+			setRotationPitch(spherical[1]);
+			setRotationRoll(spherical[2]);
+			
+			lookAroundBase.set(base);
+			float lookYaw = lerp(partialTick, getPrevLookAroundYaw(), getLookAroundYaw());
+			float lookPitch = lerp(partialTick, getPrevLookAroundPitch(), getLookAroundPitch());
+			lookAroundBase.applyLookAround(lookYaw, lookPitch);
+			float[] lookSpherical = lookAroundBase.toSpherical(player.prevRotationYaw);
+			
+			player.prevRotationYaw = player.rotationYaw;
+			player.rotationYaw = lookSpherical[0];
 			player.prevRotationPitch = player.rotationPitch;
-			player.rotationPitch = pitch;
+			player.rotationPitch = lookSpherical[1];
+			prevLookAroundRoll = lookAroundRoll;
+			lookAroundRoll = lookSpherical[2];
 		}
 		@Override public void setRotationYaw(float yaw) {
-			if (player == null)
-				return;
-			player.prevRotationYaw = player.rotationYaw;
-			player.rotationYaw = yaw;
+			rotationYaw = yaw;
 		}
 		
 		@Override public VectorBase getRotationBase() {
@@ -225,13 +254,13 @@ public class AerobaticDataCapability {
 		}
 		
 		@Override public void setPrevTickRotationPitch(float pitch) {
-			this.prevTickRotationPitch = pitch;
+			prevTickRotationPitch = pitch;
 		}
 		@Override public void setPrevTickRotationRoll(float roll) {
-			this.prevTickRotationRoll = roll;
+			prevTickRotationRoll = roll;
 		}
 		@Override public void setPrevTickRotationYaw(float yaw) {
-			this.prevTickRotationYaw = yaw;
+			prevTickRotationYaw = yaw;
 		}
 		
 		@Override public float getRotationRoll() {
@@ -260,15 +289,53 @@ public class AerobaticDataCapability {
 			this.tiltYaw = tiltYaw;
 		}
 		
+		@Override public float getLookAroundYaw() {
+			return lookAroundYaw;
+		}
+		@Override public float getLookAroundPitch() {
+			return lookAroundPitch;
+		}
+		@Override public float getLookAroundRoll() {
+			return lookAroundRoll;
+		}
+		
+		@Override public void setLookAroundYaw(float yaw) {
+			lookAroundYaw = yaw;
+		}
+		@Override public void setLookAroundPitch(float pitch) {
+			lookAroundPitch = pitch;
+		}
+		@Override public void setLookAroundRoll(float roll) {
+			lookAroundRoll = roll;
+		}
+		
+		@Override public float getPrevLookAroundYaw() {
+			return prevLookAroundYaw;
+		}
+		@Override public float getPrevLookAroundPitch() {
+			return prevLookAroundPitch;
+		}
+		@Override public float getPrevLookAroundRoll() {
+			return prevLookAroundRoll;
+		}
+		
+		@Override public void setPrevLookAroundYaw(float yaw) {
+			prevLookAroundYaw = yaw;
+		}
+		@Override public void setPrevLookAroundPitch(float pitch) {
+			prevLookAroundPitch = pitch;
+		}
+		@Override public void setPrevLookAroundRoll(float roll) {
+			prevLookAroundRoll = roll;
+		}
+		
 		@Override public boolean isFlying() {
 			return isFlying;
 		}
 		@Override public void setFlying(boolean flying) {
-			if (player == null)
-				return;
+			if (player == null) return;
 			isFlying = flying;
-			if (flying)
-				lastLiftOff = player.ticksExisted;
+			if (flying) lastLiftOff = player.ticksExisted;
 		}
 		
 		@Override public int ticksFlying() {
@@ -286,7 +353,7 @@ public class AerobaticDataCapability {
 			return propStrength;
 		}
 		@Override public void setPropulsionStrength(float strength) {
-			this.propStrength = strength;
+			propStrength = strength;
 		}
 		@Override public float getPropulsionAcceleration() {
 			return propAcc;
@@ -348,10 +415,18 @@ public class AerobaticDataCapability {
 			this.sneaking = sneaking;
 		}
 		@Override public boolean isJumping() {
-			return jumping;
+			return jumping && !isSuppressJumping();
 		}
 		@Override public void setJumping(boolean jumping) {
 			this.jumping = jumping;
+			if (!jumping) setSuppressJumping(false);
+		}
+		
+		@Override public boolean isSuppressJumping() {
+			return suppressJumping;
+		}
+		@Override public void setSuppressJumping(boolean suppress) {
+			suppressJumping = suppress;
 		}
 		
 		@Override public boolean isSprinting() {
@@ -359,6 +434,36 @@ public class AerobaticDataCapability {
 		}
 		@Override public void setSprinting(boolean sprinting) {
 			this.sprinting = sprinting;
+		}
+		
+		@Override public boolean isLookingAround() {
+			return lookingAround || isAimingBow();
+		}
+		@Override public void setLookingAround(boolean lookingAround) {
+			this.lookingAround = lookingAround;
+		}
+		
+		@Override public boolean updateLookingAround(boolean lookingAround) {
+			if (lookingAround != this.lookingAround) {
+				boolean prev = isLookingAround();
+				setLookingAround(lookingAround);
+				return prev != isLookingAround() && isLookingAround() == lookingAround;
+			}
+			return false;
+		}
+		
+		@Override public boolean isLookAroundPersistent() {
+			return persistentLookAround;
+		}
+		@Override public void setLookAroundPersistent(boolean persistent) {
+			persistentLookAround = persistent;
+		}
+		
+		@Override public boolean isAimingBow() {
+			return aimingBow;
+		}
+		@Override public void setAimingBow(boolean aiming) {
+			aimingBow = aiming;
 		}
 		
 		@Override public boolean isPlayingSound() {
@@ -372,7 +477,7 @@ public class AerobaticDataCapability {
 			return lastRotationTime;
 		}
 		@Override public void setLastRotationTime(double time) {
-			this.lastRotationTime = time;
+			lastRotationTime = time;
 		}
 		
 		@Override public long getLastBounceTime() {
@@ -402,6 +507,8 @@ public class AerobaticDataCapability {
 		public static final String TAG_PITCH_TILT = "PitchTilt";
 		public static final String TAG_ROLL_TILT = "RollTilt";
 		public static final String TAG_YAW_TILT = "YawTilt";
+		public static final String TAG_LOOK_PITCH = "LookPitch";
+		public static final String TAG_LOOK_YAW = "LookYaw";
 		public static final String TAG_FLYING = "Flying";
 		public static final String TAG_PROPULSION = "Propulsion";
 		public static final String TAG_ROTATION_BASE = "Rotation";
@@ -416,12 +523,14 @@ public class AerobaticDataCapability {
 			nbt.putFloat(TAG_ROLL_TILT, inst.getTiltRoll());
 			nbt.putFloat(TAG_YAW_TILT, inst.getTiltYaw());
 			
+			nbt.putFloat(TAG_LOOK_PITCH, inst.getLookAroundPitch());
+			nbt.putFloat(TAG_LOOK_YAW, inst.getLookAroundYaw());
+			
 			nbt.putBoolean(TAG_FLYING, inst.isFlying());
 			
 			nbt.putFloat(TAG_PROPULSION, inst.getPropulsionStrength());
 			
 			nbt.put(TAG_ROTATION_BASE, inst.getRotationBase().toNBT());
-			
 			return nbt;
 		}
 		
@@ -434,6 +543,9 @@ public class AerobaticDataCapability {
 			inst.setTiltPitch(data.getFloat(TAG_PITCH_TILT));
 			inst.setTiltRoll(data.getFloat(TAG_ROLL_TILT));
 			inst.setTiltYaw(data.getFloat(TAG_YAW_TILT));
+			
+			inst.setLookAroundPitch(data.getFloat(TAG_LOOK_PITCH));
+			inst.setLookAroundYaw(data.getFloat(TAG_LOOK_YAW));
 			
 			inst.setFlying(data.getBoolean(TAG_FLYING));
 			

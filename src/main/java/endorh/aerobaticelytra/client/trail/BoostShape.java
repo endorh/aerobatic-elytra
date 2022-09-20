@@ -1,7 +1,7 @@
 package endorh.aerobaticelytra.client.trail;
 
 import endorh.aerobaticelytra.common.capability.IElytraSpec.RocketStar;
-import endorh.aerobaticelytra.common.flight.AerobaticFlight.VectorBase;
+import endorh.aerobaticelytra.common.flight.VectorBase;
 import endorh.util.math.Vec3d;
 import endorh.util.math.Vec3f;
 import net.minecraft.entity.LivingEntity;

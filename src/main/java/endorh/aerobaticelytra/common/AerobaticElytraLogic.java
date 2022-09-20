@@ -39,15 +39,13 @@ public class AerobaticElytraLogic {
 	}
 	
 	public static boolean isRemoteClientPlayerEntity(PlayerEntity player) {
-		if (!player.world.isRemote)
-			return false;
-		return (player instanceof RemoteClientPlayerEntity);
+		if (player == null || !player.world.isRemote) return false;
+		return player instanceof RemoteClientPlayerEntity;
 	}
 	
 	public static boolean isClientPlayerEntity(PlayerEntity player) {
-		if (!player.world.isRemote)
-			return false;
-		return (player instanceof ClientPlayerEntity);
+		if (player == null || !player.world.isRemote) return false;
+		return player instanceof ClientPlayerEntity;
 	}
 	
 	/**

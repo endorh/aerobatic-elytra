@@ -108,10 +108,8 @@
   "aerobaticelytra.config.server.aerobatic.tilt.range_yaw:help": "Max horizontal tilt in§b deg/s§r",
 
   "aerobaticelytra.config.server.aerobatic.propulsion": "Propulsion",
-  "aerobaticelytra.config.server.aerobatic.propulsion.min": "Minimum propulsion",
-  "aerobaticelytra.config.server.aerobatic.propulsion.min:help": "Minimum propulsion in§b m/s²§r\n§7Can be negative (propelling backwards)\n\n§7Setting this too high (or low) without the\n§7friction to compensate is§l not§7 a good idea\n§7You have been warned",
-  "aerobaticelytra.config.server.aerobatic.propulsion.max": "Maximum propulsion",
-  "aerobaticelytra.config.server.aerobatic.propulsion.max:help": "Maximum propulsion in§b m/s²§r\n§7Must be higher than the min\n§7Can be negative (can't go forward)\n\n§7Setting this too high (or low) without the\n§7friction to compensate is§l not§7 a good idea\n§7You have been warned",
+  "aerobaticelytra.config.server.aerobatic.propulsion.range": "Range",
+  "aerobaticelytra.config.server.aerobatic.propulsion.range:help": "Propulsion range in§b m/s²§r\n§7Can include negative values (propelling backwards)\n\n§7Setting this too high (or low) without the\n§7friction to compensate is§l not§7 a good idea\n§7You have been warned",
   "aerobaticelytra.config.server.aerobatic.propulsion.takeoff": "Propulsion on take-off",
   "aerobaticelytra.config.server.aerobatic.propulsion.takeoff:help": "Propulsion when taking off in§b m/s²§r\n§7In case you don't want to have to heat up",
 
@@ -229,16 +227,29 @@
 
 
   "aerobaticelytra.config.client.controls": "Controls",
-  "aerobaticelytra.config.client.controls.pitch_sens": "Pitch Sensitivity",
+  "aerobaticelytra.config.client.controls.pitch_sens": "Pitch §7(V)§r Sensitivity",
   "aerobaticelytra.config.client.controls.pitch_sens:help": "Vertical Mouse Sensitivity",
   "aerobaticelytra.config.client.controls.roll_sens": "Roll Sensitivity",
   "aerobaticelytra.config.client.controls.roll_sens:help": "Horizontal Mouse Sensitivity",
-  "aerobaticelytra.config.client.controls.yaw_sens": "Yaw Sensitivity",
+  "aerobaticelytra.config.client.controls.yaw_sens": "Yaw §7(H)§r Sensitivity",
   "aerobaticelytra.config.client.controls.yaw_sens:help": "How fast do the strafing keys reach maximum yaw tilt",
-  "aerobaticelytra.config.client.controls.invert_pitch": "Invert Pitch",
+  "aerobaticelytra.config.client.controls.invert_pitch": "Invert Pitch §7(V)",
   "aerobaticelytra.config.client.controls.invert_pitch:help": "Invert Vertical Axis",
   "aerobaticelytra.config.client.controls.invert_front_third_person": "Invert Front Third Person",
   "aerobaticelytra.config.client.controls.invert_front_third_person:help": "Invert Controls on Front Third Person",
+
+  "aerobaticelytra.config.client.lookaround": "Look Around",
+  "aerobaticelytra.config.client.lookaround:help": "You can look around while flying by pressing a configurable key\n§7(Alt by default)",
+  "aerobaticelytra.config.client.lookaround.sensitivity": "Sensitivity",
+  "aerobaticelytra.config.client.lookaround.sensitivity:help": "Mouse sensitivity when looking around.\n§7Acts as a multiplier to the default mouse sensitivity",
+  "aerobaticelytra.config.client.lookaround.max_pitch": "Max Pitch §7(V)",
+  "aerobaticelytra.config.client.lookaround.max_pitch:help": "Maximum pitch (vertical) angle you can look around§3 in degrees§r.\n§7It is recommended to keep this below 90°",
+  "aerobaticelytra.config.client.lookaround.max_yaw": "Max Yaw §7(H)",
+  "aerobaticelytra.config.client.lookaround.max_yaw:help": "Maximum yaw (horizontal) angle you can look around§3 in degrees§r.\n§7It is recommended to keep this below 90°",
+  "aerobaticelytra.config.client.lookaround.aim_with_bow": "Aim With Bow",
+  "aerobaticelytra.config.client.lookaround.aim_with_bow:help": "Automatically look around while aiming a bow, if not already aiming",
+  "aerobaticelytra.config.client.lookaround.reset_on_land": "Reset When Landing",
+  "aerobaticelytra.config.client.lookaround.reset_on_land:help": "The look around angle can be made persistent (and reset) by double pressing the look around key\n§7It is possible to preserve the angle after landing and taking off again by setting this option off.",
 
   "aerobaticelytra.config.client.style": "Style",
   "aerobaticelytra.config.client.style.visual": "Visual",
@@ -286,7 +297,7 @@
   "aerobaticelytra.config.client.sound.whistle": "Whistle",
   "aerobaticelytra.config.client.sound.whistle:help": "Affects the whistling sound heard while flying very fast",
 
-  "aerobaticelytra.config.text.datapack_tip": "Use datapacks for recipe and loot configuration. Example template datapacks come bundled with the mod\n§7Try typing the command \"%s\" to get suggestions.\n§7It's possible to replace the elytra found in end ships using a loot table.",
+  "aerobaticelytra.config.text.datapack_tip": "Use datapacks for recipe and loot configuration. Example template datapacks come bundled with the mod\n§7Try typing the command \"%s§7\" to get suggestions.\n§7It's possible to replace the elytra found in end ships using a loot table.",
 
   "aerobaticelytra.config.enum.flight_bar_display.hide": "No Flight bar",
   "aerobaticelytra.config.enum.flight_bar_display.over_xp": "Above XP bar",
