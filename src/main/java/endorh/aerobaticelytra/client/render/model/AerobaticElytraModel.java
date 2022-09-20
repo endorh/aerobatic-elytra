@@ -8,7 +8,7 @@ import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.render.layer.AerobaticRenderData;
 import endorh.aerobaticelytra.common.capability.IFlightData;
 import endorh.aerobaticelytra.common.item.ElytraDyement.WingSide;
-import endorh.util.math.Interpolator;
+import endorh.util.animation.Easing;
 import endorh.util.math.Vec3f;
 import net.minecraft.client.model.ElytraModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
@@ -303,7 +303,7 @@ public class AerobaticElytraModel<T extends LivingEntity> extends ElytraModel<T>
                 final AerobaticElytraModelPose prev = prevPose.getNonNullPose(
                   entity, limbSwing, limbSwingAmount, netHeadYaw, headPitch, ageInTicks);
                 if (t < 1) {
-                    interpolate(Interpolator.quadOut(t), smoother.capturedPose, prev);
+                    interpolate(Easing.quadOut(t), smoother.capturedPose, prev);
                 } else update(prev);
                 captureSnapshot(smoother.capturedPose);
                 newPose.modifyPrevious(smoother.capturedPose);
@@ -319,7 +319,7 @@ public class AerobaticElytraModel<T extends LivingEntity> extends ElytraModel<T>
             final AerobaticElytraModelPose targetPose = smoother.pose.getNonNullPose(
               entity, limbSwing, limbSwingAmount, netHeadYaw, headPitch, ageInTicks);
             if (t < 1) {
-                interpolate(Interpolator.quadOut(t), smoother.capturedPose, targetPose);
+                interpolate(Easing.quadOut(t), smoother.capturedPose, targetPose);
             } else update(targetPose);
             updatePartVisibility();
             

@@ -8,11 +8,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.item.ItemColor;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.entity.BannerPattern;
 import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.block.entity.BannerPattern;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
+import java.awt.Color;
 import java.util.List;
 
 import static java.lang.Math.max;

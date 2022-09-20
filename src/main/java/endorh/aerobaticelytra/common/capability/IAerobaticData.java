@@ -1,7 +1,8 @@
 package endorh.aerobaticelytra.common.capability;
 
+import endorh.aerobaticelytra.client.config.ClientConfig.lookaround;
 import endorh.aerobaticelytra.client.sound.AerobaticElytraSound;
-import endorh.aerobaticelytra.common.flight.AerobaticFlight.VectorBase;
+import endorh.aerobaticelytra.common.flight.VectorBase;
 import endorh.util.capability.ISerializableCapability;
 import endorh.util.math.Vec3d;
 import net.minecraft.client.resources.sounds.ElytraOnPlayerSoundInstance;
@@ -29,9 +30,7 @@ public interface IAerobaticData
 	 *
 	 * @return {@link Player#getXRot()}
 	 */
-	default float getRotationPitch() {
-		return getPlayer().getXRot();
-	}
+	float getRotationPitch();
 	
 	/**
 	 * Player roll, in degrees
@@ -43,20 +42,19 @@ public interface IAerobaticData
 	 *
 	 * @return {@link Player#getYRot()}
 	 */
-	default float getRotationYaw() {
-		return getPlayer().getYRot();
-	}
+	float getRotationYaw();
 	
 	/**
 	 * Set player pitch
 	 *
 	 * @param pitch Pitch in degrees
 	 */
-	default void setRotationPitch(float pitch) {
-		Player player = getPlayer();
-		player.xRotO = player.getXRot();
-		player.setXRot(pitch);
-	}
+	void setRotationPitch(float pitch);
+	
+	/**
+	 * Update the player rotation with the rotation base.
+	 */
+	void updateRotation(VectorBase base, float partialTick);
 	
 	/**
 	 * Set player roll
@@ -71,11 +69,7 @@ public interface IAerobaticData
 	 * @param yaw Yaw in degrees, not bound to -180~180, as Minecraft
 	 *   doesn't bound
 	 */
-	default void setRotationYaw(float yaw) {
-		Player player = getPlayer();
-		player.yRotO = player.getYRot();
-		player.setYRot(yaw);
-	}
+	void setRotationYaw(float yaw);
 	
 	/**
 	 * Rotation base containing the look, roll and normal vectors
@@ -220,6 +214,66 @@ public interface IAerobaticData
 	 * @param tiltYaw Yaw tilt, in degrees per tick
 	 */
 	void setTiltYaw(float tiltYaw);
+	
+	/**
+	 * Player yaw head rotation when flying.
+	 */
+	float getLookAroundYaw();
+	
+	/**
+	 * Player pitch head rotation when flying.
+	 */
+	float getLookAroundPitch();
+	
+	/**
+	 * Player roll camera rotation when flying.
+	 */
+	float getLookAroundRoll();
+	
+	/**
+	 * Set player yaw head rotation when flying.
+	 */
+	void setLookAroundYaw(float yaw);
+	
+	/**
+	 * Set player pitch head rotation when flying.
+	 */
+	void setLookAroundPitch(float pitch);
+	
+	/**
+	 * Set player roll camera rotation when flying.
+	 */
+	void setLookAroundRoll(float roll);
+	
+	/**
+	 * Player yaw head rotation when flying for the previous tick.
+	 */
+	float getPrevLookAroundYaw();
+	
+	/**
+	 * Player pitch head rotation when flying for the previous tick.
+	 */
+	float getPrevLookAroundPitch();
+	
+	/**
+	 * Player roll camera rotation when flying for the previous tick.
+	 */
+	float getPrevLookAroundRoll();
+	
+	/**
+	 * Set player yaw head rotation when flying for the previous tick.
+	 */
+	void setPrevLookAroundYaw(float yaw);
+	
+	/**
+	 * Set player pitch head rotation when flying for the previous tick.
+	 */
+	void setPrevLookAroundPitch(float pitch);
+	
+	/**
+	 * Set player roll camera rotation when flying for the previous tick.
+	 */
+	void setPrevLookAroundRoll(float roll);
 	
 	/**
 	 * Internal flying state
@@ -388,6 +442,21 @@ public interface IAerobaticData
 	boolean isSprinting();
 	
 	/**
+	 * Internal lookaround state, affects how mouse input is processed.
+	 */
+	boolean isLookingAround();
+	
+	/**
+	 * Whether the lookaround state should be reset upon release of the key.
+	 */
+	boolean isLookAroundPersistent();
+	
+	/**
+	 * Forces the lookaround state while aiming a bow.
+	 */
+	boolean isAimingBow();
+	
+	/**
 	 * Set internal sneaking state
 	 */
 	void setSneaking(boolean sneaking);
@@ -398,9 +467,34 @@ public interface IAerobaticData
 	void setJumping(boolean jumping);
 	
 	/**
+	 * Suppresses the jumping state until it is reset
+	 */
+	boolean isSuppressJumping();
+	
+	/**
+	 * Suppresses the jumping state until it is reset.
+	 */
+	void setSuppressJumping(boolean suppress);
+	
+	/**
 	 * Set internal sprinting state
 	 */
 	void setSprinting(boolean sprinting);
+	
+	/**
+	 * Set internal lookaround state
+	 */
+	void setLookingAround(boolean lookingAround);
+	
+	/**
+	 * Set persistency of the lookaround state
+	 */
+	void setLookAroundPersistent(boolean persistent);
+	
+	/**
+	 * Force the lookaround state while using a bow
+	 */
+	void setAimingBow(boolean aimingBow);
 	
 	/**
 	 * Update internal sneaking state
@@ -421,7 +515,7 @@ public interface IAerobaticData
 	 * @return True if the state changed
 	 */
 	default boolean updateJumping(boolean jumping) {
-		if (jumping != isJumping()) {
+		if (jumping != (isJumping() || isSuppressJumping())) {
 			setJumping(jumping);
 			return true;
 		}
@@ -436,6 +530,18 @@ public interface IAerobaticData
 	default boolean updateSprinting(boolean sprinting) {
 		if (sprinting != isSprinting()) {
 			setSprinting(sprinting);
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * Update internal lookaround state
+	 * @return True if the state changed
+	 */
+	default boolean updateLookingAround(boolean lookingAround) {
+		if (lookingAround != isLookingAround()) {
+			setLookingAround(lookingAround);
 			return true;
 		}
 		return false;
@@ -535,5 +641,13 @@ public interface IAerobaticData
 		getRotationBase().valid = false;
 		getLastTrailPos().set(Vec3.ZERO);
 		setLiftCut(0F);
+		
+		Player player = getPlayer();
+		if (player != null && player.isLocalPlayer() && lookaround.reset_on_land) {
+			setLookAroundYaw(0F);
+			setLookAroundPitch(0F);
+			setLookingAround(false);
+			setLookAroundPersistent(false);
+		}
 	}
 }

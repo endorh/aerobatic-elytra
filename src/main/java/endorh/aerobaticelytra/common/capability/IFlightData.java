@@ -4,8 +4,8 @@ import endorh.aerobaticelytra.client.sound.FadingTickableSound;
 import endorh.aerobaticelytra.common.flight.mode.IFlightMode;
 import endorh.util.capability.ISerializableCapability;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

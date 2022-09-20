@@ -6,7 +6,7 @@ import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.common.capability.IAerobaticData;
 import endorh.aerobaticelytra.common.config.Const;
 import endorh.flightcore.events.SetupRotationsRenderPlayerEvent;
-import endorh.util.math.Interpolator;
+import endorh.util.animation.Easing;
 import net.minecraft.ChatFormatting;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.PlayerModelPart;
@@ -50,13 +50,15 @@ public class PlayerRendererHandler {
 			PoseStack mStack = event.matrixStack;
 			float t = (player.getFallFlyingTicks() + event.partialTicks) /
 			          Const.TAKEOFF_ANIMATION_LENGTH_TICKS;
-			float yaw = (180F - player.getYRot());
-			float pitch = (-90F - player.getXRot());
+			float yaw = 180F - data.getRotationYaw();
+			float pitch = -90F - data.getRotationPitch();
 			if (t < 1F) {
 				// Smooth lift off
-				float i = Interpolator.quadInOut(t);
-				yaw = lerp(i, (180F - player.yRotO), yaw);
+				float i = Easing.quadInOut(t);
+				// Standing pitch is 0
 				pitch = lerp(i, 0F, pitch);
+				// Only yaw affects standing players' rotation
+				yaw = lerp(i, 180F - data.getPrevTickRotationYaw(), yaw);
 				// No need to smooth the roll since it starts being 0
 			}
 			
@@ -64,14 +66,13 @@ public class PlayerRendererHandler {
 			mStack.mulPose(Vector3f.XP.rotationDegrees(pitch));
 			mStack.mulPose(Vector3f.YP.rotationDegrees(
 			  data.getRotationRoll() + data.getTiltRoll() * Const.TILT_ROLL_RENDER_OFFSET));
-			mStack.mulPose(
-			  Vector3f.XP.rotationDegrees(-data.getTiltPitch() * Const.TILT_PITCH_RENDER_OFFSET));
-			mStack.mulPose(
-			  Vector3f.ZP.rotationDegrees(data.getTiltYaw() * Const.TILT_YAW_RENDER_OFFSET));
+			mStack.mulPose(Vector3f.XP.rotationDegrees(
+			  -data.getTiltPitch() * Const.TILT_PITCH_RENDER_OFFSET));
+			mStack.mulPose(Vector3f.ZP.rotationDegrees(
+			  data.getTiltYaw() * Const.TILT_YAW_RENDER_OFFSET));
 			
 			// Keep the easter egg
 			String s = ChatFormatting.stripFormatting(player.getName().getString());
-			//noinspection SpellCheckingInspection
 			if (("Dinnerbone".equals(s) || "Grumm".equals(s)) &&
 			    player.isModelPartShown(PlayerModelPart.CAPE)) {
 				mStack.translate(0D, (double) player.getBbHeight() + 0.1F, 0D);

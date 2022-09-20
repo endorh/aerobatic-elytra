@@ -36,6 +36,9 @@ public class Const {
 	public static final float SLIME_BOUNCE_MAX_ROLLING_TILT_DEG = 60F;
 	public static final float SLIME_BOUNCE_ROLLING_TILT_SENS = 12F;
 	
+	// Jump tilt decay
+	public static final float JUMP_TILT_DECAY = 0.8F;
+	
 	// Underwater control interpolation
 	public static final float UNDERWATER_CONTROLS_SPEED_THRESHOLD = 0.8F;
 	public static final float UNDERWATER_CONTROLS_TILT_FRICTION_MIN = 1F;
