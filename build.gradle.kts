@@ -26,7 +26,7 @@ plugins {
 val modId = "aerobaticelytra"
 val modGroup = "endorh.aerobaticelytra"
 val githubRepo = "endorh/aerobatic-elytra"
-val modVersion = "0.2.29"
+val modVersion = "1.0.0"
 val mcVersion = "1.19.2"
 val forge = "43.1.1"
 val forgeVersion = "$mcVersion-$forge"
@@ -46,7 +46,7 @@ val vendor = "Endor H"
 val credits = ""
 val authors = "Endor H"
 val issueTracker = "https://github.com/$githubRepo/issues"
-val page = "https://github.com/$githubRepo"
+val page = "https://www.curseforge.com/minecraft/mc-mods/aerobatic-elytra"
 val updateJson = "https://github.com/$githubRepo/raw/updates/updates.json"
 val logoFile = "$modId.png"
 val modDescription = """
@@ -61,16 +61,16 @@ val license = "LGPL"
 // Dependencies
 val mixinVersion = "0.8.2"
 val minimalMixinVersion = "0.7.10"
-val flightCoreVersion = "0.5.+"
+val flightCoreVersion = "1.0.+"
 val simpleConfigApiVersion = "1.0.+"
 val simpleConfigVersion = "1.0.+"
-val lazuLibVersion = "0.5.+"
+val lazuLibVersion = "1.0.+"
 
 // Integration
 val jeiVersion = "11.2.0.256"
 val curiosVersion = "1.19.2-5.1.1.0"
 val caelusVersion = "1.19.2-3.0.0.6"
-val aerobaticElytraJetpackVersion = "0.2.+"
+val aerobaticElytraJetpackVersion = "1.0.+"
 
 val jarAttributes = mapOf(
 	"Specification-Title"      to modId,
