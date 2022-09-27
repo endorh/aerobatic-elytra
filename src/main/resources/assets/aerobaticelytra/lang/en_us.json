@@ -62,7 +62,7 @@
   "commands.aerobaticelytra.datapack.list.success": "Found the following bundled datapacks in the mod jar",
   "commands.aerobaticelytra.datapack.list.link.install": "§3Click to install pack",
   "commands.aerobaticelytra.datapack.list.link.enable": "§2Click to enable pack",
-  "commands.aerobaticelytra.datapack.list.link.disable": "§4Click to disable pack",
+  "commands.aerobaticelytra.datapack.list.link.disable": "§cClick to disable pack",
   "commands.aerobaticelytra.ability.get.success": "Retrieved ability from \"%s\":",
   "commands.aerobaticelytra.ability.get.all.success": "Retrieved %s abilities from \"%s\":",
   "commands.aerobaticelytra.ability.get.ability": "  %s: %s",

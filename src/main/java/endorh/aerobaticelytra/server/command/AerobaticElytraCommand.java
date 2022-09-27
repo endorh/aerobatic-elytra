@@ -430,26 +430,23 @@ public class AerobaticElytraCommand {
 			source.sendFailure(ttc("commands.aerobaticelytra.datapack.list.empty"));
 		} else {
 			MutableComponent msg = ttc("commands.aerobaticelytra.datapack.list.success");
-			for (BundledDatapack pack : packs)
-				msg = msg.append("\n  ").append(
-				  pack.getDisplayName().withStyle(
-				    s -> {
-						 boolean isInstalled = isPackInstalled(source, pack.getTitle());
-						 boolean isEnabled = isInstalled
-						   && source.getServer().getPackRepository().getSelectedPacks().stream().anyMatch(
-							  p -> p.getId().equals(pack.getPackName()));
-					    s = s.withColor(isInstalled? isEnabled? ChatFormatting.GREEN : ChatFormatting.DARK_RED :ChatFormatting.AQUA)
-					      .withHoverEvent(new HoverEvent(
-						     HoverEvent.Action.SHOW_TEXT, stc(pack.getDescription()).append("\n")
-					        .append(ttc("commands.aerobaticelytra.datapack.list.link."
-					                    + (isInstalled? isEnabled? "disable" : "enable" : "install")))));
-						 String command =
-						   isInstalled ?
-						   "/datapack " + (isEnabled? "disable" : "enable") + " \"" + pack.getPackName() + "\""
-						   : "/aerobaticelytra datapack install " + StringArgumentType.escapeIfRequired(pack.getTitle());
-						 s = s.withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, command));
-					    return s;
-				    }));
+			for (BundledDatapack pack : packs) msg = msg.append("\n  ").append(
+			  pack.getDisplayName().withStyle(s -> {
+				  boolean isInstalled = isPackInstalled(source, pack.getTitle());
+				  boolean isEnabled = isInstalled && source.getServer().getPackRepository()
+				    .getSelectedPacks().stream().anyMatch(p -> p.getId().equals(pack.getPackName()));
+				  s = s.withColor(isInstalled? isEnabled? ChatFormatting.GREEN : ChatFormatting.LIGHT_PURPLE : ChatFormatting.AQUA)
+				    .withHoverEvent(new HoverEvent(
+				      HoverEvent.Action.SHOW_TEXT, stc(pack.getDescription()).append("\n")
+				      .append(ttc("commands.aerobaticelytra.datapack.list.link."
+				                  + (isInstalled? isEnabled? "disable" : "enable" : "install")))));
+				  String command =
+				    isInstalled
+				    ? "/datapack " + (isEnabled? "disable" : "enable") + " \"" + pack.getPackName() + "\""
+				    : "/aerobaticelytra datapack install " + StringArgumentType.escapeIfRequired(pack.getTitle());
+				  s = s.withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, command));
+				  return s;
+			  }));
 			source.sendSuccess(msg, true);
 		}
 		return 0;
@@ -524,27 +521,27 @@ public class AerobaticElytraCommand {
 	}
 	
 	public static Map<String, BundledDatapack> getAvailablePacks(CommandSourceStack source) {
-		final Pack pack = source.getServer().getPackRepository()
-		  .getPack("mod:" + AerobaticElytra.MOD_ID);
+		final Pack pack = source.getServer().getPackRepository().getPack("mod:" + AerobaticElytra.MOD_ID);
 		
 		if (pack == null) {
 			LOGGER.warn("Could not find mod datapack");
 			return Collections.emptyMap();
 		}
 		
-		final PackResources resourcePack = pack.open();
-		
-		return resourcePack.getResources(
-		  PackType.SERVER_DATA, AerobaticElytra.MOD_ID, "datapacks",
-		  s -> !stripPath(s.getPath()).equals("datapacks")
-		).stream()
-		  .map(rl -> new BundledDatapack(
-		    resourcePack, new ResourceLocation(rl.getNamespace(), stripPath(rl.getPath()))))
-		  .collect(Collectors.toMap(bd -> bd.name, bd -> bd, (a, b) -> a));
+		try (final PackResources resourcePack = pack.open()) {
+			return resourcePack.getResources(
+				 PackType.SERVER_DATA, AerobaticElytra.MOD_ID, "datapacks", s -> {
+					 String path = normalizePath(s.getPath());
+					 return path.lastIndexOf("/") == 9;
+				 }
+			).stream().map(rl -> new BundledDatapack(
+			  resourcePack, new ResourceLocation(rl.getNamespace(), normalizePath(rl.getPath())))
+			).collect(Collectors.toMap(bd -> bd.name, bd -> bd, (a, b) -> a));
+		}
 	}
 	
-	public static String stripPath(String path) {
-		return path.replaceAll("^[\\\\/]|[\\\\/]$", "");
+	public static String normalizePath(String path) {
+		return path.replace('\\', '/').replaceAll("^/|/$", "");
 	}
 	
 	public static class BundledDatapack {
