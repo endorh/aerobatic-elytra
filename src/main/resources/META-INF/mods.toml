@@ -3,20 +3,20 @@ loaderVersion="[35,)"
 license="${license}"
 issueTrackerURL="${issue_tracker}"
 [[mods]]
-	modId="aerobaticelytra"
-	version="${version}"
-	displayName="${display}"
-	updateJSONURL="${update_json}"
-	displayURL="${page}"
-	logoFile="${logo_file}"
+    modId="aerobaticelytra"
+    version="${version}"
+    displayName="${display}"
+    updateJSONURL="${update_json}"
+    displayURL="${page}"
+    logoFile="${logo_file}"
     itemIcon="aerobaticelytra:aerobatic_elytra"
-	credits="${credits}"
-	authors="${authors}"
-	description='''${description}'''
+    credits="${credits}"
+    authors="${authors}"
+    description='''${description}'''
 [[dependencies.aerobaticelytra]]
     modId="flightcore"
     mandatory=true
-    versionRange="[0.5,1.0)"
+    versionRange="[1.0,2.0)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.aerobaticelytra]]
@@ -27,7 +27,7 @@ issueTrackerURL="${issue_tracker}"
     side="BOTH"
 [[dependencies.aerobaticelytra]]
     modId="lazulib"
-    versionRange="[0.5,1.0)"
+    versionRange="[1.0,2.0)"
     mandatory=true
     ordering="NONE"
     side="BOTH"
