@@ -128,6 +128,8 @@ println(
 	+ " JVM: " + System.getProperty("java.vm.version") + "(" + System.getProperty("java.vendor")
 	+ ") Arch: " + System.getProperty("os.arch"))
 
+println("Mod: \"$displayName\" ($modId), version: $mcVersion-$modVersion (Forge: $forge)")
+
 // Minecraft options -----------------------------------------------------------
 
 minecraft {
@@ -235,6 +237,7 @@ repositories {
 		name = "GitHub/${repo.key}"
 		includeOnly(repo.value)
 		credentials {
+			username = "gradle" // Not relevant, must not be empty
 			// read:packages only GitHub token published by Endor H
 			// You may as well use your own GitHub PAT with read:packages scope, until GitHub
 			//   supports unauthenticated read access to public packages, see:
