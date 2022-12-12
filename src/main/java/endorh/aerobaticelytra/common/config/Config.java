@@ -1,11 +1,11 @@
 package endorh.aerobaticelytra.common.config;
 
 import endorh.aerobaticelytra.AerobaticElytra;
-import endorh.simpleconfig.api.AbstractRange.FloatRange;
 import endorh.simpleconfig.api.SimpleConfig;
 import endorh.simpleconfig.api.SimpleConfig.Type;
 import endorh.simpleconfig.api.annotation.Bind;
 import endorh.simpleconfig.api.entry.FloatEntryBuilder;
+import endorh.simpleconfig.api.range.FloatRange;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.HoverEvent;
