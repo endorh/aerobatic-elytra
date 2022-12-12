@@ -162,20 +162,20 @@
   "aerobaticelytra.config.client.sound.whistle": "Silbido",
   "aerobaticelytra.config.client.sound.whistle:help": "Afecta al silbido que se oye al volar muy rápido",
 
-  "aerobaticelytra.config.enum.flight_bar_display.hide": "Sin Barra de Vuelo",
-  "aerobaticelytra.config.enum.flight_bar_display.over_xp": "Sobre el XP",
-  "aerobaticelytra.config.enum.flight_bar_display.replace_xp": "Reemplazar XP",
+  "aerobaticelytra.config.enum.FlightBarDisplay.HIDE": "Sin Barra de Vuelo",
+  "aerobaticelytra.config.enum.FlightBarDisplay.OVER_XP": "Sobre el XP",
+  "aerobaticelytra.config.enum.FlightBarDisplay.REPLACE_XP": "Reemplazar XP",
 
-  "aerobaticelytra.config.enum.visibility.always": "Siempre",
-  "aerobaticelytra.config.enum.visibility.never": "Nunca",
-  "aerobaticelytra.config.enum.visibility.shift_down": "Mayus pulsado",
-  "aerobaticelytra.config.enum.visibility.shift_up": "Mayus no pulsado",
-  "aerobaticelytra.config.enum.visibility.control_down": "Ctrl pulsado",
-  "aerobaticelytra.config.enum.visibility.control_up": "Ctrl no pulsado",
-  "aerobaticelytra.config.enum.visibility.alt_down": "Alt pulsado",
-  "aerobaticelytra.config.enum.visibility.alt_up": "Alt no pulsado",
+  "aerobaticelytra.config.enum.Visibility.ALWAYS": "Siempre",
+  "aerobaticelytra.config.enum.Visibility.NEVER": "Nunca",
+  "aerobaticelytra.config.enum.Visibility.SHIFT_DOWN": "Mayus pulsado",
+  "aerobaticelytra.config.enum.Visibility.SHIFT_UP": "Mayus no pulsado",
+  "aerobaticelytra.config.enum.Visibility.CONTROL_DOWN": "Ctrl pulsado",
+  "aerobaticelytra.config.enum.Visibility.CONTROL_UP": "Ctrl no pulsado",
+  "aerobaticelytra.config.enum.Visibility.ALT_DOWN": "Alt pulsado",
+  "aerobaticelytra.config.enum.Visibility.ALT_UP": "Alt no pulsado",
 
-  "aerobaticelytra.config.enum.fuel_display.rockets": "Cohetes",
-  "aerobaticelytra.config.enum.fuel_display.durability_bar": "Barra de Durabilidad",
-  "aerobaticelytra.config.enum.fuel_display.durability_bar_if_lower": "Durabilidad si más bajo"
+  "aerobaticelytra.config.enum.FuelDisplay.ROCKETS": "Cohetes",
+  "aerobaticelytra.config.enum.FuelDisplay.DURABILITY_BAR": "Barra de Durabilidad",
+  "aerobaticelytra.config.enum.FuelDisplay.DURABILITY_BAR_IF_LOWER": "Durabilidad si más bajo"
 }
