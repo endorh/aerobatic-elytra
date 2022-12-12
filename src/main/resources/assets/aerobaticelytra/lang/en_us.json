@@ -299,22 +299,22 @@
 
   "aerobaticelytra.config.text.datapack_tip": "Use datapacks for recipe and loot configuration. Example template datapacks come bundled with the mod\n§7Try typing the command \"%s§7\" to get suggestions.\n§7It's possible to replace the elytra found in end ships using a loot table.",
 
-  "aerobaticelytra.config.enum.flight_bar_display.hide": "No Flight bar",
-  "aerobaticelytra.config.enum.flight_bar_display.over_xp": "Above XP bar",
-  "aerobaticelytra.config.enum.flight_bar_display.replace_xp": "Replace XP bar",
+  "aerobaticelytra.config.enum.FlightBarDisplay.HIDE": "No Flight bar",
+  "aerobaticelytra.config.enum.FlightBarDisplay.OVER_XP": "Above XP bar",
+  "aerobaticelytra.config.enum.FlightBarDisplay.REPLACE_XP": "Replace XP bar",
 
-  "aerobaticelytra.config.enum.visibility.always": "Always",
-  "aerobaticelytra.config.enum.visibility.never": "Never",
-  "aerobaticelytra.config.enum.visibility.shift_down": "Shift Down",
-  "aerobaticelytra.config.enum.visibility.shift_up": "Shift Up",
-  "aerobaticelytra.config.enum.visibility.control_down": "Ctrl Down",
-  "aerobaticelytra.config.enum.visibility.control_up": "Ctrl Up",
-  "aerobaticelytra.config.enum.visibility.alt_down": "Alt Down",
-  "aerobaticelytra.config.enum.visibility.alt_up": "Alt Up",
+  "aerobaticelytra.config.enum.Visibility.ALWAYS": "Always",
+  "aerobaticelytra.config.enum.Visibility.NEVER": "Never",
+  "aerobaticelytra.config.enum.Visibility.SHIFT_DOWN": "Shift Down",
+  "aerobaticelytra.config.enum.Visibility.SHIFT_UP": "Shift Up",
+  "aerobaticelytra.config.enum.Visibility.CONTROL_DOWN": "Ctrl Down",
+  "aerobaticelytra.config.enum.Visibility.CONTROL_UP": "Ctrl Up",
+  "aerobaticelytra.config.enum.Visibility.ALT_DOWN": "Alt Down",
+  "aerobaticelytra.config.enum.Visibility.ALT_UP": "Alt Up",
 
-  "aerobaticelytra.config.enum.fuel_display.rockets": "On the rockets",
-  "aerobaticelytra.config.enum.fuel_display.durability_bar": "On the Durability bar",
-  "aerobaticelytra.config.enum.fuel_display.durability_bar_if_lower": "Durability bar if lower",
+  "aerobaticelytra.config.enum.FuelDisplay.ROCKETS": "On the rockets",
+  "aerobaticelytra.config.enum.FuelDisplay.DURABILITY_BAR": "On the Durability bar",
+  "aerobaticelytra.config.enum.FuelDisplay.DURABILITY_BAR_IF_LOWER": "Durability bar if lower",
 
   "aerobaticelytra.config.warning.speed_cap_broken": "Flying too fast!: %s m/s. Aerobatic Elytra config might be broken"
 }
