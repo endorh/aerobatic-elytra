@@ -28,7 +28,7 @@ public class AerobaticElytraBannerTextureManager extends SimplePreparableReloadL
 		//noinspection unchecked
 		ModelBakery$LOCATIONS_BUILTIN_TEXTURES =
 		  (Set<Material>) ObfuscationReflectionUtil.getStaticFieldValue(
-		    ModelBakery.class, "UNREFERENCED_TEXTURES"
+		    ModelBakery.class, "f_119234_"
 		  ).orElseThrow(() -> new IllegalStateException(
 		    "Could not access ModelBakery$LOCATIONS_BUILTIN_TEXTURES"));
 	}

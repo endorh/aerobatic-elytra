@@ -26,12 +26,14 @@ import java.util.Optional;
 import java.util.Random;
 
 import static endorh.aerobaticelytra.client.trail.AerobaticTrail.RocketSide.*;
+import static endorh.aerobaticelytra.debug.Debug.DEBUG;
 import static java.lang.Math.max;
 
 public class TrailParticle extends TextureSheetParticle {
-	
-	private static final Random random = new Random();
+	private static final Random RANDOM = new Random();
 	private static final Logger LOGGER = LogManager.getLogger();
+	private static final double GRAVITY_STRENGTH = 0.04D;
+	private static final float FRICTION = 0.98F;
 	
 	private final SpriteSet sprites;
 	private final float size;
@@ -95,8 +97,8 @@ public class TrailParticle extends TextureSheetParticle {
 		
 		this.ownPlayer = ownPlayer;
 		this.rollVec = rollVec;
-		this.side = rocketSide;
-		this.trailData = data;
+		side = rocketSide;
+		trailData = data;
 		
 		ColorUtil.hsbLerpToRgb(0, initialColorHSB, fadeColorHSB, colorRGB);
 		setColor(colorRGB[0], colorRGB[1], colorRGB[2]);
@@ -112,12 +114,20 @@ public class TrailParticle extends TextureSheetParticle {
 			gravity = -0.02F;
 		
 		// Apply partial gravity
-		double prevMotionY = -0.04D * gravity * (1F - partialTick);
+		double prevMotionY = -GRAVITY_STRENGTH * gravity * (1F - partialTick);
 		move(0D, prevMotionY, 0D);
 		
 		xd = speedX;
 		yd = speedY + prevMotionY;
 		zd = speedZ;
+		
+		// Apply partial friction
+		if (partialTick > 0F) {
+			double partialFriction = Math.pow(FRICTION, 1F - partialTick);
+			xd *= partialFriction;
+			yd *= partialFriction;
+			zd *= partialFriction;
+		}
 		
 		hasPhysics = true;
 	}
@@ -129,7 +139,7 @@ public class TrailParticle extends TextureSheetParticle {
 		float lSquared = (float) mc.gameRenderer.getMainCamera().getPosition().distanceToSqr(x, y, z);
 		boolean shouldRender = !ownPlayer || (
 		  mc.options.getCameraType() == CameraType.FIRST_PERSON
-		  ? (age > 5 || lSquared > 12F) : (age > 10 || lSquared > 6F));
+		  ? age > 5 || lSquared > 12F : age > 10 || lSquared > 6F);
 		if (shouldRender) {
 			quadSize = getScaleForAge(age + partialTicks);
 			setAlpha(getAlphaForAge(age + partialTicks));
@@ -140,6 +150,8 @@ public class TrailParticle extends TextureSheetParticle {
 	public float getScaleForAge(float age) {
 		final float start_animation = 10F;
 		final float end_animation = 30F;
+		if (DEBUG.persistentParticles && age + 1 >= lifetime)
+			return size * 0.5F;
 		if (age < start_animation)
 			return size * (age / start_animation);
 		if (lifetime - age < end_animation)
@@ -149,10 +161,12 @@ public class TrailParticle extends TextureSheetParticle {
 	
 	public float getAlphaForAge(float age) {
 		final float end_animation = 30F;
+		if (DEBUG.persistentParticles && age + 1 >= lifetime)
+			return 1F;
 		if (age >= lifetime)
 			return 0F;
 		if (flicker) {
-			float r = random.nextFloat();
+			float r = RANDOM.nextFloat();
 			if (flickerState) {
 				if (r >= 0.6F) {
 					flickerState = false;
@@ -166,7 +180,7 @@ public class TrailParticle extends TextureSheetParticle {
 		}
 		if (lifetime - age < end_animation)
 			return Mth.lerp((age - lifetime + end_animation) / end_animation, 0.8F, 0F);
-		return Mth.lerp((age / (lifetime - end_animation)), 1F, 0.8F);
+		return Mth.lerp(age / (lifetime - end_animation), 1F, 0.8F);
 	}
 	
 	@Override public void tick() {
@@ -176,28 +190,30 @@ public class TrailParticle extends TextureSheetParticle {
       yo = y;
       zo = z;
       if (type == 5) {
-	      if (random.nextFloat() > 0.9F)
+	      if (RANDOM.nextFloat() > 0.9F) {
 		      age = lifetime;
 	      } else if (!level.getBlockState(pos.set(x, y, z)).getFluidState().is(FluidTags.WATER)) {
 		      age = lifetime;
+	      }
       }
       
       pickSprite(sprites);
 		ColorUtil.hsbLerpToRgb((float) age / lifetime, initialColorHSB, fadeColorHSB, colorRGB);
 		setColor(colorRGB[0], colorRGB[1], colorRGB[2]);
-      
-      if (age++ >= lifetime) {
+		
+		if (age == lifetime && DEBUG.persistentParticles) {
+			return;
+		} else if (age++ >= lifetime) {
          remove();
       } else {
-         yd -= 0.04D * (double)gravity;
+         yd -= GRAVITY_STRENGTH * (double)gravity;
          move(xd, yd, zd);
-	
-	      float friction = 0.98F; // 0.98F
-	      xd *= friction;
-         yd *= friction;
-         zd *= friction;
+			
+	      xd *= FRICTION;
+         yd *= FRICTION;
+         zd *= FRICTION;
          if (onGround) {
-            this.xd *= 0.7F;
+            xd *= 0.7F;
             zd *= 0.7F;
          }
       }
@@ -263,12 +279,12 @@ public class TrailParticle extends TextureSheetParticle {
 	private static Optional<Integer> pickRandom(int[] array) {
 		if (array == null || array.length == 0)
 			return Optional.empty();
-		return Optional.of(array[random.nextInt(array.length)]);
+		return Optional.of(array[RANDOM.nextInt(array.length)]);
 	}
 	private static<T> Optional<T> pickRandom(T[] array) {
 		if (array == null || array.length == 0)
 			return Optional.empty();
-		return Optional.of(array[random.nextInt(array.length)]);
+		return Optional.of(array[RANDOM.nextInt(array.length)]);
 	}
 	
 	@NotNull @Override public ParticleRenderType getRenderType() {

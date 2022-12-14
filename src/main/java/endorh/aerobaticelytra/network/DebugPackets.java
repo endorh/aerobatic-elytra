@@ -10,33 +10,30 @@ import net.minecraftforge.fmllegacy.network.NetworkEvent.Context;
 public class DebugPackets {
 	public static void registerAll() {
 		ServerPlayerPacket.with(NetworkHandler.CHANNEL, NetworkHandler.ID_GEN)
-		  .register(SToggleDebugPacket::new);
+		  .register(SDebugSettingsPacket::new);
 	}
 	
-	public static class SToggleDebugPacket extends ServerPlayerPacket {
-		private boolean enable;
+	public static class SDebugSettingsPacket extends ServerPlayerPacket {
+		private Debug debug = Debug.DEBUG;
 		
-		private SToggleDebugPacket() {}
-		public SToggleDebugPacket(Player player, boolean enable) {
+		public SDebugSettingsPacket() {}
+		
+		public SDebugSettingsPacket(Player player, Debug debug) {
 			super(player);
-			this.enable = enable;
+			this.debug = debug;
 		}
 		
 		@Override protected void onClient(Player player, Context ctx) {
-			if (player instanceof LocalPlayer) {
-				Debug.toggleDebug(player, enable);
-			}
+			if (player instanceof LocalPlayer)
+				Debug.update(debug);
 		}
 		
 		@Override protected void serialize(FriendlyByteBuf buf) {
-			buf.writeBoolean(enable);
-		}
-		@Override protected void deserialize(FriendlyByteBuf buf) {
-			enable = buf.readBoolean();
+			debug.serialize(buf);
 		}
 		
-		public void send() {
-			sendTo(player);
+		@Override protected void deserialize(FriendlyByteBuf buf) {
+			debug = Debug.deserialize(buf);
 		}
 	}
 }
