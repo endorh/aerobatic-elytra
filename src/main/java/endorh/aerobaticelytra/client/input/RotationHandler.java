@@ -61,6 +61,9 @@ public class RotationHandler {
 		IAerobaticData data = getAerobaticDataOrDefault(player);
 		x *= -0.15F * lookaround.sensitivity;
 		y *= 0.15F * lookaround.sensitivity;
+		GameSettings settings = Minecraft.getInstance().gameSettings;
+		if (settings.getPointOfView() == PointOfView.THIRD_PERSON_FRONT)
+			y *= -1;
 		data.setLookAroundYaw(clamp(data.getLookAroundYaw() + x, -lookaround.max_yaw, lookaround.max_yaw));
 		data.setLookAroundPitch(clamp(data.getLookAroundPitch() + y, -lookaround.max_pitch, lookaround.max_pitch));
 	}

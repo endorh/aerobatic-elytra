@@ -305,12 +305,13 @@ public class AerobaticFlight {
 		}
 		
 		// Apply simulated inertia
-		if (!AerobaticElytraWingItem.hasDebugWing(player)) // Omitting this 'if' can be funny
+		boolean debugWing = AerobaticElytraWingItem.hasDebugWing(player);
+		if (!debugWing) // Omitting this 'if' can be funny
 			motionVec.lerp(prevMotionVec, physics.inertia);
 		
 		// Apply motion
 		player.setMotion(motionVec.toVector3d());
-		if (!isRemote && !AerobaticElytraWingItem.hasDebugWing(player))
+		if (!isRemote && debugWing == Debug.isInvertFreeze())
 			player.move(MoverType.SELF, player.getMotion());
 		
 		// Collisions

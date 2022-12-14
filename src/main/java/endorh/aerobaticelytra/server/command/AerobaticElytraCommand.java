@@ -108,6 +108,9 @@ public class AerobaticElytraCommand {
 			     .then(literal("particles")
 			             .then(literal("show").executes(cc -> enableParticles(cc, true)))
 			             .then(literal("hide").executes(cc -> enableParticles(cc, false))))
+			     .then(literal("freeze")
+			             .then(literal("invert").executes(cc -> invertFreeze(cc, true)))
+			             .then(literal("normal").executes(cc -> invertFreeze(cc, false))))
 		  ).then(
 		    literal("ability").then(
 		      literal("get").then(
@@ -409,6 +412,11 @@ public class AerobaticElytraCommand {
 	
 	public static int enableParticles(CommandContext<CommandSource> context, boolean enable) {
 		Debug.enableParticles(enable);
+		return 0;
+	}
+	
+	public static int invertFreeze(CommandContext<CommandSource> context, boolean invert) {
+		Debug.setInvertFreeze(invert);
 		return 0;
 	}
 	

@@ -11,6 +11,7 @@ public class Debug {
 	private static boolean registered = false;
 	private static boolean enabled = false;
 	private static boolean suppressParticles;
+	private static boolean invertFreeze;
 	
 	public static void toggleDebug(PlayerEntity player, boolean enable) {
 		if (enable && !registered)
@@ -42,5 +43,13 @@ public class Debug {
 	
 	public static boolean areParticlesEnabled() {
 		return !suppressParticles;
+	}
+	
+	public static void setInvertFreeze(boolean enabled) {
+		invertFreeze = enabled;
+	}
+	
+	public static boolean isInvertFreeze() {
+		return invertFreeze;
 	}
 }
