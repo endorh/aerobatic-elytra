@@ -1,37 +1,32 @@
 package endorh.aerobaticelytra.debug;
 
-import endorh.aerobaticelytra.network.DebugPackets.SToggleDebugPacket;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.DistExecutor;
 
+import java.util.UUID;
+
+import static endorh.util.network.PacketBufferUtil.readNullable;
+import static endorh.util.network.PacketBufferUtil.writeNullable;
+
 public class Debug {
+	public static Debug DEBUG = new Debug();
 	private static boolean registered = false;
-	private static boolean enabled = false;
-	private static boolean suppressParticles;
-	private static boolean invertFreeze;
-	private static float freezeParticleSpeed = 1F;
-	private static float particleSpeed = 0.1F;
 	
-	public static void toggleDebug(PlayerEntity player, boolean enable) {
-		if (enable && !registered)
-			register();
-		enabled = enable;
-		if (!player.world.isRemote && player instanceof ServerPlayerEntity) {
-			new SToggleDebugPacket(player, enable).sendTo((ServerPlayerEntity) player);
-		}
-	}
-	
-	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
-	public static boolean isEnabled() {
-		return enabled;
-	}
+	public boolean enabled = false;
+	public boolean suppressParticles;
+	public boolean invertFreeze;
+	public boolean persistentParticles = false;
+	public float freezeParticleSpeed = 1F;
+	public float particleSpeed = 0.1F;
+	public UUID targetPlayer = null;
 	
 	public static void register() {
-		if (registered)
-			return;
+		if (registered || !DEBUG.enabled) return;
 		DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
 		  MinecraftForge.EVENT_BUS.register(DebugOverlay.class));
 		DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () ->
@@ -39,35 +34,38 @@ public class Debug {
 		registered = true;
 	}
 	
-	public static void enableParticles(boolean enabled) {
-		suppressParticles = !enabled;
+	@OnlyIn(Dist.CLIENT)
+	public PlayerEntity getTargetPlayer() {
+		Minecraft mc = Minecraft.getInstance();
+		if (targetPlayer == null || mc.world == null) return mc.player;
+		PlayerEntity player = mc.world.getPlayerByUuid(targetPlayer);
+		return player == null? mc.player : player;
 	}
 	
-	public static boolean areParticlesEnabled() {
-		return !suppressParticles;
+	public void serialize(PacketBuffer buf) {
+		buf.writeBoolean(enabled);
+		buf.writeBoolean(suppressParticles);
+		buf.writeBoolean(invertFreeze);
+		buf.writeBoolean(persistentParticles);
+		buf.writeFloat(freezeParticleSpeed);
+		buf.writeFloat(particleSpeed);
+		writeNullable(buf, targetPlayer, PacketBuffer::writeUniqueId);
 	}
 	
-	public static void setInvertFreeze(boolean enabled) {
-		invertFreeze = enabled;
+	public static Debug deserialize(PacketBuffer buf) {
+		Debug d = new Debug();
+		d.enabled = buf.readBoolean();
+		d.suppressParticles = buf.readBoolean();
+		d.invertFreeze = buf.readBoolean();
+		d.persistentParticles = buf.readBoolean();
+		d.freezeParticleSpeed = buf.readFloat();
+		d.particleSpeed = buf.readFloat();
+		d.targetPlayer = readNullable(buf, PacketBuffer::readUniqueId);
+		return d;
 	}
 	
-	public static boolean isInvertFreeze() {
-		return invertFreeze;
-	}
-	
-	public static void setFreezeParticleSpeed(float speed) {
-		freezeParticleSpeed = speed;
-	}
-	
-	public static float getFreezeParticleSpeed() {
-		return freezeParticleSpeed;
-	}
-	
-	public static void setParticleSpeed(float speed) {
-		particleSpeed = speed;
-	}
-	
-	public static float getParticleSpeed() {
-		return particleSpeed;
+	public static void update(Debug debug) {
+		DEBUG = debug;
+		register();
 	}
 }

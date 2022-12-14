@@ -5,6 +5,7 @@ import endorh.aerobaticelytra.common.flight.VectorBase;
 import endorh.aerobaticelytra.common.flight.WeatherData;
 import endorh.aerobaticelytra.common.flight.WeatherData.WeatherRegion;
 import endorh.aerobaticelytra.common.flight.WeatherData.WindRegion;
+import endorh.util.math.Vec3f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.world.World;
@@ -29,10 +30,7 @@ public class DebugOverlay {
 	
 	@SubscribeEvent
 	public static void onDebugScreenRenderEvent(RenderGameOverlayEvent.Text event) {
-		if (!Debug.isEnabled())
-			return;
-		if (event.getType() == ElementType.TEXT
-		    && !Minecraft.getInstance().gameSettings.showDebugInfo) {
+		if (Debug.DEBUG.enabled && event.getType() == ElementType.TEXT && !Minecraft.getInstance().gameSettings.showDebugInfo) {
 			event.getLeft().addAll(getLeftInfo());
 			event.getRight().addAll(getRightInfo());
 		}
@@ -40,7 +38,7 @@ public class DebugOverlay {
 	
 	// Server config
 	public static List<String> getLeftInfo() {
-		ArrayList<String> ret = new ArrayList<>();
+		List<String> ret = new ArrayList<>();
 		
 		ret.add("Loaded regions: ");
 		synchronized (WeatherData.weatherRegions) {
@@ -89,11 +87,14 @@ public class DebugOverlay {
 	
 	// Client config
 	public static List<String> getRightInfo() {
-		PlayerEntity player = Minecraft.getInstance().player;
+		PlayerEntity player = Debug.DEBUG.getTargetPlayer();
 		assert player != null;
-		IAerobaticData data = getAerobaticDataOrDefault(player);
-		ArrayList<String> ret = new ArrayList<>();
+		List<String> ret = new ArrayList<>();
 		
+		ret.add("Debuggee: " + player.getScoreboardName());
+		ret.add("");
+		
+		IAerobaticData data = getAerobaticDataOrDefault(player);
 		VectorBase rotation = data.getRotationBase();
 		
 		ret.add("Look: " + rotation.look.toString());
@@ -129,6 +130,11 @@ public class DebugOverlay {
 		ret.add("");
 		
 		ret.add(format("Speed: %.2f", player.getMotion().length()));
+		ret.add(format("Motion: %s", new Vec3f(player.getMotion())));
+		
+		ret.add("");
+		
+		ret.add(format("Last trail pos: %s", data.getLastTrailPos().toString()));
 		
 		/*
 		ret.add("");

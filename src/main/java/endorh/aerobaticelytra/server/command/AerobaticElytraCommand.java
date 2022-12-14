@@ -20,6 +20,7 @@ import endorh.aerobaticelytra.common.item.AerobaticElytraWingItem;
 import endorh.aerobaticelytra.common.item.IAbility;
 import endorh.aerobaticelytra.common.registry.AerobaticElytraRegistries;
 import endorh.aerobaticelytra.debug.Debug;
+import endorh.aerobaticelytra.network.DebugPackets.SDebugSettingsPacket;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.ISuggestionProvider;
 import net.minecraft.command.arguments.EntityArgument;
@@ -52,20 +53,20 @@ import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static com.mojang.brigadier.arguments.BoolArgumentType.bool;
+import static com.mojang.brigadier.arguments.BoolArgumentType.getBool;
 import static com.mojang.brigadier.arguments.FloatArgumentType.floatArg;
 import static com.mojang.brigadier.arguments.FloatArgumentType.getFloat;
 import static com.mojang.brigadier.arguments.StringArgumentType.*;
-import static endorh.aerobaticelytra.debug.Debug.*;
+import static endorh.aerobaticelytra.debug.Debug.DEBUG;
 import static endorh.util.command.QualifiedNameArgumentType.optionallyQualified;
 import static endorh.util.text.TextUtil.stc;
 import static endorh.util.text.TextUtil.ttc;
 import static net.minecraft.command.Commands.argument;
 import static net.minecraft.command.Commands.literal;
-import static net.minecraft.command.arguments.EntityArgument.entities;
-import static net.minecraft.command.arguments.EntityArgument.entity;
+import static net.minecraft.command.arguments.EntityArgument.*;
 
 @EventBusSubscriber(modid = AerobaticElytra.MOD_ID)
 public class AerobaticElytraCommand {
@@ -105,25 +106,38 @@ public class AerobaticElytraCommand {
 		      ).then(literal("list").executes(AerobaticElytraCommand::listPacks))
 		    ).then(
 			   literal("debug")
-			     .then(literal("show").executes(cc -> enableDebug(cc, true)))
-			     .then(literal("hide").executes(cc -> enableDebug(cc, false)))
+			     .then(literal("show").executes(debug((cc, d) -> d.enabled = true)))
+			     .then(literal("hide").executes(debug((cc, d) -> d.enabled = false)))
 			     .then(literal("give").executes(AerobaticElytraCommand::giveDebugWing))
-			     .then(literal("particles").then(
-					 literal("show").executes(opaque(cc -> enableParticles(true)))).then(
-						literal("hide").executes(opaque(cc -> enableParticles(false)))).then(
+			     .then(
+					 literal("particles")
+					   .then(literal("show").executes(debug((cc, d) -> d.suppressParticles = false)))
+					   .then(literal("hide").executes(debug((cc, d) -> d.suppressParticles = true)))
+					   .then(
 						  literal("speed")
 						    .then(literal("freeze").then(
 								argument("speed", floatArg())
 								  .suggests((s, b) -> b.suggest("1").buildFuture())
-								  .executes(opaque(s -> setFreezeParticleSpeed(getFloat(s, "speed"))))))
+								  .executes(debug((cc, d) -> d.freezeParticleSpeed = getFloat(cc, "speed")))))
 						    .then(literal("normal").then(
 								argument("speed", floatArg())
 								  .suggests((s, b) -> b.suggest("0.1").buildFuture())
-								  .executes(opaque(s -> setParticleSpeed(getFloat(s, "speed"))))))))
+								  .executes(debug((cc, d) -> d.freezeParticleSpeed = getFloat(cc, "speed"))))))
+					   .then(
+						  literal("keep").then(
+							 argument("keep", bool()).executes(debug((cc, d) -> d.persistentParticles = getBool(cc, "keep"))))))
 			     .then(
 					 literal("freeze")
-					   .then(literal("invert").executes(opaque(cc -> setInvertFreeze(true))))
-					   .then(literal("normal").executes(opaque(cc -> setInvertFreeze(false)))))
+					   .then(literal("invert").executes(debug((cc, d) -> d.invertFreeze = true)))
+					   .then(literal("normal").executes(debug((cc, d) -> d.invertFreeze = false))))
+			     .then(
+					 literal("target").then(
+						argument("target", player()).executes(debug((cc, d) -> {
+							ServerPlayerEntity player = getPlayer(cc, "target");
+							if (player != cc.getSource().asPlayer()) {
+								d.targetPlayer = player.getUniqueID();
+							} else d.targetPlayer = null;
+						}))))
 		  ).then(
 		    literal("ability").then(
 		      literal("get").then(
@@ -413,21 +427,22 @@ public class AerobaticElytraCommand {
 		return 0;
 	}
 	
-	public static int enableDebug(CommandContext<CommandSource> context, boolean enable) {
-		try {
-			Debug.toggleDebug(context.getSource().asPlayer(), enable);
-		} catch (CommandSyntaxException e) {
-			e.printStackTrace();
+	@FunctionalInterface
+	public interface DebugCommand extends Command<CommandSource> {
+		void run(CommandContext<CommandSource> ctx, Debug debug) throws CommandSyntaxException;
+		
+		@Override default int run(CommandContext<CommandSource> s) throws CommandSyntaxException {
+			Debug debug = DEBUG;
+			run(s, debug);
+			Debug.register();
+			ServerPlayerEntity player = s.getSource().asPlayer();
+			new SDebugSettingsPacket(player, debug).sendTo(player);
 			return 0;
 		}
-		return 1;
 	}
 	
-	public static Command<CommandSource> opaque(Consumer<CommandContext<CommandSource>> r) {
-		return s -> {
-			r.accept(s);
-			return 0;
-		};
+	public static Command<CommandSource> debug(DebugCommand c) {
+		return c;
 	}
 	
 	public static int giveDebugWing(CommandContext<CommandSource> context) {

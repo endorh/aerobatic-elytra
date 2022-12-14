@@ -203,7 +203,7 @@ public class AerobaticPackets {
 		@Override protected void onClient(PlayerEntity sender, Context ctx) {
 			IAerobaticData data = getAerobaticDataOrDefault(sender);
 			data.setTiltPitch(tiltPitch);
-			data.setTiltPitch(tiltRoll);
+			data.setTiltRoll(tiltRoll);
 			data.setTiltYaw(tiltYaw);
 		}
 		
