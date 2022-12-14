@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
+import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -50,11 +51,13 @@ import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.mojang.brigadier.arguments.FloatArgumentType.floatArg;
 import static com.mojang.brigadier.arguments.FloatArgumentType.getFloat;
 import static com.mojang.brigadier.arguments.StringArgumentType.*;
+import static endorh.aerobaticelytra.debug.Debug.*;
 import static endorh.util.command.QualifiedNameArgumentType.optionallyQualified;
 import static endorh.util.text.TextUtil.stc;
 import static endorh.util.text.TextUtil.ttc;
@@ -66,13 +69,13 @@ public class AerobaticElytraCommand {
 	private static final String DATAPACK_LOCATION = "datapacks";
 	
 	public static final SuggestionProvider<CommandSourceStack> SUGGEST_PACKS =
-	  ((context, builder) -> SharedSuggestionProvider.suggest(
+	  (context, builder) -> SharedSuggestionProvider.suggest(
 	    getAvailablePacks(context.getSource()).values().stream()
 	      .filter(bd -> !isPackInstalled(context.getSource(), bd.getTitle()))
-	      .map(bd -> escapeIfRequired(bd.getTitle())), builder));
+	      .map(bd -> escapeIfRequired(bd.getTitle())), builder);
 	public static final SuggestionProvider<CommandSourceStack> SUGGEST_ABILITIES =
-	  ((context, builder) -> SharedSuggestionProvider.suggest(
-	    ModRegistries.getAbilitiesByName().keySet(), builder));
+	  (context, builder) -> SharedSuggestionProvider.suggest(
+	    ModRegistries.getAbilitiesByName().keySet(), builder);
 	public static final SimpleCommandExceptionType NO_ELYTRA_HOLDING_TARGETS =
 	  new SimpleCommandExceptionType(ttc(
 	    "commands.aerobaticelytra.error.no_elytra"));
@@ -102,12 +105,22 @@ public class AerobaticElytraCommand {
 			     .then(literal("show").executes(cc -> enableDebug(cc, true)))
 			     .then(literal("hide").executes(cc -> enableDebug(cc, false)))
 			     .then(literal("give").executes(AerobaticElytraCommand::giveDebugWing))
-			     .then(literal("particles")
-			             .then(literal("show").executes(cc -> enableParticles(cc, true)))
-			             .then(literal("hide").executes(cc -> enableParticles(cc, false))))
-			     .then(literal("freeze")
-			             .then(literal("invert").executes(cc -> invertFreeze(cc, true)))
-			             .then(literal("normal").executes(cc -> invertFreeze(cc, false))))
+			     .then(literal("particles").then(
+					 literal("show").executes(opaque(cc -> enableParticles(true)))).then(
+						literal("hide").executes(opaque(cc -> enableParticles(false)))).then(
+						  literal("speed")
+						    .then(literal("freeze").then(
+								argument("speed", floatArg())
+								  .suggests((s, b) -> b.suggest("1").buildFuture())
+								  .executes(opaque(s -> setFreezeParticleSpeed(getFloat(s, "speed"))))))
+						    .then(literal("normal").then(
+								argument("speed", floatArg())
+								  .suggests((s, b) -> b.suggest("0.1").buildFuture())
+								  .executes(opaque(s -> setParticleSpeed(getFloat(s, "speed"))))))))
+			     .then(
+					 literal("freeze")
+					   .then(literal("invert").executes(opaque(cc -> setInvertFreeze(true))))
+					   .then(literal("normal").executes(opaque(cc -> setInvertFreeze(false)))))
 		  ).then(
 			   literal("ability").then(
 				  literal("get").then(
@@ -407,14 +420,11 @@ public class AerobaticElytraCommand {
 		return 1;
 	}
 	
-	public static int enableParticles(CommandContext<CommandSourceStack> context, boolean enable) {
-		Debug.enableParticles(enable);
-		return 0;
-	}
-	
-	public static int invertFreeze(CommandContext<CommandSourceStack> context, boolean invert) {
-		Debug.setInvertFreeze(invert);
-		return 0;
+	public static Command<CommandSourceStack> opaque(Consumer<CommandContext<CommandSourceStack>> r) {
+		return s -> {
+			r.accept(s);
+			return 0;
+		};
 	}
 	
 	public static int giveDebugWing(CommandContext<CommandSourceStack> context) {

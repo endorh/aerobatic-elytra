@@ -11,9 +11,11 @@ import endorh.aerobaticelytra.common.capability.IElytraSpec;
 import endorh.aerobaticelytra.common.capability.IElytraSpec.RocketStar;
 import endorh.aerobaticelytra.common.capability.IElytraSpec.TrailData;
 import endorh.aerobaticelytra.common.flight.VectorBase;
+import endorh.aerobaticelytra.common.item.AerobaticElytraWingItem;
 import endorh.aerobaticelytra.common.item.ElytraDyement.WingSide;
 import endorh.aerobaticelytra.common.item.IAbility.Ability;
 import endorh.aerobaticelytra.common.particle.TrailParticleData;
+import endorh.aerobaticelytra.debug.Debug;
 import endorh.util.math.Vec3d;
 import endorh.util.math.Vec3f;
 import net.minecraft.client.Minecraft;
@@ -139,7 +141,8 @@ public class AerobaticTrail {
 			rocketCenterRight.lerp(rocketCenterRightTarget, l);
 			particleMotion.set(prevMotionVec);
 			particleMotion.lerp(motionVec, t);
-			particleMotion.mul(0.1F);
+			boolean isFreeze = AerobaticElytraWingItem.hasDebugWing(player) != Debug.isInvertFreeze();
+			particleMotion.mul(isFreeze? Debug.getFreezeParticleSpeed() : Debug.getParticleSpeed());
 			
 			getTrailParticle(player, RocketSide.RIGHT, elytra, i, t, ownPlayer, roll).ifPresent(
 			  particle -> {

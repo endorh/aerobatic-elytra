@@ -12,6 +12,8 @@ public class Debug {
 	private static boolean enabled = false;
 	private static boolean suppressParticles;
 	private static boolean invertFreeze;
+	private static float freezeParticleSpeed = 1F;
+	private static float particleSpeed = 0.1F;
 	
 	public static void toggleDebug(Player player, boolean enable) {
 		if (enable && !registered)
@@ -51,5 +53,21 @@ public class Debug {
 	
 	public static boolean isInvertFreeze() {
 		return invertFreeze;
+	}
+	
+	public static void setFreezeParticleSpeed(float speed) {
+		freezeParticleSpeed = speed;
+	}
+	
+	public static float getFreezeParticleSpeed() {
+		return freezeParticleSpeed;
+	}
+	
+	public static void setParticleSpeed(float speed) {
+		particleSpeed = speed;
+	}
+	
+	public static float getParticleSpeed() {
+		return particleSpeed;
 	}
 }
