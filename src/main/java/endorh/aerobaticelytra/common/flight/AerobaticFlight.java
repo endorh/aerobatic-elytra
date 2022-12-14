@@ -307,8 +307,9 @@ public class AerobaticFlight {
 		
 		// Apply motion
 		player.setDeltaMovement(motionVec.toVector3d());
-		if (!isRemote && debugWing == Debug.isInvertFreeze())
-			player.move(MoverType.SELF, player.getDeltaMovement());
+		if (!isRemote) {
+			if (debugWing == Debug.DEBUG.invertFreeze) player.move(MoverType.SELF, player.getDeltaMovement());
+		}
 		
 		// Collisions
 		if (player.horizontalCollision || player.verticalCollision) {
@@ -361,13 +362,15 @@ public class AerobaticFlight {
 			new AerobaticElytraSound(player).play();
 		
 		// Add trail
-		if (player.level.isClientSide && Debug.areParticlesEnabled()) {
-			if (data.getTicksFlying() > Const.TAKEOFF_ANIMATION_LENGTH_TICKS
-			    && !player.verticalCollision && !player.horizontalCollision
-			    // Cowardly refuse to smooth trail on bounces
-			    && System.currentTimeMillis() - data.getLastBounceTime() > 250L
-			    && !hasOffhandDebugWing(player)) {
-				AerobaticTrail.addParticles(player, motionVec, prevMotionVec);
+		if (player.level.isClientSide) {
+			if (!Debug.DEBUG.suppressParticles) {
+				if (data.getTicksFlying() > Const.TAKEOFF_ANIMATION_LENGTH_TICKS
+				    && !player.verticalCollision && !player.horizontalCollision
+				    // Cowardly refuse to smooth trail on bounces
+				    && System.currentTimeMillis() - data.getLastBounceTime() > 250L
+				    && !hasOffhandDebugWing(player)) {
+					AerobaticTrail.addParticles(player, motionVec, prevMotionVec);
+				}
 			}
 		}
 		

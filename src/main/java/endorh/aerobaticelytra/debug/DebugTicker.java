@@ -15,7 +15,7 @@ public class DebugTicker {
 	
 	@SubscribeEvent
 	public static void onTick(WorldTickEvent event) {
-		if (!Debug.isEnabled())
+		if (!Debug.DEBUG.enabled)
 			return;
 		final List<? extends Player> players = event.world.players();
 		if (!players.isEmpty()) {
