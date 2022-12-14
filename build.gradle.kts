@@ -63,7 +63,6 @@ val license = "LGPL"
 val mixinVersion = "0.8.2"
 val minimalMixinVersion = "0.7.10"
 val flightCoreVersion = "1.0.+"
-val simpleConfigApiVersion = "1.0.+"
 val simpleConfigVersion = "1.0.+"
 val lazuLibVersion = "1.0.+"
 
@@ -268,7 +267,7 @@ dependencies {
 	implementation("endorh.flightcore:flightcore-$mcVersion:$flightCoreVersion:deobf")
 
 	// Simple Config
-	compileOnly("endorh.simpleconfig:simpleconfig-$mcVersion-api:$simpleConfigApiVersion")
+	compileOnly("endorh.simpleconfig:simpleconfig-$mcVersion:$simpleConfigVersion:api")
 	runtimeOnly(fg.deobf("endorh.simpleconfig:simpleconfig-$mcVersion:$simpleConfigVersion"))
 
 	// LazuLib
