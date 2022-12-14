@@ -15,7 +15,7 @@ public class DebugTicker {
 	
 	@SubscribeEvent
 	public static void onTick(LevelTickEvent event) {
-		if (!Debug.isEnabled())
+		if (!Debug.DEBUG.enabled)
 			return;
 		final List<? extends Player> players = event.level.players();
 		if (!players.isEmpty()) {

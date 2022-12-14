@@ -5,6 +5,7 @@ import endorh.aerobaticelytra.common.flight.VectorBase;
 import endorh.aerobaticelytra.common.flight.WeatherData;
 import endorh.aerobaticelytra.common.flight.WeatherData.WeatherRegion;
 import endorh.aerobaticelytra.common.flight.WeatherData.WindRegion;
+import endorh.util.math.Vec3f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -28,7 +29,7 @@ public class DebugOverlay {
 	
 	@SubscribeEvent
 	public static void onDebugScreenRenderEvent(CustomizeGuiOverlayEvent.DebugText event) {
-		if (Debug.isEnabled() && !Minecraft.getInstance().options.renderDebug) {
+		if (Debug.DEBUG.enabled && !Minecraft.getInstance().options.renderDebug) {
 			event.getLeft().addAll(getLeftInfo());
 			event.getRight().addAll(getRightInfo());
 		}
@@ -36,7 +37,7 @@ public class DebugOverlay {
 	
 	// Server config
 	public static List<String> getLeftInfo() {
-		ArrayList<String> ret = new ArrayList<>();
+		List<String> ret = new ArrayList<>();
 		
 		ret.add("Loaded regions: ");
 		synchronized (WeatherData.weatherRegions) {
@@ -85,11 +86,14 @@ public class DebugOverlay {
 	
 	// Client config
 	public static List<String> getRightInfo() {
-		Player player = Minecraft.getInstance().player;
+		Player player = Debug.DEBUG.getTargetPlayer();
 		assert player != null;
-		IAerobaticData data = getAerobaticDataOrDefault(player);
-		ArrayList<String> ret = new ArrayList<>();
+		List<String> ret = new ArrayList<>();
 		
+		ret.add("Debuggee: " + player.getScoreboardName());
+		ret.add("");
+		
+		IAerobaticData data = getAerobaticDataOrDefault(player);
 		VectorBase rotation = data.getRotationBase();
 		
 		ret.add("Look: " + rotation.look.toString());
@@ -125,6 +129,11 @@ public class DebugOverlay {
 		ret.add("");
 		
 		ret.add(format("Speed: %.2f", player.getDeltaMovement().length()));
+		ret.add(format("Motion: %s", new Vec3f(player.getDeltaMovement())));
+		
+		ret.add("");
+		
+		ret.add(format("Last trail pos: %s", data.getLastTrailPos().toString()));
 		
 		/*
 		ret.add("");
