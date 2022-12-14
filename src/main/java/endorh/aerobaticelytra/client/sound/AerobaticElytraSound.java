@@ -49,13 +49,13 @@ public class AerobaticElytraSound extends FadingTickableSound {
 	  "Aerobatic Elytra sound may not play properly";
 	private static final SoftField<ElytraOnPlayerSoundInstance, Player> elytraSound$player =
 	  ObfuscationReflectionUtil.getSoftField(
-		 ElytraOnPlayerSoundInstance.class, "player", "player",
+		 ElytraOnPlayerSoundInstance.class, "f_119670_", "player",
 		 oneTimeLogger(LOGGER::error), REFLECTION_ERROR_MESSAGE);
 	
 	private static final SoftMethod<AbstractTickableSoundInstance, Void>
 	  tickableSound$finishPlaying =
 	  ObfuscationReflectionUtil.getSoftMethod(
-		 AbstractTickableSoundInstance.class, "stop", "finishPlaying",
+		 AbstractTickableSoundInstance.class, "f_119604_", "stopped",
 		 oneTimeLogger(LOGGER::error), REFLECTION_ERROR_MESSAGE);
 	
 	protected float brakeVolume = 0F;

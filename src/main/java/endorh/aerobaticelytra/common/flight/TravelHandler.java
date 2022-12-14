@@ -47,7 +47,7 @@ public class TravelHandler {
 	 */
 	public static final SoftField<ServerGamePacketListenerImpl, Integer> ServerGamePacketListener$aboveGroundTickCount =
 	  ObfuscationReflectionUtil.getSoftField(
-	    ServerGamePacketListenerImpl.class, "aboveGroundTickCount", "floatingTickCount",
+	    ServerGamePacketListenerImpl.class, "f_9737_", "floatingTickCount",
 	    oneTimeLogger(LOGGER::error),
 	    "Some flight modes may kick players for flying",
 	    "A flight mode tried to prevent a player from being kicked for flying, but reflection failed.");
