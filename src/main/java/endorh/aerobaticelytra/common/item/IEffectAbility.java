@@ -51,13 +51,13 @@ public interface IEffectAbility extends IDatapackAbility {
 		
 		private static final SoftField<MobEffectInstance, Integer> EffectInstance$duration =
 		  ObfuscationReflectionUtil.getSoftField(
-			 MobEffectInstance.class, "duration", "duration",
+			 MobEffectInstance.class, "f_19503_", "duration",
 			 LOGGER::error, REFLECTION_ERROR_MESSAGE);
 		
 		private static final SoftField<MobEffectInstance, MobEffectInstance>
 		  EffectInstance$hiddenEffects =
 		  ObfuscationReflectionUtil.getSoftField(
-			 MobEffectInstance.class, "hiddenEffect", "hiddenEffects",
+			 MobEffectInstance.class, "f_19510_", "hiddenEffect",
 			 LOGGER::error, REFLECTION_ERROR_MESSAGE);
 		
 		public final String jsonName;
