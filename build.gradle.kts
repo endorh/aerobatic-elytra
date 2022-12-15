@@ -18,6 +18,7 @@ buildscript {
 plugins {
 	java
 	id("net.minecraftforge.gradle")
+	id("aerobaticelytra.minecraft-conventions")
 	`maven-publish`
 }
 
