@@ -53,9 +53,9 @@ public class AerobaticElytraSound extends FadingTickableSound {
 		 oneTimeLogger(LOGGER::error), REFLECTION_ERROR_MESSAGE);
 	
 	private static final SoftMethod<AbstractTickableSoundInstance, Void>
-	  tickableSound$finishPlaying =
+	  tickableSound$stop =
 	  ObfuscationReflectionUtil.getSoftMethod(
-		 AbstractTickableSoundInstance.class, "f_119604_", "stopped",
+		 AbstractTickableSoundInstance.class, "m_119609_", "stop",
 		 oneTimeLogger(LOGGER::error), REFLECTION_ERROR_MESSAGE);
 	
 	protected float brakeVolume = 0F;
@@ -126,7 +126,7 @@ public class AerobaticElytraSound extends FadingTickableSound {
 	@Override protected void onStart() {
 		ElytraOnPlayerSoundInstance elytraSound = aerobaticData.getElytraSound();
 		if (elytraSound != null && !elytraSound.isStopped()) {
-			if (tickableSound$finishPlaying.testInvoke(elytraSound)) {
+			if (tickableSound$stop.testInvoke(elytraSound)) {
 				aerobaticData.setElytraSound(null);
 				brakeSound.play();
 				rotateSound.play();
