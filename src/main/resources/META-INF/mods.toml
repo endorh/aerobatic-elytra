@@ -46,10 +46,12 @@ issueTrackerURL="${issue_tracker}"
 [[dependencies.aerobaticelytra]]
     modId="caelus"
     mandatory=false
+    versionRange="[1,)"
     ordering="AFTER"
     side="BOTH"
 [[dependencies.aerobaticelytra]]
     modId="curiouselytra"
     mandatory=false
+    versionRange="[1,)"
     ordering="AFTER"
     side="BOTH"
