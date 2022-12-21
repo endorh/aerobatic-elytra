@@ -39,8 +39,8 @@ public class KeyHandler {
 	@EventBusSubscriber(value = Dist.CLIENT, modid = AerobaticElytra.MOD_ID, bus = Bus.MOD)
 	public static class Registrar {
 		@SubscribeEvent public static void onRegisterKeyMappings(RegisterKeyMappingsEvent e) {
-			FLIGHT_MODE = reg(e, "key.aerobaticelytra.flight_mode.desc", IN_GAME, GLFW.GLFW_KEY_C, AEROBATIC_ELYTRA_CATEGORY);
-			LOOK_AROUND = reg(e, "key.aerobaticelytra.look_around.desc", IN_GAME, GLFW.GLFW_KEY_LEFT_ALT, AEROBATIC_ELYTRA_CATEGORY);
+			FLIGHT_MODE = reg(e, "key.aerobaticelytra.flight_mode", IN_GAME, GLFW.GLFW_KEY_C, AEROBATIC_ELYTRA_CATEGORY);
+			LOOK_AROUND = reg(e, "key.aerobaticelytra.look_around", IN_GAME, GLFW.GLFW_KEY_LEFT_ALT, AEROBATIC_ELYTRA_CATEGORY);
 			AerobaticElytra.logRegistered("Key Mappings");
 		}
 	}
