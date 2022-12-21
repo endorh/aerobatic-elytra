@@ -1,0 +1,7 @@
+{
+  "pack": {
+    "title": "Add recipe to toggle rockets",
+    "description": "Adds a recipe that toggles the rockets in the elytra model. This does not affect the physics.",
+    "pack_format": 6
+  }
+}
