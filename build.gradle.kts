@@ -28,9 +28,9 @@ plugins {
 val modId = "aerobaticelytra"
 val modGroup = "endorh.aerobaticelytra"
 val githubRepo = "endorh/aerobatic-elytra"
-val modVersion = "1.0.0"
+val modVersion = "1.0.1"
 val mcVersion = "1.16.5"
-val forge = "36.1.0"
+val forge = "36.2.34"
 val forgeVersion = "$mcVersion-$forge"
 val mappingsChannel = "snapshot"
 val mappingsVersion = "20201028-1.16.3"
@@ -286,7 +286,7 @@ dependencies {
 	// runtimeOnly(fg.deobf("endorh.aerobaticelytra.jetpack:aerobaticelytrajetpack-$mcVersion:$aerobaticElytraJetpackVersion"))
 
 	// Curious Elytra
-	runtimeOnly(fg.deobf("curse.maven:curiouselytra-317716:3231248"))
+	runtimeOnly(fg.deobf("curse.maven:curiouselytra-317716:3522097"))
 
 	// Colytra
 	runtimeOnly(fg.deobf("curse.maven:colytra-280200:3113926"))
