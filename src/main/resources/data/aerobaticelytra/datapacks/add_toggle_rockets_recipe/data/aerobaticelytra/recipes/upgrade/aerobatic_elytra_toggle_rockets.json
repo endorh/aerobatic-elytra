@@ -1,0 +1,13 @@
+{
+  "type": "aerobaticelytra:upgrade_recipe",
+  "_comment": "",
+  "ingredients": [
+    "minecraft:glowstone_dust"
+  ],
+  "upgrades": [
+    {
+      "type": "Rocketless",
+      "expression": "!Rocketless"
+    }
+  ]
+}

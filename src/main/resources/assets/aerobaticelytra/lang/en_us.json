@@ -31,6 +31,7 @@
   "aerobaticelytra.abilities.lift": "Lift",
   "aerobaticelytra.abilities.aquatic": "Aquatic",
   "aerobaticelytra.abilities.trail": "Trail",
+  "aerobaticelytra.abilities.rocketless": "Rocketless",
 
   "aerobaticelytra.network.kick": "Was kicked for sending too many invalid aerobatic flight packets",
 

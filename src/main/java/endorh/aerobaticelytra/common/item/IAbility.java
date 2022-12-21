@@ -74,7 +74,8 @@ public interface IAbility {
 		SPEED(ChatFormatting.GREEN, 1F, SCALE),
 		LIFT(ChatFormatting.YELLOW, 0F, NON_ZERO),
 		AQUATIC(ChatFormatting.BLUE, 1F, SCALE_BOOL),
-		TRAIL(ChatFormatting.DARK_PURPLE, 1F, SCALE);
+		TRAIL(ChatFormatting.DARK_PURPLE, 1F, SCALE),
+		ROCKETLESS(ChatFormatting.GRAY, 0F, BOOL);
 		
 		private final String jsonName;
 		private final String translationKey;

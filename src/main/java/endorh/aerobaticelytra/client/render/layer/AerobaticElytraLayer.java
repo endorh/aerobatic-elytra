@@ -88,9 +88,10 @@ public class AerobaticElytraLayer<T extends LivingEntity, M extends EntityModel<
 		//noinspection unchecked
 		((HumanoidModel<T>) getParentModel()).copyPropertiesTo(modelBack);
 		modelBack.setupAnim(entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
-		renderBackRockets(
-		  mStack, buffer, packedLight, entity, limbSwing, limbSwingAmount, partialTicks,
-		  ageInTicks, netHeadYaw, headPitch, elytra);
+		if (item.shouldRenderAerobaticElytraBackRockets(elytra, entity))
+			renderBackRockets(
+			  mStack, buffer, packedLight, entity, limbSwing, limbSwingAmount, partialTicks,
+			  ageInTicks, netHeadYaw, headPitch, elytra);
 		
 		// This translation added by the ElytraLayer is instead added by the model itself,
 		// which allows the model to be rotated along with armor stand entities
@@ -119,9 +120,10 @@ public class AerobaticElytraLayer<T extends LivingEntity, M extends EntityModel<
 			}
 		}
 		
-		renderRockets(
-		  mStack, buffer, packedLight, entity, limbSwing, limbSwingAmount, partialTicks,
-		  ageInTicks, netHeadYaw, headPitch, elytra);
+		if (item.shouldRenderAerobaticElytraRockets(elytra, entity))
+			renderRockets(
+			  mStack, buffer, packedLight, entity, limbSwing, limbSwingAmount, partialTicks,
+			  ageInTicks, netHeadYaw, headPitch, elytra);
 	}
 	
 	public void renderRockets(

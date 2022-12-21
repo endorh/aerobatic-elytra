@@ -31,6 +31,7 @@
   "aerobaticelytra.abilities.lift": "Flote",
   "aerobaticelytra.abilities.aquatic": "Vuelo Submarino",
   "aerobaticelytra.abilities.trail": "Longitud de Estela",
+  "aerobaticelytra.abilities.rocketless": "Sin Cohetes",
 
   "aerobaticelytra.network.kick": "Fue echado por enviar demasiados paquetes inválidos de vuelo acrobático",
 
