@@ -10,7 +10,8 @@
   "stat.aerobaticelytra.aerobatic_slime_bounces": "Aerobatic slime bounces",
 
   "key.aerobaticelytra.category": "Aerobatic Elytra",
-  "key.aerobaticelytra.flight_mode.desc": "Switch Flight mode",
+  "key.aerobaticelytra.flight_mode": "Switch Flight mode",
+  "key.aerobaticelytra.look_around": "Look Around",
 
   "aerobaticelytra.item.fuel": "Fuel: %s / %s",
   "aerobaticelytra.item.trail": "Trail",

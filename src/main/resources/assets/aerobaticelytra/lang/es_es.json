@@ -10,7 +10,8 @@
   "stat.aerobaticelytra.aerobatic_slime_bounces": "Rebotes acrobáticos en limo",
 
   "key.aerobaticelytra.category": "Élytros Acrobático",
-  "key.aerobaticelytra.flight_mode.desc": "Alternar modo de vuelo",
+  "key.aerobaticelytra.flight_mode": "Alternar modo de vuelo",
+  "key.aerobaticelytra.look_around": "Mirar alrededor",
 
   "aerobaticelytra.item.fuel": "Combustible: %s / %s",
   "aerobaticelytra.item.trail": "Estela",

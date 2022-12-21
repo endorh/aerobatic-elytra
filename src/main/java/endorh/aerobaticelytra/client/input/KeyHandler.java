@@ -36,8 +36,8 @@ public class KeyHandler {
 	private static long lastLookAroundPress = 0L;
 	
 	public static void register() {
-		FLIGHT_MODE = reg("key.aerobaticelytra.flight_mode.desc", IN_GAME, GLFW.GLFW_KEY_C, AEROBATIC_ELYTRA_CATEGORY);
-		LOOK_AROUND = reg("key.aerobaticelytra.look_around.desc", IN_GAME, GLFW.GLFW_KEY_LEFT_ALT, AEROBATIC_ELYTRA_CATEGORY);
+		FLIGHT_MODE = reg("key.aerobaticelytra.flight_mode", IN_GAME, GLFW.GLFW_KEY_C, AEROBATIC_ELYTRA_CATEGORY);
+		LOOK_AROUND = reg("key.aerobaticelytra.look_around", IN_GAME, GLFW.GLFW_KEY_LEFT_ALT, AEROBATIC_ELYTRA_CATEGORY);
 		AerobaticElytra.logRegistered("Key Mappings");
 	}
 	
