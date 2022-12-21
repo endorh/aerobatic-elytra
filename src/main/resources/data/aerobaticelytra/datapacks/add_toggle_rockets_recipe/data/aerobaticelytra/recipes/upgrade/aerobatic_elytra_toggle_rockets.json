@@ -1,0 +1,13 @@
+{
+  "type": "aerobaticelytra:upgrade_recipe",
+  "_comment": "",
+  "ingredients": [
+    "minecraft:paper"
+  ],
+  "upgrades": [
+    {
+      "type": "Rocketless",
+      "expression": "!Rocketless"
+    }
+  ]
+}

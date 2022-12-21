@@ -375,6 +375,15 @@ public class AerobaticElytraItem extends ElytraItem implements IArmorVanishable,
 		return true;
 	}
 	
+	public boolean shouldRenderAerobaticElytraRockets(ItemStack stack, LivingEntity entity) {
+		IElytraSpec spec = getElytraSpecOrDefault(stack);
+		return spec.getAbility(Ability.ROCKETLESS) == 0F;
+	}
+	
+	public boolean shouldRenderAerobaticElytraBackRockets(ItemStack stack, LivingEntity entity) {
+		return shouldRenderAerobaticElytraRockets(stack, entity);
+	}
+	
 	@Override
 	public int getColor(@NotNull ItemStack stack) {
 		dyement.read(stack, DEFAULT_COLOR);

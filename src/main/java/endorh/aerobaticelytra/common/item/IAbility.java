@@ -76,7 +76,8 @@ public interface IAbility extends IForgeRegistryEntry<IAbility> {
 		SPEED(GREEN, 1F, SCALE),
 		LIFT(YELLOW, 0F, NON_ZERO),
 		AQUATIC(BLUE, 1F, SCALE_BOOL),
-		TRAIL(DARK_PURPLE, 1F, SCALE);
+		TRAIL(DARK_PURPLE, 1F, SCALE),
+		ROCKETLESS(GRAY, 0F, BOOL);
 		
 		private final ResourceLocation registryName;
 		private final String jsonName;
