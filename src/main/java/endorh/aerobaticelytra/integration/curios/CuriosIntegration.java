@@ -19,12 +19,9 @@ public class CuriosIntegration {
 	 * Get the first aerobatic elytra found in curio slots or empty
 	 */
 	public static ItemStack getCurioAerobaticElytra(LivingEntity entity) {
-		Optional<ImmutableTriple<String, Integer, ItemStack>> curio =
-		  findCurioAerobaticElytra(entity);
-		if (curio.isPresent()) {
-			return curio.get().getRight();
-		}
-		return ItemStack.EMPTY;
+		return findCurioAerobaticElytra(entity)
+		  .map(ImmutableTriple::getRight)
+		  .orElse(ItemStack.EMPTY);
 	}
 	
 	/**
@@ -33,7 +30,8 @@ public class CuriosIntegration {
 	public static Optional<ImmutableTriple<String, Integer, ItemStack>> findCurioAerobaticElytra(
 	  LivingEntity entity
 	) {
-		return CuriosApi.getCuriosHelper().findEquippedCurio(AerobaticElytraItems.AEROBATIC_ELYTRA, entity);
+		return CuriosApi.getCuriosHelper()
+		  .findEquippedCurio(AerobaticElytraItems.AEROBATIC_ELYTRA, entity);
 	}
 	
 	/**
