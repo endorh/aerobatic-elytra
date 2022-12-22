@@ -58,6 +58,13 @@
       "model": "aerobaticelytra:item/aerobatic_elytra_no_fuel"
     },
     {
+      "__comment": "hide_rockets >= 1",
+      "predicate": {
+        "aerobaticelytra:hide_rockets": 1.0
+      },
+      "model": "aerobaticelytra:item/aerobatic_elytra_no_rockets"
+    },
+    {
       "__comment": "equal_wings >= 1",
       "predicate": {
         "aerobaticelytra:equal_wings": 1.0
@@ -121,11 +128,27 @@
       "model": "aerobaticelytra:item/aerobatic_elytra_equal_wings_no_fuel"
     },
     {
+      "__comment": "equal_wings >= 1 ∧ hide_rockets >= 1",
+      "predicate": {
+        "aerobaticelytra:equal_wings": 1.0,
+        "aerobaticelytra:hide_rockets": 1.0
+      },
+      "model": "aerobaticelytra:item/aerobatic_elytra_equal_wings_no_rockets"
+    },
+    {
       "__comment": "broken >= 1",
       "predicate": {
         "broken": 1.0
       },
       "model": "aerobaticelytra:item/aerobatic_elytra_broken"
+    },
+    {
+      "__comment": "broken >= 1 ∧ hide_rockets >= 1",
+      "predicate": {
+        "broken": 1.0,
+        "aerobaticelytra:hide_rockets": 1.0
+      },
+      "model": "aerobaticelytra:item/aerobatic_elytra_broken_no_rockets"
     },
     {
       "__comment": "broken >= 1 ∧ equal_wings >= 1",
@@ -134,6 +157,15 @@
         "aerobaticelytra:equal_wings": 1.0
       },
       "model": "aerobaticelytra:item/aerobatic_elytra_broken_equal_wings"
+    },
+    {
+      "__comment": "broken >= 1 ∧ equal_wings ∧ hide_rockets >= 1",
+      "predicate": {
+        "broken": 1.0,
+        "aerobaticelytra:equal_wings": 1.0,
+        "aerobaticelytra:hide_rockets": 1.0
+      },
+      "model": "aerobaticelytra:item/aerobatic_elytra_broken_equal_wings_no_rockets"
     }
   ]
 }
