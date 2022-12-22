@@ -9,11 +9,26 @@
   },
   "overrides": [
     {
+      "__comment": "hide_rockets >= 1",
+      "predicate": {
+        "aerobaticelytra:hide_rockets": 1.0
+      },
+      "model": "aerobaticelytra:item/aerobatic_elytra_wing_no_rockets"
+    },
+    {
       "__comment": "broken >= 1",
       "predicate": {
         "broken": 1.0
       },
       "model": "aerobaticelytra:item/aerobatic_elytra_wing_broken"
+    },
+    {
+      "__comment": "broken >= 1 ∧ hide_rockets >= 1",
+      "predicate": {
+        "broken": 1.0,
+        "aerobaticelytra:hide_rockets": 1.0
+      },
+      "model": "aerobaticelytra:item/aerobatic_elytra_wing_broken_no_rockets"
     }
   ]
 }
