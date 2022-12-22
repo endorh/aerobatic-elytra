@@ -28,7 +28,7 @@ plugins {
 val modId = "aerobaticelytra"
 val modGroup = "endorh.aerobaticelytra"
 val githubRepo = "endorh/aerobatic-elytra"
-val modVersion = "1.0.1"
+val modVersion = "1.1.0"
 val mcVersion = "1.16.5"
 val forge = "36.2.34"
 val forgeVersion = "$mcVersion-$forge"
