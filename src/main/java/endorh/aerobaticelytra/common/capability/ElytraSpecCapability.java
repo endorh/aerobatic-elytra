@@ -137,6 +137,10 @@ public class ElytraSpecCapability {
 			return unknownProperties;
 		}
 		
+		@Override public boolean areAbilitiesEqual(IElytraSpec other) {
+			return properties.equals(other.getAbilities()) && effectAbilities.equals(other.getEffectAbilities()) && unknownProperties.equals(other.getUnknownAbilities());
+		}
+		
 		@Override public @Nonnull TrailData getTrailData() {
 			return trailData;
 		}

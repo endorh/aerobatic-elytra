@@ -142,6 +142,8 @@ public interface IElytraSpec
 	 */
 	Map<IEffectAbility, Boolean> getEffectAbilities();
 	
+	boolean areAbilitiesEqual(IElytraSpec other);
+	
 	void updatePlayerEntity(ServerPlayer player);
 	
 	@Nullable ServerPlayer getPlayerEntity();
