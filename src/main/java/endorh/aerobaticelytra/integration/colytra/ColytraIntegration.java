@@ -13,7 +13,6 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.TickEvent.Phase;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.LogicalSide;
 import top.theillusivec4.caelus.api.CaelusApi;
 
 import java.util.UUID;
@@ -56,8 +55,7 @@ public class ColytraIntegration {
 	 */
 	@SubscribeEvent(priority=EventPriority.LOW)
 	public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-		if (event.side != LogicalSide.SERVER || event.phase != Phase.END)
-			return;
+		if (event.phase != Phase.END) return;
 		
 		Player player = event.player;
 		ItemStack chest = player.getItemBySlot(EquipmentSlot.CHEST);

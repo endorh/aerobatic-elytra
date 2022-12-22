@@ -256,7 +256,7 @@ repositories {
 }
 
 dependencies {
-	// IDEε
+	// IDE
     implementation("org.junit.jupiter:junit-jupiter:5.9.0")
 	implementation("org.jetbrains:annotations:23.0.0")
 
