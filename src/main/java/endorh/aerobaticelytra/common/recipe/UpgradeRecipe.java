@@ -167,13 +167,19 @@ public class UpgradeRecipe extends CustomRecipe {
 	 */
 	@NotNull public Pair<ItemStack, Integer> getResult(ItemStack elytra, int maxUses) {
 		ItemStack result = elytra.copy();
+		ItemStack prev = result.copy();
+		IElytraSpec origSpec = ElytraSpecCapability.getElytraSpecOrDefault(elytra);
+		IElytraSpec spec = ElytraSpecCapability.getElytraSpecOrDefault(result);
 		int uses;
 		for (uses = 0; uses < maxUses; uses++) {
 			boolean used = false;
 			for (Upgrade upgrade : upgrades)
-				used |= upgrade.apply(ElytraSpecCapability.getElytraSpecOrDefault(result));
-			if (!used)
+				used |= upgrade.apply(spec);
+			if (!used) break;
+			if (origSpec.areAbilitiesEqual(spec)) {
+				result = prev;
 				break;
+			} else prev = result.copy();
 		}
 		return Pair.of(result, uses);
 	}
@@ -212,6 +218,10 @@ public class UpgradeRecipe extends CustomRecipe {
 	public static ItemStack apply(
 	  ItemStack elytra, ItemStack upgrade, Collection<UpgradeRecipe> recipes
 	) {
+		ItemStack original = elytra.copy();
+		ItemStack prev = original;
+		IElytraSpec origSpec = ElytraSpecCapability.getElytraSpecOrDefault(original);
+		IElytraSpec spec;
 		while (upgrade.getCount() > 0) {
 			boolean used = false;
 			for (UpgradeRecipe recipe : recipes) {
@@ -222,9 +232,14 @@ public class UpgradeRecipe extends CustomRecipe {
 				if (result.getRight() > 0)
 					used = true;
 			}
-			if (used)
-				upgrade.shrink(1);
-			else break;
+			if (!used) break;
+			spec = ElytraSpecCapability.getElytraSpecOrDefault(elytra);
+			if (origSpec.areAbilitiesEqual(spec)) {
+				elytra = prev;
+				break;
+			}
+			upgrade.shrink(1);
+			prev = elytra.copy();
 		}
 		return elytra;
 	}
