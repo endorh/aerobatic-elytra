@@ -133,6 +133,8 @@ public interface IElytraSpec extends IDatapackAbilityReloadListener {
 	 */
 	Map<IEffectAbility, Boolean> getEffectAbilities();
 	
+	boolean areAbilitiesEqual(IElytraSpec other);
+	
 	void updatePlayerEntity(ServerPlayerEntity player);
 	@Nullable ServerPlayerEntity getPlayerEntity();
 	
