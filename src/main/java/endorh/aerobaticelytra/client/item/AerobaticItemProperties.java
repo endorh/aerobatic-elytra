@@ -19,14 +19,15 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import static endorh.aerobaticelytra.AerobaticElytra.prefix;
+import static endorh.aerobaticelytra.common.AerobaticElytraLogic.isAerobaticElytra;
 import static endorh.aerobaticelytra.common.capability.ElytraSpecCapability.getElytraSpecOrDefault;
 
 @OnlyIn(Dist.CLIENT)
 public class AerobaticItemProperties {
-	public static final ResourceLocation BROKEN_PROPERTY =
-	  new ResourceLocation("broken");
+	public static final ResourceLocation BROKEN_PROPERTY = new ResourceLocation("broken");
 	public static final ResourceLocation FUEL_PROPERTY = prefix("fuel");
 	public static final ResourceLocation HIDE_FUEL_PROPERTY = prefix("hide_fuel");
+	public static final ResourceLocation HIDE_ROCKETS_PROPERTY = prefix("hide_rockets");
 	public static final ResourceLocation EQUAL_WINGS_PROPERTY = prefix("equal_wings");
 	
 	private static final ElytraDyement dyement = new ElytraDyement();
@@ -35,8 +36,10 @@ public class AerobaticItemProperties {
 		reg(AerobaticElytraItems.AEROBATIC_ELYTRA, BROKEN_PROPERTY, AerobaticItemProperties::getBrokenProperty);
 		reg(AerobaticElytraItems.AEROBATIC_ELYTRA, FUEL_PROPERTY, AerobaticItemProperties::getFuelProperty);
 		reg(AerobaticElytraItems.AEROBATIC_ELYTRA, HIDE_FUEL_PROPERTY, AerobaticItemProperties::getHideFuelProperty);
+		reg(AerobaticElytraItems.AEROBATIC_ELYTRA, HIDE_ROCKETS_PROPERTY, AerobaticItemProperties::getHideRocketsProperty);
 		reg(AerobaticElytraItems.AEROBATIC_ELYTRA, EQUAL_WINGS_PROPERTY, AerobaticItemProperties::getEqualWingsProperty);
 		reg(AerobaticElytraItems.AEROBATIC_ELYTRA_WING, BROKEN_PROPERTY, AerobaticItemProperties::getBrokenProperty);
+		reg(AerobaticElytraItems.AEROBATIC_ELYTRA_WING, HIDE_ROCKETS_PROPERTY, AerobaticItemProperties::getHideRocketsProperty);
 	}
 	
 	private static void reg(
@@ -81,6 +84,13 @@ public class AerobaticItemProperties {
 		if (chest == stack)
 			return 0F;
 		return visibility.fuel_visibility.test() ? 0F : 1F;
+	}
+	
+	public static float getHideRocketsProperty(
+	  ItemStack stack, ClientWorld world, LivingEntity holder
+	) {
+		if (!isAerobaticElytra(stack)) return 0F;
+		return getElytraSpecOrDefault(stack).getAbility(Ability.ROCKETLESS);
 	}
 	
 	public static float getEqualWingsProperty(
