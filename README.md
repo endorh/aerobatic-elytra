@@ -14,7 +14,7 @@ attached rockets (as long as it has fuel).
 ## Main Features
 - **Fly like a plane**! *(it's fun!)*
 - Customizable **trails** using fireworks *(one per each of the 4 rockets)*
-- Customizable wings with **dyes** and **banners** *(just like [Customizable Elytra](https://www.curseforge.com/minecraft/mc-mods/customizable-elytra))
+- Customizable wings with **dyes** and **banners** *(just like [Customizable Elytra](https://www.curseforge.com/minecraft/mc-mods/customizable-elytra))*
 - **Boost** by sprinting to go even faster
 - **Brake** by crouching to help landing
 - **Look around** while flying with a key *(and aim with a bow if you dare)*
