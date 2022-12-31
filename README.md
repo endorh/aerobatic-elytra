@@ -28,7 +28,7 @@ attached rockets (as long as it has fuel).
 This mod exposes some features through custom datapacks.
 To make these features easier to use, a few [bundled datapacks](https://github.com/endorh/aerobatic-elytra/wiki/Bundled-Datapacks)
 showcasing them are included with the mod, which can be easily installed with
-the `/aerobaticelytra install` command.
+the `/aerobaticelytra datapack install` command.
 - Generate Aerobatic Elytras in **End ships** *(or anything you want, it's a loot table)*
 - Nerf Aerobatic Elytras with **upgrade systems**
 - Add **custom potion effect abilities** to elytras
