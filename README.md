@@ -7,10 +7,10 @@
 [<img alt="Join the Discord" src="https://img.shields.io/discord/1017484317636710520?color=%235865F2&label=&labelColor=4e4e4e&logo=discord&logoColor=white&style=flat-square"/>](https://discord.gg/gqYVjBq65U)
 
 # Aerobatic Elytra
-Essentially a flight simulator in Minecraft.
+Essentially, a flight simulator in Minecraft.
 
-This mod adds a new elytra item to the game, which when worn allows the player
-to roll in the air like a plane would, while also propelling itself with its
+This mod adds a new elytra item to the game, which, when worn, lets the player
+roll in the air like a plane would, while also propelling itself with its
 attached rockets (as long as it has fuel).
 
 ## Main Features
