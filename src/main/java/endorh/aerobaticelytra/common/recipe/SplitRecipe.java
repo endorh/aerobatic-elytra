@@ -11,10 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CustomRecipe;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.SimpleRecipeSerializer;
+import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.util.RecipeMatcher;
 import org.apache.commons.lang3.tuple.Pair;
@@ -82,10 +79,10 @@ public class SplitRecipe extends CustomRecipe {
 	}
 	
 	public SplitRecipe(
-	  ResourceLocation idIn,
+	  ResourceLocation id, CraftingBookCategory category,
 	  NonNullList<Pair<Ingredient, LeaveData>> recipeItems
 	) {
-		super(idIn);
+		super(id, category);
 		this.recipeItems = addElytra(recipeItems);
 		ingredients = recipeItems;
 		ItemStack elytra = new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA, 1);
@@ -191,15 +188,16 @@ public class SplitRecipe extends CustomRecipe {
 		return recipeItems;
 	}
 	
-	public static class Serializer extends SimpleRecipeSerializer<SplitRecipe> {
+	public static class Serializer extends SimpleCraftingRecipeSerializer<SplitRecipe> {
 		public Serializer() {
-			super(id -> null);
+			super((id, category) -> new SplitRecipe(id, category, NonNullList.create()));
 		}
 		
 		@Override
 		public @NotNull SplitRecipe fromJson(
 		  @NotNull ResourceLocation recipeId, @NotNull JsonObject json
 		) {
+			CraftingBookCategory category = CraftingBookCategory.CODEC.byName(GsonHelper.getAsString(json, "category", null), CraftingBookCategory.MISC);
 			NonNullList<Pair<Ingredient, LeaveData>> list =
 			  readIngredients(GsonHelper.getAsJsonArray(json, "ingredients"));
 			if (list.size() > MAX_WIDTH * MAX_HEIGHT - 1) {
@@ -209,7 +207,7 @@ public class SplitRecipe extends CustomRecipe {
 				if (list.stream().anyMatch(p -> p.getLeft().test(elytra)))
 					throw new JsonParseException(
 					  "Aerobatic elytra split recipes cannot contain any aerobatic elytra ingredient");
-				return new SplitRecipe(recipeId, list);
+				return new SplitRecipe(recipeId, category, list);
 			}
 		}
 		
@@ -261,15 +259,17 @@ public class SplitRecipe extends CustomRecipe {
 		
 		@Override
 		public SplitRecipe fromNetwork(@NotNull ResourceLocation recipeId, @NotNull FriendlyByteBuf buf) {
+			CraftingBookCategory category = buf.readEnum(CraftingBookCategory.class);
 			NonNullList<Pair<Ingredient, LeaveData>> ingredients =
 			  PacketBufferUtil.readNonNullList(
 			    buf, b -> Pair.of(Ingredient.fromNetwork(b), LeaveData.read(b)),
 			    Pair.of(Ingredient.EMPTY, LeaveData.DO_NOT_LEAVE));
-			return new SplitRecipe(recipeId, ingredients);
+			return new SplitRecipe(recipeId, category, ingredients);
 		}
 		
 		@Override
 		public void toNetwork(@NotNull FriendlyByteBuf buf, @NotNull SplitRecipe recipe) {
+			buf.writeEnum(recipe.category());
 			PacketBufferUtil.writeList(
 			  recipe.ingredients, buf, (p, b) -> {
 			  	   p.getLeft().toNetwork(b);

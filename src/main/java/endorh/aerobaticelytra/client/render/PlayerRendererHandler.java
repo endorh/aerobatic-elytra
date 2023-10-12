@@ -1,7 +1,7 @@
 package endorh.aerobaticelytra.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.common.capability.IAerobaticData;
 import endorh.aerobaticelytra.common.config.Const;
@@ -62,13 +62,13 @@ public class PlayerRendererHandler {
 				// No need to smooth the roll since it starts being 0
 			}
 			
-			mStack.mulPose(Vector3f.YP.rotationDegrees(yaw));
-			mStack.mulPose(Vector3f.XP.rotationDegrees(pitch));
-			mStack.mulPose(Vector3f.YP.rotationDegrees(
+			mStack.mulPose(Axis.YP.rotationDegrees(yaw));
+			mStack.mulPose(Axis.XP.rotationDegrees(pitch));
+			mStack.mulPose(Axis.YP.rotationDegrees(
 			  data.getRotationRoll() + data.getTiltRoll() * Const.TILT_ROLL_RENDER_OFFSET));
-			mStack.mulPose(Vector3f.XP.rotationDegrees(
+			mStack.mulPose(Axis.XP.rotationDegrees(
 			  -data.getTiltPitch() * Const.TILT_PITCH_RENDER_OFFSET));
-			mStack.mulPose(Vector3f.ZP.rotationDegrees(
+			mStack.mulPose(Axis.ZP.rotationDegrees(
 			  data.getTiltYaw() * Const.TILT_YAW_RENDER_OFFSET));
 			
 			// Keep the easter egg
@@ -76,7 +76,7 @@ public class PlayerRendererHandler {
 			if (("Dinnerbone".equals(s) || "Grumm".equals(s)) &&
 			    player.isModelPartShown(PlayerModelPart.CAPE)) {
 				mStack.translate(0D, (double) player.getBbHeight() + 0.1F, 0D);
-				mStack.mulPose(Vector3f.ZP.rotationDegrees(180F));
+				mStack.mulPose(Axis.ZP.rotationDegrees(180F));
 			}
 		}
 	}

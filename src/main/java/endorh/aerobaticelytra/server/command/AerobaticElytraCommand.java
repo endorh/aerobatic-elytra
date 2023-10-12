@@ -1,5 +1,6 @@
 package endorh.aerobaticelytra.server.command;
 
+import com.google.common.collect.Maps;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -32,6 +33,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.Pack;
+import net.minecraft.server.packs.resources.IoSupplier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -41,6 +43,7 @@ import net.minecraft.world.level.storage.LevelResource;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+import org.apache.commons.compress.utils.Lists;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -563,16 +566,21 @@ public class AerobaticElytraCommand {
 			LOGGER.warn("Could not find mod datapack");
 			return Collections.emptyMap();
 		}
-		
+
 		try (final PackResources resourcePack = pack.open()) {
-			return resourcePack.getResources(
-				 PackType.SERVER_DATA, AerobaticElytra.MOD_ID, "datapacks", s -> {
-					 String path = normalizePath(s.getPath());
-					 return path.lastIndexOf("/") == 9;
-				 }
-			).stream().map(rl -> new BundledDatapack(
-			  resourcePack, new ResourceLocation(rl.getNamespace(), normalizePath(rl.getPath())))
-			).collect(Collectors.toMap(bd -> bd.name, bd -> bd, (a, b) -> a));
+			Map<String, BundledDatapack> packs = Maps.newHashMap();
+			resourcePack.listResources(
+				 PackType.SERVER_DATA, AerobaticElytra.MOD_ID, "datapacks", (loc, io) -> {
+					 String path = normalizePath(loc.getPath());
+					 if (path.lastIndexOf("/") == 9) {
+						 BundledDatapack bundled = new BundledDatapack(
+							 resourcePack, new ResourceLocation(
+								 loc.getNamespace(), normalizePath(loc.getPath())));
+						 if (!packs.containsKey(bundled.name))
+							 packs.put(bundled.name, bundled);
+                }
+				 });
+			return packs;
 		}
 	}
 	
@@ -595,16 +603,17 @@ public class AerobaticElytraCommand {
 			String title = name;
 			String description = "";
 			try {
-				final JsonParser parser = new JsonParser();
-				final JsonElement json = parser.parse(new InputStreamReader(
-				  pack.getResource(PackType.SERVER_DATA, getMcMetaLocation())));
-				try {
-					if (json.isJsonObject()) {
-						final JsonObject packInfo = GsonHelper.getAsJsonObject(json.getAsJsonObject(), "pack");
-						title = GsonHelper.getAsString(packInfo, "title");
-						description = GsonHelper.getAsString(packInfo, "description");
-					}
-				} catch (JsonSyntaxException ignored) {}
+				IoSupplier<InputStream> res = pack.getResource(PackType.SERVER_DATA, getMcMetaLocation());
+				if (res != null) {
+					final JsonElement json = JsonParser.parseReader(new InputStreamReader(res.get()));
+					try {
+						if (json.isJsonObject()) {
+							final JsonObject packInfo = GsonHelper.getAsJsonObject(json.getAsJsonObject(), "pack");
+							title = GsonHelper.getAsString(packInfo, "title");
+							description = GsonHelper.getAsString(packInfo, "description");
+						}
+					} catch (JsonSyntaxException ignored) {}
+				}
 			} catch (IOException ignored) {}
 			this.title = Component.literal(title);
 			this.description = description;
@@ -631,9 +640,13 @@ public class AerobaticElytraCommand {
 		}
 		
 		public Collection<ResourceLocation> getAllResourceLocations() {
-			final Collection<ResourceLocation> locations = pack.getResources(
+			List<ResourceLocation> locations = Lists.newArrayList();
+			pack.listResources(
 			  PackType.SERVER_DATA, location.getNamespace(),
-			  location.getPath(), s -> !s.getPath().equals(location.getPath()));
+			  location.getPath(), (loc, s) -> {
+				  if (!loc.getPath().equals(location.getPath()))
+					  locations.add(loc);
+				});
 			locations.add(getMcMetaLocation());
 			return locations;
 		}
@@ -642,10 +655,12 @@ public class AerobaticElytraCommand {
 			Map<ResourceLocation, InputStream> streams = new HashMap<>();
 			for (ResourceLocation rl : getAllResourceLocations()) {
 				try {
-					streams.put(rl, pack.getResource(PackType.SERVER_DATA, rl));
+					IoSupplier<InputStream> res = pack.getResource(PackType.SERVER_DATA, rl);
+					if (res == null) throw new IOException("Unknown resource: " + rl);
+					streams.put(rl, res.get());
 				} catch (IOException e) {
 					LOGGER.warn("Could not get resource stream for bundled datapack resource " + rl);
-					e.printStackTrace();
+					LOGGER.error(e);
 				}
 			}
 			return streams;

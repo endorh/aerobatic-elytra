@@ -1,72 +1,81 @@
 package endorh.aerobaticelytra.client.item;
 
-import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.util.common.ObfuscationReflectionUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureAtlas;
-import net.minecraft.client.renderer.texture.TextureAtlas.Preparations;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.client.resources.TextureAtlasHolder;
+import net.minecraft.client.resources.model.AtlasSet;
 import net.minecraft.client.resources.model.Material;
-import net.minecraft.client.resources.model.ModelBakery;
-import net.minecraft.core.Registry;
+import net.minecraft.client.resources.model.ModelManager;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.resources.ReloadableResourceManager;
-import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
-import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.level.block.entity.BannerPattern;
-import org.jetbrains.annotations.NotNull;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
 
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
-public class AerobaticElytraBannerTextureManager extends SimplePreparableReloadListener<Preparations> {
+import static endorh.aerobaticelytra.AerobaticElytra.prefix;
+
+@OnlyIn(Dist.CLIENT)
+public class AerobaticElytraBannerTextureManager extends TextureAtlasHolder {
 	
-	public static final ResourceLocation LOCATION_AEROBATIC_ELYTRA_BANNER_ATLAS = AerobaticElytra.prefix("aerobatic_elytra_banner");
+	public static final ResourceLocation LOCATION_AEROBATIC_ELYTRA_BANNER_ATLAS = prefix("textures/atlas/aerobatic_elytra_banner_patterns.png");
+	public static final ResourceLocation AEROBATIC_ELYTRA_BANNER_ATLAS = prefix("aerobatic_elytra_banner_patterns");
 	protected final TextureAtlas atlas = new TextureAtlas(LOCATION_AEROBATIC_ELYTRA_BANNER_ATLAS);
-	
-	protected static final Set<Material> ModelBakery$UNREFERENCED_TEXTURES;
-	
-	static {
-		//noinspection unchecked
-		ModelBakery$UNREFERENCED_TEXTURES =
-		  (Set<Material>) ObfuscationReflectionUtil.getStaticFieldValue(
-		    ModelBakery.class, "f_119234_"
-		  ).orElseThrow(() -> new IllegalStateException(
-		    "Could not access ModelBakery$UNREFERENCED_TEXTURES"));
+
+	private final Map<BannerPattern, Material> MATERIAL_CACHE = new HashMap<>();
+
+	// Reflection
+	protected static final ObfuscationReflectionUtil.SoftField<ModelManager, Map<ResourceLocation, ResourceLocation>>
+		ModelManager$VANILLA_ATLASES = ObfuscationReflectionUtil.getSoftField(
+			ModelManager.class, "f_244614_");
+	protected static final ObfuscationReflectionUtil.SoftField<AtlasSet, Map<ResourceLocation, AtlasSet.AtlasEntry>>
+		AtlasSet$atlas = ObfuscationReflectionUtil.getSoftField(AtlasSet.class, "f_244518_");
+	protected static final ObfuscationReflectionUtil.SoftField<ModelManager, AtlasSet> ModelManager$atlases =
+		ObfuscationReflectionUtil.getSoftField(ModelManager.class, "f_119398_");
+
+	/**
+	 * Must be constructed during the Minecraft constructor
+	 * (e.g. in the {@link RegisterParticleProvidersEvent}).
+	 */
+	public AerobaticElytraBannerTextureManager(TextureManager manager) {
+		super(manager, LOCATION_AEROBATIC_ELYTRA_BANNER_ATLAS, AEROBATIC_ELYTRA_BANNER_ATLAS);
+
+		// Add atlas (not thread-safe)
+		ModelManager modelManager = Minecraft.getInstance().getModelManager();
+		Map<ResourceLocation, ResourceLocation> original = ModelManager$VANILLA_ATLASES.get(modelManager);
+		if (original == null) throw new IllegalStateException("Could not access ModelManager$VANILLA_ATLASES");
+		Map<ResourceLocation, ResourceLocation> copy = new HashMap<>(original);
+		copy.put(LOCATION_AEROBATIC_ELYTRA_BANNER_ATLAS, AEROBATIC_ELYTRA_BANNER_ATLAS);
+		ModelManager$VANILLA_ATLASES.set(modelManager, copy);
+
+		AtlasSet atlasSet = ModelManager$atlases.get(modelManager);
+		if (atlasSet == null) throw new IllegalStateException("Could not access ModelManager$atlases");
+		Map<ResourceLocation, AtlasSet.AtlasEntry> atlases = AtlasSet$atlas.get(atlasSet);
+		if (atlases == null) throw new IllegalStateException("Could not access AtlasSet$atlas");
+		manager.register(LOCATION_AEROBATIC_ELYTRA_BANNER_ATLAS, atlas);
+		atlases.put(LOCATION_AEROBATIC_ELYTRA_BANNER_ATLAS, new AtlasSet.AtlasEntry(atlas, AEROBATIC_ELYTRA_BANNER_ATLAS));
 	}
-	
-	public AerobaticElytraBannerTextureManager(ReloadableResourceManager resourceManager) {
-		resourceManager.registerReloadListener(this);
-		// Add render materials (not thread-safe)
-		for (BannerPattern pattern: Registry.BANNER_PATTERN) {
-			ModelBakery$UNREFERENCED_TEXTURES.add(
-			  new Material(LOCATION_AEROBATIC_ELYTRA_BANNER_ATLAS, getTextureLocation(pattern)));
-		}
+
+	public TextureAtlasSprite getBannerSprite(BannerPattern pattern) {
+		ResourceLocation key = BuiltInRegistries.BANNER_PATTERN.getKey(pattern);
+		if (key == null) key = new ResourceLocation("missing");
+		return getSprite(key);
 	}
-	
-	public ResourceLocation getTextureLocation(BannerPattern pattern) {
-		return new ResourceLocation(
-		  AerobaticElytra.MOD_ID, "entity/aerobatic_elytra/" + Registry.BANNER_PATTERN.getResourceKey(pattern)
-		  .map(k -> k.location().getPath()).orElse("missing"));
-	}
-	
-	@Override protected @NotNull Preparations prepare(@NotNull ResourceManager resourceManager, ProfilerFiller profiler) {
-		profiler.startTick();
-		profiler.push("stitching");
-		final Preparations sheetData = atlas.prepareToStitch(
-		  resourceManager, Registry.BANNER_PATTERN.stream().map(this::getTextureLocation),
-		  profiler, 2);
-		profiler.pop();
-		profiler.endTick();
-		return sheetData;
-	}
-	
-	@Override protected void apply(
-	  @NotNull Preparations sheetData, @NotNull ResourceManager resourceManager,
-	  @NotNull ProfilerFiller profiler
-	) {
-		profiler.startTick();
-		profiler.push("upload");
-		atlas.reload(sheetData);
-		profiler.pop();
-		profiler.endTick();
+
+	public Material getBannerMaterial(BannerPattern pattern) {
+		return MATERIAL_CACHE.computeIfAbsent(pattern, p -> new Material(
+			LOCATION_AEROBATIC_ELYTRA_BANNER_ATLAS,
+			"b".equals(pattern.getHashname())
+				? prefix("entity/aerobatic_elytra/base")
+				: BuiltInRegistries.BANNER_PATTERN.getResourceKey(pattern).map(
+					path -> prefix("entity/aerobatic_elytra/banner/" + path.location().getPath())
+			).orElse(MissingTextureAtlasSprite.getLocation())));
 	}
 }

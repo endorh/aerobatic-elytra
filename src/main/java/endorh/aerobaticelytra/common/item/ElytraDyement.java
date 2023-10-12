@@ -3,8 +3,8 @@ package endorh.aerobaticelytra.common.item;
 import com.mojang.datafixers.util.Pair;
 import endorh.aerobaticelytra.AerobaticElytra;
 import net.minecraft.core.Holder;
-import net.minecraft.core.Registry;
 import net.minecraft.core.cauldron.CauldronInteraction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.MutableComponent;
@@ -230,7 +230,7 @@ public class ElytraDyement {
 		) {
 			if (addBase) {
 				patternData = new ArrayList<>(patternData);
-				patternData.add(0, Pair.of(Registry.BANNER_PATTERN.get(BannerPatterns.BASE), base));
+				patternData.add(0, Pair.of(BuiltInRegistries.BANNER_PATTERN.get(BannerPatterns.BASE), base));
 			}
 			hasPattern = true;
 			basePatternColor = base;
@@ -281,13 +281,13 @@ public class ElytraDyement {
 			} else {
 				data = wingInfo.getCompound(side.tag);
 			}
-			if (data.contains("Patterns")) {
+			if (data.contains("Base")) {
 				hasColor = false;
 				hasPattern = true;
 				basePatternColor = DyeColor.byId(data.getInt("Base"));
 				color = getTextureDiffuseColor(basePatternColor);
 				patternColorData = getPatternColorData(
-				  basePatternColor, data.getList("Patterns", 10).copy());
+					basePatternColor, data.getList("Patterns", 10).copy());
 			} else {
 				hasPattern = false;
 				patternColorData = null;
@@ -315,7 +315,7 @@ public class ElytraDyement {
 		  DyeColor color, @Nullable ListTag nbtList
 		) {
 			List<Pair<BannerPattern, DyeColor>> list = new ArrayList<>();
-			list.add(Pair.of(Registry.BANNER_PATTERN.get(BannerPatterns.BASE), color));
+			list.add(Pair.of(BuiltInRegistries.BANNER_PATTERN.get(BannerPatterns.BASE), color));
 			if (nbtList != null) {
 				for (int i = 0; i < nbtList.size(); ++i) {
 					CompoundTag elem = nbtList.getCompound(i);

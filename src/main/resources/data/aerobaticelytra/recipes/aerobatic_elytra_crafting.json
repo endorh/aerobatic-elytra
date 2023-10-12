@@ -1,7 +1,7 @@
 {
   "type": "aerobaticelytra:ability_nbt_inheriting_shaped_recipe",
     "_comment0": "Extended shaped recipe with upgrades",
-    "_comment1": "  Adds ability support to endor-util:nbt_inheriting_shaped_recipe",
+    "_comment1": "  Adds ability support to lazulib:nbt_inheriting_shaped_recipe",
     "_comment2": "  Uppercase letters mark NBT sources, which NBT will be merged into the result",
     "_comment3": "  The NBT defined in the result.tag key (similar to command NBT syntax) will override sources NBT",
     "_comment4": "  Otherwise, topmost-leftmost NBT sources have merge priority when setting the same individual value.",
@@ -42,7 +42,7 @@
     "tag": {},
 
       "_comment1": "Any valid abilities may be given a value here",
-      "_comment2": "Abilities not specified default to their default value (usually 0)",
+      "_comment2": "Abilities not specified default to their default value (usually 0, or 1 for multipliers)",
     "abilities": {
       "Fuel": 0,
       "MaxFuel": 40

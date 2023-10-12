@@ -1,0 +1,15 @@
+{
+  "sources": [
+    {
+      "type": "single",
+      "resource-comment": "Single sprite sources seem to require an explicit namespace",
+      "resource": "aerobaticelytra:entity/aerobatic_elytra/base"
+    },
+    {
+      "type": "directory",
+      "source-comment": "Directory sprite sources seem to ignore the namespace",
+      "source": "entity/aerobatic_elytra/banner",
+      "prefix": "entity/aerobatic_elytra/banner/"
+    }
+  ]
+}

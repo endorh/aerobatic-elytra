@@ -3,7 +3,7 @@ package endorh.aerobaticelytra.client.render.overlay;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import endorh.aerobaticelytra.client.render.CameraHandler;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
@@ -26,9 +26,9 @@ public class AerobaticDebugCrosshairOverlay implements IGuiOverlay {
 		PoseStack pStack = RenderSystem.getModelViewStack();
 		pStack.pushPose(); {
 			pStack.translate(winW / 2D, winH / 2D, -90D);
-			pStack.mulPose(Vector3f.ZN.rotationDegrees(CameraHandler.lastRoll));
-			pStack.mulPose(Vector3f.XN.rotationDegrees(camera.getXRot()));
-			pStack.mulPose(Vector3f.YP.rotationDegrees(camera.getYRot()));
+			pStack.mulPose(Axis.ZN.rotationDegrees(CameraHandler.lastRoll));
+			pStack.mulPose(Axis.XN.rotationDegrees(camera.getXRot()));
+			pStack.mulPose(Axis.YP.rotationDegrees(camera.getYRot()));
 			pStack.scale(-1F, -1F, -1F);
 			RenderSystem.applyModelViewMatrix();
 			RenderSystem.renderCrosshair(10);

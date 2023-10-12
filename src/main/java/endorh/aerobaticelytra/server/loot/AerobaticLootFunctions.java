@@ -2,6 +2,7 @@ package endorh.aerobaticelytra.server.loot;
 
 import endorh.aerobaticelytra.AerobaticElytra;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.storage.loot.Serializer;
 import net.minecraft.world.level.storage.loot.functions.LootItemFunction;
 import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType;
@@ -27,6 +28,6 @@ public class AerobaticLootFunctions {
 	
 	public static LootItemFunctionType register(String name, Serializer<? extends LootItemFunction> serializer) {
 		return Registry.register(
-		  Registry.LOOT_FUNCTION_TYPE, AerobaticElytra.prefix(name), new LootItemFunctionType(serializer));
+		  BuiltInRegistries.LOOT_FUNCTION_TYPE, AerobaticElytra.prefix(name), new LootItemFunctionType(serializer));
 	}
 }

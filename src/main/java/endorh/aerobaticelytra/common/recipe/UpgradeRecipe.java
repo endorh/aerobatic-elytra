@@ -16,10 +16,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CustomRecipe;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.RecipeManager;
-import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
@@ -110,14 +107,14 @@ public class UpgradeRecipe extends CustomRecipe {
 	}
 	
 	public UpgradeRecipe(
-	  ResourceLocation id, List<ItemSelector> ingredients, List<Upgrade> upgrades, ElytraRequirement requirement
-	) { this(id, ingredients, upgrades, requirement, true); }
+	  ResourceLocation id, CraftingBookCategory category, List<ItemSelector> ingredients, List<Upgrade> upgrades, ElytraRequirement requirement
+	) { this(id, category, ingredients, upgrades, requirement, true); }
 	
 	public UpgradeRecipe(
-	  ResourceLocation id, List<ItemSelector> ingredients, List<Upgrade> upgrades,
-	  ElytraRequirement requirement, boolean lenient
+		ResourceLocation id, CraftingBookCategory category, List<ItemSelector> ingredients, List<Upgrade> upgrades,
+		ElytraRequirement requirement, boolean lenient
 	) {
-		super(id);
+		super(id, category);
 		this.ingredients = ingredients;
 		this.upgrades = upgrades;
 		this.requirement = requirement;
@@ -307,6 +304,8 @@ public class UpgradeRecipe extends CustomRecipe {
 		@NotNull @Override public UpgradeRecipe fromJson(
 		  @NotNull ResourceLocation recipeId, @NotNull JsonObject json
 		) {
+			CraftingBookCategory category = CraftingBookCategory.CODEC.byName(
+			  GsonHelper.getAsString(json, "category", null), CraftingBookCategory.MISC);
 			final List<ItemSelector> ing = ItemSelector.deserialize(
 			  GsonHelper.getAsJsonArray(json, "ingredients"));
 			final List<Upgrade> upgrades = IElytraSpec.Upgrade.deserialize(
@@ -316,13 +315,14 @@ public class UpgradeRecipe extends CustomRecipe {
 			  ? ElytraRequirement.deserialize(GsonHelper.getAsJsonObject(json, "requirement"))
 			  : ElytraRequirement.NONE;
 			final boolean lenient = GsonHelper.getAsBoolean(json, "lenient", true);
-			return new UpgradeRecipe(recipeId, ing, upgrades, req, lenient);
+			return new UpgradeRecipe(recipeId, category, ing, upgrades, req, lenient);
 		}
 		
 		@Nullable @Override public UpgradeRecipe fromNetwork(
 		  @NotNull ResourceLocation id, @NotNull FriendlyByteBuf buf
 		) {
 			return new UpgradeRecipe(id,
+			  buf.readEnum(CraftingBookCategory.class),
 			  readList(buf, ItemSelector::read),
 			  readList(buf, Upgrade::read),
 			  ElytraRequirement.read(buf),
@@ -332,6 +332,7 @@ public class UpgradeRecipe extends CustomRecipe {
 		@Override public void toNetwork(
 		  @NotNull FriendlyByteBuf buf, @NotNull UpgradeRecipe recipe
 		) {
+			buf.writeEnum(recipe.category());
 			writeList(recipe.ingredients, buf, ItemSelector::write);
 			writeList(recipe.upgrades, buf, Upgrade::write);
 			recipe.requirement.write(buf);

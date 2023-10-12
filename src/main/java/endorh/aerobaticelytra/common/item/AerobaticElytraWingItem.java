@@ -45,9 +45,9 @@ public class AerobaticElytraWingItem extends Item implements DyeableLeatherItem 
 	public AerobaticElytraWingItem() {
 		this(new Properties());
 	}
-	
+
 	public AerobaticElytraWingItem(Properties builder) {
-		super(builder.tab(CreativeModeTab.TAB_MISC));
+		super(builder);
 	}
 	
 	public static ItemStack createDebugWing() {

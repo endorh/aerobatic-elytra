@@ -14,8 +14,8 @@ import endorh.aerobaticelytra.integration.colytra.ClientColytraIntegration;
 import endorh.aerobaticelytra.integration.colytra.ColytraIntegration;
 import endorh.aerobaticelytra.integration.curios.CuriosIntegration;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.model.ModelManager;
 import net.minecraft.server.packs.resources.ReloadableResourceManager;
-import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
@@ -88,17 +88,19 @@ public class AerobaticElytraInit {
 	@OnlyIn(Dist.CLIENT)
 	public static class ClientRegistrar {
 		/**
-		 * Reload listeners must be registered before the {@link Minecraft} constructor
-		 * calls Minecraft#resourceManager#reloadResources.<br>
+		 * Texture atlases are injected during the {@link Minecraft} constructor, after the
+		 * {@link ModelManager} has been created.<br>
+		 * <br>
 		 * The best event for this is {@link RegisterParticleProvidersEvent},
 		 * even if unrelated to its intended usage
 		 */
 		@SubscribeEvent
 		public static void onMinecraftConstructed(RegisterParticleProvidersEvent event) {
-			final ResourceManager resourceManager = Minecraft.getInstance().getResourceManager();
-			if (resourceManager instanceof ReloadableResourceManager)
-				AerobaticElytra.BANNER_TEXTURE_MANAGER =
-				  new AerobaticElytraBannerTextureManager((ReloadableResourceManager) resourceManager);
+			Minecraft mc = Minecraft.getInstance();
+			AerobaticElytra.BANNER_TEXTURE_MANAGER = new AerobaticElytraBannerTextureManager(
+				mc.getTextureManager());
+			if (mc.getResourceManager() instanceof ReloadableResourceManager rm)
+            rm.registerReloadListener(AerobaticElytra.BANNER_TEXTURE_MANAGER);
 		}
 	}
 	

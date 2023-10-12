@@ -2,23 +2,12 @@ import net.minecraftforge.gradle.userdev.tasks.RenameJarInPlace
 import java.text.SimpleDateFormat
 import java.util.*
 
-buildscript {
-	repositories {
-		maven("https://files.minecraftforge.net/maven")
-		mavenCentral()
-	}
-	dependencies {
-		classpath("net.minecraftforge.gradle:ForgeGradle:5.1.+") {
-			isChanging = true
-		}
-	}
-}
-
 // Plugins
 plugins {
 	java
 	id("net.minecraftforge.gradle")
 	id("aerobaticelytra.minecraft-conventions")
+	id("org.parchmentmc.librarian.forgegradle") version "1.+"
 	`maven-publish`
 }
 
@@ -27,19 +16,39 @@ plugins {
 val modId = "aerobaticelytra"
 val modGroup = "endorh.aerobaticelytra"
 val githubRepo = "endorh/aerobatic-elytra"
-val modVersion = "1.1.0"
-val mcVersion = "1.19.2"
-val forge = "43.1.1"
-val forgeVersion = "$mcVersion-$forge"
-val mappingsChannel = "official"
-val mappingsVersion = "1.19.2"
 
-group = modGroup
-version = modVersion
+object V {
+	val mod = "1.1.0"
+	val minecraft = "1.19.3"
+	val parchment = "2023.06.25"
+	val forge = "44.1.0"
+	val minecraftForge = "$minecraft-$forge"
+	object mappings {
+		val channel = "parchment"
+		val version = "$parchment-$minecraft"
+	}
+
+	// Dependencies
+	val mixin = "0.8.2"
+	val minimalMixin = "0.7.10"
+	val flightCoreMinecraft = "1.19.4"
+	val flightCore = "1.0.+"
+	val simpleConfig = "1.0.+"
+	val lazuLib = "1.0.+"
+
+	// Integration
+	val jei = "12.4.0.22"
+	val curios = "1.19.3-5.1.4.1"
+	val caelus = "1.19.4-3.0.0.10"
+	val aerobaticElytraJetpack = "1.0.+"
+}
+
+// group = modGroup
+version = V.mod
 val groupSlashed = modGroup.replace(".", "/")
 val className = "AerobaticElytra"
-val modArtifactId = "$modId-$mcVersion"
-val modMavenArtifact = "$modGroup:$modArtifactId:$modVersion"
+val modArtifactId = "$modId-${V.minecraft}"
+val modMavenArtifact = "$modGroup:$modArtifactId:${V.mod}"
 
 // Attributes
 val displayName = "Aerobatic Elytra"
@@ -59,19 +68,6 @@ val modDescription = """
 // License
 val license = "LGPL"
 
-// Dependencies
-val mixinVersion = "0.8.2"
-val minimalMixinVersion = "0.7.10"
-val flightCoreVersion = "1.0.+"
-val simpleConfigVersion = "1.0.+"
-val lazuLibVersion = "1.0.+"
-
-// Integration
-val jeiVersion = "11.2.0.256"
-val curiosVersion = "1.19.2-5.1.1.0"
-val caelusVersion = "1.19.2-3.0.0.6"
-val aerobaticElytraJetpackVersion = "1.0.+"
-
 val jarAttributes = mapOf(
 	"Specification-Title"      to modId,
 	"Specification-Vendor"     to vendor,
@@ -86,10 +82,10 @@ val jarAttributes = mapOf(
 val modProperties = mapOf(
 	"modid"         to modId,
 	"display"       to displayName,
-	"version"       to modVersion,
-	"mcversion"     to mcVersion,
-	"mixinver"      to mixinVersion,
-	"minmixin"      to minimalMixinVersion,
+	"version"       to V.mod,
+	"mcversion"     to V.minecraft,
+	"mixinver"      to V.mixin,
+	"minmixin"      to V.minimalMixin,
 	"vendor"        to vendor,
 	"authors"       to authors,
 	"credits"       to credits,
@@ -128,12 +124,13 @@ println(
 	+ " JVM: " + System.getProperty("java.vm.version") + "(" + System.getProperty("java.vendor")
 	+ ") Arch: " + System.getProperty("os.arch"))
 
-println("Mod: \"$displayName\" ($modId), version: $mcVersion-$modVersion (Forge: $forge)")
+println("Mod: \"$displayName\" ($modId), version: ${V.minecraft}-${V.mod} (Forge: ${V.forge})")
 
 // Minecraft options -----------------------------------------------------------
 
 minecraft {
-	mappings(mappingsChannel, mappingsVersion)
+	mappings(V.mappings.channel, V.mappings.version)
+	accessTransformer("src/main/resources/META-INF/accesstransformer.cfg")
 	
 	// Run configurations
 	runs {
@@ -257,55 +254,55 @@ dependencies {
 	implementation("org.jetbrains:annotations:23.0.0")
 
 	// Minecraft
-    minecraft("net.minecraftforge:forge:$forgeVersion")
+    minecraft("net.minecraftforge:forge:${V.minecraftForge}")
 
 	// Mod dependencies
 	// Flight Core
-	implementation("endorh.flightcore:flightcore-$mcVersion:$flightCoreVersion:deobf")
+	implementation("endorh.flightcore:flightcore-${V.flightCoreMinecraft}:${V.flightCore}:deobf")
 
 	// Simple Config
-	compileOnly("endorh.simpleconfig:simpleconfig-$mcVersion:$simpleConfigVersion:api")
-	runtimeOnly(fg.deobf("endorh.simpleconfig:simpleconfig-$mcVersion:$simpleConfigVersion"))
+	compileOnly("endorh.simpleconfig:simpleconfig-${V.minecraft}:${V.simpleConfig}:api")
+	runtimeOnly(fg.deobf("endorh.simpleconfig:simpleconfig-${V.minecraft}:${V.simpleConfig}"))
 
 	// LazuLib
-	implementation(fg.deobf("endorh.util.lazulib:lazulib-$mcVersion:$lazuLibVersion"))
+	implementation(fg.deobf("endorh.util.lazulib:lazulib-${V.minecraft}:${V.lazuLib}"))
 	
 	// Mod integrations --------------------------------------------------------
 	// JEI
-	compileOnly(fg.deobf("mezz.jei:jei-$mcVersion-common-api:$jeiVersion"))
-	compileOnly(fg.deobf("mezz.jei:jei-$mcVersion-forge-api:$jeiVersion"))
-	runtimeOnly(fg.deobf("mezz.jei:jei-$mcVersion-forge:$jeiVersion"))
+	compileOnly(fg.deobf("mezz.jei:jei-${V.minecraft}-common-api:${V.jei}"))
+	compileOnly(fg.deobf("mezz.jei:jei-${V.minecraft}-forge-api:${V.jei}"))
+	runtimeOnly(fg.deobf("mezz.jei:jei-${V.minecraft}-forge:${V.jei}"))
 
 	// Curios API
-	compileOnly(fg.deobf("top.theillusivec4.curios:curios-forge:$curiosVersion:api"))
-	runtimeOnly(fg.deobf("top.theillusivec4.curios:curios-forge:$curiosVersion"))
+	compileOnly(fg.deobf("top.theillusivec4.curios:curios-forge:${V.curios}:api"))
+	runtimeOnly(fg.deobf("top.theillusivec4.curios:curios-forge:${V.curios}"))
 
 	// Caelus API
-	compileOnly(fg.deobf("top.theillusivec4.caelus:caelus-forge:$caelusVersion:api"))
-	runtimeOnly(fg.deobf("top.theillusivec4.caelus:caelus-forge:$caelusVersion"))
+	compileOnly(fg.deobf("top.theillusivec4.caelus:caelus-forge:${V.caelus}:api"))
+	runtimeOnly(fg.deobf("top.theillusivec4.caelus:caelus-forge:${V.caelus}"))
 
 	// Used for debug ----------------------------------------------------------
 	// Aerobatic Elytra Jetpack
-	runtimeOnly(fg.deobf("endorh.aerobaticelytra.jetpack:aerobaticelytrajetpack-$mcVersion:$aerobaticElytraJetpackVersion"))
+	// runtimeOnly(fg.deobf("endorh.aerobaticelytra.jetpack:aerobaticelytrajetpack-$mcVersion:$aerobaticElytraJetpackVersion"))
 
 	// Elytra Slot
-	runtimeOnly(fg.deobf("curse.maven:elytra-slot-317716:3929276"))
+	runtimeOnly(fg.deobf("curse.maven:elytra-slot-317716:4435060"))
 
 	// Colytra
-	runtimeOnly(fg.deobf("curse.maven:colytra-280200:3930087"))
+	// runtimeOnly(fg.deobf("curse.maven:colytra-280200:4558349"))
 
 	// Customizable Elytra
-	runtimeOnly(fg.deobf("curse.maven:customizableelytra-440047:3940967"))
+	runtimeOnly(fg.deobf("curse.maven:customizableelytra-440047:4165212"))
 
 	// Additional Banners
-	runtimeOnly(fg.deobf("curse.maven:bookshelf-228525:3943020"))
-	runtimeOnly(fg.deobf("curse.maven:additionalbanners-230137:3943010"))
+	runtimeOnly(fg.deobf("curse.maven:bookshelf-228525:4438834"))
+	runtimeOnly(fg.deobf("curse.maven:additionalbanners-230137:4481346"))
 
 	// Xaero's World Map
-	runtimeOnly(fg.deobf("curse.maven:xaeros-worldmap-317780:3948206"))
+	runtimeOnly(fg.deobf("curse.maven:xaeros-worldmap-317780:4749570"))
 
 	// Xaero's Minimap (waypoint rendering doesn't account for camera roll)
-	// runtimeOnly(fg.deobf("curse.maven:xaeros-minimap-263420:3937637"))
+	// runtimeOnly(fg.deobf("curse.maven:xaeros-minimap-263420:4768137"))
 
 	// Immersive Portals (untestable in a deobfuscated environment, crashes without refmaps)
 	//   Portals with rotation override roll with a fixed animation that is sometimes in the wrong axis
@@ -313,11 +310,10 @@ dependencies {
 	// runtimeOnly(fg.deobf("curse.maven:immersive-portals-355440:unreleased"))
 
 	// Catalogue
-	runtimeOnly(fg.deobf("curse.maven:catalogue-459701:3873264"))
+	runtimeOnly(fg.deobf("curse.maven:catalogue-459701:4171025"))
 	
 	// Distant Horizons
-	// runtimeOnly(fg.deobf("curse.maven:distant-horizons-508933:3874597")) // 1.19
-	// runtimeOnly(fg.deobf("curse.maven:distant-horizons-508933:3923597")) // 1.19.2
+	// runtimeOnly(fg.deobf("curse.maven:distant-horizons-508933:4278698"))
 }
 
 // Tasks -----------------------------------------------------------------------
@@ -441,8 +437,8 @@ publishing {
 	
 	publications {
 		register<MavenPublication>("mod") {
-			artifactId = "$modId-$mcVersion"
-			version = modVersion
+			artifactId = "$modId-${V.minecraft}"
+			version = V.mod
 			
 			artifact(tasks.jar.get())
 			artifact(sourcesJarTask)

@@ -15,6 +15,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.ShapedRecipe;
@@ -37,12 +38,12 @@ public class AbilityNBTInheritingShapedRecipe extends NBTInheritingShapedRecipe 
 	public final Map<String, Float> unknown;
 	
 	public AbilityNBTInheritingShapedRecipe(
-	  ResourceLocation id, String group, int width, int height,
-	  NonNullList<int[]> nbtSourcesIn, NonNullList<Ingredient> items,
-	  ItemStack output, CompoundTag outputTagIn,
-	  Map<IAbility, Float> upgradesIn, Map<String, Float> unknownIn
+		ResourceLocation id, String group, CraftingBookCategory category,
+		int width, int height, NonNullList<int[]> nbtSourcesIn,
+		NonNullList<Ingredient> items, ItemStack output, CompoundTag outputTagIn,
+		Map<IAbility, Float> upgradesIn, Map<String, Float> unknownIn
 	) {
-		super(id, group, width, height, nbtSourcesIn, items, output, outputTagIn);
+		super(id, group, category, width, height, nbtSourcesIn, items, output, outputTagIn);
 		abilities = upgradesIn;
 		unknown = unknownIn;
 	}
@@ -64,6 +65,8 @@ public class AbilityNBTInheritingShapedRecipe extends NBTInheritingShapedRecipe 
 		  @NotNull ResourceLocation recipeId, @NotNull JsonObject json
 		) {
 			String group = GsonHelper.getAsString(json, "group", "");
+			CraftingBookCategory category = CraftingBookCategory.CODEC.byName(
+			  GsonHelper.getAsString(json, "category", null), CraftingBookCategory.MISC);
 			boolean allowUnknown = GsonHelper.getAsBoolean(json, "allow_unknown_items", false);
 			Map<String, Ingredient> map = NBTInheritingShapedRecipe.Serializer
 			  .deserializeKey(GsonHelper.getAsJsonObject(json, "key"), allowUnknown);
@@ -85,7 +88,7 @@ public class AbilityNBTInheritingShapedRecipe extends NBTInheritingShapedRecipe 
 			);
 			
 			return new AbilityNBTInheritingShapedRecipe(
-			  recipeId, group, w, h, nbtSources, list, output, outputTag,
+			  recipeId, group, category, w, h, nbtSources, list, output, outputTag,
 			  abilities.getLeft(), abilities.getRight());
 		}
 		
@@ -95,6 +98,7 @@ public class AbilityNBTInheritingShapedRecipe extends NBTInheritingShapedRecipe 
 			int w = buf.readVarInt();
 			int h = buf.readVarInt();
 			String group = buf.readUtf(32767);
+			CraftingBookCategory category = buf.readEnum(CraftingBookCategory.class);
 			NonNullList<Ingredient> list = NonNullList.withSize(w * h, Ingredient.EMPTY);
 			
 			list.replaceAll(ignored -> Ingredient.fromNetwork(buf));
@@ -114,7 +118,7 @@ public class AbilityNBTInheritingShapedRecipe extends NBTInheritingShapedRecipe 
 			  buf, FriendlyByteBuf::readUtf, FriendlyByteBuf::readFloat);
 			
 			return new AbilityNBTInheritingShapedRecipe(
-			  id, group, w, h, nbtSources, list, output, outputTag, upgrades, unknown);
+			  id, group, category, w, h, nbtSources, list, output, outputTag, upgrades, unknown);
 		}
 		
 		@Override public void toNetwork(
@@ -123,6 +127,7 @@ public class AbilityNBTInheritingShapedRecipe extends NBTInheritingShapedRecipe 
 			buf.writeVarInt(recipe.recipeWidth);
 			buf.writeVarInt(recipe.recipeHeight);
 			buf.writeUtf(recipe.getGroup());
+			buf.writeEnum(recipe.category());
 			
 			for (Ingredient ing: recipe.recipeItems)
 				ing.toNetwork(buf);

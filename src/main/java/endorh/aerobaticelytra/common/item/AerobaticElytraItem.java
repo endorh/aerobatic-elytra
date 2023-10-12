@@ -4,7 +4,6 @@ import com.mojang.datafixers.util.Pair;
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.config.ClientConfig;
 import endorh.aerobaticelytra.client.config.ClientConfig.style.visibility;
-import endorh.aerobaticelytra.client.item.AerobaticElytraBannerTextureManager;
 import endorh.aerobaticelytra.common.capability.ElytraSpecCapability;
 import endorh.aerobaticelytra.common.capability.ElytraSpecCapability.ElytraSpec;
 import endorh.aerobaticelytra.common.capability.IAerobaticData;
@@ -26,10 +25,9 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -47,14 +45,14 @@ import net.minecraft.world.level.block.entity.BannerPattern;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.fml.DistExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.Color;
-import java.util.*;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
-import static endorh.aerobaticelytra.AerobaticElytra.prefix;
 import static endorh.aerobaticelytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
 import static endorh.aerobaticelytra.common.capability.ElytraSpecCapability.getElytraSpec;
 import static endorh.aerobaticelytra.common.capability.ElytraSpecCapability.getElytraSpecOrDefault;
@@ -77,18 +75,6 @@ public class AerobaticElytraItem extends ElytraItem implements Wearable, Dyeable
 	public AerobaticElytraItem(Item.Properties builder) {
 		super(builder.durability(432 * 3).rarity(Rarity.RARE));
 		DispenserBlock.registerBehavior(this, ArmorItem.DISPENSE_ITEM_BEHAVIOR);
-	}
-	
-	private final Map<BannerPattern, Material> bannerMaterialCache = new HashMap<>();
-	
-	@Override public void fillItemCategory(
-	  @NotNull CreativeModeTab group, @NotNull NonNullList<ItemStack> items
-	) {
-		super.fillItemCategory(group, items);
-		if (group == CreativeModeTab.TAB_TRANSPORTATION || group == CreativeModeTab.TAB_SEARCH) {
-			DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () ->
-			  () -> fillItemGroup(group.getRecipeFolderName(), items));
-		}
 	}
 	
 	public void fillItemGroup(
@@ -335,7 +321,7 @@ public class AerobaticElytraItem extends ElytraItem implements Wearable, Dyeable
 	
 	// Capabilities handling
 	
-	// FIXME: Solve issue of CCreativeInventoryActionPacket not encoding ItemStack capabilities
+	// FIXME: Solve issue of ServerboundSetCreativeModeSlotPacket not encoding ItemStack capabilities
 	//        on writePacketData. Possibly requires changes to PacketBuffer#writeItemStack
 	//        and possibly PacketBuffer#readItemStack and IForgeItem.
 	//        Currently, item capabilities are reset on any Creative Inventory actions
@@ -353,7 +339,7 @@ public class AerobaticElytraItem extends ElytraItem implements Wearable, Dyeable
 		  (spec) -> shareTag.put("cap", ElytraSpecCapability.asNBT(spec)));
 		return shareTag;
 	}
-	
+
 	/**
 	 * Read capability and NBT from the shared tag
 	 */
@@ -365,8 +351,7 @@ public class AerobaticElytraItem extends ElytraItem implements Wearable, Dyeable
 				getElytraSpecOrDefault(stack).copy(
 				  ElytraSpecCapability.fromNBT(nbt.getCompound("cap")));
 			}
-		} else
-			stack.setTag(null);
+		} else stack.setTag(null);
 	}
 	
 	@Nullable @Override
@@ -406,16 +391,13 @@ public class AerobaticElytraItem extends ElytraItem implements Wearable, Dyeable
 	
 	public ResourceLocation getTextureLocation(BannerPattern pattern) {
 		return new ResourceLocation(
-		  AerobaticElytra.MOD_ID, "entity/aerobatic_elytra/" + Registry.BANNER_PATTERN.getResourceKey(pattern)
+		  AerobaticElytra.MOD_ID, "entity/aerobatic_elytra/" + BuiltInRegistries.BANNER_PATTERN.getResourceKey(pattern)
 		  .map(k -> k.location().getPath()).orElse("missing"));
 	}
-	
+
+	@OnlyIn(Dist.CLIENT)
 	public Material getBannerMaterial(BannerPattern pattern) {
-		return this.bannerMaterialCache.computeIfAbsent(pattern, p -> new Material(
-		  AerobaticElytraBannerTextureManager.LOCATION_AEROBATIC_ELYTRA_BANNER_ATLAS,
-		  Registry.BANNER_PATTERN.getResourceKey(pattern).map(
-			 path -> prefix("entity/aerobatic_elytra/" + path.location().getPath())
-		  ).orElse(MissingTextureAtlasSprite.getLocation())));
+		return AerobaticElytra.BANNER_TEXTURE_MANAGER.getBannerMaterial(pattern);
 	}
 	
 	@OnlyIn(Dist.CLIENT)
@@ -498,7 +480,7 @@ public class AerobaticElytraItem extends ElytraItem implements Wearable, Dyeable
 				tooltip.add(
 				  stc(extraIndent).append(
 					 ttc("block.minecraft.banner."
-					     + Registry.BANNER_PATTERN.getResourceKey(pattern)
+					     + BuiltInRegistries.BANNER_PATTERN.getResourceKey(pattern)
 					       .map(k -> k.location().getPath()).orElse("missing") + '.'
 					     + color.getName())
 						.withStyle(ChatFormatting.GRAY)

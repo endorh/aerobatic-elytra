@@ -7,6 +7,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -35,8 +36,8 @@ public class RepairRecipe extends CustomRecipe {
 	public final Ingredient ingredient;
 	public final int amount; // Currently unused
 	
-	public RepairRecipe(ResourceLocation idIn, Ingredient ingredient, int amount) {
-		super(idIn);
+	public RepairRecipe(ResourceLocation id, CraftingBookCategory category, Ingredient ingredient, int amount) {
+		super(id, category);
 		this.ingredient = ingredient;
 		this.amount = amount;
 	}
@@ -63,16 +64,18 @@ public class RepairRecipe extends CustomRecipe {
 		@Override public @NotNull RepairRecipe fromJson(
 		  @NotNull ResourceLocation recipeId, @NotNull JsonObject json
 		) {
+			CraftingBookCategory category = CraftingBookCategory.CODEC.byName(
+			  GsonHelper.getAsString(json, "category", null), CraftingBookCategory.MISC);
 			final Ingredient ingredient = Ingredient.fromJson(
 			  GsonHelper.getAsJsonObject(json, "ingredient"));
 			final int amount = GsonHelper.getAsInt(json, "amount", 0); // Unused
-			return new RepairRecipe(recipeId, ingredient, amount);
+			return new RepairRecipe(recipeId, category, ingredient, amount);
 		}
 		
 		@Nullable @Override public RepairRecipe fromNetwork(
 		  @NotNull ResourceLocation recipeId, @NotNull FriendlyByteBuf buf
 		) {
-			return new RepairRecipe(recipeId, Ingredient.fromNetwork(buf), buf.readVarInt());
+			return new RepairRecipe(recipeId, buf.readEnum(CraftingBookCategory.class), Ingredient.fromNetwork(buf), buf.readVarInt());
 		}
 		
 		@Override public void toNetwork(

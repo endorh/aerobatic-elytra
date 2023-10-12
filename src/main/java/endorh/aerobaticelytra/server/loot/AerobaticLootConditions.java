@@ -2,6 +2,7 @@ package endorh.aerobaticelytra.server.loot;
 
 import endorh.aerobaticelytra.AerobaticElytra;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.storage.loot.Serializer;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.minecraft.world.level.storage.loot.predicates.LootItemConditionType;
@@ -34,7 +35,7 @@ public class AerobaticLootConditions {
 	  String name, Serializer<? extends LootItemCondition> serializer
 	) {
 		return Registry.register(
-		  Registry.LOOT_CONDITION_TYPE, AerobaticElytra.prefix(name),
+		  BuiltInRegistries.LOOT_CONDITION_TYPE, AerobaticElytra.prefix(name),
 		  new LootItemConditionType(serializer));
 	}
 }

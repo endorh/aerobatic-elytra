@@ -181,7 +181,7 @@ public class AerobaticElytraLayer<T extends LivingEntity, M extends EntityModel<
 			float[] color = pair.getSecond().getTextureDiffuseColors();
 			Material material = item.getBannerMaterial(pair.getFirst());
 			// Unknown patterns are omitted
-			if (material.sprite().getName() != MissingTextureAtlasSprite.getLocation()) modelElytra.renderWing(
+			if (material.texture() != MissingTextureAtlasSprite.getLocation()) modelElytra.renderWing(
 			  side, mStack, material.buffer(buffer, RenderType::entityTranslucent),
 			  packedLight, OverlayTexture.NO_OVERLAY, color[0], color[1], color[2], 1F);
 		}

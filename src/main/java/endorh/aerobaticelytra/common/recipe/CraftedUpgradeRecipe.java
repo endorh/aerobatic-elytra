@@ -3,6 +3,7 @@ package endorh.aerobaticelytra.common.recipe;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
@@ -21,8 +22,8 @@ import static endorh.aerobaticelytra.common.AerobaticElytraLogic.isAerobaticElyt
 public class CraftedUpgradeRecipe extends CustomRecipe {
 	private Collection<UpgradeRecipe> recipes = new ArrayList<>();
 	
-	public CraftedUpgradeRecipe(ResourceLocation idIn) {
-		super(idIn);
+	public CraftedUpgradeRecipe(ResourceLocation id, CraftingBookCategory category) {
+		super(id, category);
 	}
 	
 	/**

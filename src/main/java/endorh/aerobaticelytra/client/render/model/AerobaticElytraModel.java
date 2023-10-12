@@ -3,7 +3,7 @@ package endorh.aerobaticelytra.client.render.model;
 import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.render.layer.AerobaticRenderData;
 import endorh.aerobaticelytra.common.capability.IFlightData;
@@ -266,11 +266,11 @@ public class AerobaticElytraModel<T extends LivingEntity> extends ElytraModel<T>
     
     protected void prepareRender(PoseStack mStack) {
         if (bodyRotation.z != 0.0F)
-            mStack.mulPose(Vector3f.ZP.rotation(bodyRotation.z));
+            mStack.mulPose(Axis.ZP.rotation(bodyRotation.z));
         if (bodyRotation.y != 0.0F)
-            mStack.mulPose(Vector3f.YP.rotation(bodyRotation.y));
+            mStack.mulPose(Axis.YP.rotation(bodyRotation.y));
         if (bodyRotation.x != 0.0F)
-            mStack.mulPose(Vector3f.XP.rotation(bodyRotation.x));
+            mStack.mulPose(Axis.XP.rotation(bodyRotation.x));
     }
     
     @NotNull @Override

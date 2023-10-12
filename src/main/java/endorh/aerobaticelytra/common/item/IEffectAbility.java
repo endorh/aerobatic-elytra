@@ -103,14 +103,14 @@ public interface IEffectAbility extends IDatapackAbility {
 					}
 					final MobEffectInstance instance =
 					  new MobEffectInstance(effect, 0, level, true, false, false);
-					instance.setNoCounter(true);
+					// instance.setNoCounter(true);
 					player.addEffect(
 					  instance); // This updates `active` with `instance`s values and queues a copy of `active` in its hiddenEffects values, thus, the next line
 					EffectInstance$duration.set(active, Integer.MAX_VALUE);
 				} else {
 					final MobEffectInstance instance =
 					  new MobEffectInstance(effect, Integer.MAX_VALUE, level, true, false, false);
-					instance.setNoCounter(true);
+					// instance.setNoCounter(true);
 					player.addEffect(instance);
 				}
 			}

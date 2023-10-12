@@ -6,7 +6,8 @@ import endorh.util.nbt.NBTPredicate;
 import endorh.util.nbt.NBTPredicate.NBTPredicateParseException;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -93,7 +94,7 @@ public class ItemSelector implements Predicate<ItemStack> {
 	public ItemSelector(List<ResourceLocation> tags, @Nullable NBTPredicate nbtPredicate) {
 		this.item = null;
 		this.tags = tags.stream().collect(Collectors.toMap(
-		  r -> TagKey.create(Registry.ITEM_REGISTRY, r), r -> r));
+		  r -> TagKey.create(Registries.ITEM, r), r -> r));
 		this.nbtPredicate = nbtPredicate;
 	}
 	
@@ -108,7 +109,7 @@ public class ItemSelector implements Predicate<ItemStack> {
 			return item.equals(stack.getItem());
 		} else if (tags != null) {
 			for (TagKey<Item> tag: tags.keySet())
-				for (Holder<Item> holder: Registry.ITEM.getTagOrEmpty(tag))
+				for (Holder<Item> holder: BuiltInRegistries.ITEM.getTagOrEmpty(tag))
 					if (holder.isBound() && holder.value().equals(stack.getItem()))
 						return true;
 			return false;
@@ -177,7 +178,7 @@ public class ItemSelector implements Predicate<ItemStack> {
 		if (tags != null && !tags.isEmpty()) {
 			List<Item> list = new ArrayList<>();
 			for (TagKey<Item> tag: tags.keySet()) {
-				for (Holder<Item> h: Registry.ITEM.getTagOrEmpty(tag))
+				for (Holder<Item> h: BuiltInRegistries.ITEM.getTagOrEmpty(tag))
 					if (h.isBound()) list.add(h.value());
 			}
 			return Ingredient.of(list.toArray(Item[]::new));

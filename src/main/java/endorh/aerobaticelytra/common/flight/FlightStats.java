@@ -2,6 +2,7 @@ package endorh.aerobaticelytra.common.flight;
 
 import endorh.aerobaticelytra.AerobaticElytra;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.stats.StatFormatter;
 import net.minecraft.stats.Stats;
@@ -35,7 +36,7 @@ public class FlightStats {
 	  String key, StatFormatter formatter
 	) {
 		ResourceLocation location = prefix(key);
-		Registry.register(Registry.CUSTOM_STAT, key, location);
+		Registry.register(BuiltInRegistries.CUSTOM_STAT, key, location);
 		Stats.CUSTOM.get(location, formatter);
 		return location;
 	}

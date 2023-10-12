@@ -3,6 +3,7 @@ package endorh.aerobaticelytra.common.block.entity;
 import endorh.aerobaticelytra.client.block.BrokenLeavesBlockModel;
 import endorh.aerobaticelytra.common.block.BrokenLeavesBlock;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.Connection;
@@ -36,11 +37,11 @@ public class BrokenLeavesBlockEntity extends BlockEntity {
 	
 	@Override public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
 		super.onDataPacket(net, pkt);
+		assert level != null;
 		CompoundTag updateNBT = pkt.getTag();
 		if (updateNBT != null && updateNBT.contains(TAG_REPLACED_LEAVES))
-			setReplacedLeaves(NbtUtils.readBlockState(updateNBT.getCompound(TAG_REPLACED_LEAVES)));
+			setReplacedLeaves(NbtUtils.readBlockState(level.holderLookup(Registries.BLOCK), updateNBT.getCompound(TAG_REPLACED_LEAVES)));
 		final BlockState state = getBlockState();
-		assert level != null;
 		level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_ALL_IMMEDIATE);
 	}
 	
@@ -54,13 +55,17 @@ public class BrokenLeavesBlockEntity extends BlockEntity {
 	
 	@Override public void handleUpdateTag(CompoundTag tag) {
 		super.handleUpdateTag(tag);
+		assert level != null;
 		if (tag.contains(TAG_REPLACED_LEAVES))
-			setReplacedLeaves(NbtUtils.readBlockState(tag.getCompound(TAG_REPLACED_LEAVES)));
+			setReplacedLeaves(NbtUtils.readBlockState(
+				level.holderLookup(Registries.BLOCK), tag.getCompound(TAG_REPLACED_LEAVES)));
 	}
 	
 	public BlockState getReplacedLeaves() {
+		assert level != null;
 		if (replacedLeaves == null) setReplacedLeaves(NbtUtils.readBlockState(
-		  getPersistentData().getCompound(TAG_REPLACED_LEAVES)));
+			level.holderLookup(Registries.BLOCK),
+			getPersistentData().getCompound(TAG_REPLACED_LEAVES)));
 		return replacedLeaves;
 	}
 	

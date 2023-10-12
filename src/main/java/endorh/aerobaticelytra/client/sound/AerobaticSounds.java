@@ -33,7 +33,7 @@ public class AerobaticSounds {
 	}
 	
 	public static SoundEvent reg(RegisterHelper<SoundEvent> registry, ResourceLocation name) {
-		SoundEvent event = new SoundEvent(name);
+		SoundEvent event = SoundEvent.createVariableRangeEvent(name);
 		registry.register(name, event);
 		return event;
 	}

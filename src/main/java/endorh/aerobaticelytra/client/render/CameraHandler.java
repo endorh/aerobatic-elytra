@@ -1,7 +1,7 @@
 package endorh.aerobaticelytra.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.config.ClientConfig.style.visual;
 import endorh.aerobaticelytra.common.capability.IAerobaticData;
@@ -88,9 +88,9 @@ public class CameraHandler {
 				  data.getTiltYaw() / Config.aerobatic.tilt.range_yaw * -1.5F);
 			}
 			final PoseStack mStack = event.getPoseStack();
-			mStack.mulPose(Vector3f.XP.rotationDegrees(lastPitchOffset));
-			mStack.mulPose(Vector3f.YP.rotationDegrees(lastYawOffset));
-			mStack.mulPose(Vector3f.ZP.rotationDegrees(lastRollOffset));
+			mStack.mulPose(Axis.XP.rotationDegrees(lastPitchOffset));
+			mStack.mulPose(Axis.YP.rotationDegrees(lastYawOffset));
+			mStack.mulPose(Axis.ZP.rotationDegrees(lastRollOffset));
 		} else if (cameraOffset) {
 			cameraOffset = false;
 			lastPitchOffset = lastRollOffset = lastYawOffset = 0F;

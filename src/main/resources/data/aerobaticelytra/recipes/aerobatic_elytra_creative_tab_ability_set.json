@@ -1,0 +1,32 @@
+{
+  "type": "aerobaticelytra:creative_tab_ability_set",
+    "_comment0": "Adds different versions of an item to the creative menu",
+    "_comment1": "A specific tab may be specified as the 'group' (see below)",
+    "_comment2": "The same item can be registered multiple times with different abilities",
+
+    "_comment3": "Order in which the items are added to the creative tab. Cannot be used to place items before built-in ones.",
+  "order": 0,
+
+    "_comment4": "The wing must be registered on its own (see `aerobatic_elytra_creative_tab_wing_ability_set.json`)",
+  "item": "aerobaticelytra:aerobatic_elytra",
+    "_comment5": "Creative tabs are identified by their translation keys. The default ones are:",
+    "_comment6": "  'buildingBlocks', 'coloredBlocks', 'natural', 'functional', 'redstone', 'hotbar', 'search', ",
+    "_comment7": "  'search', 'tools', 'combat', 'foodAndDrink', 'ingredients', 'spawnEggs' and 'op'",
+  "group": "tools",
+    "_comment8": "Where the item should appear. Possible values: ['parent_and_search_tabs', 'parent_tab_only', 'search_tab_only']",
+    "_comment9": "By default is 'parent_and_search_tabs'",
+  "visibility": "parent_and_search_tabs",
+
+    "_comment10": "Aerobatic Elytra abilities for the item",
+  "abilities": {
+    "Fuel": 256,
+    "MaxFuel": 256,
+    "Speed": 1,
+    "Aquatic": 1,
+    "Jetpack": 1,
+    "Hover": 1
+  },
+
+    "_comment11": "Optional NBT tag for the item, in JSON NBT format. Can be used to set color/banner patterns and trail.",
+  "tag": {}
+}

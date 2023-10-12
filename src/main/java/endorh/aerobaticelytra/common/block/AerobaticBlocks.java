@@ -45,7 +45,7 @@ public class AerobaticBlocks {
 	
 	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent
-	public static void onModelBake(ModelEvent.BakingCompleted event) {
+	public static void onModelBake(ModelEvent.ModifyBakingResult event) {
 		final Map<ResourceLocation, BakedModel> reg = event.getModels();
 		for (BlockState bs: BROKEN_LEAVES.getStateDefinition().getPossibleStates()) {
 			ModelResourceLocation variantMRL = BlockModelShaper.stateToModelLocation(bs);

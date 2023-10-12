@@ -18,7 +18,7 @@ import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.ingredients.IIngredientType;
 import mezz.jei.api.recipe.IFocus;
 import net.minecraft.Util;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.DyeColor;
@@ -94,7 +94,7 @@ public class AerobaticElytraJeiHelper {
 	}
 	
 	public static BannerPattern nextPattern() {
-		return Registry.BANNER_PATTERN.getRandom(RANDOM).orElseThrow(
+		return BuiltInRegistries.BANNER_PATTERN.getRandom(RANDOM).orElseThrow(
 		  () -> new IllegalStateException("No banner patterns registered")).get();
 	}
 	
