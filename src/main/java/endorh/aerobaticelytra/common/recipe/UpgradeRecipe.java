@@ -9,6 +9,7 @@ import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.registry.AerobaticElytraRegistries;
 import endorh.util.recipe.RecipeManagerHelper.CachedRecipeProvider;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
@@ -268,7 +269,7 @@ public class UpgradeRecipe extends CustomRecipe {
 	@Deprecated @Override public boolean matches(@NotNull CraftingContainer inv, @NotNull Level worldIn) {
 		return false;
 	}
-	@Deprecated @NotNull @Override public ItemStack assemble(@NotNull CraftingContainer inv) {
+	@Deprecated @NotNull @Override public ItemStack assemble(@NotNull CraftingContainer inv, @NotNull RegistryAccess r) {
 		return ItemStack.EMPTY;
 	}
 	
@@ -292,7 +293,7 @@ public class UpgradeRecipe extends CustomRecipe {
 	}
 	
 	@Override
-	public @NotNull ItemStack getResultItem() {
+	public @NotNull ItemStack getResultItem(@NotNull RegistryAccess r) {
 		return new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA);
 	}
 	

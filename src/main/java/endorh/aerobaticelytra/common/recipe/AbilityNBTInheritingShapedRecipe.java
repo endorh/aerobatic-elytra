@@ -9,6 +9,7 @@ import endorh.aerobaticelytra.common.item.IAbility;
 import endorh.util.network.PacketBufferUtil;
 import endorh.util.recipe.NBTInheritingShapedRecipe;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -49,8 +50,8 @@ public class AbilityNBTInheritingShapedRecipe extends NBTInheritingShapedRecipe 
 	}
 	
 	@NotNull @Override
-	public ItemStack assemble(@NotNull CraftingContainer inv) {
-		ItemStack result = super.assemble(inv);
+	public ItemStack assemble(@NotNull CraftingContainer inv, @NotNull RegistryAccess r) {
+		ItemStack result = super.assemble(inv, r);
 		final IElytraSpec spec = getElytraSpecOrDefault(result);
 		spec.setAbilities(abilities);
 		spec.getUnknownAbilities().clear();
@@ -132,7 +133,7 @@ public class AbilityNBTInheritingShapedRecipe extends NBTInheritingShapedRecipe 
 			for (Ingredient ing: recipe.recipeItems)
 				ing.toNetwork(buf);
 			
-			buf.writeItem(recipe.getResultItem());
+			buf.writeItem(recipe.result);
 			
 			buf.writeVarInt(recipe.nbtSources.size());
 			for (int[] nbtSource: recipe.nbtSources)

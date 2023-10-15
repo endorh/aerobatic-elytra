@@ -5,6 +5,7 @@ import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
 import endorh.aerobaticelytra.common.item.AerobaticElytraWingItem;
 import endorh.aerobaticelytra.common.item.ElytraDyement;
 import endorh.aerobaticelytra.common.item.ElytraDyement.WingSide;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
@@ -59,7 +60,7 @@ public class JoinRecipe extends CustomRecipe {
 	}
 	
 	@Override
-	public @NotNull ItemStack assemble(@NotNull CraftingContainer inv) {
+	public @NotNull ItemStack assemble(@NotNull CraftingContainer inv, @NotNull RegistryAccess r) {
 		ItemStack left = ItemStack.EMPTY, right = ItemStack.EMPTY;
 		for (int i = 0; i < inv.getContainerSize(); i++) {
 			ItemStack current = inv.getItem(i);

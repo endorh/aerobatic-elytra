@@ -1,5 +1,6 @@
 package endorh.aerobaticelytra.common.recipe;
 
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
@@ -59,7 +60,7 @@ public class CraftedUpgradeRecipe extends CustomRecipe {
 	}
 	
 	@Override public @NotNull ItemStack assemble(
-	  @NotNull CraftingContainer inv
+		@NotNull CraftingContainer inv, @NotNull RegistryAccess r
 	) {
 		ItemStack upgrade = ItemStack.EMPTY, elytra = ItemStack.EMPTY;
 		for (int i = 0; i < inv.getContainerSize(); i++) {
@@ -74,7 +75,7 @@ public class CraftedUpgradeRecipe extends CustomRecipe {
 		final ItemStack upgradeStack = upgrade.copy();
 		upgradeStack.setCount(1);
 		return UpgradeRecipe.apply(elytra, upgradeStack, recipes.stream().filter(
-		  r -> r.matches(elytraStack, upgradeStack)
+		  u -> u.matches(elytraStack, upgradeStack)
 		).collect(Collectors.toList()));
 	}
 	

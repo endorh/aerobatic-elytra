@@ -62,11 +62,11 @@ public class AerobaticElytraParticles {
 	public static class ClientRegistrar {
 		@SubscribeEvent
 		public static void onParticleFactoryRegistration(RegisterParticleProvidersEvent e) {
-			e.register(TRAIL_PARTICLE, TrailParticle.Factory::new);
-			e.register(STAR_TRAIL_PARTICLE, TrailParticle.Factory::new);
-			e.register(CREEPER_TRAIL_PARTICLE, TrailParticle.Factory::new);
-			e.register(BURST_TRAIL_PARTICLE, TrailParticle.Factory::new);
-			e.register(BUBBLE_TRAIL_PARTICLE, TrailParticle.Factory::new);
+			e.registerSpriteSet(TRAIL_PARTICLE, TrailParticle.Factory::new);
+			e.registerSpriteSet(STAR_TRAIL_PARTICLE, TrailParticle.Factory::new);
+			e.registerSpriteSet(CREEPER_TRAIL_PARTICLE, TrailParticle.Factory::new);
+			e.registerSpriteSet(BURST_TRAIL_PARTICLE, TrailParticle.Factory::new);
+			e.registerSpriteSet(BUBBLE_TRAIL_PARTICLE, TrailParticle.Factory::new);
 			
 			AerobaticElytra.logRegistered("Particle Factories");
 		}

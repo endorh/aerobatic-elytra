@@ -2,6 +2,7 @@ package endorh.aerobaticelytra.common.recipe;
 
 import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
 import endorh.aerobaticelytra.common.item.AerobaticElytraWingItem;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
@@ -48,7 +49,7 @@ public class BannerRecipe extends CustomRecipe {
 	}
 	
 	@NotNull @Override
-	public ItemStack assemble(CraftingContainer inv) {
+	public ItemStack assemble(CraftingContainer inv, @NotNull RegistryAccess r) {
 		ItemStack elytra = ItemStack.EMPTY;
 		ItemStack banner = ItemStack.EMPTY;
 		

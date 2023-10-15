@@ -6,6 +6,7 @@ import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.item.ElytraDyement.WingSide;
 import endorh.util.network.PacketBufferUtil;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
@@ -124,7 +125,7 @@ public class SplitRecipe extends CustomRecipe {
 	
 	@Override
 	public @NotNull ItemStack assemble(
-	  @NotNull CraftingContainer inv
+		@NotNull CraftingContainer inv, @NotNull RegistryAccess r
 	) {
 		ItemStack elytra = ItemStack.EMPTY;
 		for (int i = 0; i < inv.getContainerSize(); i++) {

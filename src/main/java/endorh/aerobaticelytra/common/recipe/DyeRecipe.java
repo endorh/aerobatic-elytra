@@ -7,6 +7,7 @@ import endorh.aerobaticelytra.common.item.ElytraDyement;
 import endorh.aerobaticelytra.common.item.ElytraDyement.WingDyement;
 import endorh.aerobaticelytra.common.item.ElytraDyement.WingSide;
 import endorh.util.common.ColorUtil;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.*;
@@ -53,7 +54,7 @@ public class DyeRecipe extends CustomRecipe {
 	}
 	
 	@NotNull @Override
-	public ItemStack assemble(CraftingContainer inv) {
+	public ItemStack assemble(CraftingContainer inv, @NotNull RegistryAccess r) {
 		ItemStack elytra = ItemStack.EMPTY;
 		List<DyeItem> dyeList = new ArrayList<>();
 		

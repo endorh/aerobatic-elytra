@@ -14,7 +14,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -113,7 +112,7 @@ public class AerobaticCollision {
 			  : SoundEvents.PLAYER_SMALL_FALL,
 			  1F, 1F);
 			player.hurt(
-			  DamageSource.FLY_INTO_WALL,
+				player.damageSources().flyIntoWall(),
 			  damageModifier * collisionStrength * Config.collision.damage);
 		}
 		

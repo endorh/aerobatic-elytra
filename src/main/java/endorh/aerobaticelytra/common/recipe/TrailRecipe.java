@@ -6,6 +6,7 @@ import endorh.aerobaticelytra.common.capability.ElytraSpecCapability;
 import endorh.aerobaticelytra.common.capability.IElytraSpec;
 import endorh.aerobaticelytra.common.capability.IElytraSpec.RocketStar;
 import endorh.aerobaticelytra.common.capability.IElytraSpec.TrailData;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
@@ -47,8 +48,7 @@ public class TrailRecipe extends CustomRecipe {
 				return false;
 			else rockets++;
 		}
-		if (elytra == null)
-			return false;
+		if (elytra == null || rockets == 0) return false;
 		int w = inv.getWidth();
 		int h = inv.getHeight();
 		int i = e / w;
@@ -75,7 +75,7 @@ public class TrailRecipe extends CustomRecipe {
 	}
 	
 	@NotNull @Override
-	public ItemStack assemble(@NotNull CraftingContainer inv) {
+	public ItemStack assemble(@NotNull CraftingContainer inv, @NotNull RegistryAccess r) {
 		ItemStack elytra = ItemStack.EMPTY;
 		int k;
 		for (k = 0; k < inv.getContainerSize(); k++) {
@@ -95,7 +95,6 @@ public class TrailRecipe extends CustomRecipe {
 		int j = k % w;
 		
 		ItemStack[] rockets = {ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY};
-		RocketSide[] sides = RocketSide.values();
 		
 		if (j > 0) {
 			rockets[0] = inv.getItem(k - 1);

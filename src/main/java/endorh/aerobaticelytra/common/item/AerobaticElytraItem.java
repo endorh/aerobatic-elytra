@@ -63,7 +63,7 @@ import static endorh.util.text.TextUtil.ttc;
 import static endorh.util.text.TooltipUtil.shiftToExpand;
 import static java.lang.Math.*;
 
-public class AerobaticElytraItem extends ElytraItem implements Wearable, DyeableLeatherItem {
+public class AerobaticElytraItem extends ElytraItem implements Equipable, DyeableLeatherItem {
 	public static final String NAME = "aerobatic_elytra";
 	
 	public static int DEFAULT_COLOR = 0x8F9EAE;

@@ -10,7 +10,6 @@ import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.IFocusGroup;
-import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.registration.IRecipeRegistration;
 import net.minecraft.network.chat.Component;
@@ -24,6 +23,8 @@ import java.util.stream.Collectors;
 
 import static endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiHelper.getAerobaticElytrasMatchingFocus;
 import static endorh.util.text.TextUtil.splitTtc;
+import static mezz.jei.api.recipe.RecipeIngredientRole.INPUT;
+import static mezz.jei.api.recipe.RecipeIngredientRole.OUTPUT;
 
 public class UpgradeRecipeCategory extends BaseCategory<UpgradeRecipe> {
 	public static final RecipeType<UpgradeRecipe> TYPE = RecipeType.create(AerobaticElytra.MOD_ID, "upgrade", UpgradeRecipe.class);
@@ -36,19 +37,16 @@ public class UpgradeRecipeCategory extends BaseCategory<UpgradeRecipe> {
 		List<Ingredient> ingredients = new ArrayList<>(recipe.getIngredients());
 		List<ItemStack> inputs = ingredients.stream().flatMap(i -> Arrays.stream(i.getItems())).toList();
 		ingredients.add(Ingredient.of(AerobaticElytraItems.AEROBATIC_ELYTRA));
-		ItemStack output = recipe.getResultItem();
 		List<ItemStack> elytras = getAerobaticElytrasMatchingFocus(focuses.getFocuses(VanillaTypes.ITEM_STACK));
+		ItemStack output = recipe.getResult(elytras.stream().findFirst().orElseGet(() -> new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA)));
 		List<ItemStack> items = setTag(recipe, getItemMatchingFocus(
 		  focuses.getFocuses(VanillaTypes.ITEM_STACK),
-		  RecipeIngredientRole.OUTPUT, Collections.singletonList(output), inputs));
+		  OUTPUT, Collections.singletonList(output), inputs));
 		for (int i = 0; elytras.size() < items.size(); i++) elytras.add(elytras.get(i));
 		for (int i = 0; items.size() < elytras.size(); i++) items.add(items.get(i));
-		builder.addSlot(RecipeIngredientRole.INPUT, 20, 0)
-		  .addItemStacks(elytras);
-		builder.addSlot(RecipeIngredientRole.INPUT, 69, 0)
-		  .addItemStacks(items);
-		builder.addSlot(RecipeIngredientRole.OUTPUT, 117, 0)
-		  .addItemStacks(apply(recipe, elytras, items));
+		builder.addSlot(INPUT, 20, 0).addItemStacks(elytras);
+		builder.addSlot(INPUT, 69, 0).addItemStacks(items);
+		builder.addSlot(OUTPUT, 117, 0).addItemStacks(apply(recipe, elytras, items));
 	}
 	
 	protected List<ItemStack> apply(

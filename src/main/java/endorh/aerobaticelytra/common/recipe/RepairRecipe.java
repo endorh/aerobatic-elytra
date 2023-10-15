@@ -1,6 +1,7 @@
 package endorh.aerobaticelytra.common.recipe;
 
 import com.google.gson.JsonObject;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -49,7 +50,7 @@ public class RepairRecipe extends CustomRecipe {
 	@Override public boolean matches(@NotNull CraftingContainer inv, @NotNull Level world) {
 		return false;
 	}
-	@Override public @NotNull ItemStack assemble(@NotNull CraftingContainer inv) {
+	@Override public @NotNull ItemStack assemble(@NotNull CraftingContainer inv, @NotNull RegistryAccess r) {
 		return ItemStack.EMPTY;
 	}
 	@Override public boolean canCraftInDimensions(int width, int height) {

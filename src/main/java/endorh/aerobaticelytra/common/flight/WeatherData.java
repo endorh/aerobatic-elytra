@@ -423,7 +423,7 @@ public class WeatherData {
 	}
 	
 	public static float getBiomePrecipitationStrength(Player player) {
-		return switch (player.level.getBiome(player.blockPosition()).value().getPrecipitation()) {
+		return switch (player.level.getBiome(player.blockPosition()).value().getPrecipitationAt(player.blockPosition())) {
 			case NONE -> 0F;
 			case SNOW -> 1.2F;
 			case RAIN -> 1F;

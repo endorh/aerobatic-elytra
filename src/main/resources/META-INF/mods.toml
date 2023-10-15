@@ -13,6 +13,8 @@ issueTrackerURL="${issue_tracker}"
     credits="${credits}"
     authors="${authors}"
     description='''${description}'''
+[modproperties.aerobaticelytra]
+    catalogueImageIcon="aerobaticelytra.png"
 [[dependencies.aerobaticelytra]]
     modId="flightcore"
     mandatory=true

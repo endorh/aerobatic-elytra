@@ -350,7 +350,7 @@ public class AerobaticFlight {
 			data.land();
 		
 		// Update player limb swing
-		player.calculateEntityAnimation(player, player instanceof FlyingAnimal);
+		player.calculateEntityAnimation(player instanceof FlyingAnimal);
 		
 		// Add movement stat
 		player.awardStat(

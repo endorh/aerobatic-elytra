@@ -48,10 +48,8 @@ public class AerobaticElytraItems {
 				.filter(r -> r instanceof CreativeTabAbilitySetRecipe))
 				.sorted().toList();
 		for (CreativeTabAbilitySetRecipe abilitySet : abilitySets) {
-			if (abilitySet.matchesTab(tab)) {
-            event.accept(abilitySet.getElytraStack(), abilitySet.getVisibility());
-				// event.accept(abilitySet.getWingStack(), abilitySet.getVisibility());
-         }
+			if (abilitySet.matchesTab(tab))
+				event.accept(abilitySet.getElytraStack(), abilitySet.getVisibility());
 		}
 	}
 }

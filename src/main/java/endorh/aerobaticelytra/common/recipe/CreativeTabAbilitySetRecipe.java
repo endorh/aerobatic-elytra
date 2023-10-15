@@ -6,7 +6,7 @@ import endorh.aerobaticelytra.common.capability.IElytraSpec;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.item.IAbility;
 import endorh.util.nbt.JsonToNBTUtil;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -22,6 +22,7 @@ import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 
@@ -94,7 +95,7 @@ public class CreativeTabAbilitySetRecipe extends CustomRecipe implements Compara
 		return false;
 	}
 	
-	@Override public @NotNull ItemStack assemble(@NotNull CraftingContainer inv) {
+	@Override public @NotNull ItemStack assemble(@NotNull CraftingContainer inv, @NotNull RegistryAccess r) {
 		return ItemStack.EMPTY;
 	}
 	
@@ -110,11 +111,11 @@ public class CreativeTabAbilitySetRecipe extends CustomRecipe implements Compara
 		@Override public @NotNull CreativeTabAbilitySetRecipe fromJson(
 		  @NotNull ResourceLocation recipeId, @NotNull JsonObject json
 		) {
-			CraftingBookCategory category = CraftingBookCategory.CODEC.byName(GsonHelper.getAsString(json, "category", (String) null), CraftingBookCategory.MISC);
+			CraftingBookCategory category = CraftingBookCategory.CODEC.byName(GsonHelper.getAsString(json, "category", null), CraftingBookCategory.MISC);
 			String group = GsonHelper.getAsString(json, "group");
 			String itemName = GsonHelper.getAsString(json, "item");
 			ItemStack stack = new ItemStack(
-			  BuiltInRegistries.ITEM.getOptional(new ResourceLocation(itemName)).orElseThrow(
+			  ForgeRegistries.ITEMS.getHolder(new ResourceLocation(itemName)).orElseThrow(
 				 () -> new JsonSyntaxException("Unknown item '" + itemName + "'")));
 			final Pair<Map<IAbility, Float>, Map<String, Float>> pair =
 			  AbilityNBTInheritingShapedRecipe.Serializer.abilitiesFromJson(

@@ -19,9 +19,9 @@ val githubRepo = "endorh/aerobatic-elytra"
 
 object V {
 	val mod = "1.1.0"
-	val minecraft = "1.19.3"
-	val parchment = "2023.06.25"
-	val forge = "44.1.0"
+	val minecraft = "1.19.4"
+	val parchment = "2023.06.26"
+	val forge = "45.2.0"
 	val minecraftForge = "$minecraft-$forge"
 	object mappings {
 		val channel = "parchment"
@@ -37,8 +37,8 @@ object V {
 	val lazuLib = "1.0.+"
 
 	// Integration
-	val jei = "12.4.0.22"
-	val curios = "1.19.3-5.1.4.1"
+	val jei = "13.1.0.16"
+	val curios = "1.19.4-5.1.5.3"
 	val caelus = "1.19.4-3.0.0.10"
 	val aerobaticElytraJetpack = "1.0.+"
 }
@@ -286,23 +286,23 @@ dependencies {
 	// runtimeOnly(fg.deobf("endorh.aerobaticelytra.jetpack:aerobaticelytrajetpack-$mcVersion:$aerobaticElytraJetpackVersion"))
 
 	// Elytra Slot
-	runtimeOnly(fg.deobf("curse.maven:elytra-slot-317716:4435060"))
+	runtimeOnly(fg.deobf("curse.maven:elytra-slot-317716:4519316"))
 
 	// Colytra
 	// runtimeOnly(fg.deobf("curse.maven:colytra-280200:4558349"))
 
 	// Customizable Elytra
-	runtimeOnly(fg.deobf("curse.maven:customizableelytra-440047:4165212"))
+	runtimeOnly(fg.deobf("curse.maven:customizableelytra-440047:4442601"))
 
 	// Additional Banners
-	runtimeOnly(fg.deobf("curse.maven:bookshelf-228525:4438834"))
-	runtimeOnly(fg.deobf("curse.maven:additionalbanners-230137:4481346"))
+	runtimeOnly(fg.deobf("curse.maven:bookshelf-228525:4570842"))
+	runtimeOnly(fg.deobf("curse.maven:additionalbanners-230137:4543098"))
 
 	// Xaero's World Map
-	runtimeOnly(fg.deobf("curse.maven:xaeros-worldmap-317780:4749570"))
+	runtimeOnly(fg.deobf("curse.maven:xaeros-worldmap-317780:4749571"))
 
 	// Xaero's Minimap (waypoint rendering doesn't account for camera roll)
-	// runtimeOnly(fg.deobf("curse.maven:xaeros-minimap-263420:4768137"))
+	// runtimeOnly(fg.deobf("curse.maven:xaeros-minimap-263420:4768138"))
 
 	// Immersive Portals (untestable in a deobfuscated environment, crashes without refmaps)
 	//   Portals with rotation override roll with a fixed animation that is sometimes in the wrong axis
@@ -310,10 +310,10 @@ dependencies {
 	// runtimeOnly(fg.deobf("curse.maven:immersive-portals-355440:unreleased"))
 
 	// Catalogue
-	runtimeOnly(fg.deobf("curse.maven:catalogue-459701:4171025"))
+	runtimeOnly(fg.deobf("curse.maven:catalogue-459701:4496718"))
 	
 	// Distant Horizons
-	// runtimeOnly(fg.deobf("curse.maven:distant-horizons-508933:4278698"))
+	// runtimeOnly(fg.deobf("curse.maven:distant-horizons-508933:4443878"))
 }
 
 // Tasks -----------------------------------------------------------------------
