@@ -4,10 +4,8 @@ import endorh.aerobaticelytra.client.trail.AerobaticTrail.RocketSide;
 import endorh.aerobaticelytra.common.AerobaticElytraLogic;
 import endorh.aerobaticelytra.common.capability.ElytraSpecCapability;
 import endorh.aerobaticelytra.common.capability.IElytraSpec;
-import endorh.aerobaticelytra.common.capability.IElytraSpec.RocketStar;
 import endorh.aerobaticelytra.common.capability.IElytraSpec.TrailData;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
@@ -116,18 +114,8 @@ public class TrailRecipe extends CustomRecipe {
 		IElytraSpec spec = ElytraSpecCapability.getElytraSpecOrDefault(result);
 		final TrailData trailData = spec.getTrailData();
 		
-		for (int r = 0; r < 4; r++) {
-			if (!rockets[r].isEmpty()) {
-				CompoundTag rocketTag = rockets[r].getTag();
-				if (rocketTag == null || !rocketTag.contains("Fireworks")
-				    || !rocketTag.getCompound("Fireworks").contains("Explosions")) {
-					trailData.put(RocketSide.values()[r], null);
-				} else {
-					trailData.put(RocketSide.values()[r], RocketStar.listFromNBT(
-					  rocketTag.getCompound("Fireworks").getList("Explosions", 10)));
-				}
-			}
-		}
+		for (int r = 0; r < 4; r++) if (!rockets[r].isEmpty())
+			trailData.readRocket(RocketSide.values()[r], rockets[r]);
 		
 		return result;
 	}

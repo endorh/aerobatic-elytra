@@ -120,11 +120,11 @@ public class AerobaticFlight {
 		// Rain and wind
 		final boolean affectedByWeather =
 		  weather.ignore_cloud_level || player.blockPosition().getY() > weather.cloud_level
-		  || player.level.canSeeSkyFromBelowWater(player.blockPosition());
+		  || player.level().canSeeSkyFromBelowWater(player.blockPosition());
 		data.setAffectedByWeather(affectedByWeather);
 		final float biomePrecipitation = WeatherData.getBiomePrecipitationStrength(player);
-		final float rain = player.level.getRainLevel(1F) * biomePrecipitation;
-		final float storm = player.level.getThunderLevel(1F) * biomePrecipitation;
+		final float rain = player.level().getRainLevel(1F) * biomePrecipitation;
+		final float storm = player.level().getThunderLevel(1F) * biomePrecipitation;
 		final boolean useWeather = Config.weather.enabled && rain > 0F && !player.isInWater() && affectedByWeather;
 		Vec3f windVec = WeatherData.getWindVector(player);
 		rainAcc.set(
@@ -139,7 +139,7 @@ public class AerobaticFlight {
 		) {
 			data.setBoosted(true);
 			player.awardStat(FlightStats.AEROBATIC_BOOSTS, 1);
-			if (player.level.isClientSide) {
+			if (player.level().isClientSide) {
 				AerobaticTrail.addBoostParticles(player);
 				AerobaticElytraSound.playBoostSound(player);
 			}
@@ -147,7 +147,7 @@ public class AerobaticFlight {
 		  data.isBoosted() && (!data.isSprinting() || data.getBoostHeat() == 1F)
 		) {
 			data.setBoosted(false);
-			if (player.level.isClientSide)
+			if (player.level().isClientSide)
 				AerobaticElytraSound.playSlowDownSound(player);
 		}
 		final float heatStep = data.isBoosted() ? 0.01F : -0.0075F;
@@ -346,7 +346,7 @@ public class AerobaticFlight {
 		}
 		
 		// Landing
-		if (player.isOnGround())
+		if (player.onGround())
 			data.land();
 		
 		// Update player limb swing
@@ -362,7 +362,7 @@ public class AerobaticFlight {
 			new AerobaticElytraSound(player).play();
 		
 		// Add trail
-		if (player.level.isClientSide) {
+		if (player.level().isClientSide) {
 			if (!Debug.DEBUG.suppressParticles) {
 				if (data.getTicksFlying() > Const.TAKEOFF_ANIMATION_LENGTH_TICKS
 				    && !player.verticalCollision && !player.horizontalCollision
@@ -395,7 +395,7 @@ public class AerobaticFlight {
 	  Player player, @SuppressWarnings("unused") Vec3 travelVector
 	) {
 		IAerobaticData data = getAerobaticDataOrDefault(player);
-		if (data.updateBoosted(false)) player.level.playSound(
+		if (data.updateBoosted(false)) player.level().playSound(
 		  player, player.blockPosition(), AerobaticSounds.AEROBATIC_ELYTRA_SLOWDOWN,
 		  SoundSource.PLAYERS, 1F, 1F);
 		if (data.updateFlying(false))
@@ -411,7 +411,7 @@ public class AerobaticFlight {
 	  Player player, Vec3 travelVector
 	) {
 		IAerobaticData data = getAerobaticDataOrDefault(player);
-		if (data.updateBoosted(false)) player.level.playSound(
+		if (data.updateBoosted(false)) player.level().playSound(
 		  player, player.blockPosition(), AerobaticSounds.AEROBATIC_ELYTRA_SLOWDOWN,
 		  SoundSource.PLAYERS, 1F, 1F);
 		if (data.getRotationBase().valid)
@@ -440,7 +440,7 @@ public class AerobaticFlight {
 	public static void cooldown(Player player, IAerobaticData data) {
 		float propStrength = data.getPropulsionStrength();
 		if (propStrength != propulsion.takeoff_tick) {
-			float step = player.isOnGround() ? 0.05F : 0.02F;
+			float step = player.onGround() ? 0.05F : 0.02F;
 			data.setPropulsionStrength(
 			  propulsion.takeoff_tick +
 			  Mth.sign(propStrength - propulsion.takeoff_tick) *

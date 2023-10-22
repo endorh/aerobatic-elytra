@@ -19,6 +19,7 @@ import net.minecraft.Util;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -27,6 +28,8 @@ import net.minecraft.util.GsonHelper;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.FireworkRocketItem;
+import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
@@ -219,13 +222,21 @@ public interface IElytraSpec
 	}
 	
 	class TrailData {
+		private static final RocketStar[] EMPTY = new RocketStar[0];
 		private static final Random RANDOM = new Random();
-		public final Map<RocketSide, RocketStar[]> sides = new HashMap<>();
+		private final Map<RocketSide, RocketStar[]> sides = new EnumMap<>(RocketSide.class);
+
+		public static TrailData empty() {
+			return new TrailData();
+		}
+		protected TrailData() {}
 		
-		public TrailData() {}
-		
-		public RocketStar[] get(RocketSide side) {
-			return sides.get(side);
+		public @NotNull RocketStar[] get(RocketSide side) {
+			return sides.getOrDefault(side, EMPTY);
+		}
+
+		public @NotNull Set<RocketSide> getUsedSides() {
+			return sides.isEmpty()? Collections.emptySet() : EnumSet.copyOf(sides.keySet());
 		}
 		
 		/**
@@ -271,9 +282,9 @@ public interface IElytraSpec
 		 * @param value Explosion array
 		 */
 		public void put(RocketSide side, RocketStar[] value) {
-			if (value == null)
+			if (value == null || value.length == 0)
 				sides.remove(side);
-			else sides.put(side, value);
+         else sides.put(side, value);
 		}
 		
 		public static TrailData read(FriendlyByteBuf buf) {
@@ -292,7 +303,7 @@ public interface IElytraSpec
 			sides.clear();
 			for (RocketSide rocketSide: RocketSide.values()) {
 				if (trailNBT.contains(rocketSide.tagName)) {
-					put(rocketSide, RocketStar.listFromNBT(trailNBT.getList(rocketSide.tagName, 10)));
+					put(rocketSide, RocketStar.listFromNBT(trailNBT.getList(rocketSide.tagName, Tag.TAG_COMPOUND)));
 				}
 			}
 		}
@@ -301,10 +312,28 @@ public interface IElytraSpec
 			CompoundTag trailNBT = new CompoundTag();
 			for (RocketSide rocketSide: RocketSide.values()) {
 				RocketStar[] stars = get(rocketSide);
-				if (stars != null)
+				if (stars.length > 0)
 					trailNBT.put(rocketSide.tagName, RocketStar.listAsNBT(stars));
 			}
 			return trailNBT;
+		}
+
+		public void writeRocket(RocketSide side, ItemStack rocket) {
+			RocketStar[] stars = get(side);
+			if (stars.length == 0) {
+				CompoundTag fireworks = rocket.getTagElement("Fireworks");
+				if (fireworks != null) fireworks.remove("Explosions");
+			} else {
+				CompoundTag fireworks = rocket.getOrCreateTagElement("Fireworks");
+				fireworks.put("Explosions", RocketStar.listAsNBT(stars));
+			}
+		}
+
+		public void readRocket(RocketSide side, ItemStack rocket) {
+			CompoundTag fireworks = rocket.getTagElement("Fireworks");
+			if (fireworks != null && fireworks.contains("Explosions", Tag.TAG_LIST))
+            put(side, RocketStar.listFromNBT(fireworks.getList("Explosions", Tag.TAG_COMPOUND)));
+			else put(side, null);
 		}
 		
 		public TrailData copy() {
@@ -333,7 +362,7 @@ public interface IElytraSpec
 			String innerIndent = indent + "  ";
 			for (RocketSide side: RocketSide.forWingSide(wingSide)) {
 				RocketStar[] stars = data.get(side);
-				if (stars != null) {
+				if (stars.length > 0) {
 					trailInfo.add(
 					  stc(innerIndent)
 						 .append(side.getDisplayName())

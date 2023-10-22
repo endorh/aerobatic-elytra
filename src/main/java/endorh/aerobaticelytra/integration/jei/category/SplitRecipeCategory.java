@@ -11,7 +11,6 @@ import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.IFocusGroup;
-import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
@@ -27,6 +26,8 @@ import static endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiHelper.ge
 import static endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiHelper.split;
 import static endorh.util.text.TextUtil.optSplitTtc;
 import static java.lang.Math.min;
+import static mezz.jei.api.recipe.RecipeIngredientRole.INPUT;
+import static mezz.jei.api.recipe.RecipeIngredientRole.OUTPUT;
 
 public class SplitRecipeCategory extends BaseCategory<SplitRecipe> {
 	public static final RecipeType<SplitRecipe> TYPE = RecipeType.create(AerobaticElytra.MOD_ID, "split", SplitRecipe.class);
@@ -43,12 +44,12 @@ public class SplitRecipeCategory extends BaseCategory<SplitRecipe> {
 		List<IRecipeSlotBuilder> slots = new ArrayList<>(18);
 		final Pair<List<ItemStack>, List<ItemStack>> wings = split(elytras);
 		for (int i = 0; i < 3; i++) for (int j = 0; j < 3; j++)
-			slots.add(builder.addSlot(RecipeIngredientRole.INPUT, 18 * j, 18 * i));
+			slots.add(builder.addSlot(INPUT, 1 + 18 * j, 1 + 18 * i));
 		for (int i = 0; i < 3; i++) for (int j = 0; j < 3; j++)
-			slots.add(builder.addSlot(RecipeIngredientRole.INPUT, 27 + 18 * j, 63 + 18 * i));
-		builder.addSlot(RecipeIngredientRole.OUTPUT, 94, 18)
-		  .addItemStacks(wings.getSecond());
-		
+			slots.add(builder.addSlot(OUTPUT, 28 + 18 * j, 64 + 18 * i));
+
+		builder.addSlot(OUTPUT, 95, 19).addItemStacks(wings.getSecond());
+
 		slots.get(0).addItemStacks(elytras);
 		slots.get(9).addItemStacks(wings.getFirst());
 		for (int i = 0, s = min(recipe.ingredients.size(), 8); i < s; i++) {
@@ -56,7 +57,7 @@ public class SplitRecipeCategory extends BaseCategory<SplitRecipe> {
 			  recipe.ingredients.get(i).getLeft().getItems());
 			final List<ItemStack> st = getItemMatchingFocus(
 			  focuses.getFocuses(VanillaTypes.ITEM_STACK),
-			  RecipeIngredientRole.INPUT, ing, ing);
+			  INPUT, ing, ing);
 			slots.get(i + 1).addItemStacks(st);
 			final LeaveData data = recipe.ingredients.get(i).getRight();
 			if (data.leave)

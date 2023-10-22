@@ -1,9 +1,11 @@
 package endorh.aerobaticelytra.integration.jei;
 
+import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
-import endorh.aerobaticelytra.common.capability.ElytraSpecCapability;
+import endorh.aerobaticelytra.client.trail.AerobaticTrail.RocketSide;
 import endorh.aerobaticelytra.common.capability.IElytraSpec;
 import endorh.aerobaticelytra.common.capability.IElytraSpec.RocketStar;
+import endorh.aerobaticelytra.common.capability.IElytraSpec.TrailData;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.item.AerobaticElytraWingItem;
@@ -11,82 +13,116 @@ import endorh.aerobaticelytra.common.item.ElytraDyement;
 import endorh.aerobaticelytra.common.item.ElytraDyement.WingSide;
 import endorh.aerobaticelytra.common.item.IAbility.Ability;
 import endorh.aerobaticelytra.common.recipe.JoinRecipe;
-import endorh.aerobaticelytra.common.recipe.TrailRecipe;
 import endorh.aerobaticelytra.integration.jei.gui.MultiIngredientDrawable;
-import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.ingredients.IIngredientType;
 import mezz.jei.api.recipe.IFocus;
+import mezz.jei.api.recipe.IFocusGroup;
+import mezz.jei.api.recipe.RecipeIngredientRole;
 import net.minecraft.Util;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.BannerBlock;
 import net.minecraft.world.level.block.entity.BannerPattern;
 import net.minecraft.world.level.levelgen.LegacyRandomSource;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
+import static endorh.aerobaticelytra.common.capability.ElytraSpecCapability.getElytraSpecOrDefault;
+import static mezz.jei.api.recipe.RecipeIngredientRole.INPUT;
+import static mezz.jei.api.recipe.RecipeIngredientRole.OUTPUT;
 
 @SuppressWarnings("SameParameterValue")
 public class AerobaticElytraJeiHelper {
 	public static final RandomSource RANDOM = new LegacyRandomSource(0);
 	protected static final ElytraDyement dyement = new ElytraDyement();
-	
+
 	public static List<ItemStack> getAerobaticElytras() {
-		return Util.make(new ArrayList<>(), l -> {
-			for (int i = 0; i < 5; i++) {
-				l.add(new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA));
-				l.add(makeElytra(nextDyeColor()));
-				l.add(makeElytra(nextDyeColor(), nextDyeColor()));
-				l.add(makeElytra(
-				  nextDyeColor(),
-				  Pair.of(nextPattern(), nextDyeColor()),
-				  Pair.of(nextPattern(), nextDyeColor()),
-				  Pair.of(nextPattern(), nextDyeColor()),
-				  Pair.of(nextPattern(), nextDyeColor())));
-				l.add(makeElytra(
-				  nextDyeColor(),
-				  Util.make(new ArrayList<>(), w -> {
-					  w.add(Pair.of(nextPattern(), nextDyeColor()));
-					  w.add(Pair.of(nextPattern(), nextDyeColor()));
-				  }),
-				  nextDyeColor(),
-				  Util.make(new ArrayList<>(), w -> {
-					  w.add(Pair.of(nextPattern(), nextDyeColor()));
-					  w.add(Pair.of(nextPattern(), nextDyeColor()));
-				  })
-				));
-			}
-			for (int i = 0; i < l.size(); i++) {
-				if (RANDOM.nextFloat() > 0.5F)
-					l.set(
-					  i, TrailRecipe.apply(l.get(i),
-					                       new ItemStack[]{makeRocket(), ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY}));
-				if (RANDOM.nextFloat() > 0.5F)
-					l.set(
-					  i, TrailRecipe.apply(l.get(i),
-					                       new ItemStack[]{ItemStack.EMPTY, makeRocket(), ItemStack.EMPTY, ItemStack.EMPTY}));
-				if (RANDOM.nextFloat() > 0.8F)
-					l.set(
-					  i, TrailRecipe.apply(l.get(i),
-					                       new ItemStack[]{ItemStack.EMPTY, ItemStack.EMPTY, makeRocket(), ItemStack.EMPTY}));
-				if (RANDOM.nextFloat() > 0.8F)
-					l.set(
-					  i, TrailRecipe.apply(l.get(i),
-					                       new ItemStack[]{ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY, makeRocket()}));
-				final IElytraSpec spec = ElytraSpecCapability.getElytraSpecOrDefault(l.get(i));
-				spec.setAbility(Ability.MAX_FUEL, 40F);
-				spec.setAbility(Ability.FUEL, 30F);
-			}
-		});
+		return getAerobaticElytras(null, null, null);
+	}
+	public static List<ItemStack> getAerobaticElytras(InputDyementQuery dyementDataQuery) {
+		return getAerobaticElytras(dyementDataQuery, null, null);
+	}
+	public static List<ItemStack> getAerobaticElytras(TrailDataQuery trailDataQuery) {
+		return getAerobaticElytras(null, trailDataQuery, null);
+	}
+
+	public static List<ItemStack> getAerobaticElytras(@Nullable AerobaticElytraJeiHelper.InputDyementQuery dyementQuery, @Nullable TrailDataQuery trailQuery, IFocusGroup focus) {
+		List<ItemStack> list = new ArrayList<>();
+		// Plain elytra
+		for (int i = 0; i < 5; i++) {
+			list.add(new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA));
+			list.add(makeElytra(nextDyeColor()));
+			list.add(makeElytra(nextDyeColor(), nextDyeColor()));
+			list.add(makeElytra(
+				nextDyeColor(),
+				Pair.of(nextPattern(), nextDyeColor()),
+				Pair.of(nextPattern(), nextDyeColor()),
+				Pair.of(nextPattern(), nextDyeColor()),
+				Pair.of(nextPattern(), nextDyeColor())));
+			list.add(makeElytra(
+				nextDyeColor(),
+				Util.make(new ArrayList<>(), w -> {
+					w.add(Pair.of(nextPattern(), nextDyeColor()));
+					w.add(Pair.of(nextPattern(), nextDyeColor()));
+				}),
+				nextDyeColor(),
+				Util.make(new ArrayList<>(), w -> {
+					w.add(Pair.of(nextPattern(), nextDyeColor()));
+					w.add(Pair.of(nextPattern(), nextDyeColor()));
+				})
+			));
+		}
+		for (ItemStack itemStack : list) {
+			IElytraSpec spec = getElytraSpecOrDefault(itemStack);
+			TrailData data = getTrailData(trailQuery);
+			spec.getTrailData().read(data.write());
+			spec.setAbility(Ability.MAX_FUEL, 50F);
+			spec.setAbility(Ability.FUEL, 30F);
+		}
+		return list;
+	}
+
+	public static ItemStack applyDyement(ItemStack elytra, ElytraDyement dyement) {
+		ItemStack copy = elytra.copy();
+		dyement.write(copy);
+		return copy;
+	}
+
+	public static ItemStack applyTrail(ItemStack elytra, TrailData trail) {
+		ItemStack copy = elytra.copy();
+		TrailData trailData = getElytraSpecOrDefault(copy).getTrailData();
+		trailData.read(trail.write());
+		return copy;
+	}
+
+
+	public static List<ElytraDyement> makeDyements() {
+		List<ElytraDyement> list = new ArrayList<>();
+		list.add(new ElytraDyement());
+		list.add(Util.make(new ElytraDyement(), d -> d.setColor(nextDyeColor().getTextColor())));
+		list.add(Util.make(new ElytraDyement(), d -> {
+			d.getWing(WingSide.LEFT).setColor(nextDyeColor().getTextColor());
+			d.getWing(WingSide.RIGHT).setColor(nextDyeColor().getTextColor());
+		}));
+		list.add(Util.make(new ElytraDyement(), d -> d.setPattern(nextDyeColor(), nextPatternLayers())));
+		list.add(Util.make(new ElytraDyement(), d -> {
+			d.getWing(WingSide.LEFT).setPattern(nextDyeColor(), nextPatternLayers());
+			d.getWing(WingSide.RIGHT).setPattern(nextDyeColor(), nextPatternLayers());
+		}));
+		return list;
 	}
 	
 	public static DyeColor nextDyeColor() {
@@ -96,6 +132,13 @@ public class AerobaticElytraJeiHelper {
 	public static BannerPattern nextPattern() {
 		return BuiltInRegistries.BANNER_PATTERN.getRandom(RANDOM).orElseThrow(
 		  () -> new IllegalStateException("No banner patterns registered")).get();
+	}
+
+	public static List<Pair<BannerPattern, DyeColor>> nextPatternLayers() {
+		List<Pair<BannerPattern, DyeColor>> list = new ArrayList<>();
+		for (int i = 0, l = RANDOM.nextInt(2, 6); i < l; i++)
+			list.add(Pair.of(nextPattern(), nextDyeColor()));
+		return list;
 	}
 	
 	public static ItemStack makeElytra(DyeColor color) {
@@ -181,64 +224,183 @@ public class AerobaticElytraJeiHelper {
 		});
 	}
 	
-	public static ItemStack makeRocket(List<RocketStar> stars) {
+	public static ItemStack makeRocket(RocketStar[] stars) {
 		final ItemStack rocket = new ItemStack(Items.FIREWORK_ROCKET);
 		final CompoundTag fireworks = rocket.getOrCreateTagElement("Fireworks");
-		fireworks.put("Explosions", RocketStar.listAsNBT(stars.toArray(new RocketStar[0])));
+		fireworks.put("Explosions", RocketStar.listAsNBT(stars));
 		return rocket;
+	}
+
+	public static RocketStar[] getRocketStars(ItemStack rocket) {
+		CompoundTag tag = rocket.getTagElement("Fireworks");
+		if (tag != null && tag.contains("Explosions"))
+         return RocketStar.listFromNBT(tag.getList("Explosions", Tag.TAG_COMPOUND));
+		return new RocketStar[0];
 	}
 	
 	public static ItemStack makeRocket() {
 		return makeRocket(makeRocketStars());
 	}
-	
-	public static List<RocketStar> makeRocketStars() {
-		return Util.make(new ArrayList<>(), s -> {
-			for (int j = 0, e = RANDOM.nextInt(2) + 1; j < e; j++)
-				s.add(new RocketStar(
-				  getDyeColors(RANDOM.nextInt(3)),
-				  getDyeColors(RANDOM.nextInt(3)),
-				  RANDOM.nextFloat() > 0.7F, RANDOM.nextFloat() > 0.7F,
-				  (byte) RANDOM.nextInt(5)));
-		});
+
+	public static List<TrailData> makeTrails() {
+		List<TrailData> list = new ArrayList<>();
+		list.add(TrailData.empty());
+		RocketStar[] stars = makeRocketStars();
+		TrailData data = TrailData.empty();
+		data.put(RocketSide.LEFT, stars);
+		data.put(RocketSide.RIGHT, stars);
+		list.add(data);
+		list.add(makeTrailData(EnumSet.of(RocketSide.LEFT, RocketSide.RIGHT)));
+		data = data.copy();
+		stars = makeRocketStars();
+		data.put(RocketSide.LEFT, stars);
+		data.put(RocketSide.RIGHT, stars);
+		stars = makeRocketStars();
+		data.put(RocketSide.CENTER_LEFT, stars);
+		data.put(RocketSide.CENTER_RIGHT, stars);
+		list.add(data);
+		list.add(makeTrailData(EnumSet.allOf(RocketSide.class)));
+		return list;
+	}
+
+
+	public static TrailData makeTrailData() {
+		TrailData trail = TrailData.empty();
+		for (RocketSide side : RocketSide.values())
+         if (RANDOM.nextFloat() > 0.5F)
+            trail.put(side, makeRocketStars());
+		return trail;
+	}
+
+	public static TrailData makeTrailData(Set<RocketSide> mask) {
+		TrailData trail = TrailData.empty();
+		for (RocketSide side : mask)
+			trail.put(side, makeRocketStars());
+		return trail;
 	}
 	
-	public static List<ItemStack> getRockets() {
-		return Util.make(new ArrayList<>(), l -> {
-			for (int i = 0; i < 20; i++)
-				l.add(makeRocket());
-		});
+	public static RocketStar[] makeRocketStars() {
+		List<RocketStar> list = new ArrayList<>();
+		for (int j = 0, e = RANDOM.nextInt(2) + 1; j < e; j++) list.add(new RocketStar(
+			getDyeColors(RANDOM.nextInt(3)),
+			getDyeColors(RANDOM.nextInt(3)),
+			RANDOM.nextFloat() > 0.7F, RANDOM.nextFloat() > 0.7F,
+			(byte) RANDOM.nextInt(5)));
+		return list.toArray(RocketStar[]::new);
 	}
 	
-	public static List<ItemStack> getAerobaticElytrasMatchingFocus(
-	  Stream<IFocus<ItemStack>> focuses
-	) {
+	public static List<ItemStack> getRockets(RocketSide side, TrailDataQuery query, IFocusGroup focus) {
+		if (!query.mask().contains(side)) return Collections.emptyList();
+		if (query.clear()) return ImmutableList.of(new ItemStack(Items.FIREWORK_ROCKET));
 		List<ItemStack> list = new ArrayList<>();
+		ItemStack rocket = getSingleFocusStack(focus, Items.FIREWORK_ROCKET, INPUT);
+		if (!rocket.isEmpty() && getRocketStars(rocket).length > 0) return List.of(rocket);
+		ItemStack outElytra = getSingleFocusStack(focus, i -> i instanceof AerobaticElytraItem, OUTPUT);
+		// ItemStack inElytra = getSingleFocusStack(focus, i -> i instanceof AerobaticElytraItem, INPUT);
+		if (!outElytra.isEmpty()) {
+			TrailData outTrail = getElytraSpecOrDefault(outElytra).getTrailData();
+			if (outTrail.get(side).length > 0)
+				list.add(makeRocket(outTrail.get(side)));
+			else list.add(new ItemStack(Items.FIREWORK_ROCKET));
+		} else for (int i = 0; i < 20; i++) list.add(makeRocket());
+		return list;
+	}
+
+	public static @NotNull ItemStack getSingleFocusStack(IFocusGroup focuses, Predicate<Item> p, RecipeIngredientRole role) {
+		return focuses.getItemStackFocuses(role)
+			.flatMap(f -> f.getTypedValue().getItemStack().stream())
+			.filter(ss -> p.test(ss.getItem()))
+			.findFirst().orElse(ItemStack.EMPTY);
+	}
+
+	public static @NotNull ItemStack getSingleFocusStack(IFocusGroup focuses, Item item, RecipeIngredientRole role) {
+		return getSingleFocusStack(focuses, i -> i == item, role);
+	}
+
+	public static @NotNull ItemStack getSingleFocusElytraOrWings(IFocusGroup focuses, RecipeIngredientRole role) {
+		return getSingleFocusStack(focuses, p -> p instanceof AerobaticElytraItem || p instanceof AerobaticElytraWingItem, role);
+	}
+
+	public record TrailDataQuery(Set<RocketSide> mask, boolean clear) {}
+	public sealed interface InputDyementQuery permits InputDyeQuery, InputBannerQuery {
+	}
+	public record InputDyeQuery(int amount) implements InputDyementQuery {}
+	public record InputBannerQuery() implements InputDyementQuery {}
+
+	public static TrailData getTrailData(TrailDataQuery query) {
+		return query != null && query.clear()? makeTrailData(query.mask()) : makeTrailData();
+	}
+
+	public static List<Pair<TrailData, TrailData>> getRocketsMatchingFocus(
+		Stream<IFocus<ItemStack>> focuses, Set<RocketSide> mask, int variations
+	) {
+		List<Pair<TrailData, TrailData>> list = new ArrayList<>();
 		focuses.forEach(f -> {
-			Optional<ItemStack> opt = f.getTypedValue().getIngredient(VanillaTypes.ITEM_STACK);
-			if (opt.isPresent()) {
-				final ItemStack focusStack = opt.get();
-				if (focusStack.getItem() instanceof AerobaticElytraItem) {
-					final ItemStack elytra = focusStack.copy();
-					elytra.setDamageValue(0);
-					list.add(elytra);
-				} else if (focusStack.getItem() instanceof AerobaticElytraWingItem) {
-					final ItemStack right = focusStack.copy();
-					right.setDamageValue(0);
-					final List<ItemStack> leftWings = getAerobaticElytras().stream()
-					  .map(s -> ((AerobaticElytraItem) s.getItem()).getWing(s, WingSide.LEFT))
-					  .collect(Collectors.toList());
-					leftWings.add(0, right.copy());
-					leftWings.stream().map(w -> {
-						ItemStack l = right.copy();
-						dyement.read(w);
-						dyement.write(l);
-						return JoinRecipe.join(l, right);
-					}).forEach(list::add);
+			RecipeIngredientRole role = f.getRole();
+			ItemStack stack = f.getTypedValue().getIngredient();
+			if (stack.getItem() instanceof AerobaticElytraItem) {
+				if (role == INPUT) {
+					TrailData trail = getElytraSpecOrDefault(stack).getTrailData();
+					for (int i = 0; i < variations; i++) list.add(Pair.of(trail, makeTrailData(mask)));
+				} else if (role == OUTPUT) {
+					TrailData trail = getElytraSpecOrDefault(stack).getTrailData();
+					for (int i = 0; i < variations; i++) {
+						TrailData src = TrailData.empty();
+						for (RocketSide side : mask)
+							src.put(side, makeRocketStars());
+						list.add(Pair.of(src, trail));
+					}
 				}
 			}
 		});
-		return list.isEmpty()? getAerobaticElytras() : list;
+		return list.isEmpty()? getRockets(mask, variations) : list;
+	}
+
+	public static List<ItemStack> getRockets(int amount) {
+		return IntStream.range(0, amount).mapToObj(i -> makeRocket(makeRocketStars())).toList();
+	}
+
+	public static List<Pair<TrailData, TrailData>> getRockets(Set<RocketSide> sides, int variations) {
+		return IntStream.range(0, variations).mapToObj(i -> {
+			TrailData trail = TrailData.empty();
+			for (RocketSide side : sides)
+				trail.put(side, makeRocketStars());
+			return Pair.of(TrailData.empty(), trail);
+		}).toList();
+	}
+
+	public static List<ItemStack> getAerobaticElytrasMatchingFocus(
+	  Stream<IFocus<ItemStack>> focuses
+	) {
+		return getAerobaticElytrasMatchingFocus(focuses, null);
+	}
+
+	public static List<ItemStack> getAerobaticElytrasMatchingFocus(
+	  Stream<IFocus<ItemStack>> focuses, @Nullable TrailDataQuery trailQuery
+	) {
+		List<ItemStack> list = new ArrayList<>();
+		focuses.forEach(f -> {
+			ItemStack focusStack = f.getTypedValue().getIngredient();
+			if (focusStack.getItem() instanceof AerobaticElytraItem) {
+				final ItemStack elytra = focusStack.copy();
+				elytra.setDamageValue(0);
+				list.add(elytra);
+			} else if (focusStack.getItem() instanceof AerobaticElytraWingItem) {
+				final ItemStack right = focusStack.copy();
+				right.setDamageValue(0);
+				final List<ItemStack> leftWings = getAerobaticElytras(trailQuery).stream()
+				  .map(s -> ((AerobaticElytraItem) s.getItem()).getWing(s, WingSide.LEFT))
+				  .collect(Collectors.toList());
+				leftWings.add(0, right.copy());
+				leftWings.stream().map(w -> {
+					ItemStack l = right.copy();
+					dyement.read(w);
+					dyement.write(l);
+					return JoinRecipe.join(l, right);
+				}).forEach(list::add);
+			}
+		});
+		return list.isEmpty()? getAerobaticElytras(trailQuery) : list;
 	}
 	
 	public static <T> List<T> randomSample(List<T> pool, int copies) {

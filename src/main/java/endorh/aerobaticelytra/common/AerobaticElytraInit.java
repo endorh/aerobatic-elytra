@@ -24,16 +24,11 @@ import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.InterModComms;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
-import top.theillusivec4.curios.api.CuriosApi;
-import top.theillusivec4.curios.api.SlotTypeMessage;
-import top.theillusivec4.curios.api.SlotTypePreset;
 
 @EventBusSubscriber(bus = Bus.MOD, modid = AerobaticElytra.MOD_ID)
 public class AerobaticElytraInit {
@@ -76,12 +71,6 @@ public class AerobaticElytraInit {
 			 if (AerobaticElytra.caelusLoaded)
 				 eventBus.register(CaelusIntegration.class);
 	    }
-	}
-	
-	@SubscribeEvent public static void enqueueIMC(InterModEnqueueEvent event) {
-		if (AerobaticElytra.curiosLoaded) InterModComms.sendTo(
-		  CuriosApi.MODID, SlotTypeMessage.REGISTER_TYPE,
-		  () -> SlotTypePreset.BACK.getMessageBuilder().build());
 	}
 	
 	@EventBusSubscriber(value=Dist.CLIENT, bus=Bus.MOD, modid=AerobaticElytra.MOD_ID)

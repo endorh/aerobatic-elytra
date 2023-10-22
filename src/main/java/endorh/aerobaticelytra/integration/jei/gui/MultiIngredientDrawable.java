@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.ingredients.IIngredientRenderer;
+import net.minecraft.client.gui.GuiGraphics;
 import org.jetbrains.annotations.NotNull;
 
 public class MultiIngredientDrawable<V> implements IDrawable {
@@ -27,16 +28,17 @@ public class MultiIngredientDrawable<V> implements IDrawable {
 		return 16;
 	}
 	
-	@Override public void draw(@NotNull PoseStack mStack, int xOffset, int yOffset) {
+	@Override public void draw(@NotNull GuiGraphics gg, int xOffset, int yOffset) {
 		RenderSystem.enableDepthTest();
-		mStack.pushPose(); {
-			mStack.translate(xOffset - 2, yOffset - 2, 0D);
-			ingredientRenderer.render(mStack, first);
-		} mStack.popPose();
-		mStack.pushPose(); {
-			mStack.translate(xOffset + 4, yOffset + 4, 0D);
-			ingredientRenderer.render(mStack, second);
-		} mStack.popPose();
+		PoseStack pStack = gg.pose();
+		pStack.pushPose(); {
+			pStack.translate(xOffset - 2, yOffset - 2, 0D);
+			ingredientRenderer.render(gg, first);
+		} pStack.popPose();
+		pStack.pushPose(); {
+			pStack.translate(xOffset + 4, yOffset + 4, 0D);
+			ingredientRenderer.render(gg, second);
+		} pStack.popPose();
 		RenderSystem.disableDepthTest();
 	}
 }

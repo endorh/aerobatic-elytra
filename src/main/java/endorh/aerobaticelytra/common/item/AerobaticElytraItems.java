@@ -5,7 +5,7 @@ import endorh.aerobaticelytra.common.recipe.CreativeTabAbilitySetRecipe;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraftforge.event.CreativeModeTabEvent;
+import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
@@ -35,7 +35,7 @@ public class AerobaticElytraItems {
 	}
 
 	@SubscribeEvent
-	public static void onCreativeModeTabPopulation(CreativeModeTabEvent.BuildContents event) {
+	public static void onCreativeModeTabPopulation(BuildCreativeModeTabContentsEvent event) {
 		CreativeModeTab tab = event.getTab();
 		if (tab.getType() != CreativeModeTab.Type.CATEGORY) return;
 		// The default values are added by the default `creative_tab_ability_set` recipe

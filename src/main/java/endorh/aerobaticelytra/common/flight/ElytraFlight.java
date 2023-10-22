@@ -88,7 +88,7 @@ public class ElytraFlight {
 		player.move(MoverType.SELF, player.getDeltaMovement());
 		
 		// Apply collision damage
-		if (player.horizontalCollision && !player.level.isClientSide) {
+		if (player.horizontalCollision && !player.level().isClientSide) {
 			double hSpeedNew = new Vec3f(player.getDeltaMovement()).hNorm();
 			double reaction = hSpeedPrev - hSpeedNew;
 			float collisionStrength = (float) (reaction * 10.0D - 3.0D);
@@ -104,7 +104,7 @@ public class ElytraFlight {
 		}
 		
 		// Stop flying when on ground
-		if (player.isOnGround() && player.isEffectiveAi()) {
+		if (player.onGround() && player.isEffectiveAi()) {
 			player.stopFallFlying();
 		}
 		

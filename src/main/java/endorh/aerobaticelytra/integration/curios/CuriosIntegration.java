@@ -21,11 +21,9 @@ public class CuriosIntegration {
 	/**
 	 * Find the first curio slot containing an aerobatic elytra
 	 */
-	public static Optional<SlotResult> findCurioAerobaticElytra(
-	  LivingEntity entity
-	) {
-		return CuriosApi.getCuriosHelper()
-		  .findFirstCurio(entity, AerobaticElytraItems.AEROBATIC_ELYTRA);
+	public static Optional<SlotResult> findCurioAerobaticElytra(LivingEntity entity) {
+		return CuriosApi.getCuriosInventory(entity).resolve().flatMap(
+			i -> i.findFirstCurio(AerobaticElytraItems.AEROBATIC_ELYTRA));
 	}
 	
 	// ElytraSlot mod doesn't use RenderElytraEvent from Caelus anymore

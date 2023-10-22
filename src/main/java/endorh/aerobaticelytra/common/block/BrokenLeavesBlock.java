@@ -26,7 +26,8 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import org.jetbrains.annotations.NotNull;
@@ -55,17 +56,22 @@ public class BrokenLeavesBlock extends LeavesBlock implements EntityBlock {
 	}
 	
 	private static BlockBehaviour.Properties createBlockProperties() {
-		return BlockBehaviour.Properties
-		  .of(Material.LEAVES).strength(0.2F)
-		  .sound(SoundType.GRASS).noOcclusion()
-		  .isValidSpawn((state, reader, pos, type) -> false)
-		  .isSuffocating((state, reader, pos) -> false)
-		  .isViewBlocking((state, reader, pos) -> false)
-		  .randomTicks()
-		  .noCollission()
-		  .requiresCorrectToolForDrops();
+		return BlockBehaviour.Properties.of()
+			.mapColor(MapColor.PLANT)
+			.strength(0.2F)
+			.randomTicks()
+			.sound(SoundType.GRASS)
+			.noOcclusion()
+			.isValidSpawn((state, reader, pos, type) -> false)
+			.isSuffocating((state, reader, pos) -> false)
+			.isViewBlocking((state, reader, pos) -> false)
+			.ignitedByLava()
+			.noCollission()
+			.pushReaction(PushReaction.DESTROY)
+			.isRedstoneConductor((state, reader, pos) -> false)
+			.requiresCorrectToolForDrops();
 	}
-	
+
 	@Nullable @Override
 	public BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) {
 		return new BrokenLeavesBlockEntity(pos, state);

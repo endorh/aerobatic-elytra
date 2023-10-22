@@ -21,10 +21,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -103,7 +100,19 @@ public class ItemSelector implements Predicate<ItemStack> {
 		this.tags = null;
 		this.nbtPredicate = nbtPredicate;
 	}
-	
+
+	public boolean isItemBased() {
+		return item != null;
+	}
+
+	public boolean isTagBased() {
+		return item == null;
+	}
+
+	public boolean isSimple() {
+		return nbtPredicate == null;
+	}
+
 	public boolean testIgnoringNBT(ItemStack stack) {
 		if (item != null) {
 			return item.equals(stack.getItem());
@@ -127,7 +136,7 @@ public class ItemSelector implements Predicate<ItemStack> {
 		try {
 			for (int i = 0; i < arr.size(); i++) {
 				String sel = GsonHelper.convertToString(arr.get(i), "ingredients[" + i + "]");
-				result.add(ItemSelector.fromString(sel));
+				result.add(fromString(sel));
 			}
 		} catch (IllegalArgumentException e) {
 			throw new JsonSyntaxException(e.getLocalizedMessage(), e);
@@ -209,7 +218,19 @@ public class ItemSelector implements Predicate<ItemStack> {
 			d = d.append(nbtPredicate.getDisplay());
 		return d;
 	}
-	
+
+	public @Nullable Item getItem() {
+		return item;
+	}
+
+	public @Nullable Map<TagKey<Item>, ResourceLocation> getTags() {
+		return Collections.unmodifiableMap(tags);
+	}
+
+	public @Nullable NBTPredicate getNbtPredicate() {
+		return nbtPredicate;
+	}
+
 	@Override public String toString() {
 		StringBuilder res = new StringBuilder();
 		if (tags != null) {

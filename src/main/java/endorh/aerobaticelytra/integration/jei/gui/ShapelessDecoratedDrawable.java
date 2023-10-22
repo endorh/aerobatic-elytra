@@ -3,6 +3,7 @@ package endorh.aerobaticelytra.integration.jei.gui;
 import com.mojang.blaze3d.vertex.PoseStack;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.helpers.IGuiHelper;
+import net.minecraft.client.gui.GuiGraphics;
 import org.jetbrains.annotations.NotNull;
 
 public class ShapelessDecoratedDrawable implements IDrawable {
@@ -37,14 +38,15 @@ public class ShapelessDecoratedDrawable implements IDrawable {
 		return decorated.getHeight();
 	}
 	
-	@Override public void draw(@NotNull PoseStack mStack, int xOffset, int yOffset) {
-		decorated.draw(mStack, xOffset, yOffset);
-		final int shapelessIconX = getWidth() - (shapelessIcon.getWidth() / scale);
-		
-		mStack.pushPose(); {
-			mStack.translate(shapelessIconX, 0, 0);
-			mStack.scale(1F / scale, 1F / scale, 1);
-			(dark ? darkShapelessIcon : shapelessIcon).draw(mStack);
-		} mStack.popPose();
+	@Override public void draw(@NotNull GuiGraphics gg, int xOffset, int yOffset) {
+		decorated.draw(gg, xOffset, yOffset);
+		final int shapelessIconX = getWidth() - shapelessIcon.getWidth() / scale;
+
+		PoseStack pStack = gg.pose();
+		pStack.pushPose(); {
+			pStack.translate(shapelessIconX, 0, 0);
+			pStack.scale(1F / scale, 1F / scale, 1);
+			(dark ? darkShapelessIcon : shapelessIcon).draw(gg);
+		} pStack.popPose();
 	}
 }

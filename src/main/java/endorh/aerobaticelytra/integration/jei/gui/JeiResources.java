@@ -16,6 +16,12 @@ public class JeiResources {
 		  guiHelper.createDrawable(TEXTURE_RECIPES, 0, 0, 138, 18),
 		  guiHelper.createDrawable(TEXTURE_RECIPES, 0, 18, 138, 18)};
 	}
+
+	public static IDrawable[] upgradeRecipePlusHighlightTexture(IGuiHelper guiHelper) {
+		return new IDrawable[]{
+			guiHelper.createDrawable(TEXTURE_RECIPES, 116, 36, 18, 18),
+			guiHelper.createDrawable(TEXTURE_RECIPES, 116, 54, 18, 18)};
+	}
 	
 	public static IDrawable[] regular3x3RecipeBg(IGuiHelper guiHelper) {
 		return new IDrawable[]{

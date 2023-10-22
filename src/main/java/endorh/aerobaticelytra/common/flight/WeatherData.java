@@ -88,7 +88,7 @@ public class WeatherData {
 		public final Level world;
 		
 		private int tempTicket = 0;
-		private final long[] chunks = new long[] {0L, 0L, 0L, 0L};
+		private final long[] chunks = {0L, 0L, 0L, 0L};
 		
 		private WeatherRegion(Level world, long x, long z) {
 			this.world = world;
@@ -107,7 +107,7 @@ public class WeatherData {
 		}
 		
 		public static Set<WeatherRegion> of(Player player) {
-			return of(player.level, player.getX(), player.getZ());
+			return of(player.level(), player.getX(), player.getZ());
 		}
 		
 		public static Set<WeatherRegion> of(Level world, double x, double z) {
@@ -246,8 +246,7 @@ public class WeatherData {
 		}
 		
 		public boolean contains(Player player) {
-			if (player.level != world)
-				return false;
+			if (player.level() != world) return false;
 			return containsNoWorldCheck(player);
 		}
 		
@@ -257,8 +256,7 @@ public class WeatherData {
 		
 		@SuppressWarnings("unused")
 		public boolean affects(Player player) {
-			if (world != player.level)
-				return false;
+			if (world != player.level()) return false;
 			return affectsNoWorldCheck(player);
 		}
 		
@@ -323,7 +321,7 @@ public class WeatherData {
 		}
 		
 		public static Set<WindRegion> of(Player player) {
-			return of(player.level, player.getX(), player.getZ());
+			return of(player.level(), player.getX(), player.getZ());
 		}
 		
 		public static Set<WindRegion> of(Level world, double x, double z) {
@@ -423,7 +421,7 @@ public class WeatherData {
 	}
 	
 	public static float getBiomePrecipitationStrength(Player player) {
-		return switch (player.level.getBiome(player.blockPosition()).value().getPrecipitationAt(player.blockPosition())) {
+		return switch (player.level().getBiome(player.blockPosition()).value().getPrecipitationAt(player.blockPosition())) {
 			case NONE -> 0F;
 			case SNOW -> 1.2F;
 			case RAIN -> 1F;

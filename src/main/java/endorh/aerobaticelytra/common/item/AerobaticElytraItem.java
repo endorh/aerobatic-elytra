@@ -29,6 +29,7 @@ import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -296,7 +297,7 @@ public class AerobaticElytraItem extends ElytraItem implements Equipable, Dyeabl
 	
 	@Override
 	public boolean elytraFlightTick(@NotNull ItemStack stack, LivingEntity entity, int flightTicks) {
-		if (!entity.level.isClientSide && (flightTicks + 1) % 20 == 0 && !Config.item.undamageable)
+		if (!entity.level().isClientSide && (flightTicks + 1) % 20 == 0 && !Config.item.undamageable)
 			stack.hurtAndBreak(1, entity, e -> e.broadcastBreakEvent(EquipmentSlot.CHEST));
 		if (entity instanceof Player) {
 			IAerobaticData data = getAerobaticDataOrDefault((Player) entity);
@@ -515,8 +516,8 @@ public class AerobaticElytraItem extends ElytraItem implements Equipable, Dyeabl
 		final CompoundTag wingTag = wing.getOrCreateTag();
 		wingTag.put(SplitRecipe.TAG_SPLIT_ELYTRA, elytraTag);
 		wingTag.put(SplitRecipe.TAG_SPLIT_ELYTRA_CAPS, elytraCaps);
-		if (elytraTag.contains("Enchantments", 9))
-			wingTag.put("Enchantments", elytraTag.getList("Enchantments", 10));
+		if (elytraTag.contains("Enchantments", Tag.TAG_LIST))
+			wingTag.put("Enchantments", elytraTag.getList("Enchantments", Tag.TAG_COMPOUND));
 		getElytraSpecOrDefault(wing).getTrailData().keep(side);
 		return wing;
 	}

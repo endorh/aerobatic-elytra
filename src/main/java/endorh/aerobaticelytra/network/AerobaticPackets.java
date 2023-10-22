@@ -130,7 +130,7 @@ public class AerobaticPackets {
 			if (!Config.network.disable_aerobatic_elytra_rotation_check && !sender.isInWater()) {
 				MinecraftServer server = sender.getServer();
 				assert server != null;
-				long[] times = server.getTickTime(sender.level.dimension());
+				long[] times = server.getTickTime(sender.level().dimension());
 				long mspt = times != null? max(Arrays.stream(times).sum() / times.length, 50L) : 50L;
 				float lag = max(50F, ((ServerPlayer) sender).latency);
 				

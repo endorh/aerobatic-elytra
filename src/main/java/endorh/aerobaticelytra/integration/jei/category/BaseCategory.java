@@ -22,10 +22,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeManager;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -44,18 +41,18 @@ public abstract class BaseCategory<T> implements IRecipeCategory<T> {
 	protected final String localizedNameKey;
 	protected final boolean shapeless;
 	
-	public BaseCategory(
-	  RecipeType<T> type,
-	  Function<IGuiHelper, IDrawable[]> backgroundProvider,
-	  Item icon, boolean shapeless
-	) {
+	protected BaseCategory(
+      RecipeType<T> type,
+      Function<IGuiHelper, IDrawable[]> backgroundProvider,
+      Item icon, boolean shapeless
+   ) {
 		this(type, backgroundProvider, icon, null, shapeless);
 	}
 	
-	public BaseCategory(
-	  RecipeType<T> type, Function<IGuiHelper, IDrawable[]> backgroundProvider,
-	  Item icon, Item iconSecond, boolean shapeless
-	) {
+	protected BaseCategory(
+      RecipeType<T> type, Function<IGuiHelper, IDrawable[]> backgroundProvider,
+      Item icon, Item iconSecond, boolean shapeless
+   ) {
 		IGuiHelper guiHelper = AerobaticElytraJeiPlugin.guiHelper;
 		final String shortName = type.getUid().getPath().replace("/", ".");
 		this.type = type;
@@ -118,11 +115,11 @@ public abstract class BaseCategory<T> implements IRecipeCategory<T> {
 	  Stream<IFocus<ItemStack>> focuses, RecipeIngredientRole role, List<ItemStack> focused,
 	  List<ItemStack> other
 	) {
-		for (IFocus<ItemStack> focus: ((Iterable<IFocus<ItemStack>>) focuses::iterator)) {
+		for (IFocus<ItemStack> focus: (Iterable<IFocus<ItemStack>>) focuses::iterator) {
 			if (focus.getRole() == role) {
 				ItemStack focusStack = focus.getTypedValue().getIngredient(VanillaTypes.ITEM_STACK).orElse(ItemStack.EMPTY);
 				for (int i = 0; i < focused.size(); i++) {
-					if (focusStack.sameItem(focused.get(i)))
+					if (Objects.equals(focusStack.getItem(), focused.get(i).getItem()))
 						return Collections.singletonList(other.get(i));
 				}
 			}

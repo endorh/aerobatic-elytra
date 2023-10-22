@@ -18,6 +18,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SlimeBlock;
+import net.minecraft.world.level.block.state.BlockBehaviour.BlockStateBase;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 
@@ -55,7 +56,7 @@ public class AerobaticCollision {
 		List<BlockPos> collided = null;
 		double d;
 		for (d = 0.005D; d <= 0.5D; d *= 2D) {
-			collided = getCollidedBlocksInAABB(player.level, aaBB.inflate(d));
+			collided = getCollidedBlocksInAABB(player.level(), aaBB.inflate(d));
 			if (!collided.isEmpty()) break;
 		}
 		if (collided.isEmpty()) return; // Do not set onGround to false here
@@ -70,12 +71,12 @@ public class AerobaticCollision {
 		       + Config.collision.leave_breaking.chance_linear * speed;
 		boolean preventLanding = false;
 		for (BlockPos pos: collided) {
-			final BlockState bs = player.level.getBlockState(pos);
+			final BlockState bs = player.level().getBlockState(pos);
 			if (bs.is(Blocks.HAY_BLOCK)) {
 				damageModifier = max(damageModifier, Config.collision.hay_bale_multiplier);
 			} else if (bs.is(BlockTags.LEAVES)) {
 				if (shouldBreakLeaves) {
-					BrokenLeavesBlock.breakLeaves(player.level, pos);
+					BrokenLeavesBlock.breakLeaves(player.level(), pos);
 					propStrength *= 0.8F;
 					motionVec.mul(0.6F);
 					destroyed++;
@@ -93,12 +94,12 @@ public class AerobaticCollision {
 		    && motionVec.norm() > slime_bounce.min_speed_tick) {
 			preventLanding = true;
 			VectorBase base = data.getRotationBase();
-			if (player.level.isClientSide)
+			if (player.level().isClientSide)
 				data.getCameraBase().set(base);
 			
 			boolean bounced = tryBounce(player, base, motionVec);
 			
-			if (bounced && player.level.isClientSide) {
+			if (bounced && player.level().isClientSide) {
 				data.setLastBounceTime(System.currentTimeMillis());
 				data.getPreBounceBase().set(data.getCameraBase());
 				data.getPosBounceBase().set(base);
@@ -119,7 +120,7 @@ public class AerobaticCollision {
 		data.setLiftCut(Mth.clamp(data.getLiftCut() + 0.2F, 0F, 1F));
 		
 		// Stop flying when on ground
-		if (player.isOnGround() && player.isEffectiveAi() && !preventLanding)
+		if (player.onGround() && player.isEffectiveAi() && !preventLanding)
 			player.stopFallFlying();
 		if (preventLanding)
 			player.setOnGround(false);
@@ -170,7 +171,7 @@ public class AerobaticCollision {
 			data.setTiltYaw(data.getTiltYaw() * slime_bounce.angular_friction);
 			data.setTiltRoll(data.getTiltRoll() * slime_bounce.angular_friction);
 		}
-		player.level.playSound(
+		player.level().playSound(
 		  player, player.blockPosition(), SoundEvents.SLIME_BLOCK_HIT,
 		  SoundSource.PLAYERS, Mth.clampedLerp(0F, 1F, motionVec.norm() / 1.6F), 1F);
 		player.awardStat(FlightStats.AEROBATIC_SLIME_BOUNCES, 1);
@@ -180,7 +181,7 @@ public class AerobaticCollision {
 	  Player player, Direction dir, boolean includeCorners
 	) {
 		return !getCollidedBlocksInAABB(
-		  player.level, sideAABB(player.getBoundingBox(), dir, includeCorners),
+		  player.level(), sideAABB(player.getBoundingBox(), dir, includeCorners),
 		  bs -> bs.getBlock() instanceof SlimeBlock
 		).isEmpty();
 	}
@@ -201,7 +202,7 @@ public class AerobaticCollision {
 	public static List<BlockPos> getCollidedBlocksInAABB(
 	  Level world, AABB aaBB
 	) {
-		return getCollidedBlocksInAABB(world, aaBB, bs -> bs.getMaterial().blocksMotion());
+		return getCollidedBlocksInAABB(world, aaBB, BlockStateBase::blocksMotion);
 	}
 	
 	public static List<BlockPos> getCollidedBlocksInAABB(

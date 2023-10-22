@@ -48,9 +48,8 @@ public class AbilityNBTInheritingShapedRecipe extends NBTInheritingShapedRecipe 
 		abilities = upgradesIn;
 		unknown = unknownIn;
 	}
-	
-	@NotNull @Override
-	public ItemStack assemble(@NotNull CraftingContainer inv, @NotNull RegistryAccess r) {
+
+	@NotNull @Override public ItemStack assemble(@NotNull CraftingContainer inv, @NotNull RegistryAccess r) {
 		ItemStack result = super.assemble(inv, r);
 		final IElytraSpec spec = getElytraSpecOrDefault(result);
 		spec.setAbilities(abilities);
@@ -87,6 +86,11 @@ public class AbilityNBTInheritingShapedRecipe extends NBTInheritingShapedRecipe 
 			  GsonHelper.getAsJsonObject(
 				 GsonHelper.getAsJsonObject(json, "result"), "abilities")
 			);
+
+			output.setTag(outputTag);
+			IElytraSpec spec = getElytraSpecOrDefault(output);
+			spec.setAbilities(abilities.getLeft());
+			spec.getUnknownAbilities().putAll(abilities.getRight());
 			
 			return new AbilityNBTInheritingShapedRecipe(
 			  recipeId, group, category, w, h, nbtSources, list, output, outputTag,

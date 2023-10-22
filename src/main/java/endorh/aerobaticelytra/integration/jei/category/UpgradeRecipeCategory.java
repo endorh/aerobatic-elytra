@@ -1,22 +1,27 @@
 package endorh.aerobaticelytra.integration.jei.category;
 
 import endorh.aerobaticelytra.AerobaticElytra;
+import endorh.aerobaticelytra.client.config.ClientConfig.style.dark_theme;
 import endorh.aerobaticelytra.common.capability.IElytraSpec.Upgrade;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.recipe.ItemSelector;
 import endorh.aerobaticelytra.common.recipe.UpgradeRecipe;
+import endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiPlugin;
 import endorh.aerobaticelytra.integration.jei.gui.JeiResources;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
+import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.registration.IRecipeRegistration;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeManager;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,6 +33,7 @@ import static mezz.jei.api.recipe.RecipeIngredientRole.OUTPUT;
 
 public class UpgradeRecipeCategory extends BaseCategory<UpgradeRecipe> {
 	public static final RecipeType<UpgradeRecipe> TYPE = RecipeType.create(AerobaticElytra.MOD_ID, "upgrade", UpgradeRecipe.class);
+	private @Nullable IDrawable[] plusEffectTextures;
 	
 	public UpgradeRecipeCategory() {
 		super(TYPE, JeiResources::upgradeRecipeBg, AerobaticElytraItems.AEROBATIC_ELYTRA, false);
@@ -42,13 +48,32 @@ public class UpgradeRecipeCategory extends BaseCategory<UpgradeRecipe> {
 		List<ItemStack> items = setTag(recipe, getItemMatchingFocus(
 		  focuses.getFocuses(VanillaTypes.ITEM_STACK),
 		  OUTPUT, Collections.singletonList(output), inputs));
-		for (int i = 0; elytras.size() < items.size(); i++) elytras.add(elytras.get(i));
-		for (int i = 0; items.size() < elytras.size(); i++) items.add(items.get(i));
-		builder.addSlot(INPUT, 20, 0).addItemStacks(elytras);
-		builder.addSlot(INPUT, 69, 0).addItemStacks(items);
-		builder.addSlot(OUTPUT, 117, 0).addItemStacks(apply(recipe, elytras, items));
+
+		for (int i = 0; elytras.size() < items.size(); i++)
+			elytras.add(elytras.get(i));
+		for (int i = 0; items.size() < elytras.size(); i++)
+			items.add(items.get(i));
+
+		builder.addSlot(INPUT, 21, 1).addItemStacks(elytras);
+		builder.addSlot(INPUT, 70, 1).addItemStacks(items);
+		builder.addSlot(OUTPUT, 118, 1).addItemStacks(apply(recipe, elytras, items));
 	}
-	
+
+	private IDrawable getPlusEffectTexture() {
+		if (plusEffectTextures == null) plusEffectTextures =
+			JeiResources.upgradeRecipePlusHighlightTexture(AerobaticElytraJeiPlugin.guiHelper);
+		return plusEffectTextures[dark_theme.enabled? 1 : 0];
+	}
+
+	@Override public void draw(
+		@NotNull UpgradeRecipe recipe, @NotNull IRecipeSlotsView view,
+		@NotNull GuiGraphics gg, double mouseX, double mouseY
+	) {
+		super.draw(recipe, view, gg, mouseX, mouseY);
+		if (recipe.getSelectors().stream().anyMatch(s -> !s.isSimple()))
+			getPlusEffectTexture().draw(gg, 45, 0);
+	}
+
 	protected List<ItemStack> apply(
 	  UpgradeRecipe recipe, List<ItemStack> elytras, List<ItemStack> ingredients
 	) {
@@ -89,7 +114,7 @@ public class UpgradeRecipeCategory extends BaseCategory<UpgradeRecipe> {
 		}
 		return tt;
 	}
-	
+
 	@Override public void registerRecipes(
 	  IRecipeRegistration reg, RecipeManager recipeManager, List<UpgradeRecipe> recipes
 	) {

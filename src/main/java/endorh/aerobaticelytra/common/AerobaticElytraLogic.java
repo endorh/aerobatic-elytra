@@ -39,13 +39,13 @@ public class AerobaticElytraLogic {
 	}
 	
 	public static boolean isRemoteLocalPlayer(Player player) {
-		if (!player.level.isClientSide) return false;
-		return (player instanceof RemotePlayer);
+		if (!player.level().isClientSide) return false;
+		return player instanceof RemotePlayer;
 	}
 	
 	public static boolean isLocalPlayer(Player player) {
-		if (!player.level.isClientSide) return false;
-		return (player instanceof LocalPlayer);
+		if (!player.level().isClientSide) return false;
+		return player instanceof LocalPlayer;
 	}
 	
 	/**

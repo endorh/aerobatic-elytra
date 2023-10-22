@@ -1,23 +1,18 @@
 package endorh.aerobaticelytra.integration.jei;
 
-import com.google.common.collect.ImmutableList;
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.input.KeyHandler;
-import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
-import endorh.aerobaticelytra.common.recipe.UpgradeRecipe;
+import endorh.aerobaticelytra.common.recipe.CraftedUpgradeRecipe;
 import endorh.aerobaticelytra.integration.jei.category.*;
+import endorh.util.recipe.RecipeManagerHelper;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.helpers.IJeiHelpers;
-import mezz.jei.api.recipe.IFocus;
 import mezz.jei.api.recipe.IRecipeManager;
-import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
-import mezz.jei.api.recipe.advanced.IRecipeManagerPlugin;
-import mezz.jei.api.recipe.category.IRecipeCategory;
 import mezz.jei.api.registration.*;
 import mezz.jei.api.runtime.IIngredientManager;
 import mezz.jei.api.runtime.IJeiRuntime;
@@ -26,26 +21,26 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.inventory.CraftingMenu;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static endorh.aerobaticelytra.common.capability.ElytraSpecCapability.getElytraSpecOrDefault;
 import static endorh.util.text.TextUtil.ttc;
+import static mezz.jei.api.ingredients.subtypes.IIngredientSubtypeInterpreter.NONE;
 
 /**
  * Expose the mod recipe categories to the JEI mod
  */
-@SuppressWarnings("unused")
 @JeiPlugin
 public class AerobaticElytraJeiPlugin implements IModPlugin {
 	public static final ResourceLocation pluginUid = new ResourceLocation(
@@ -54,7 +49,7 @@ public class AerobaticElytraJeiPlugin implements IModPlugin {
 	public static IRecipeManager recipeManager = null;
 	public static IJeiHelpers jeiHelpers = null;
 	public static IGuiHelper guiHelper = null;
-	
+
 	protected static final List<Supplier<BaseCategory<?>>> categoryConstructors =
 	  Util.make(new ArrayList<>(), l -> {
 		  l.add(UpgradeRecipeCategory::new);
@@ -65,6 +60,7 @@ public class AerobaticElytraJeiPlugin implements IModPlugin {
 		  l.add(JoinRecipeCategory::new);
 	  });
 	protected static final List<BaseCategory<?>> categories = new ArrayList<>();
+	protected static List<ContextualRecipeCategory<?, ?>> contextualCategories = new ArrayList<>();
 	
 	@NotNull @Override public ResourceLocation getPluginUid() {
 		return pluginUid;
@@ -77,6 +73,8 @@ public class AerobaticElytraJeiPlugin implements IModPlugin {
 		for (Supplier<BaseCategory<?>> c: categoryConstructors) {
 			final BaseCategory<?> cat = c.get();
 			categories.add(cat);
+			if (cat instanceof ContextualRecipeCategory<?, ?> ct)
+				contextualCategories.add(ct);
 			reg.addRecipeCategories(cat);
 		}
 	}
@@ -84,13 +82,15 @@ public class AerobaticElytraJeiPlugin implements IModPlugin {
 	@Override public void registerItemSubtypes(@NotNull ISubtypeRegistration reg) {
 		// Differentiate aerobatic elytras by their abilities
 		reg.registerSubtypeInterpreter(
-		  VanillaTypes.ITEM_STACK,
-		  AerobaticElytraItems.AEROBATIC_ELYTRA,
-		  (stack, context) -> getElytraSpecOrDefault(stack).getAbilities().entrySet().stream().map(
-			 entry -> entry.getKey().toString() + ":" + entry.getValue()
-		  ).collect(Collectors.joining()));
+		  AerobaticElytraItems.AEROBATIC_ELYTRA, (stack, context) -> switch (context) {
+			  case Ingredient -> getElytraSpecOrDefault(stack).getAbilities().entrySet().stream()
+				  .sorted(Comparator.comparing(e -> e.getKey().getName()))
+				  .map(e -> e.getKey().getName() + ":" + e.getValue())
+				  .collect(Collectors.joining(";"));
+			  case Recipe -> NONE;
+		  });
 	}
-	
+
 	@Override public void registerRecipes(@NotNull IRecipeRegistration reg) {
 		// Add info to item
 		String key = KeyHandler.FLIGHT_MODE.getKey().getName();
@@ -105,7 +105,6 @@ public class AerobaticElytraJeiPlugin implements IModPlugin {
 		final ClientLevel world = Minecraft.getInstance().level;
 		assert world != null;
 		RecipeManager recipeManager = world.getRecipeManager();
-		final Collection<Recipe<?>> recipeList = recipeManager.getRecipes();
 		
 		for (BaseCategory<?> cat: categories)
 			registerRecipes(reg, recipeManager, cat);
@@ -117,14 +116,29 @@ public class AerobaticElytraJeiPlugin implements IModPlugin {
 		ingredientManager = reg.getIngredientManager();
 		cat.registerRecipes(reg, manager);
 	}
-	
+
+	@Override public void registerRecipeTransferHandlers(@NotNull IRecipeTransferRegistration reg) {
+		reg.addRecipeTransferHandler(CraftingMenu.class, MenuType.CRAFTING, JoinRecipeCategory.TYPE, 0, 9, 9, 36);
+		reg.addRecipeTransferHandler(CraftingMenu.class, MenuType.CRAFTING, SplitRecipeCategory.TYPE, 0, 9, 9, 36);
+		// Getting these to work would require a custom IRecipeTransferHandler to properly disambiguate/tolerate
+		// fireworks/dyes/banners from the player's inventory, and nobody is ever going to use it.
+		// There's no benefit from autofilling a customization recipe.
+		// reg.addRecipeTransferHandler(CraftingMenu.class, MenuType.CRAFTING, BannerRecipeCategory.TYPE, 0, 9, 9, 36);
+		// reg.addRecipeTransferHandler(CraftingMenu.class, MenuType.CRAFTING, DyeRecipeCategory.TYPE, 0, 9, 9, 36);
+		// reg.addRecipeTransferHandler(CraftingMenu.class, MenuType.CRAFTING, TrailRecipeCategory.TYPE, 3, 6, 9, 36);
+	}
+
 	@Override public void registerRecipeCatalysts(IRecipeCatalystRegistration reg) {
 		// Register the Aerobatic Elytra item as catalyst for upgrade recipes
-		reg.addRecipeCatalyst(VanillaTypes.ITEM_STACK, new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA), UpgradeRecipeCategory.TYPE);
+		reg.addRecipeCatalyst(new ItemStack(AerobaticElytraItems.AEROBATIC_ELYTRA),
+			UpgradeRecipeCategory.TYPE);
 		final ItemStack craftingTable = new ItemStack(Items.CRAFTING_TABLE);
 		reg.addRecipeCatalyst(
-		  VanillaTypes.ITEM_STACK, craftingTable,
+		  craftingTable,
 		  JoinRecipeCategory.TYPE, SplitRecipeCategory.TYPE, DyeRecipeCategory.TYPE, BannerRecipeCategory.TYPE, TrailRecipeCategory.TYPE);
+		if (RecipeManagerHelper.getRecipeManager().getRecipes().stream()
+			.anyMatch(r -> r instanceof CraftedUpgradeRecipe)
+		) reg.addRecipeCatalyst(craftingTable, UpgradeRecipeCategory.TYPE);
 	}
 	
 	public static <T> RecipeType<T> create(ResourceLocation location, Class<T> cls) {
@@ -136,45 +150,11 @@ public class AerobaticElytraJeiPlugin implements IModPlugin {
 		recipeManager = jeiRuntime.getRecipeManager();
 		jeiHelpers = jeiRuntime.getJeiHelpers();
 	}
-	
-	@Override
-	public void registerAdvanced(IAdvancedRegistration registration) {
-		registration.addRecipeManagerPlugin(new RecipeManagerPlugin());
-	}
-	
-	public static class RecipeManagerPlugin implements IRecipeManagerPlugin {
-		@Override public <V> @NotNull List<RecipeType<?>> getRecipeTypes(@NotNull IFocus<V> focus) {
-			if (focus.getTypedValue().getIngredient(VanillaTypes.ITEM_STACK).map(ItemStack::getItem).orElse(null) instanceof AerobaticElytraItem) {
-				return ImmutableList.of(UpgradeRecipeCategory.TYPE);
-			} else return Collections.emptyList();
-		}
-		
-		@Override public <T, V> @NotNull List<T> getRecipes(
-		  @NotNull IRecipeCategory<T> recipeCategory, @NotNull IFocus<V> focus
-		) {
-			if (recipeCategory instanceof UpgradeRecipeCategory) {
-				ItemStack focused = focus.getTypedValue().getIngredient(VanillaTypes.ITEM_STACK).orElse(ItemStack.EMPTY);
-				if (focused.getItem() instanceof AerobaticElytraItem) {
-					if (focus.getRole() == RecipeIngredientRole.INPUT) {
-						//noinspection unchecked
-						return (List<T>) UpgradeRecipe.getUpgradeRecipes().stream().filter(
-						  r -> r.getResult(focused.copy(), 1).getRight() > 0
-						).collect(Collectors.toList());
-					} else return (List<T>) UpgradeRecipe.getUpgradeRecipes();
-				} else if (!focused.isEmpty() && focus.getRole() == RecipeIngredientRole.INPUT) {
-					//noinspection unchecked
-					return (List<T>) UpgradeRecipe.getUpgradeRecipes().stream().filter(
-					  r -> r.getSelectors().stream().anyMatch(s -> s.test(focused))
-					).collect(Collectors.toList());
-				}
-			}
-			return Collections.emptyList();
-		}
-		
-		@Override public <T> @NotNull List<T> getRecipes(@NotNull IRecipeCategory<T> recipeCategory) {
-			if (recipeCategory instanceof UpgradeRecipeCategory)
-				return (List<T>) UpgradeRecipe.getUpgradeRecipes();
-			return Collections.emptyList();
-		}
+
+	@Override public void registerAdvanced(@NotNull IAdvancedRegistration reg) {
+		reg.addRecipeManagerPlugin(new AerobaticElytraRecipeManagerPlugin(
+			contextualCategories,
+			reg.getJeiHelpers().getFocusFactory()
+		));
 	}
 }

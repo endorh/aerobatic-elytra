@@ -90,7 +90,7 @@ public class AerobaticElytraSound extends FadingTickableSound {
 	  Player player, SoundEvent sound, SoundSource category,
 	  float volume, float pitch
 	) {
-		if (!player.level.isClientSide)
+		if (!player.level().isClientSide)
 			return;
 		Vec3 position = player.position();
 		if (player instanceof RemotePlayer) {
@@ -102,7 +102,7 @@ public class AerobaticElytraSound extends FadingTickableSound {
 			  volume, (float) position.distanceTo(clientPos));
 			position = clientPos;
 		}
-		player.level.playLocalSound(
+		player.level().playLocalSound(
 		  position.x, position.y, position.z, sound,
 		  category, volume, pitch, false);
 	}

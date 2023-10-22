@@ -12,14 +12,15 @@ import endorh.aerobaticelytra.common.config.Const;
 import endorh.util.animation.ToggleAnimator;
 import endorh.util.math.Vec3f;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 
 import static endorh.aerobaticelytra.client.AerobaticElytraResources.FLIGHT_GUI_ICONS_LOCATION;
 import static java.lang.Math.*;
-import static net.minecraft.client.gui.GuiComponent.blit;
 
 public class AerobaticCrosshairOverlay implements IGuiOverlay {
 	private static final Vec3f XP = Vec3f.XP.get();
@@ -34,30 +35,31 @@ public class AerobaticCrosshairOverlay implements IGuiOverlay {
 	}
 	
 	@Override public void render(
-	  ForgeGui gui, PoseStack mStack, float partialTicks, int width, int height
+	  ForgeGui gui, GuiGraphics gg, float partialTicks, int width, int height
 	) {
 		Minecraft mc = Minecraft.getInstance();
 		LocalPlayer player = mc.player;
 		if (player == null) return;
 		IAerobaticData data = AerobaticDataCapability.getAerobaticDataOrDefault(player);
 		Window win = mc.getWindow();
-		
-		RenderSystem.setShaderTexture(0, FLIGHT_GUI_ICONS_LOCATION);
+
 		RenderSystem.disableCull();
 		RenderSystem.enableBlend();
 		RenderSystem.blendFuncSeparate(
 		  SourceFactor.ONE_MINUS_DST_COLOR, DestFactor.ONE_MINUS_SRC_COLOR,
 		  SourceFactor.SRC_ALPHA, DestFactor.ZERO);
 		
-		renderCrosshair(mStack, win, data, partialTicks);
+		renderCrosshair(gg, win, data, partialTicks);
 		
 		RenderSystem.defaultBlendFunc();
 		RenderSystem.enableCull();
 	}
 	
 	private void renderCrosshair(
-	  PoseStack mStack, Window win, IAerobaticData data, float partialTicks
+		GuiGraphics gg, Window win, IAerobaticData data, float partialTicks
 	) {
+		ResourceLocation t = FLIGHT_GUI_ICONS_LOCATION;
+
 		int winW = win.getGuiScaledWidth();
 		int winH = win.getGuiScaledHeight();
 		
@@ -83,19 +85,20 @@ public class AerobaticCrosshairOverlay implements IGuiOverlay {
 		float cY = winH / 2F;
 		int crossX = (winW - cS) / 2;
 		int crossY = (winH - cS) / 2;
-		mStack.pushPose(); {
+		PoseStack pStack = gg.pose();
+		pStack.pushPose(); {
 			if (animatingLook) {
-				mStack.pushPose(); {
-					mStack.translate(cX, cY, 0);
-					mStack.mulPose(ZP.rotationDegrees(lookAroundAnimator.getProgress()));
-					mStack.translate(-cX, -cY, 0);
-					blit(mStack, crossX, crossY, 2 * cS, 0, cS, cS, tW, tH);
-				} mStack.popPose();
+				pStack.pushPose(); {
+					pStack.translate(cX, cY, 0);
+					pStack.mulPose(ZP.rotationDegrees(lookAroundAnimator.getProgress()));
+					pStack.translate(-cX, -cY, 0);
+					gg.blit(t, crossX, crossY, 2 * cS, 0, cS, cS, tW, tH);
+				} pStack.popPose();
 			}
 			if (isLookingAround) {
 				float rotDiag = (float) sqrt(lookPitch * lookPitch + lookYaw * lookYaw);
-				if (!animatingLook) blit(
-				  mStack, crossX, crossY, 2 * cS, data.isLookAroundPersistent()? cS : 0,
+				if (!animatingLook) gg.blit(
+				  t, crossX, crossY, 2 * cS, data.isLookAroundPersistent()? cS : 0,
 				  cS, cS, tW, tH);
 				if (rotDiag > 1E-4F) {
 					// The rotation offset must be relative to the screen size
@@ -118,52 +121,52 @@ public class AerobaticCrosshairOverlay implements IGuiOverlay {
 					float relRot = (rotDiag - 90) / 5F;
 					float counterRotationStrength = 0.4F * (float) cbrt(
 					  relRot / (1 + (float) pow(relRot, 4)));
-					mStack.translate(cX, cY, -rotationOffset);
-					mStack.mulPose(XP.rotationDegrees(lookPitch * rotationStrength));
-					mStack.mulPose(YP.rotationDegrees(lookYaw * rotationStrength));
-					mStack.translate(0, 0, rotationOffset);
-					mStack.mulPose(XP.rotationDegrees(lookPitch * counterRotationStrength));
-					mStack.mulPose(YP.rotationDegrees(lookYaw * counterRotationStrength));
-					mStack.translate(-cX, -cY, 0);
+					pStack.translate(cX, cY, -rotationOffset);
+					pStack.mulPose(XP.rotationDegrees(lookPitch * rotationStrength));
+					pStack.mulPose(YP.rotationDegrees(lookYaw * rotationStrength));
+					pStack.translate(0, 0, rotationOffset);
+					pStack.mulPose(XP.rotationDegrees(lookPitch * counterRotationStrength));
+					pStack.mulPose(YP.rotationDegrees(lookYaw * counterRotationStrength));
+					pStack.translate(-cX, -cY, 0);
 				}
 			}
 			
 			// Base
-			blit(mStack, crossX, crossY, 0, 0, cS, cS, tW, tH);
+			gg.blit(t, crossX, crossY, 0, 0, cS, cS, tW, tH);
 			// Pitch
-			mStack.pushPose(); {
-				mStack.translate(0D, scaledPitch, 0D);
-				blit(mStack, crossX, crossY, cS, 0, cS, cS, tW, tH);
-			} mStack.popPose();
+			pStack.pushPose(); {
+				pStack.translate(0D, scaledPitch, 0D);
+				gg.blit(t, crossX, crossY, cS, 0, cS, cS, tW, tH);
+			} pStack.popPose();
 			
 			// Yaw
-			mStack.pushPose(); {
-				mStack.translate(scaledYaw, 0, 0);
-				blit(mStack, crossX, crossY, 0, cS, cS, cS, tW, tH);
-			} mStack.popPose();
+			pStack.pushPose(); {
+				pStack.translate(scaledYaw, 0, 0);
+				gg.blit(t, crossX, crossY, 0, cS, cS, cS, tW, tH);
+			} pStack.popPose();
 			
 			// Roll
-			mStack.pushPose(); {
-				mStack.translate(cX, cY, 0);
-				mStack.mulPose(ZP.rotationDegrees(scaledRoll));
-				mStack.translate(-cX, -cY, 0);
+			pStack.pushPose(); {
+				pStack.translate(cX, cY, 0);
+				pStack.mulPose(ZP.rotationDegrees(scaledRoll));
+				pStack.translate(-cX, -cY, 0);
 				// Rotated crosshair
-				blit(mStack, crossX, crossY, cS, cS, cS, cS, tW, tH);
-			} mStack.popPose();
+				gg.blit(t, crossX, crossY, cS, cS, cS, cS, tW, tH);
+			} pStack.popPose();
 			
 			// Rectification trigger
 			if (rectifyAnimator.isInProgress()) {
 				RenderSystem.setShaderColor(1, 1, 1, rectifyAnimator.getUnitProgress());
-				mStack.pushPose(); {
+				pStack.pushPose(); {
 					float scale = rectifyAnimator.getProgress();
-					mStack.translate(cX, cY, 0);
-					mStack.scale(scale, scale, 1);
-					mStack.translate(-cX, -cY, 0);
-					blit(mStack, crossX, crossY, 3 * cS, 0, cS, cS, tW, tH);
-				} mStack.popPose();
+					pStack.translate(cX, cY, 0);
+					pStack.scale(scale, scale, 1);
+					pStack.translate(-cX, -cY, 0);
+					gg.blit(t, crossX, crossY, 3 * cS, 0, cS, cS, tW, tH);
+				} pStack.popPose();
 				RenderSystem.setShaderColor(1, 1, 1, 1);
 			} else if (data.isJumping())
-				blit(mStack, crossX, crossY, 3 * cS, 0, cS, cS, tW, tH);
-		} mStack.popPose();
+				gg.blit(t, crossX, crossY, 3 * cS, 0, cS, cS, tW, tH);
+		} pStack.popPose();
 	}
 }

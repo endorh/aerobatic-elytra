@@ -2,12 +2,12 @@ package endorh.aerobaticelytra.client.render.overlay;
 
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import endorh.aerobaticelytra.client.config.ClientConfig.style.visual;
 import endorh.aerobaticelytra.common.config.Const;
 import endorh.aerobaticelytra.common.flight.mode.IFlightMode;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 
@@ -20,11 +20,11 @@ public class FlightModeToastOverlay implements IGuiOverlay {
 	private IFlightMode mode;
 	
 	@Override public void render(
-	  ForgeGui gui, PoseStack pStack, float partialTick, int width, int height
+		ForgeGui gui, GuiGraphics gg, float partialTick, int width, int height
 	) {
 		if (remainingToastTime > 0) {
 			float alpha = remainingToastTime / (float) visual.mode_toast_length_ms;
-			RenderSystem.setShaderTexture(0, mode.getToastIconLocation());
+			ResourceLocation t = mode.getToastIconLocation();
 			RenderSystem.enableBlend();
 			RenderSystem.setShaderColor(1F, 1F, 1F, alpha);
 			Window win = Minecraft.getInstance().getWindow();
@@ -36,12 +36,12 @@ public class FlightModeToastOverlay implements IGuiOverlay {
 			if (u != -1 && v != -1) {
 				int x = round((winW - iW) * visual.mode_toast_x_fraction);
 				int y = round((winH - iH) * visual.mode_toast_y_fraction);
-				GuiComponent.blit(pStack, x, y, u, v, iW, iH, tW, tH);
+				gg.blit(t, x, y, u, v, iW, iH, tW, tH);
 			}
 			RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
 			RenderSystem.disableBlend();
-			final long t = currentTimeMillis();
-			remainingToastTime = toastEnd - t;
+			final long tt = currentTimeMillis();
+			remainingToastTime = toastEnd - tt;
 		}
 	}
 	

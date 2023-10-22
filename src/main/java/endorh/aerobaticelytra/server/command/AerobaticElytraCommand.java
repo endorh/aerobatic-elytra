@@ -237,18 +237,19 @@ public class AerobaticElytraCommand {
 		if (!IAbility.isDefined(name))
 			throw UNKNOWN_ABILITY.create();
 		final IAbility ability = IAbility.fromName(name);
+		final Entity target = getTarget(cc);
 		if (spec.hasAbility(ability)) {
 			final float value = spec.getAbility(ability);
-			cc.getSource().sendSuccess(
-			  ttc("commands.aerobaticelytra.ability.get.success", getTarget(cc).getDisplayName())
-				 .append("\n")
-				 .append(ttc("commands.aerobaticelytra.ability.get.ability",
-				             ability.getDisplayName(), displayFloat(value))), true);
+			cc.getSource().sendSuccess(() ->
+				ttc("commands.aerobaticelytra.ability.get.success", target.getDisplayName())
+					.append("\n")
+					.append(ttc("commands.aerobaticelytra.ability.get.ability",
+						ability.getDisplayName(), displayFloat(value))), true);
 		} else {
-			cc.getSource().sendSuccess(
-			  ttc("commands.aerobaticelytra.ability.get.default",
-			      ability.getDisplayName(), getTarget(cc).getDisplayName(),
-			      displayFloat(ability.getDefault())), true);
+			cc.getSource().sendSuccess(() ->
+				ttc("commands.aerobaticelytra.ability.get.default",
+					ability.getDisplayName(), target.getDisplayName(),
+					displayFloat(ability.getDefault())), true);
 		}
 		return 0;
 	}
@@ -257,16 +258,17 @@ public class AerobaticElytraCommand {
 	  CommandContext<CommandSourceStack> cc, String name
 	) throws CommandSyntaxException {
 		final IElytraSpec spec = getElytraSpec(cc);
+		Entity target = getTarget(cc);
 		if (spec.getUnknownAbilities().containsKey(name)) {
 			final float value = spec.getUnknownAbilities().get(name);
-			cc.getSource().sendSuccess(
-			  ttc("commands.aerobaticelytra.ability.get.success.unknown", getTarget(cc).getDisplayName())
-				 .append("\n")
-				 .append(ttc("commands.aerobaticelytra.ability.get.ability.unknown",
-				             name, displayFloat(value))), true);
+			cc.getSource().sendSuccess(() ->
+				ttc("commands.aerobaticelytra.ability.get.success.unknown", target.getDisplayName())
+					.append("\n")
+					.append(ttc("commands.aerobaticelytra.ability.get.ability.unknown",
+						name, displayFloat(value))), true);
 		} else {
 			cc.getSource().sendFailure(
-			  ttc("commands.aerobaticelytra.ability.get.failure.unknown", name, getTarget(cc).getDisplayName()));
+				ttc("commands.aerobaticelytra.ability.get.failure.unknown", name, target.getDisplayName()));
 		}
 		return 0;
 	}
@@ -311,7 +313,8 @@ public class AerobaticElytraCommand {
 				}
 			}
 		}
-		cc.getSource().sendSuccess(msg, true);
+		MutableComponent m = msg; // Java is a dum dum
+		cc.getSource().sendSuccess(() -> m, true);
 		return 0;
 	}
 	
@@ -322,7 +325,7 @@ public class AerobaticElytraCommand {
 		final IAbility ability = IAbility.fromName(name);
 		final List<IElytraSpec> specs = getElytraSpecs(cc);
 		specs.forEach(s -> s.setAbility(ability, value));
-		cc.getSource().sendSuccess(
+		cc.getSource().sendSuccess(() ->
 		  ttc("commands.aerobaticelytra.ability.set.success", specs.size())
 		    .append("\n")
 		    .append(ttc(
@@ -336,12 +339,11 @@ public class AerobaticElytraCommand {
 	) throws CommandSyntaxException {
 		final List<IElytraSpec> specs = getElytraSpecs(cc);
 		specs.forEach(s -> s.getUnknownAbilities().put(name, value));
-		cc.getSource().sendSuccess(
-		  ttc("commands.aerobaticelytra.ability.set.success.unknown", specs.size())
-		    .append("\n").append(
-		      ttc("commands.aerobaticelytra.ability.set.ability.unknown", name, displayFloat(value))),
-		  true
-		);
+		cc.getSource().sendSuccess(() ->
+				ttc("commands.aerobaticelytra.ability.set.success.unknown", specs.size())
+					.append("\n").append(
+						ttc("commands.aerobaticelytra.ability.set.ability.unknown", name, displayFloat(value))),
+			true);
 		return 0;
 	}
 	
@@ -352,14 +354,11 @@ public class AerobaticElytraCommand {
 		final IAbility ability = IAbility.fromName(name);
 		final List<IElytraSpec> specs = getElytraSpecs(cc);
 		specs.forEach(s -> s.resetAbility(ability));
-		cc.getSource().sendSuccess(
-		  ttc(
-			 "commands.aerobaticelytra.ability.reset.success", specs.size())
-			 .append("\n")
-			 .append(ttc(
-				"commands.aerobaticelytra.ability.reset.ability", ability.getDisplayName(),
-				displayFloat(ability.getDefault()))), true
-		);
+		cc.getSource().sendSuccess(() ->
+			ttc("commands.aerobaticelytra.ability.reset.success", specs.size())
+				.append("\n")
+				.append(ttc("commands.aerobaticelytra.ability.reset.ability", ability.getDisplayName(),
+					displayFloat(ability.getDefault()))), true);
 		return 0;
 	}
 	
@@ -375,7 +374,9 @@ public class AerobaticElytraCommand {
 			msg = msg.append("\n").append(
 			  ttc("commands.aerobaticelytra.ability.reset.ability", ability.getDisplayName(),
 			      displayFloat(ability.getDefault())));
-		context.getSource().sendSuccess(msg, true);
+
+		MutableComponent m = msg;
+		context.getSource().sendSuccess(() -> m, true);
 		return 0;
 	}
 	
@@ -387,9 +388,8 @@ public class AerobaticElytraCommand {
 			AerobaticElytraRegistries.getAbilities().values().forEach(s::removeAbility);
 			s.getUnknownAbilities().clear();
 		});
-		cc.getSource().sendSuccess(
-		  ttc("commands.aerobaticelytra.ability.remove.all.success", specs.size()), true
-		);
+		cc.getSource().sendSuccess(() ->
+			ttc("commands.aerobaticelytra.ability.remove.all.success", specs.size()), true);
 		return 0;
 	}
 	
@@ -398,8 +398,8 @@ public class AerobaticElytraCommand {
 	) throws CommandSyntaxException {
 		final List<IElytraSpec> specs = getElytraSpecs(cc);
 		specs.forEach(s -> s.getUnknownAbilities().clear());
-		cc.getSource().sendSuccess(
-		  ttc("commands.aerobaticelytra.ability.remove.all.unknown.success", specs.size()), true);
+		cc.getSource().sendSuccess(() ->
+			ttc("commands.aerobaticelytra.ability.remove.all.unknown.success", specs.size()), true);
 		return 0;
 	}
 	
@@ -412,9 +412,9 @@ public class AerobaticElytraCommand {
 		IAbility ability = IAbility.fromName(name);
 		final long count = specs.stream().map(
 		  s -> s.removeAbility(ability)).filter(Objects::nonNull).count();
-		cc.getSource().sendSuccess(
-		  ttc("commands.aerobaticelytra.ability.remove.success",
-		      ability.getDisplayName(), count, specs.size()), true);
+		cc.getSource().sendSuccess(() ->
+			ttc("commands.aerobaticelytra.ability.remove.success",
+				ability.getDisplayName(), count, specs.size()), true);
 		return 0;
 	}
 	
@@ -424,9 +424,9 @@ public class AerobaticElytraCommand {
 		final List<IElytraSpec> specs = getElytraSpecs(cc);
 		final long count = specs.stream().map(
 		  s -> s.getUnknownAbilities().remove(name)).filter(Objects::nonNull).count();
-		cc.getSource().sendSuccess(
-		  ttc("commands.aerobaticelytra.ability.remove.success.unknown",
-		      name, count, specs.size()), true);
+		cc.getSource().sendSuccess(() ->
+			ttc("commands.aerobaticelytra.ability.remove.success.unknown",
+				name, count, specs.size()), true);
 		return 0;
 	}
 	
@@ -456,7 +456,7 @@ public class AerobaticElytraCommand {
 				player.drop(debugWing, false);
 			return 0;
 		} catch (CommandSyntaxException e) {
-			e.printStackTrace();
+			LOGGER.warn(e);
 			return -1;
 		}
 	}
@@ -486,7 +486,8 @@ public class AerobaticElytraCommand {
 				  s = s.withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, command));
 				  return s;
 			  }));
-			source.sendSuccess(msg, true);
+			MutableComponent m = msg;
+			source.sendSuccess(() -> m, true);
 		}
 		return 0;
 	}
@@ -530,12 +531,12 @@ public class AerobaticElytraCommand {
 				FileUtils.copyInputStreamToFile(entry.getValue(), dest);
 			}
 		} catch (IOException | AssertionError e) {
-			e.printStackTrace();
+			LOGGER.error(e);
 			source.sendFailure(ttc("commands.aerobaticelytra.datapack.install.failure.copy", e.getLocalizedMessage()));
 			try { // Undo
 				FileUtils.deleteDirectory(destination.toFile());
 			} catch (IOException f) {
-				f.printStackTrace();
+				LOGGER.error(e);
 				source.sendFailure(ttc("commands.aerobaticelytra.datapack.install.failure.undo", f.getLocalizedMessage()));
 			}
 			return 2;
@@ -545,8 +546,8 @@ public class AerobaticElytraCommand {
 		source.getServer().getPackRepository().reload();
 		
 		// Send feedback
-		source.sendSuccess(
-		  ttc("commands.aerobaticelytra.datapack.install.success", enableCommand), true);
+		source.sendSuccess(() ->
+			ttc("commands.aerobaticelytra.datapack.install.success", enableCommand), true);
 		return 0;
 	}
 	

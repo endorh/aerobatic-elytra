@@ -3,15 +3,13 @@ plugins {
 }
 
 repositories {
-    maven("https://files.minecraftforge.net/maven") {
-        name = "Minecraft Forge"
+    maven("https://maven.neoforged.net/releases") {
+        name = "NeoForge"
     }
     mavenCentral()
     gradlePluginPortal()
 }
 
 dependencies {
-    implementation("net.minecraftforge.gradle:ForgeGradle:5.1.+") {
-        isChanging = true
-    }
+
 }

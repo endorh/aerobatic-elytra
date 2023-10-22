@@ -2,7 +2,6 @@ package endorh.aerobaticelytra.client.render.overlay;
 
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import endorh.aerobaticelytra.client.config.ClientConfig;
 import endorh.aerobaticelytra.client.config.ClientConfig.style.visual;
 import endorh.aerobaticelytra.common.capability.AerobaticDataCapability;
@@ -10,8 +9,9 @@ import endorh.aerobaticelytra.common.capability.IAerobaticData;
 import endorh.aerobaticelytra.common.config.Config.aerobatic.propulsion;
 import endorh.aerobaticelytra.common.config.Const;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
@@ -28,7 +28,7 @@ public class FlightBarOverlay implements IGuiOverlay {
 	private static float lastPartialTicks = 0F;
 	
 	@Override public void render(
-	  ForgeGui gui, PoseStack mStack, float partialTicks, int width, int height
+		ForgeGui gui, GuiGraphics gg, float partialTicks, int width, int height
 	) {
 		LocalPlayer player = Minecraft.getInstance().player;
 		assert player != null;
@@ -38,9 +38,9 @@ public class FlightBarOverlay implements IGuiOverlay {
 		
 		RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
 		RenderSystem.enableBlend();
-		
-		RenderSystem.setShaderTexture(0, FLIGHT_GUI_ICONS_LOCATION);
-		
+
+		ResourceLocation t = FLIGHT_GUI_ICONS_LOCATION;
+
 		int winW = win.getGuiScaledWidth();
 		int winH = win.getGuiScaledHeight();
 		
@@ -77,20 +77,20 @@ public class FlightBarOverlay implements IGuiOverlay {
 		
 		if (cap > 0) {
 			// Base
-			GuiComponent.blit(mStack, x, y, 0, 50, (int)barLength - 1, barHeight, tW, tH);
+			gg.blit(t, x, y, 0, 50, (int)barLength - 1, barHeight, tW, tH);
 			// Propulsion
 			if (prop > 0)
-				GuiComponent.blit(mStack, x, y, 0, 55, prop, barHeight, tW, tH);
+				gg.blit(t, x, y, 0, 55, prop, barHeight, tW, tH);
 			else if (prop < 0)
-				GuiComponent.blit(mStack, x, y, 0, 60, -prop, barHeight, tW, tH);
+				gg.blit(t, x, y, 0, 60, -prop, barHeight, tW, tH);
 			// Boost
 			if (boost > 0)
-				GuiComponent.blit(mStack, x, y, 0, 65, boost, barHeight, tW, tH);
+				gg.blit(t, x, y, 0, 65, boost, barHeight, tW, tH);
 			// Brake
 			if (brake_heat > 0)
-				GuiComponent.blit(mStack, x, y, 0, brake_cooldown? 75 : 70, brake_heat, barHeight, tW, tH);
+				gg.blit(t, x, y, 0, brake_cooldown? 75 : 70, brake_heat, barHeight, tW, tH);
 			// Overlay
-			GuiComponent.blit(mStack, x, y, 0, 80, (int)barLength - 1, barHeight, tW, tH);
+			gg.blit(t, x, y, 0, 80, (int)barLength - 1, barHeight, tW, tH);
 		}
 		
 		RenderSystem.disableBlend();

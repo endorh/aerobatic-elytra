@@ -39,9 +39,9 @@ public class JoinRecipeCategory extends BaseCategory<JoinRecipe> {
 		List<ItemStack> elytras = getAerobaticElytrasMatchingFocus(focus);
 		Pair<List<ItemStack>, List<ItemStack>> wings = split(elytras);
 		
-		builder.addSlot(RecipeIngredientRole.INPUT, 0, 0).addItemStacks(wings.getFirst());
-		builder.addSlot(RecipeIngredientRole.INPUT, 18, 0).addItemStacks(wings.getSecond());
-		builder.addSlot(RecipeIngredientRole.OUTPUT, 94, 18).addItemStacks(elytras);
+		builder.addSlot(RecipeIngredientRole.INPUT, 1, 1).addItemStacks(wings.getFirst());
+		builder.addSlot(RecipeIngredientRole.INPUT, 19, 1).addItemStacks(wings.getSecond());
+		builder.addSlot(RecipeIngredientRole.OUTPUT, 95, 19).addItemStacks(elytras);
 	}
 	
 	@Override public @NotNull List<Component> getTooltipStrings(

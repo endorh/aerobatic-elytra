@@ -14,6 +14,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.tags.BlockTags;
@@ -158,8 +159,8 @@ public class AerobaticElytraWingItem extends Item implements DyeableLeatherItem 
 	@Override public int getColor(ItemStack stack) {
 		CompoundTag display = stack.getTagElement("display");
 		if (display != null) {
-			return display.contains("color", 99)? display.getInt("color")
-			                                    : AerobaticElytraItem.DEFAULT_COLOR;
+			return display.contains("color", Tag.TAG_ANY_NUMERIC)
+				? display.getInt("color") : AerobaticElytraItem.DEFAULT_COLOR;
 		}
 		display = stack.getTagElement("BlockEntityTag");
 		if (display != null) {

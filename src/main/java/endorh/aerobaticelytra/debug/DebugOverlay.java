@@ -44,7 +44,6 @@ public class DebugOverlay {
 			for (Level world: WeatherData.weatherRegions.keySet()) {
 				final Map<Pair<Long, Long>, WeatherRegion> worldRegions =
 				  WeatherData.weatherRegions.get(world);
-				//noinspection SynchronizationOnLocalVariableOrMethodParameter
 				synchronized (worldRegions) {
 					ret.add(format("  World: %s: %d", world, worldRegions.size()));
 					/*if (Screen.hasAltDown()) {
@@ -120,7 +119,7 @@ public class DebugOverlay {
 		ret.add("");
 		
 		WindRegion node = WindRegion.of(
-		  player.level, WeatherRegion.scale(player.getX()), WeatherRegion.scale(player.getZ()));
+		  player.level(), WeatherRegion.scale(player.getX()), WeatherRegion.scale(player.getZ()));
 		ret.add("Wind: " + node.wind);
 		ret.add("Angular Wind: " + node.angularWind);
 		

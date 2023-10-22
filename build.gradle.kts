@@ -5,7 +5,7 @@ import java.util.*
 // Plugins
 plugins {
 	java
-	id("net.minecraftforge.gradle")
+	id("net.neoforged.gradle") version "6.0.+"
 	id("aerobaticelytra.minecraft-conventions")
 	id("org.parchmentmc.librarian.forgegradle") version "1.+"
 	`maven-publish`
@@ -19,9 +19,9 @@ val githubRepo = "endorh/aerobatic-elytra"
 
 object V {
 	val mod = "1.1.0"
-	val minecraft = "1.19.4"
-	val parchment = "2023.06.26"
-	val forge = "45.2.0"
+	val minecraft = "1.20.1"
+	val parchment = "2023.09.03"
+	val forge = "47.1.79"
 	val minecraftForge = "$minecraft-$forge"
 	object mappings {
 		val channel = "parchment"
@@ -31,19 +31,19 @@ object V {
 	// Dependencies
 	val mixin = "0.8.2"
 	val minimalMixin = "0.7.10"
-	val flightCoreMinecraft = "1.19.4"
+	val flightCoreMinecraft = "1.20.1"
 	val flightCore = "1.0.+"
 	val simpleConfig = "1.0.+"
 	val lazuLib = "1.0.+"
 
 	// Integration
-	val jei = "13.1.0.16"
-	val curios = "1.19.4-5.1.5.3"
-	val caelus = "1.19.4-3.0.0.10"
+	val jei = "15.2.0.27"
+	val curios = "5.3.5+1.20.1"
+	val caelus = "3.1.0+1.20"
 	val aerobaticElytraJetpack = "1.0.+"
 }
 
-// group = modGroup
+// group = modGroup // This breaks IJ modules and run configurations
 version = V.mod
 val groupSlashed = modGroup.replace(".", "/")
 val className = "AerobaticElytra"
@@ -254,7 +254,7 @@ dependencies {
 	implementation("org.jetbrains:annotations:23.0.0")
 
 	// Minecraft
-    minecraft("net.minecraftforge:forge:${V.minecraftForge}")
+    minecraft("net.neoforged:forge:${V.minecraftForge}")
 
 	// Mod dependencies
 	// Flight Core
@@ -286,23 +286,23 @@ dependencies {
 	// runtimeOnly(fg.deobf("endorh.aerobaticelytra.jetpack:aerobaticelytrajetpack-$mcVersion:$aerobaticElytraJetpackVersion"))
 
 	// Elytra Slot
-	runtimeOnly(fg.deobf("curse.maven:elytra-slot-317716:4519316"))
+	runtimeOnly(fg.deobf("curse.maven:elytra-slot-317716:4598379"))
 
 	// Colytra
-	// runtimeOnly(fg.deobf("curse.maven:colytra-280200:4558349"))
+	// runtimeOnly(fg.deobf("curse.maven:colytra-280200:4600714"))
 
 	// Customizable Elytra
-	runtimeOnly(fg.deobf("curse.maven:customizableelytra-440047:4442601"))
+	// runtimeOnly(fg.deobf("curse.maven:customizableelytra-440047:4618549"))
 
 	// Additional Banners
-	runtimeOnly(fg.deobf("curse.maven:bookshelf-228525:4570842"))
-	runtimeOnly(fg.deobf("curse.maven:additionalbanners-230137:4543098"))
+	runtimeOnly(fg.deobf("curse.maven:bookshelf-228525:4771036"))
+	runtimeOnly(fg.deobf("curse.maven:additionalbanners-230137:4773936"))
 
 	// Xaero's World Map
-	runtimeOnly(fg.deobf("curse.maven:xaeros-worldmap-317780:4749571"))
+	runtimeOnly(fg.deobf("curse.maven:xaeros-worldmap-317780:4749572"))
 
 	// Xaero's Minimap (waypoint rendering doesn't account for camera roll)
-	// runtimeOnly(fg.deobf("curse.maven:xaeros-minimap-263420:4768138"))
+	// runtimeOnly(fg.deobf("curse.maven:xaeros-minimap-263420:4768139"))
 
 	// Immersive Portals (untestable in a deobfuscated environment, crashes without refmaps)
 	//   Portals with rotation override roll with a fixed animation that is sometimes in the wrong axis
@@ -310,7 +310,7 @@ dependencies {
 	// runtimeOnly(fg.deobf("curse.maven:immersive-portals-355440:unreleased"))
 
 	// Catalogue
-	runtimeOnly(fg.deobf("curse.maven:catalogue-459701:4496718"))
+	runtimeOnly(fg.deobf("curse.maven:catalogue-459701:4766090"))
 	
 	// Distant Horizons
 	// runtimeOnly(fg.deobf("curse.maven:distant-horizons-508933:4443878"))

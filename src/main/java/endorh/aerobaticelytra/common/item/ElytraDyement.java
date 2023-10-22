@@ -7,6 +7,7 @@ import net.minecraft.core.cauldron.CauldronInteraction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionResult;
@@ -143,7 +144,7 @@ public class ElytraDyement {
 	
 	public void setColor(int color) {
 		getFirst().setColor(color);
-		this.hasWingDyement = false;
+		hasWingDyement = false;
 	}
 	
 	public void setPattern(
@@ -154,7 +155,7 @@ public class ElytraDyement {
 	  DyeColor base, List<Pair<BannerPattern, DyeColor>> bannerData, boolean addBase
 	) {
 		getFirst().setPattern(base, bannerData, addBase);
-		this.hasWingDyement = false;
+		hasWingDyement = false;
 	}
 	
 	public void clear() {
@@ -205,11 +206,11 @@ public class ElytraDyement {
 		public List<Pair<BannerPattern, DyeColor>> patternColorData;
 		
 		public WingDyement() {
-			this.parent = null;
+			parent = null;
 		}
 		
 		public WingDyement(ElytraDyement dyement) {
-			this.parent = dyement;
+			parent = dyement;
 		}
 		
 		public void setColor(int color) {
@@ -287,7 +288,7 @@ public class ElytraDyement {
 				basePatternColor = DyeColor.byId(data.getInt("Base"));
 				color = getTextureDiffuseColor(basePatternColor);
 				patternColorData = getPatternColorData(
-					basePatternColor, data.getList("Patterns", 10).copy());
+					basePatternColor, data.getList("Patterns", Tag.TAG_COMPOUND).copy());
 			} else {
 				hasPattern = false;
 				patternColorData = null;

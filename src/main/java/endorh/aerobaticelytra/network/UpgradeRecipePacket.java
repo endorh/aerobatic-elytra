@@ -43,7 +43,7 @@ public class UpgradeRecipePacket extends ClientPlayerPacket {
 	
 	public List<UpgradeRecipe> getRecipes(Player player) {
 		return recipeIDs.stream().map(id -> {
-			final Optional<? extends Recipe<?>> opt = player.level.getRecipeManager().byKey(id);
+			final Optional<? extends Recipe<?>> opt = player.level().getRecipeManager().byKey(id);
 			if (opt.isEmpty()) {
 				LOGGER.error(
 				  "Unknown recipe id found in packet from player \"" + player.getScoreboardName() +

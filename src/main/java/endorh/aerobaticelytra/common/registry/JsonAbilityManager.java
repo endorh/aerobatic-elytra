@@ -18,7 +18,7 @@ import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.Deserializers;
 import net.minecraft.world.level.storage.loot.LootContext;
-import net.minecraft.world.level.storage.loot.LootContext.Builder;
+import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraftforge.event.TickEvent.Phase;
@@ -82,10 +82,15 @@ public class JsonAbilityManager extends SimpleJsonResourceReloadListener {
 		}
 	}
 	
+	public static LootParams createEffectAbilityLootParams(ServerPlayer player) {
+		return new LootParams.Builder(player.serverLevel())
+			.withParameter(LootContextParams.THIS_ENTITY, player)
+			.withParameter(LootContextParams.ORIGIN, player.position())
+			.create(LootContextParamSets.GIFT);
+	}
+
 	public static LootContext createEffectAbilityLootContext(ServerPlayer player) {
-		return new Builder(player.getLevel()).withRandom(player.getRandom())
-		  .withParameter(LootContextParams.THIS_ENTITY, player)
-		  .withParameter(LootContextParams.ORIGIN, player.position())
-		  .create(LootContextParamSets.GIFT);
+		return new LootContext.Builder(createEffectAbilityLootParams(player))
+			.create(new ResourceLocation("default"));
 	}
 }
