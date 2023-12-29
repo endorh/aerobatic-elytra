@@ -5,7 +5,7 @@ import com.google.gson.JsonSyntaxException;
 import endorh.aerobaticelytra.common.capability.IElytraSpec;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.item.IAbility;
-import endorh.util.nbt.JsonToNBTUtil;
+import endorh.lazulib.nbt.JsonToNBTUtil;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;

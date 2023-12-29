@@ -6,7 +6,7 @@ import endorh.aerobaticelytra.common.item.AerobaticElytraWingItem;
 import endorh.aerobaticelytra.common.item.ElytraDyement;
 import endorh.aerobaticelytra.common.item.ElytraDyement.WingDyement;
 import endorh.aerobaticelytra.common.item.ElytraDyement.WingSide;
-import endorh.util.common.ColorUtil;
+import endorh.lazulib.common.ColorUtil;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;

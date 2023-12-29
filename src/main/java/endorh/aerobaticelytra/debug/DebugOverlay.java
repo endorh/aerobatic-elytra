@@ -5,7 +5,7 @@ import endorh.aerobaticelytra.common.flight.VectorBase;
 import endorh.aerobaticelytra.common.flight.WeatherData;
 import endorh.aerobaticelytra.common.flight.WeatherData.WeatherRegion;
 import endorh.aerobaticelytra.common.flight.WeatherData.WindRegion;
-import endorh.util.math.Vec3f;
+import endorh.lazulib.math.Vec3f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;

@@ -1,16 +1,16 @@
 package endorh.aerobaticelytra.common.flight;
 
 import endorh.aerobaticelytra.common.capability.IAerobaticData;
-import endorh.util.math.Vec3d;
-import endorh.util.math.Vec3f;
+import endorh.lazulib.math.Vec3d;
+import endorh.lazulib.math.Vec3f;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.Mth;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import static endorh.util.math.Vec3f.PI;
-import static endorh.util.math.Vec3f.PI_HALF;
+import static endorh.lazulib.math.Vec3f.PI;
+import static endorh.lazulib.math.Vec3f.PI_HALF;
 import static java.lang.Math.abs;
 import static java.lang.String.format;
 

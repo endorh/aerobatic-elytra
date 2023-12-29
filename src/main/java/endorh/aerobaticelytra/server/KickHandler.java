@@ -3,7 +3,7 @@ package endorh.aerobaticelytra.server;
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.common.config.Config;
 import endorh.aerobaticelytra.common.flight.AerobaticFlight;
-import endorh.flightcore.events.DisableElytraCheckEvent;
+import endorh.lazulib.events.DisableElytraCheckEvent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static endorh.util.text.TextUtil.ttc;
+import static endorh.lazulib.text.TextUtil.ttc;
 
 /**
  * Handle player kicks

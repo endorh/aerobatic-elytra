@@ -3,10 +3,10 @@ package endorh.aerobaticelytra.common.flight;
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.common.flight.mode.IFlightMode;
 import endorh.aerobaticelytra.common.registry.AerobaticElytraRegistries;
-import endorh.flightcore.events.PlayerTravelEvent;
-import endorh.flightcore.events.PlayerTravelEvent.RemotePlayerTravelEvent;
-import endorh.util.common.ObfuscationReflectionUtil;
-import endorh.util.common.ObfuscationReflectionUtil.SoftField;
+import endorh.lazulib.common.ObfuscationReflectionUtil;
+import endorh.lazulib.common.ObfuscationReflectionUtil.SoftField;
+import endorh.lazulib.events.PlayerTravelEvent;
+import endorh.lazulib.events.PlayerTravelEvent.RemotePlayerTravelEvent;
 import net.minecraft.network.protocol.game.ServerGamePacketListener;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
@@ -26,7 +26,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import static endorh.aerobaticelytra.common.capability.FlightDataCapability.getFlightData;
-import static endorh.util.common.LogUtil.oneTimeLogger;
+import static endorh.lazulib.common.LogUtil.oneTimeLogger;
 
 @EventBusSubscriber(modid = AerobaticElytra.MOD_ID)
 public class TravelHandler {

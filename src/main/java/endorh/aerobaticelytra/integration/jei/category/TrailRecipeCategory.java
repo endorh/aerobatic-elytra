@@ -33,8 +33,8 @@ import java.util.stream.IntStream;
 import static endorh.aerobaticelytra.common.capability.ElytraSpecCapability.getElytraSpecOrDefault;
 import static endorh.aerobaticelytra.common.item.AerobaticElytraItems.AEROBATIC_ELYTRA;
 import static endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiHelper.*;
-import static endorh.util.text.TextUtil.optSplitTtc;
-import static endorh.util.text.TextUtil.splitTtc;
+import static endorh.lazulib.text.TextUtil.optSplitTtc;
+import static endorh.lazulib.text.TextUtil.splitTtc;
 import static mezz.jei.api.recipe.RecipeIngredientRole.INPUT;
 import static mezz.jei.api.recipe.RecipeIngredientRole.OUTPUT;
 

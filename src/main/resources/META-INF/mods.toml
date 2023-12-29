@@ -16,12 +16,6 @@ issueTrackerURL="${issue_tracker}"
 [modproperties.aerobaticelytra]
     catalogueImageIcon="aerobaticelytra.png"
 [[dependencies.aerobaticelytra]]
-    modId="flightcore"
-    mandatory=true
-    versionRange="[1.0,2.0)"
-    ordering="NONE"
-    side="BOTH"
-[[dependencies.aerobaticelytra]]
     modId="simpleconfig"
     versionRange="[1.0,2.0)"
     mandatory=true
@@ -29,7 +23,7 @@ issueTrackerURL="${issue_tracker}"
     side="BOTH"
 [[dependencies.aerobaticelytra]]
     modId="lazulib"
-    versionRange="[1.0,2.0)"
+    versionRange="[1.2,2.0)"
     mandatory=true
     ordering="NONE"
     side="BOTH"

@@ -2,8 +2,8 @@ package endorh.aerobaticelytra.common.capability;
 
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.common.flight.VectorBase;
-import endorh.util.capability.SerializableCapabilityWrapperProvider;
-import endorh.util.math.Vec3d;
+import endorh.lazulib.capability.SerializableCapabilityWrapperProvider;
+import endorh.lazulib.math.Vec3d;
 import net.minecraft.client.resources.sounds.ElytraOnPlayerSoundInstance;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;

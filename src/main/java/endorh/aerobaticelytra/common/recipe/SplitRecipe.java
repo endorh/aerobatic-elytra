@@ -4,7 +4,7 @@ import com.google.gson.*;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItem;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.item.ElytraDyement.WingSide;
-import endorh.util.network.PacketBufferUtil;
+import endorh.lazulib.network.PacketBufferUtil;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;

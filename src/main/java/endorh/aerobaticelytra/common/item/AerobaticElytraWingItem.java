@@ -9,7 +9,7 @@ import endorh.aerobaticelytra.common.capability.IElytraSpec;
 import endorh.aerobaticelytra.common.capability.IElytraSpec.TrailData;
 import endorh.aerobaticelytra.common.flight.VectorBase;
 import endorh.aerobaticelytra.common.item.ElytraDyement.WingSide;
-import endorh.util.math.Vec3f;
+import endorh.lazulib.math.Vec3f;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction.Axis;
@@ -37,8 +37,8 @@ import java.util.List;
 import static endorh.aerobaticelytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
 import static endorh.aerobaticelytra.common.capability.ElytraSpecCapability.getElytraSpec;
 import static endorh.aerobaticelytra.common.capability.ElytraSpecCapability.getElytraSpecOrDefault;
-import static endorh.util.text.TextUtil.stc;
-import static endorh.util.text.TextUtil.ttc;
+import static endorh.lazulib.text.TextUtil.stc;
+import static endorh.lazulib.text.TextUtil.ttc;
 
 public class AerobaticElytraWingItem extends Item implements DyeableLeatherItem {
 	public static final String NAME = "aerobatic_elytra_wing";

@@ -1,7 +1,7 @@
 package endorh.aerobaticelytra.integration.jei;
 
 import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
-import endorh.util.recipe.RecipeManagerHelper;
+import endorh.lazulib.recipe.RecipeManagerHelper;
 import mezz.jei.api.recipe.IFocus;
 import mezz.jei.api.recipe.IFocusFactory;
 import mezz.jei.api.recipe.IFocusGroup;

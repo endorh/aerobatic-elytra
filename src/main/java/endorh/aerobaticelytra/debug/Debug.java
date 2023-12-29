@@ -10,8 +10,8 @@ import net.minecraftforge.fml.DistExecutor;
 
 import java.util.UUID;
 
-import static endorh.util.network.PacketBufferUtil.readNullable;
-import static endorh.util.network.PacketBufferUtil.writeNullable;
+import static endorh.lazulib.network.PacketBufferUtil.readNullable;
+import static endorh.lazulib.network.PacketBufferUtil.writeNullable;
 
 public class Debug {
 	public static Debug DEBUG = new Debug();

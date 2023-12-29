@@ -5,7 +5,7 @@ import endorh.aerobaticelytra.client.input.KeyHandler;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.recipe.CraftedUpgradeRecipe;
 import endorh.aerobaticelytra.integration.jei.category.*;
-import endorh.util.recipe.RecipeManagerHelper;
+import endorh.lazulib.recipe.RecipeManagerHelper;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.VanillaTypes;
@@ -35,7 +35,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static endorh.aerobaticelytra.common.capability.ElytraSpecCapability.getElytraSpecOrDefault;
-import static endorh.util.text.TextUtil.ttc;
+import static endorh.lazulib.text.TextUtil.ttc;
 import static mezz.jei.api.ingredients.subtypes.IIngredientSubtypeInterpreter.NONE;
 
 /**

@@ -14,8 +14,8 @@ import org.apache.logging.log4j.Logger;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
+import static endorh.lazulib.text.TextUtil.makeLink;
 import static endorh.simpleconfig.api.ConfigBuilderFactoryProxy.*;
-import static endorh.util.text.TextUtil.makeLink;
 
 @EventBusSubscriber(modid = AerobaticElytra.MOD_ID)
 public class ClientConfig {

@@ -2,12 +2,12 @@ package endorh.aerobaticelytra.client.trail;
 
 import endorh.aerobaticelytra.common.capability.IElytraSpec.RocketStar;
 import endorh.aerobaticelytra.common.flight.VectorBase;
-import endorh.util.math.Vec3d;
-import endorh.util.math.Vec3f;
+import endorh.lazulib.math.Vec3d;
+import endorh.lazulib.math.Vec3f;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 
-import static endorh.util.math.Vec3f.PI;
+import static endorh.lazulib.math.Vec3f.PI;
 
 public abstract class BoostShape {
 	public abstract void generate(

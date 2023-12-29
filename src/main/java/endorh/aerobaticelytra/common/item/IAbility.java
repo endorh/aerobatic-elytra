@@ -17,8 +17,8 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import static endorh.aerobaticelytra.common.item.IAbility.DisplayType.*;
-import static endorh.util.text.TextUtil.stc;
-import static endorh.util.text.TextUtil.ttc;
+import static endorh.lazulib.text.TextUtil.stc;
+import static endorh.lazulib.text.TextUtil.ttc;
 
 @EventBusSubscriber(modid = AerobaticElytra.MOD_ID)
 public interface IAbility {

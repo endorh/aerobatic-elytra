@@ -8,7 +8,7 @@ import endorh.aerobaticelytra.common.config.Config;
 import endorh.aerobaticelytra.common.config.Const;
 import endorh.aerobaticelytra.common.flight.AerobaticFlight;
 import endorh.aerobaticelytra.common.flight.VectorBase;
-import endorh.flightcore.events.PlayerTurnEvent;
+import endorh.lazulib.events.PlayerTurnEvent;
 import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;

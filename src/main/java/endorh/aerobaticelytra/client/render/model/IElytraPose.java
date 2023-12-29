@@ -3,7 +3,7 @@ package endorh.aerobaticelytra.client.render.model;
 import endorh.aerobaticelytra.common.capability.AerobaticDataCapability;
 import endorh.aerobaticelytra.common.capability.IAerobaticData;
 import endorh.aerobaticelytra.common.config.Config;
-import endorh.util.math.Vec3f;
+import endorh.lazulib.math.Vec3f;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.decoration.ArmorStand;

@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 
 import static endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiHelper.getAerobaticElytrasMatchingFocus;
 import static endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiHelper.split;
-import static endorh.util.text.TextUtil.optSplitTtc;
+import static endorh.lazulib.text.TextUtil.optSplitTtc;
 
 public class JoinRecipeCategory extends BaseCategory<JoinRecipe> {
 	public static final RecipeType<JoinRecipe> TYPE = RecipeType.create(AerobaticElytra.MOD_ID, "join", JoinRecipe.class);

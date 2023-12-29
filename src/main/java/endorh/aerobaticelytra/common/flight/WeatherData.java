@@ -3,7 +3,7 @@ package endorh.aerobaticelytra.common.flight;
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.common.config.Config.weather;
 import endorh.aerobaticelytra.network.WeatherPackets.SWindNodePacket;
-import endorh.util.math.Vec3f;
+import endorh.lazulib.math.Vec3f;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.player.Player;

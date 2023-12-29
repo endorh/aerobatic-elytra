@@ -5,9 +5,9 @@ import endorh.aerobaticelytra.client.trail.AerobaticTrail.RocketSide;
 import endorh.aerobaticelytra.common.capability.IElytraSpec.RocketStar;
 import endorh.aerobaticelytra.common.capability.IElytraSpec.TrailData;
 import endorh.aerobaticelytra.common.particle.TrailParticleData;
-import endorh.util.common.ColorUtil;
-import endorh.util.common.LogUtil;
-import endorh.util.math.Vec3f;
+import endorh.lazulib.common.ColorUtil;
+import endorh.lazulib.common.LogUtil;
+import endorh.lazulib.math.Vec3f;
 import net.minecraft.client.Camera;
 import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
@@ -21,7 +21,7 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.Color;
+import java.awt.*;
 import java.util.Optional;
 import java.util.Random;
 

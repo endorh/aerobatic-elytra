@@ -6,10 +6,10 @@ import endorh.aerobaticelytra.common.AerobaticElytraLogic;
 import endorh.aerobaticelytra.common.capability.IAerobaticData;
 import endorh.aerobaticelytra.common.config.Config;
 import endorh.aerobaticelytra.common.flight.mode.FlightModeTags;
-import endorh.util.common.LogUtil;
-import endorh.util.common.ObfuscationReflectionUtil;
-import endorh.util.common.ObfuscationReflectionUtil.SoftField;
-import endorh.util.common.ObfuscationReflectionUtil.SoftMethod;
+import endorh.lazulib.common.LogUtil;
+import endorh.lazulib.common.ObfuscationReflectionUtil;
+import endorh.lazulib.common.ObfuscationReflectionUtil.SoftField;
+import endorh.lazulib.common.ObfuscationReflectionUtil.SoftMethod;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.RemotePlayer;
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
@@ -29,7 +29,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import static endorh.aerobaticelytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
-import static endorh.util.common.LogUtil.oneTimeLogger;
+import static endorh.lazulib.common.LogUtil.oneTimeLogger;
 import static java.lang.Math.*;
 
 @EventBusSubscriber(value=Dist.CLIENT, modid=AerobaticElytra.MOD_ID)

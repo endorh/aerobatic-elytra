@@ -1,7 +1,7 @@
 package endorh.aerobaticelytra.network;
 
 import endorh.aerobaticelytra.debug.Debug;
-import endorh.util.network.ServerPlayerPacket;
+import endorh.lazulib.network.ServerPlayerPacket;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;

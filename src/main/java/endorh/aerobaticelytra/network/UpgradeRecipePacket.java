@@ -1,8 +1,8 @@
 package endorh.aerobaticelytra.network;
 
 import endorh.aerobaticelytra.common.recipe.UpgradeRecipe;
-import endorh.util.network.ClientPlayerPacket;
-import endorh.util.network.PacketBufferUtil;
+import endorh.lazulib.network.ClientPlayerPacket;
+import endorh.lazulib.network.PacketBufferUtil;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;

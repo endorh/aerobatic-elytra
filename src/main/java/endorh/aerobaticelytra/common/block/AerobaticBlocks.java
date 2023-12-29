@@ -22,7 +22,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.Map;
 
-import static endorh.util.common.ForgeUtil.futureNotNull;
+import static endorh.lazulib.common.ForgeUtil.futureNotNull;
 
 @EventBusSubscriber(bus=Bus.MOD, modid=AerobaticElytra.MOD_ID)
 public class AerobaticBlocks {

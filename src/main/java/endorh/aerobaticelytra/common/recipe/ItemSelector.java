@@ -2,8 +2,8 @@ package endorh.aerobaticelytra.common.recipe;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonSyntaxException;
-import endorh.util.nbt.NBTPredicate;
-import endorh.util.nbt.NBTPredicate.NBTPredicateParseException;
+import endorh.lazulib.nbt.NBTPredicate;
+import endorh.lazulib.nbt.NBTPredicate.NBTPredicateParseException;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -27,9 +27,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static endorh.util.network.PacketBufferUtil.readList;
-import static endorh.util.network.PacketBufferUtil.writeList;
-import static endorh.util.text.TextUtil.stc;
+import static endorh.lazulib.network.PacketBufferUtil.readList;
+import static endorh.lazulib.network.PacketBufferUtil.writeList;
+import static endorh.lazulib.text.TextUtil.stc;
 
 /**
  * Custom syntax for selecting items in the config

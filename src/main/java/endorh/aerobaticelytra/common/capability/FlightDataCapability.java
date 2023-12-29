@@ -4,7 +4,7 @@ import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.client.sound.FadingTickableSound;
 import endorh.aerobaticelytra.common.flight.mode.FlightModes;
 import endorh.aerobaticelytra.common.flight.mode.IFlightMode;
-import endorh.util.capability.SerializableCapabilityWrapperProvider;
+import endorh.lazulib.capability.SerializableCapabilityWrapperProvider;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;

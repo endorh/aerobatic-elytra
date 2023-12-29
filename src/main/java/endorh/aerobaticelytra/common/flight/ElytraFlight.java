@@ -4,7 +4,7 @@ import endorh.aerobaticelytra.common.AerobaticElytraLogic;
 import endorh.aerobaticelytra.common.capability.ElytraSpecCapability;
 import endorh.aerobaticelytra.common.capability.IElytraSpec;
 import endorh.aerobaticelytra.common.flight.mode.FlightModeTags;
-import endorh.util.math.Vec3f;
+import endorh.lazulib.math.Vec3f;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.MoverType;

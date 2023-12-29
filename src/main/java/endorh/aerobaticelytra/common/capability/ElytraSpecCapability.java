@@ -4,7 +4,7 @@ import endorh.aerobaticelytra.common.config.Config;
 import endorh.aerobaticelytra.common.item.IAbility;
 import endorh.aerobaticelytra.common.item.IEffectAbility;
 import endorh.aerobaticelytra.common.registry.AerobaticElytraRegistries;
-import endorh.util.capability.SerializableCapabilityWrapperProvider;
+import endorh.lazulib.capability.SerializableCapabilityWrapperProvider;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;

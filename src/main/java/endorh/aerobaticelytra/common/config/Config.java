@@ -10,9 +10,9 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.HoverEvent;
 
+import static endorh.lazulib.text.TextUtil.stc;
+import static endorh.lazulib.text.TextUtil.ttc;
 import static endorh.simpleconfig.api.ConfigBuilderFactoryProxy.*;
-import static endorh.util.text.TextUtil.stc;
-import static endorh.util.text.TextUtil.ttc;
 import static java.lang.Math.*;
 
 public class Config {

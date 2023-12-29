@@ -9,11 +9,11 @@ import endorh.aerobaticelytra.common.item.IDatapackAbility;
 import endorh.aerobaticelytra.common.item.IDatapackAbilityReloadListener;
 import endorh.aerobaticelytra.common.item.IEffectAbility;
 import endorh.aerobaticelytra.common.registry.AerobaticElytraRegistries;
-import endorh.util.capability.ISerializableCapability;
-import endorh.util.math.MathParser.ExpressionParser.ParseException.NameParseException;
-import endorh.util.math.MathParser.FixedNamespaceSet;
-import endorh.util.math.MathParser.ParsedExpression;
-import endorh.util.text.MutableComponentList;
+import endorh.lazulib.capability.ISerializableCapability;
+import endorh.lazulib.math.MathParser.ExpressionParser.ParseException.NameParseException;
+import endorh.lazulib.math.MathParser.FixedNamespaceSet;
+import endorh.lazulib.math.MathParser.ParsedExpression;
+import endorh.lazulib.text.MutableComponentList;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.gui.screens.Screen;
@@ -35,10 +35,10 @@ import org.jetbrains.annotations.Nullable;
 import javax.annotation.Nonnull;
 import java.util.*;
 
-import static endorh.util.text.TextUtil.stc;
-import static endorh.util.text.TextUtil.ttc;
-import static endorh.util.text.TooltipUtil.altToExpand;
-import static endorh.util.text.TooltipUtil.ctrlToExpand;
+import static endorh.lazulib.text.TextUtil.stc;
+import static endorh.lazulib.text.TextUtil.ttc;
+import static endorh.lazulib.text.TooltipUtil.altToExpand;
+import static endorh.lazulib.text.TooltipUtil.ctrlToExpand;
 import static java.lang.String.format;
 
 /**

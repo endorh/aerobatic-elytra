@@ -8,8 +8,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import endorh.aerobaticelytra.client.trail.AerobaticTrail.RocketSide;
 import endorh.aerobaticelytra.common.capability.IElytraSpec.TrailData;
-import endorh.util.math.Vec3f;
-import endorh.util.network.PacketBufferUtil;
+import endorh.lazulib.math.Vec3f;
+import endorh.lazulib.network.PacketBufferUtil;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.network.FriendlyByteBuf;
@@ -19,7 +19,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.Color;
+import java.awt.*;
 import java.util.List;
 import java.util.Locale;
 

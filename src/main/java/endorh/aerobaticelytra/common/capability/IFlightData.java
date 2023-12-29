@@ -2,7 +2,7 @@ package endorh.aerobaticelytra.common.capability;
 
 import endorh.aerobaticelytra.client.sound.FadingTickableSound;
 import endorh.aerobaticelytra.common.flight.mode.IFlightMode;
-import endorh.util.capability.ISerializableCapability;
+import endorh.lazulib.capability.ISerializableCapability;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 

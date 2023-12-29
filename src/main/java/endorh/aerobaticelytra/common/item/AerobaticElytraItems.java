@@ -16,7 +16,7 @@ import net.minecraftforge.registries.RegisterEvent;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static endorh.util.common.ForgeUtil.futureNotNull;
+import static endorh.lazulib.common.ForgeUtil.futureNotNull;
 
 @EventBusSubscriber(bus = Bus.MOD, modid = AerobaticElytra.MOD_ID)
 public class AerobaticElytraItems {

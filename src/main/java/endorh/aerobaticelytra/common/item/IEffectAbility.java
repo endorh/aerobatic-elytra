@@ -1,9 +1,9 @@
 package endorh.aerobaticelytra.common.item;
 
 import com.google.gson.*;
-import endorh.util.common.LogUtil;
-import endorh.util.common.ObfuscationReflectionUtil;
-import endorh.util.common.ObfuscationReflectionUtil.SoftField;
+import endorh.lazulib.common.LogUtil;
+import endorh.lazulib.common.ObfuscationReflectionUtil;
+import endorh.lazulib.common.ObfuscationReflectionUtil.SoftField;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.MutableComponent;
@@ -29,8 +29,8 @@ import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import static endorh.util.text.TextUtil.stc;
-import static endorh.util.text.TextUtil.ttc;
+import static endorh.lazulib.text.TextUtil.stc;
+import static endorh.lazulib.text.TextUtil.ttc;
 
 public interface IEffectAbility extends IDatapackAbility {
 	boolean testConditions(LootContext context);

@@ -5,7 +5,7 @@ import endorh.aerobaticelytra.common.capability.IAerobaticData;
 import endorh.aerobaticelytra.common.config.Config;
 import endorh.aerobaticelytra.common.config.Config.collision.slime_bounce;
 import endorh.aerobaticelytra.common.config.Const;
-import endorh.util.math.Vec3f;
+import endorh.lazulib.math.Vec3f;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import static endorh.aerobaticelytra.common.capability.AerobaticDataCapability.getAerobaticDataOrDefault;
-import static endorh.util.math.Vec3f.forAxis;
+import static endorh.lazulib.math.Vec3f.forAxis;
 import static java.lang.Math.max;
 
 /**

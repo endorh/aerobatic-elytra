@@ -18,7 +18,7 @@ val modGroup = "endorh.aerobaticelytra"
 val githubRepo = "endorh/aerobatic-elytra"
 
 object V {
-	val mod = "1.1.0"
+	val mod = "1.1.1"
 	val minecraft = "1.20.1"
 	val parchment = "2023.09.03"
 	val forge = "47.1.79"
@@ -31,10 +31,8 @@ object V {
 	// Dependencies
 	val mixin = "0.8.2"
 	val minimalMixin = "0.7.10"
-	val flightCoreMinecraft = "1.20.1"
-	val flightCore = "1.0.+"
 	val simpleConfig = "1.0.+"
-	val lazuLib = "1.0.+"
+	val lazuLib = "1.2+"
 
 	// Integration
 	val jei = "15.2.0.27"
@@ -95,7 +93,7 @@ val modProperties = mapOf(
 	"update_json"   to updateJson,
 	"logo_file"     to logoFile,
 	"description"   to modDescription,
-	"group"         to group,
+	"group"         to modGroup,
 	"class_name"    to className,
 	"group_slashed" to groupSlashed,
 )
@@ -119,12 +117,17 @@ tasks.withType<JavaCompile> {
 	options.encoding = "UTF-8"
 }
 
-println(
-	"Java: " + System.getProperty("java.version")
-	+ " JVM: " + System.getProperty("java.vm.version") + "(" + System.getProperty("java.vendor")
-	+ ") Arch: " + System.getProperty("os.arch"))
+fun sysProp(name: String) = System.getProperty(name) ?: null
 
-println("Mod: \"$displayName\" ($modId), version: ${V.minecraft}-${V.mod} (Forge: ${V.forge})")
+// JetBrains Runtime HotSwap (run with vanilla JBR 17 without fast-debug, see CONTRIBUTING.md)
+val jvmSupportsEnhancedClassRedefinition = sysProp("java.vendor")?.contains("JetBrains") == true
+
+println("Java: ${sysProp("java.version")}")
+println("JVM: \"${sysProp("java.vm.name")}\" ${sysProp("java.vm.version")} (${sysProp("java.vendor")})")
+
+println("Mod: \"$displayName\" ($modId)")
+println("Version: ${V.minecraft}-${V.mod} (Forge: ${V.forge}) (Mixin: ${V.mixin})")
+println("Mappings: ${V.mappings.channel} ${V.mappings.version}")
 
 // Minecraft options -----------------------------------------------------------
 
@@ -140,9 +143,9 @@ minecraft {
 			property("forge.logging.markers", "REGISTRIES")
 			property("forge.logging.console.level", "debug")
 			property("mixin.env.disableRefMap", "true")
-			
-			// JetBrains Runtime HotSwap (run with vanilla JBR 17 without fast-debug, see CONTRIBUTING.md)
-			jvmArg("-XX:+AllowEnhancedClassRedefinition")
+
+			if (jvmSupportsEnhancedClassRedefinition)
+				jvmArg("-XX:+AllowEnhancedClassRedefinition")
 			
 			mods {
 				create(modId) {
@@ -157,9 +160,9 @@ minecraft {
 			property("forge.logging.markers", "REGISTRIES")
 			property("forge.logging.console.level", "debug")
 			property("mixin.env.disableRefMap", "true")
-			
-			// JetBrains Runtime HotSwap (run with vanilla JBR 17 without fast-debug, see CONTRIBUTING.md)
-			jvmArg("-XX:+AllowEnhancedClassRedefinition")
+
+			if (jvmSupportsEnhancedClassRedefinition)
+				jvmArg("-XX:+AllowEnhancedClassRedefinition")
 			
 			arg("nogui")
 			
@@ -226,8 +229,7 @@ repositories {
 	
 	// GitHub Packages
 	val gitHubRepos = mapOf(
-		"endorh/lazulib" to "endorh.util.lazulib",
-		"endorh/flight-core" to "endorh.flightcore",
+		"endorh/lazulib" to "endorh.lazulib",
 		"endorh/simple-config" to "endorh.simpleconfig",
 	)
 	for (repo in gitHubRepos.entries) maven("https://maven.pkg.github.com/${repo.key}") {
@@ -250,22 +252,19 @@ repositories {
 
 dependencies {
 	// IDE
-    implementation("org.junit.jupiter:junit-jupiter:5.9.0")
+	implementation("org.junit.jupiter:junit-jupiter:5.9.0")
 	implementation("org.jetbrains:annotations:23.0.0")
 
 	// Minecraft
-    minecraft("net.neoforged:forge:${V.minecraftForge}")
+	minecraft("net.neoforged:forge:${V.minecraftForge}")
 
 	// Mod dependencies
-	// Flight Core
-	implementation("endorh.flightcore:flightcore-${V.flightCoreMinecraft}:${V.flightCore}:deobf")
-
 	// Simple Config
 	compileOnly("endorh.simpleconfig:simpleconfig-${V.minecraft}:${V.simpleConfig}:api")
 	runtimeOnly(fg.deobf("endorh.simpleconfig:simpleconfig-${V.minecraft}:${V.simpleConfig}"))
 
 	// LazuLib
-	implementation(fg.deobf("endorh.util.lazulib:lazulib-${V.minecraft}:${V.lazuLib}"))
+	implementation(fg.deobf("endorh.lazulib:lazulib-${V.minecraft}:${V.lazuLib}"))
 	
 	// Mod integrations --------------------------------------------------------
 	// JEI
@@ -439,6 +438,7 @@ publishing {
 		register<MavenPublication>("mod") {
 			artifactId = "$modId-${V.minecraft}"
 			version = V.mod
+			group = modGroup
 			
 			artifact(tasks.jar.get())
 			artifact(sourcesJarTask)

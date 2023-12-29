@@ -19,8 +19,8 @@ import endorh.aerobaticelytra.common.item.IAbility.Ability;
 import endorh.aerobaticelytra.common.recipe.CreativeTabAbilitySetRecipe;
 import endorh.aerobaticelytra.common.recipe.RepairRecipe;
 import endorh.aerobaticelytra.common.recipe.SplitRecipe;
-import endorh.util.common.ColorUtil;
-import endorh.util.nbt.NBTPath;
+import endorh.lazulib.common.ColorUtil;
+import endorh.lazulib.nbt.NBTPath;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
@@ -58,10 +58,10 @@ import static endorh.aerobaticelytra.common.capability.AerobaticDataCapability.g
 import static endorh.aerobaticelytra.common.capability.ElytraSpecCapability.getElytraSpec;
 import static endorh.aerobaticelytra.common.capability.ElytraSpecCapability.getElytraSpecOrDefault;
 import static endorh.aerobaticelytra.common.capability.FlightDataCapability.getFlightData;
-import static endorh.util.common.ForgeUtil.getSerializedCaps;
-import static endorh.util.text.TextUtil.stc;
-import static endorh.util.text.TextUtil.ttc;
-import static endorh.util.text.TooltipUtil.shiftToExpand;
+import static endorh.lazulib.common.ForgeUtil.getSerializedCaps;
+import static endorh.lazulib.text.TextUtil.stc;
+import static endorh.lazulib.text.TextUtil.ttc;
+import static endorh.lazulib.text.TooltipUtil.shiftToExpand;
 import static java.lang.Math.*;
 
 public class AerobaticElytraItem extends ElytraItem implements Equipable, DyeableLeatherItem {

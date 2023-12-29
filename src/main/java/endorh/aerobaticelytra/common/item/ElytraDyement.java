@@ -25,8 +25,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static endorh.util.common.ColorUtil.getTextureDiffuseColor;
-import static endorh.util.text.TextUtil.ttc;
+import static endorh.lazulib.common.ColorUtil.getTextureDiffuseColor;
+import static endorh.lazulib.text.TextUtil.ttc;
 
 /**
  * Helper for reading/writing dye info from/to NBT<br>

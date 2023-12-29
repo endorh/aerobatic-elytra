@@ -27,7 +27,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static endorh.util.text.TextUtil.ttc;
+import static endorh.lazulib.text.TextUtil.ttc;
 
 /**
  * Common logic for categories

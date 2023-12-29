@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 
 import static endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiHelper.getAerobaticElytrasMatchingFocus;
 import static endorh.aerobaticelytra.integration.jei.AerobaticElytraJeiHelper.split;
-import static endorh.util.text.TextUtil.optSplitTtc;
+import static endorh.lazulib.text.TextUtil.optSplitTtc;
 import static java.lang.Math.min;
 import static mezz.jei.api.recipe.RecipeIngredientRole.INPUT;
 import static mezz.jei.api.recipe.RecipeIngredientRole.OUTPUT;

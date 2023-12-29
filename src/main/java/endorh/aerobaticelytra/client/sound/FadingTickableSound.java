@@ -2,8 +2,8 @@ package endorh.aerobaticelytra.client.sound;
 
 import endorh.aerobaticelytra.common.capability.IFlightData;
 import endorh.aerobaticelytra.debug.DebugOverlay;
-import endorh.util.sound.AudioUtil;
-import endorh.util.sound.PlayerTickableSound;
+import endorh.lazulib.sound.AudioUtil;
+import endorh.lazulib.sound.PlayerTickableSound;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;

@@ -3,7 +3,7 @@ package endorh.aerobaticelytra.client.block;
 import endorh.aerobaticelytra.AerobaticElytra;
 import endorh.aerobaticelytra.common.block.AerobaticBlocks;
 import endorh.aerobaticelytra.common.block.entity.BrokenLeavesBlockEntity;
-import endorh.util.common.ColorUtil;
+import endorh.lazulib.common.ColorUtil;
 import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.world.level.FoliageColor;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -14,7 +14,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 
-import java.awt.Color;
+import java.awt.*;
 
 @EventBusSubscriber(value = Dist.CLIENT, bus = Bus.MOD, modid = AerobaticElytra.MOD_ID)
 public class AerobaticBlockColors {

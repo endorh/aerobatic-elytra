@@ -10,7 +10,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegisterEvent;
 import org.jetbrains.annotations.NotNull;
 
-import static endorh.util.common.ForgeUtil.futureNotNull;
+import static endorh.lazulib.common.ForgeUtil.futureNotNull;
 
 @EventBusSubscriber(bus=Bus.MOD, modid=AerobaticElytra.MOD_ID)
 public class AerobaticBlockEntities {

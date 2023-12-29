@@ -1,7 +1,7 @@
 package endorh.aerobaticelytra.server.loot;
 
 import endorh.aerobaticelytra.AerobaticElytra;
-import endorh.flightcore.events.GenerateEndShipItemFrameEvent;
+import endorh.lazulib.events.GenerateEndShipItemFrameEvent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.LootTable;

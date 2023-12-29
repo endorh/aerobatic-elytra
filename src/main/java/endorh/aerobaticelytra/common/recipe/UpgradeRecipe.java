@@ -7,7 +7,7 @@ import endorh.aerobaticelytra.common.capability.IElytraSpec;
 import endorh.aerobaticelytra.common.capability.IElytraSpec.Upgrade;
 import endorh.aerobaticelytra.common.item.AerobaticElytraItems;
 import endorh.aerobaticelytra.common.registry.AerobaticElytraRegistries;
-import endorh.util.recipe.RecipeManagerHelper.CachedRecipeProvider;
+import endorh.lazulib.recipe.RecipeManagerHelper.CachedRecipeProvider;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
@@ -31,8 +31,8 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static endorh.util.network.PacketBufferUtil.readList;
-import static endorh.util.network.PacketBufferUtil.writeList;
+import static endorh.lazulib.network.PacketBufferUtil.readList;
+import static endorh.lazulib.network.PacketBufferUtil.writeList;
 
 public class UpgradeRecipe extends CustomRecipe {
 	public static final Serializer SERIALIZER = new Serializer();

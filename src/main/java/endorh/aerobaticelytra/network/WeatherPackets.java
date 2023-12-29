@@ -2,8 +2,8 @@ package endorh.aerobaticelytra.network;
 
 import endorh.aerobaticelytra.common.flight.WeatherData;
 import endorh.aerobaticelytra.common.flight.WeatherData.WindRegion;
-import endorh.util.math.Vec3f;
-import endorh.util.network.ServerWorldPacket;
+import endorh.lazulib.math.Vec3f;
+import endorh.lazulib.network.ServerWorldPacket;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.network.NetworkEvent.Context;
