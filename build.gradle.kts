@@ -18,7 +18,7 @@ val modGroup = "endorh.aerobaticelytra"
 val githubRepo = "endorh/aerobatic-elytra"
 
 object V {
-	val mod = "1.1.1"
+	val mod = "1.1.2"
 	val minecraft = "1.20.1"
 	val parchment = "2023.09.03"
 	val forge = "47.1.79"

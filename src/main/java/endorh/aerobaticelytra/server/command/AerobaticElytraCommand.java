@@ -45,6 +45,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import org.apache.commons.compress.utils.Lists;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -55,6 +56,7 @@ import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.mojang.brigadier.arguments.BoolArgumentType.bool;
@@ -559,7 +561,9 @@ public class AerobaticElytraCommand {
 		return getAvailablePacks(source).values().stream()
 		  .collect(Collectors.toMap(BundledDatapack::getTitle, bd -> bd, (a, b) -> a));
 	}
-	
+
+	private static final Pattern PACK_MCMETA_PATH_PATTERN = Pattern.compile(
+		"^datapacks/[\\w_-]++/pack\\.mcmeta$");
 	public static Map<String, BundledDatapack> getAvailablePacks(CommandSourceStack source) {
 		final Pack pack = source.getServer().getPackRepository().getPack("mod:" + AerobaticElytra.MOD_ID);
 		
@@ -572,14 +576,17 @@ public class AerobaticElytraCommand {
 			Map<String, BundledDatapack> packs = Maps.newHashMap();
 			resourcePack.listResources(
 				 PackType.SERVER_DATA, AerobaticElytra.MOD_ID, "datapacks", (loc, io) -> {
-					 String path = normalizePath(loc.getPath());
-					 if (path.lastIndexOf("/") == 9) {
-						 BundledDatapack bundled = new BundledDatapack(
-							 resourcePack, new ResourceLocation(
-								 loc.getNamespace(), normalizePath(loc.getPath())));
-						 if (!packs.containsKey(bundled.name))
-							 packs.put(bundled.name, bundled);
-                }
+					String path = normalizePath(loc.getPath());
+
+					// listResources doesn't list directories anymore, so we match on the `pack.mcmeta` files
+					if (PACK_MCMETA_PATH_PATTERN.asMatchPredicate().test(path)) {
+						BundledDatapack bundled = new BundledDatapack(
+							resourcePack, new ResourceLocation(
+								loc.getNamespace(),
+							StringUtils.removeEnd(normalizePath(loc.getPath()), "/pack.mcmeta")));
+						if (!packs.containsKey(bundled.name))
+							packs.put(bundled.name, bundled);
+					}
 				 });
 			return packs;
 		}
